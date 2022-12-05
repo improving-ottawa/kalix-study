@@ -1,0 +1,120 @@
+// Copyright 2022 Lightbend Inc.
+
+// Extension for specifying which topics a gRPC endpoint should be connected
+// to, in order to facilitate consuming and producing events from a message broker.
+
+syntax = "proto3";
+
+package kalix;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/lightbend/kalix-go-sdk/kalix;kalix";
+option java_multiple_files = true;
+option java_outer_classname = "EventsProto";
+option java_package = "kalix";
+
+// Eventing configuration for a gRPC method.
+message Eventing {
+  // The event source in configuration.
+  EventSource in = 1;
+  // The event destination out configuration.
+  //
+  // Optional, if unset, messages out will not be published anywhere.
+  EventDestination out = 2;
+}
+
+// Event source configuration
+message EventSource {
+  // The consumer group id.
+  //
+  // By default, all rpc methods on a given service with the same source will be
+  // part of the same virtual consumer group, messages will be routed to the
+  // different methods by type. This can be used to override that. If you want
+  // multiple methods to act as independent consumers of the same source (ie, if
+  // you want the same event to be published to each consumer) then give each
+  // consumer a unique name.
+  //
+  // Note that this does depend on the event source supporting multiple consumer
+  // groups. Queue based event sources may not support this.
+  string consumer_group = 1;
+  oneof source {
+    // A topic source.
+    //
+    // This will consume events from the given topic name.
+    // Can be a template referencing an environment variable "topic-${MY_ENV_NAME}" set for the service at deploy
+    string topic = 2;
+    // Source for events emitted by an Event Sourced Entity.
+    //
+    // This will consume events from the Event Sourced Entity with the given entity type name.
+    string event_sourced_entity = 3;
+    // Source for updates issued by a Value Entity.
+    //
+    // This will consume changes to the Value Entity with the given entity type name.
+    string value_entity = 4;
+    // Direct service-to-service streaming from another Kalix service
+    DirectSource direct = 7;
+  }
+  // If the message is not of interest for consumption the method for that input message
+  // type can be marked with `ignore: true`.
+  // Enabling is more efficient than implementing the method.
+  // This option can only be used on method level
+  bool ignore = 5;
+  // If an incoming event does not have a matching handler, ignore the event and continue
+  // processing subsequent events, default is to fail to not accidentally miss events of newly added
+  // or unknown event types, as once eventing has continued there is no way to later revisit the ignored event.
+  //
+  // Enabling is more efficient than implementing a catch-all method.
+  // This option can only be used on service level.
+  optional bool ignore_unknown = 6;
+  // Call this method when an entity has been deleted, the method must accept `google.protobuf.Empty`
+  // as input. If the method is in a view the return type should be the view state message type, for other types
+  // of components the returned message type can be an arbitrary message, for example for publishing to
+  // eventing out on delete.
+  //
+  // Currently supported only for the value entity streams.
+  optional bool handle_deletes = 8;
+}
+
+// Direct service-to-service streaming from another Kalix service
+message DirectSource {
+  // The deployed name of the service to consume, can be the deployed name of another
+  // Kalix service in the same Kalix Project or a fully qualified public hostname of
+  // a Kalix service in a different project.
+  //
+  // Note: The service name is used as unique identifier for tracking progress in consuming it
+  // changing this name will lead to starting over from the beginning of the direct event stream
+  //
+  // Can be a template referencing an environment variable "${MY_ENV_NAME}" set for the service at deploy
+  string service = 1;
+  // The unique identifier of the stream in the producing service
+  string event_stream_id = 2;
+}
+
+message EventDestination {
+  oneof destination {
+    // Emit returned events to a message broker topic
+    //
+    // The message broker is configured in Kalix
+    //
+    // Can be a template referencing an environment variable "topic-${MY_ENV_NAME}" set for the service at deploy
+    string topic = 1;
+  }
+}
+
+// Service level eventing configuration
+message ServiceEventing {
+  EventSource in = 1;
+  ServiceEventingOut out = 2;
+}
+
+message ServiceEventingOut {
+  DirectDestination direct = 1;
+}
+
+message DirectDestination {
+  // Identifier for the direct event stream.
+  //
+  // must be unique inside the same Kalix service.
+  string event_stream_id = 1;
+}

@@ -1,0 +1,27 @@
+// Copyright 2022 Lightbend Inc.
+
+// Entity level extensions for protobuf.
+
+syntax = "proto3";
+
+package kalix;
+
+option go_package = "github.com/lightbend/kalix-go-sdk/kalix;kalix";
+option java_multiple_files = true;
+option java_outer_classname = "EntityProto";
+option java_package = "kalix";
+
+message EntityMethodOptions {
+  enum Generator {
+    UNSPECIFIED = 0;
+    // Generate a Version 4 (random) UUID. The UUID will be generated using a cryptographically secure random
+    // number generator.
+    VERSION_4_UUID = 1;
+  }
+  // Indicates that Kalix should generate an entity key when this method is invoked.
+  //
+  // The generated entity key will be accessible via the entity context supplied in the SDK.
+  //
+  // The incoming message MUST NOT declare an entity_key annotated field, if it does, an error will be raised.
+  Generator key_generator = 1;
+}

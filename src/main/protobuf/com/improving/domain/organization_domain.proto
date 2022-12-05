@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+import "com/improving/domain/common_domain.proto";
+import "com/improving/domain/organization_context_domain.proto";
+
+
+package com.improving.organizationcontext.organization;
+
+enum OrganizationStatus {
+    Draft = 0;
+    Active = 1;
+    Suspended = 2;
+    Terminated = 3;
+}
+
+message Organization {
+    OrganizationId oid = 1;
+    organizationcontext.Info info = 2;
+    OrganizationId parent = 3;
+    repeated MemberId members = 4;
+    repeated MemberId owners = 5;
+    repeated organizationcontext.Contacts contacts = 6;
+    organizationcontext.MetaInfo orgMeta = 7;
+    string name = 8;
+    OrganizationStatus status = 9;
+}
+
+
+message OrganizationState {
+    Organization organization = 1;
+}

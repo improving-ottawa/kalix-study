@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package com.improving;
+
+/**
+ * Pattern of: \d{5}(-\d{4})?
+ */
+message USPostalCode {
+    string postal_code = 1;
+}
+
+/**
+ * Pattern of: [A-Z]\d[A-Z]\d[A-Z]\d
+ */
+message CAPostalCode {
+    string postal_code = 1;
+}
+
+message Address {
+    string line1 = 1;
+    string line2 = 2;
+    string city = 3;
+    string stateProvince = 4;
+    string country = 5;
+    oneof postal_code {
+        USPostalCode us_postal_code = 6;
+        CAPostalCode ca_postal_code = 7;
+    }
+}
+
+/**
+ * Pattern of:
+ * (?:[a-z0-9!#$%&'*+/=?^_{|}~-](?:.[a-z0-9!#$%&’*+/=?^_{|}~-])|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])\")@(?:(?:[a-z0-9](?:[a-z0-9-][a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-][a-z0-9])?|[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])
+ */
+message EmailAddress {
+    string value = 1;
+}
+
+/**
+ * Pattern of:
+ * \(([0-9]{3})\)([0-9]{3})-([0-9]{4})
+ */
+message MobileNumber {
+     string value = 1;
+ }
+
+message Contact {
+    string firstName = 1;
+    string lastName = 2;
+    EmailAddress emailAddress = 3;
+    MobileNumber phone = 4;
+    string userName = 5;
+}
+
+message EventId {
+    string id = 1;
+}
+
+message OrganizationId {
+    string id = 1;
+}
+
+message MemberId {
+    string id = 1;
+}
+
+message TenantId {
+    string id = 1;
+}

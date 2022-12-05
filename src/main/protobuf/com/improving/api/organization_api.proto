@@ -1,0 +1,167 @@
+// This is the public API offered by your entity.
+syntax = "proto3";
+
+import "com/improving/domain/common_domain.proto";
+import "com/improving/domain/organization_context_domain.proto";
+import "com/improving/domain/organization_domain.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package com.improving.organization;
+
+
+message ApiUSPostalCode {
+    string postal_code = 1;
+}
+
+message ApiCAPostalCode {
+    string postal_code = 1;
+}
+
+message ApiAddress {
+        string line1 = 1;
+        string line2 = 2;
+        string city = 3;
+        string stateProvince = 4;
+        string country = 5;
+        oneof postal_code {
+            ApiUSPostalCode us_postal_code = 6;
+            ApiCAPostalCode ca_postal_code = 7;
+        }
+}
+
+message ApiInfo {
+        string name = 1;
+        string shortName = 2;
+        ApiAddress address = 3;
+        bool isPrivate = 4;
+        string url = 5; // URL type?
+        string logo = 6; // URL type?
+}
+
+message ApiParent {
+    string org_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiMemberId {
+    string member_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiContacts {
+    ApiMemberId primaryContacts = 1;
+    repeated ApiMemberId billingContacts = 2;
+    repeated ApiMemberId distributionContacts = 3;
+}
+
+message ApiContactList {
+    repeated ApiContacts contacts = 1;
+}
+
+message ApiMemberList {
+    repeated MemberId member_id = 1;
+}
+
+message ApiOwnerList {
+    repeated MemberId owners = 1;
+}
+
+message ApiUpdateInfo {
+    string name = 1;
+    string shortName = 2;
+    ApiAddress address = 3;
+    bool isPrivate = 4;
+    string url = 5; // URL type?
+    string logo = 6; // URL type?
+}
+
+message ApiAddMembersToOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    string member_to_add = 2;
+    string updating_member = 3;
+}
+
+message ApiAddOwnersToOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    string owners_to_add = 2;
+    string updating_member = 3;
+}
+
+message ApiEditOrganizationInfo {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    ApiUpdateInfo newInfo = 2;
+    string editingMember = 3;
+}
+
+message ApiEstablishOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    ApiInfo info = 2;
+    ApiParent parent = 3;
+    ApiMemberList members = 4;
+    ApiOwnerList owners = 5;
+    ApiContactList contacts = 6;
+    ApiMemberId establishingMember = 7;
+}
+
+message ApiOwnersRemovedFromOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiParentUpdatedOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+}
+
+
+service OrganizationService {
+
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "com.improving.organizationcontext.organization.OrganizationAPI"
+            entity_type: "organization"
+            state: "com.improving.organizationcontext.organization.OrganizationState"
+            events: [
+                "com.improving.organizationcontext.FindOrganizationsByMember",
+                "com.improving.organizationcontext.FindOrganizationsByOwner",
+                "com.improving.organizationcontext.GetOrganizationInfo",
+                "com.improving.organizationcontext.MembersAddedToOrganization",
+                "com.improving.organizationcontext.MembersRemovedFromOrganization",
+                "com.improving.organizationcontext.OrganizationAccountsUpdated",
+                "com.improving.organizationcontext.OrganizationContactsUpdated",
+                "com.improving.organizationcontext.OrganizationEstablished",
+                "com.improving.organizationcontext.OrganizationInfoUpdated",
+                "com.improving.organizationcontext.OrganizationStatusUpdated",
+                "com.improving.organizationcontext.OwnersAddedToOrganization",
+                "com.improving.organizationcontext.OwnersRemovedFromOrganization",
+                "com.improving.organizationcontext.ParentUpdated"]
+        }
+    };
+
+    rpc AddMembersToOrganization(ApiAddMembersToOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/add-member"
+            body: "*"
+        };
+    }
+
+    rpc AddOwnersToOrganization(ApiAddOwnersToOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/add-owner"
+            body: "*"
+        };
+    }
+
+    rpc EditOrganizationInfo(ApiEditOrganizationInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/edit-organization-info"
+            body: "*"
+        };
+    }
+
+    rpc EstablishOrganization(ApiEstablishOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/establish-organization"
+            body: "*"
+        };
+    }
+
+}

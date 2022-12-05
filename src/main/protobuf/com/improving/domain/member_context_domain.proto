@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+import "com/improving/domain/common_domain.proto";
+import "google/protobuf/timestamp.proto";
+
+package com.improving.membercontext;
+
+enum Status {
+    ACTIVE = 0;
+    SUSPENDED = 1;
+}
+
+enum NotificationPreference {
+    EMAIL = 0;
+    SMS = 1;
+    APPLICATION = 2;
+}
+
+message GetMemberData {
+    MemberId memberId = 1;
+}
+
+message GetMembersByMetaInfo {
+    MetaInfoQuery queryData = 1;
+}
+
+message Info {
+    Contact contact = 1;
+    string handle = 2;
+    string avatar = 3; // URL type?
+    string firstName = 4;
+    string lastName = 5;
+    MobileNumber mobileNumber = 6;
+    EmailAddress emailAddress = 7;
+    NotificationPreference notificationPreference = 8;
+    repeated OrganizationId organizationMembership = 9;
+    TenantId tenant = 10;
+}
+
+message MemberData {
+    MemberId memberId = 1;
+    Info info = 2;
+    MetaInfo meta = 3;
+}
+
+message MemberInfoUpdated {
+    MemberId memberId = 1;
+    Info info = 2;
+    MetaInfo meta = 3;
+}
+
+message MemberListRegistered {
+    MemberMap memberList = 1;
+    MemberId registeringMember = 2;
+}
+
+message MemberListResult {
+    MemberMap members = 1;
+}
+
+message MemberRegistered {
+    MemberId memberId = 1;
+    MetaInfo meta = 2;
+}
+
+message MemberStatusUpdated {
+    MemberId memberId = 1;
+    MetaInfo meta = 2;
+}
+
+message MetaInfo {
+    google.protobuf.Timestamp createdOn = 1;
+    MemberId reatedBy = 2;
+    google.protobuf.Timestamp lastModifiedOn = 3;
+    MemberId lastModifiedBy = 4;
+    Status memberStatus = 5;
+}
+
+message MetaInfoQuery {
+    google.protobuf.Timestamp createdOn = 1;
+    MemberId createdBy = 2;
+    google.protobuf.Timestamp lastModifiedOn = 3;
+    MemberId lastModifiedBy = 4;
+    Status memberStatus = 5;
+}
+
+message MemberMap {
+    MemberId from = 1;
+    Info to = 2;
+}
+
+message UpdateInfo {
+    string handle = 1;
+    string avatar = 2; // URL type?
+    string firstName = 3;
+    string lastName = 4;
+    MobileNumber mobileNumber = 5;
+    EmailAddress emailAddress = 6;
+    NotificationPreference notificationPreference = 7;
+    repeated  OrganizationId organizationMembership = 8;
+}

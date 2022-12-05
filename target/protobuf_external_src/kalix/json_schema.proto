@@ -1,0 +1,25 @@
+// Copyright 2022 Lightbend Inc.
+
+syntax = "proto3";
+
+package kalix;
+
+option go_package = "github.com/lightbend/kalix-go-sdk/kalix;kalix";
+option java_multiple_files = true;
+option java_outer_classname = "JsonSchemaProto";
+option java_package = "kalix";
+// Additional metadata for views accepting JSON events in, as query request parameters and as responses from queries
+message JsonSchema {
+  // Indicates the field in a incoming message that is expected to contain the json payload
+  // The field should be of type google.protobuf.Any and messages must have type_url 'json.kalix.io'
+  // and the value encoded accordingly (WIRETYPE_LENGTH_DELIMITED + UTF8 bytes)
+  string json_body_input_field = 1;
+  // Indicates the proto message describing the schema of the json_body_input_field payload, incoming message JSON
+  // will be parsed using this schema, only by queries to allow mixing parameters in a generated input type with
+  // fields from a JSON payload (updates are always expected to have Any as their input parameter and does not use this)
+  string input = 2;
+  // Indicates a proto message type describing the schema of the output json payload, used for view update methods
+  // to specify the schema used extract index values from the stored view entries and also the schema for the
+  // returned type from a query (either the same as the view message type or a custom projected message type)
+  string output = 3;
+}

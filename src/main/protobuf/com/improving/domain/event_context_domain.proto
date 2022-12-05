@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+import "com/improving/domain/common_domain.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+package com.improving.eventcontext;
+
+enum EventStatus {
+    SCHEDULED = 0;
+    INPROGRESS = 1;
+    PAST = 2;
+    CANCELLED = 3;
+    DELAYED = 4;
+}
+
+message ReservationId {
+    string id = 1;
+}
+
+message Event {
+    EventId id = 1;
+    EventStatus state = 2;
+}
+
+message EventCancelled {
+    EventId id = 1;
+}
+
+message EventDelayed {
+    EventId id = 1;
+    string reason = 2;
+    EventMetaInfo meta = 3;
+    google.protobuf.Duration expectedDuration = 4;
+}
+
+message EventEnded {
+    EventId eventId = 1;
+    EventMetaInfo meta = 2;
+}
+
+message EventInfo {
+    string eventName = 1;
+    string description = 2;
+    string eventURL = 3; // URL type?
+    OrganizationId sponsoringOrg = 4;
+    string geoLocation = 5; // Location?
+    ReservationId reservation = 6;
+    google.protobuf.Timestamp expectedStart = 7;
+    google.protobuf.Timestamp expectedEnd = 8;
+    bool isPrivate = 9;
+}
+
+message EventInfoChanged {
+    EventId eventId = 1;
+    EventInfo info = 2;
+    EventMetaInfo meta = 3;
+}
+
+message EventMetaInfo {
+    MemberId scheduledBy = 1;
+    google.protobuf.Timestamp scheduledOn = 2;
+    MemberId lastModifiedBy = 3;
+    google.protobuf.Timestamp lastModifiedOn = 4;
+    google.protobuf.Timestamp actualStart = 5;
+    google.protobuf.Timestamp actualEnd = 6;
+    EventStatus status = 7;
+}
+
+message EventRescheduled {
+    EventId  eventId = 1;
+    EventInfo info = 2;
+    EventMetaInfo meta = 3;
+}
+
+message EventResults {
+    string from = 1;
+    string to = 2;
+}
+
+message EventScheduled {
+    EventInfo info = 1;
+    EventMetaInfo meta = 2;
+}
+
+message EventStarted {
+    EventInfo info = 1;
+    EventMetaInfo meta = 2;
+}
+
+message LiveUpdate {
+    string from = 1;
+    string to = 2;
+}
