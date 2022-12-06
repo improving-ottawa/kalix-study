@@ -11,7 +11,7 @@ import "google/api/annotations.proto";
 
 package com.improving.organization;
 
-enum ApiStatus {
+enum ApiOrganizationStatus {
     DRAFT = 0;
     ACTIVE = 1;
     SUSPENDED = 2;
@@ -53,7 +53,7 @@ message ApiMetaInfo {
     ApiMemberId createdBy = 2;
     google.protobuf.Timestamp   lastUpdated = 3;
     ApiMemberId lastUpdatedBy = 4;
-    ApiStatus currentStatus = 5;
+    ApiOrganizationStatus currentStatus = 5;
     repeated ApiOrganizationId children = 6;
 }
 
@@ -82,6 +82,11 @@ message ApiUpdateInfo {
     bool isPrivate = 4;
     string url = 5; // URL type?
     string logo = 6; // URL type?
+}
+
+message ApiUpdateParent {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    ApiOrganizationId newParent = 2;
 }
 
 message ApiAddMembersToOrganization {
@@ -115,10 +120,14 @@ message ApiEstablishOrganization {
 
 message ApiOwnersRemovedFromOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId ownersToRemove = 2;
+    ApiMemberId updatingMember = 3;
+
 }
 
-message ApiParentUpdatedOrganization {
-    string org_id = 1 [(kalix.field).entity_key = true];
+message ApiOrganizationStatusUpdated {
+    ApiOrganizationId orgId = 1;
+    ApiOrganizationStatus newStatus = 2;
 }
 
 
@@ -170,6 +179,20 @@ service OrganizationService {
     rpc EstablishOrganization(ApiEstablishOrganization) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/organization/{org_id}/establish-organization"
+            body: "*"
+        };
+    }
+
+    rpc UpdateParent(ApiUpdateParent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/update-parent"
+            body: "*"
+        };
+    }
+
+    rpc UpdateOrganizationStatus(ApiOrganizationStatusUpdated) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/update-organization-status"
             body: "*"
         };
     }

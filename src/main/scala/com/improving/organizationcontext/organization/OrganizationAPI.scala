@@ -17,16 +17,21 @@ import com.improving.organizationcontext.{
   OrganizationContactsUpdated,
   OrganizationEstablished,
   OrganizationInfoUpdated,
+  OrganizationStatus,
   OrganizationStatusUpdated,
   OwnerList,
   OwnersAddedToOrganization,
   OwnersRemovedFromOrganization,
   Parent,
-  ParentUpdated,
-  Status
+  ParentUpdated
 }
 import com.improving.organization.ApiAddress.PostalCode
-import com.improving.organization.{ApiInfo, ApiMetaInfo, ApiParent, ApiStatus}
+import com.improving.organization.{
+  ApiInfo,
+  ApiMetaInfo,
+  ApiOrganizationStatus,
+  ApiParent
+}
 import com.improving.{Address, MemberId, OrganizationId}
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -62,7 +67,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status == OrganizationStatus.Draft || org.status == OrganizationStatus.Active => {
+          if org.status == OrganizationStatus.DRAFT || org.status == OrganizationStatus.ACTIVE => {
         org.copy(info =
           apiEditOrganizationInfo.newInfo.map(convertUpdateInfoToInfo(_))
         )
@@ -192,17 +197,65 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       apiMetaInfo.createdBy.map(member => MemberId(member.memberId)),
       apiMetaInfo.lastUpdated,
       apiMetaInfo.lastUpdatedBy.map(member => MemberId(member.memberId)),
-      apiMetaInfo.currentStatus match {
-        case ApiStatus.DRAFT      => Status.DRAFT
-        case ApiStatus.ACTIVE     => Status.ACTIVE
-        case ApiStatus.SUSPENDED  => Status.SUSPENDED
-        case ApiStatus.TERMINATED => Status.TERMINATED
-        case ApiStatus.Unrecognized(unrecognizedValue) =>
-          Status.Unrecognized(unrecognizedValue)
-      },
+      convertApiOrganizationStatusToOrganizationStatus(
+        apiMetaInfo.currentStatus
+      ),
       apiMetaInfo.children.map(child => OrganizationId(child.id))
     )
   }
+
+  private def convertApiOrganizationStatusToOrganizationStatus(
+      apiOrganizationStatus: ApiOrganizationStatus
+  ): OrganizationStatus = {
+    apiOrganizationStatus match {
+      case ApiOrganizationStatus.DRAFT      => OrganizationStatus.DRAFT
+      case ApiOrganizationStatus.ACTIVE     => OrganizationStatus.ACTIVE
+      case ApiOrganizationStatus.SUSPENDED  => OrganizationStatus.SUSPENDED
+      case ApiOrganizationStatus.TERMINATED => OrganizationStatus.TERMINATED
+      case ApiOrganizationStatus.Unrecognized(unrecognizedValue) =>
+        OrganizationStatus.Unrecognized(unrecognizedValue)
+    }
+  }
+  override def updateParent(
+      currentState: OrganizationState,
+      apiUpdateParent: organization.ApiUpdateParent
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.organization match {
+      case Some(org)
+          if org.status != OrganizationStatus.TERMINATED && org.oid.getOrElse(
+            OrganizationId("*****")
+          ) == OrganizationId(apiUpdateParent.orgId) => {
+
+        val event = ParentUpdated(
+          Some(OrganizationId(apiUpdateParent.orgId)),
+          apiUpdateParent.newParent.map(parent => OrganizationId(parent.id))
+        )
+
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
+  override def updateOrganizationStatus(
+      currentState: OrganizationState,
+      apiOrganizationStatusUpdated: organization.ApiOrganizationStatusUpdated
+  ): EventSourcedEntity.Effect[Empty] =
+    currentState.organization match {
+      case Some(org)
+          if org.oid == apiOrganizationStatusUpdated.orgId
+            .map(oid => OrganizationId(oid.id)) => {
+        val event = OrganizationStatusUpdated(
+          org.oid,
+          convertApiOrganizationStatusToOrganizationStatus(
+            apiOrganizationStatusUpdated.newStatus
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+
   override def findOrganizationsByMember(
       currentState: OrganizationState,
       findOrganizationsByMember: FindOrganizationsByMember
@@ -284,7 +337,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           ),
           organizationEstablished.meta,
           "name is missing",
-          OrganizationStatus.Active
+          OrganizationStatus.ACTIVE
         )
 
         currentState.withOrganization(organization)
@@ -298,7 +351,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = {
     currentState.organization match {
       case Some(org)
-          if org.status == OrganizationStatus.Draft || org.status == OrganizationStatus.Active => {
+          if org.status == OrganizationStatus.DRAFT || org.status == OrganizationStatus.ACTIVE => {
         org.copy(info = organizationInfoUpdated.info)
         currentState.withOrganization(org)
       }
@@ -309,10 +362,15 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def organizationStatusUpdated(
       currentState: OrganizationState,
       organizationStatusUpdated: OrganizationStatusUpdated
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OrganizationStatusUpdated` is not implemented, yet"
-    )
+  ): OrganizationState = currentState.organization match {
+    case Some(org)
+        if org.status != OrganizationStatus.TERMINATED && org.oid == organizationStatusUpdated.orgId => {
+      currentState.withOrganization(
+        org.copy(status = organizationStatusUpdated.newStatus)
+      )
+    }
+    case _ => currentState
+  }
 
   override def ownersAddedToOrganization(
       currentState: OrganizationState,
@@ -333,9 +391,14 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def parentUpdated(
       currentState: OrganizationState,
       parentUpdated: ParentUpdated
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `ParentUpdated` is not implemented, yet"
-    )
+  ): OrganizationState = currentState.organization match {
+    case Some(org)
+        if org.status != OrganizationStatus.TERMINATED && org.oid == parentUpdated.id => {
+      currentState.withOrganization(
+        org.copy(parent = parentUpdated.newParent)
+      )
+    }
+    case _ => currentState
+  }
 
 }

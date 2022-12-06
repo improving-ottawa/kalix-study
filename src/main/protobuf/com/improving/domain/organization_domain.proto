@@ -6,13 +6,6 @@ import "com/improving/domain/organization_context_domain.proto";
 
 package com.improving.organizationcontext.organization;
 
-enum OrganizationStatus {
-    Draft = 0;
-    Active = 1;
-    Suspended = 2;
-    Terminated = 3;
-}
-
 message Organization {
     OrganizationId oid = 1;
     organizationcontext.Info info = 2;

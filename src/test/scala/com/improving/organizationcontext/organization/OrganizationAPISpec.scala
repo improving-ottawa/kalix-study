@@ -11,14 +11,19 @@ import com.improving.organization.{
   ApiMemberId,
   ApiMetaInfo,
   ApiOrganizationId,
+  ApiOrganizationStatus,
+  ApiOrganizationStatusUpdated,
   ApiParent,
-  ApiStatus,
-  ApiUpdateInfo
+  ApiUpdateInfo,
+  ApiUpdateParent
 }
 import com.improving.organizationcontext.{
   MetaInfo,
   OrganizationEstablished,
-  OrganizationInfoUpdated
+  OrganizationInfoUpdated,
+  OrganizationStatus,
+  OrganizationStatusUpdated,
+  ParentUpdated
 }
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.testkit.EventSourcedResult
@@ -34,47 +39,53 @@ import java.time.Instant
 
 class OrganizationAPISpec extends AnyWordSpec with Matchers {
   "The OrganizationAPI" should {
-    "have organization established and edit update info event triggered" in {
-      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
-      val now = Instant.now()
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
-      val apiEstablishOrganization = ApiEstablishOrganization(
-        "test-org-id",
-        Some(
-          ApiInfo(
-            "name-test",
-            "shortname-test",
-            Some(
-              ApiAddress(
-                "line1",
-                "line2",
-                "city",
-                "state",
-                "canada",
-                ApiAddress.PostalCode.CaPostalCode(
-                  ApiCAPostalCode.defaultInstance
-                )
+    val testOrgId = "test-org-id"
+    val parentIdTest = "parent-id-test"
+    val newParentId = "new-parent-id"
+    val establishingMemberId = "establishing-member-id"
+    val now = Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    val apiEstablishOrganization = ApiEstablishOrganization(
+      testOrgId,
+      Some(
+        ApiInfo(
+          "name-test",
+          "shortname-test",
+          Some(
+            ApiAddress(
+              "line1",
+              "line2",
+              "city",
+              "state",
+              "canada",
+              ApiAddress.PostalCode.CaPostalCode(
+                ApiCAPostalCode.defaultInstance
               )
             )
           )
-        ),
-        Some(ApiParent("parent-id-test")),
-        Seq.empty,
-        Seq.empty,
-        Seq.empty,
-        Some(ApiMemberId("establishing-member-id")),
-        Some(
-          ApiMetaInfo(
-            Some(timestamp),
-            Some(ApiMemberId("establishing-member-id")),
-            Some(timestamp),
-            Some(ApiMemberId("establishing-member-id")),
-            ApiStatus.DRAFT,
-            Seq.empty[ApiOrganizationId]
-          )
+        )
+      ),
+      Some(ApiParent(parentIdTest)),
+      Seq.empty,
+      Seq.empty,
+      Seq.empty,
+      Some(ApiMemberId(establishingMemberId)),
+      Some(
+        ApiMetaInfo(
+          Some(timestamp),
+          Some(ApiMemberId(establishingMemberId)),
+          Some(timestamp),
+          Some(ApiMemberId(establishingMemberId)),
+          ApiOrganizationStatus.DRAFT,
+          Seq.empty[ApiOrganizationId]
         )
       )
+    )
+
+    "have organization established and edit update info event triggered" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val establishOrganizationResult =
         testKit.establishOrganization(apiEstablishOrganization)
@@ -107,6 +118,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
           )
         )
       )
+
       val updateInfoResult =
         testKit.editOrganizationInfo(apiEditOrganizationInfo)
 
@@ -119,10 +131,55 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
     }
 
-//    "correctly process commands of type OrganizationContactsUpdated" in {
-//      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
-//      pending
-//      // val result: EventSourcedResult[Empty] = testKit.organizationContactsUpdated(api.OrganizationOwnersAdded(...))
-//    }
+    "correctly update organization parent" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiUpdateParent =
+        ApiUpdateParent(testOrgId, Some(ApiOrganizationId(newParentId)))
+
+      val updateParentResult = testKit.updateParent(apiUpdateParent)
+
+      updateParentResult.events should have size 1
+
+      testKit.allEvents should have size 2
+
+      val parentUpdated = updateParentResult.nextEvent[ParentUpdated]
+
+      parentUpdated.newParent shouldBe defined
+
+      parentUpdated.newParent shouldBe Some(OrganizationId(newParentId))
+    }
+
+    "correctly update organization status" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiOrganizationStatusUpdated =
+        ApiOrganizationStatusUpdated(
+          Some(ApiOrganizationId(testOrgId)),
+          ApiOrganizationStatus.SUSPENDED
+        )
+
+      val updateOrganizationStatusResult =
+        testKit.updateOrganizationStatus(apiOrganizationStatusUpdated)
+
+      updateOrganizationStatusResult.events should have size 1
+
+      testKit.allEvents should have size 2
+
+      val organizationStatusUpdated =
+        updateOrganizationStatusResult.nextEvent[OrganizationStatusUpdated]
+
+      organizationStatusUpdated.newStatus shouldBe OrganizationStatus.SUSPENDED
+    }
   }
 }

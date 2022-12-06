@@ -5,13 +5,13 @@ import "google/protobuf/timestamp.proto";
 
 package com.improving.organizationcontext;
 
-
-enum Status {
+enum OrganizationStatus {
     DRAFT = 0;
     ACTIVE = 1;
     SUSPENDED = 2;
     TERMINATED = 3;
 }
+
 
 message Contacts {
     MemberId primaryContacts = 1;
@@ -41,7 +41,7 @@ message MetaInfo {
     MemberId createdBy = 2;
     google.protobuf.Timestamp   lastUpdated = 3;
     MemberId lastUpdatedBy = 4;
-    Status currentStatus = 5;
+    OrganizationStatus currentStatus = 5;
     repeated OrganizationId children = 6;
 }
 
@@ -135,7 +135,7 @@ message OrganizationListByOwner {
 
 message OrganizationStatusUpdated {
     OrganizationId orgId = 1;
-    Status newStatus = 2;
+    OrganizationStatus newStatus = 2;
 }
 
 message OwnersAddedToOrganization {
