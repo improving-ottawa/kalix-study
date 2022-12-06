@@ -222,9 +222,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status != OrganizationStatus.TERMINATED && org.oid.getOrElse(
-            OrganizationId("*****")
-          ) == OrganizationId(apiUpdateParent.orgId) => {
+          if org.status != OrganizationStatus.TERMINATED && org.oid
+            == Some(OrganizationId(apiUpdateParent.orgId)) => {
 
         val event = ParentUpdated(
           Some(OrganizationId(apiUpdateParent.orgId)),
