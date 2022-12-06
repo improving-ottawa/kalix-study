@@ -1,7 +1,5 @@
 package com.improving.organization
 
-import akka.actor.ActorSystem
-import com.google.protobuf.empty.Empty
 import com.improving.Main
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll

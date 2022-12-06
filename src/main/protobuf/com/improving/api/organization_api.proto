@@ -5,10 +5,18 @@ import "com/improving/domain/common_domain.proto";
 import "com/improving/domain/organization_context_domain.proto";
 import "com/improving/domain/organization_domain.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
 package com.improving.organization;
+
+enum ApiStatus {
+    DRAFT = 0;
+    ACTIVE = 1;
+    SUSPENDED = 2;
+    TERMINATED = 3;
+}
 
 
 message ApiUSPostalCode {
@@ -40,6 +48,19 @@ message ApiInfo {
         string logo = 6; // URL type?
 }
 
+message ApiMetaInfo {
+    google.protobuf.Timestamp createdOn = 1;
+    ApiMemberId createdBy = 2;
+    google.protobuf.Timestamp   lastUpdated = 3;
+    ApiMemberId lastUpdatedBy = 4;
+    ApiStatus currentStatus = 5;
+    repeated ApiOrganizationId children = 6;
+}
+
+message ApiOrganizationId {
+    string id = 1;
+}
+
 message ApiParent {
     string org_id = 1 [(kalix.field).entity_key = true];
 }
@@ -52,18 +73,6 @@ message ApiContacts {
     ApiMemberId primaryContacts = 1;
     repeated ApiMemberId billingContacts = 2;
     repeated ApiMemberId distributionContacts = 3;
-}
-
-message ApiContactList {
-    repeated ApiContacts contacts = 1;
-}
-
-message ApiMemberList {
-    repeated MemberId member_id = 1;
-}
-
-message ApiOwnerList {
-    repeated MemberId owners = 1;
 }
 
 message ApiUpdateInfo {
@@ -97,10 +106,11 @@ message ApiEstablishOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiInfo info = 2;
     ApiParent parent = 3;
-    ApiMemberList members = 4;
-    ApiOwnerList owners = 5;
-    ApiContactList contacts = 6;
+    repeated ApiMemberId members = 4;
+    repeated ApiMemberId owners = 5;
+    repeated ApiContacts contacts = 6;
     ApiMemberId establishingMember = 7;
+    ApiMetaInfo meta = 8;
 }
 
 message ApiOwnersRemovedFromOrganization {

@@ -109,7 +109,7 @@ message OrganizationEstablished {
     MemberList members = 4;
     OwnerList owners = 5;
     ContactList contacts = 6;
-    MemberId establishingMember = 7;
+    MetaInfo meta = 7;
 }
 
 message OrganizationInfo {

@@ -1,24 +1,33 @@
 package com.improving.organizationcontext.organization
 
 import com.google.protobuf.empty.Empty
-import com.improving.organization.ApiAddress.PostalCode
-import com.improving.{Address, organization}
+import com.improving.organization
 import com.improving.organizationcontext.{
+  ContactList,
+  Contacts,
   FindOrganizationsByMember,
   FindOrganizationsByOwner,
   GetOrganizationInfo,
   Info,
+  MemberList,
   MembersAddedToOrganization,
   MembersRemovedFromOrganization,
+  MetaInfo,
   OrganizationAccountsUpdated,
   OrganizationContactsUpdated,
   OrganizationEstablished,
   OrganizationInfoUpdated,
   OrganizationStatusUpdated,
+  OwnerList,
   OwnersAddedToOrganization,
   OwnersRemovedFromOrganization,
-  ParentUpdated
+  Parent,
+  ParentUpdated,
+  Status
 }
+import com.improving.organization.ApiAddress.PostalCode
+import com.improving.organization.{ApiInfo, ApiMetaInfo, ApiParent, ApiStatus}
+import com.improving.{Address, MemberId, OrganizationId}
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -57,12 +66,16 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         org.copy(info =
           apiEditOrganizationInfo.newInfo.map(convertUpdateInfoToInfo(_))
         )
-        currentState.withOrganization(org)
-        ()
+
+        val event =
+          OrganizationInfoUpdated(org.oid, org.info, org.orgMeta)
+
+        effects
+          .emitEvent(event)
+          .thenReply(_ => Empty.defaultInstance)
       }
-      case None => ()
+      case _ => effects.reply(Empty.defaultInstance)
     }
-    effects.reply(Empty)
   }
 
   private def convertUpdateInfoToInfo(
@@ -104,11 +117,92 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def establishOrganization(
       currentState: OrganizationState,
       apiEstablishOrganization: organization.ApiEstablishOrganization
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `EstablishOrganization` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.organization match {
+      case Some(org) =>
+        effects.error(
+          s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
+        )
+      case _ => {
+        val event = OrganizationEstablished(
+          Some(OrganizationId(apiEstablishOrganization.orgId)),
+          apiEstablishOrganization.info.map(convertApiInfoToInfo(_)),
+          apiEstablishOrganization.parent.map(convertApiParentToParent(_)),
+          Some(
+            MemberList(
+              apiEstablishOrganization.members.map(member =>
+                MemberId(member.memberId)
+              )
+            )
+          ),
+          Some(
+            OwnerList(
+              apiEstablishOrganization.owners.map(owner =>
+                MemberId(owner.memberId)
+              )
+            )
+          ),
+          Some(
+            ContactList(
+              apiEstablishOrganization.contacts.map(contact =>
+                Contacts(
+                  contact.primaryContacts.map(contact =>
+                    MemberId(contact.memberId)
+                  ),
+                  contact.billingContacts.map(contact =>
+                    MemberId(contact.memberId)
+                  ),
+                  contact.distributionContacts.map(contact =>
+                    MemberId(contact.memberId)
+                  )
+                )
+              )
+            )
+          ),
+          apiEstablishOrganization.meta.map(convertApiMetaInfoToMetaInfo(_))
+        )
 
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+    }
+  }
+
+  private def convertApiInfoToInfo(apiInfo: ApiInfo): Info = {
+    Info(
+      apiInfo.name,
+      apiInfo.shortName,
+      apiInfo.address.map(convertApiAdressToAddress(_)),
+      apiInfo.isPrivate,
+      apiInfo.url,
+      apiInfo.logo
+    )
+  }
+
+  private def convertApiParentToParent(apiParent: ApiParent): Parent = {
+    Parent(
+      Some(OrganizationId(apiParent.orgId))
+    )
+  }
+
+  private def convertApiMetaInfoToMetaInfo(
+      apiMetaInfo: ApiMetaInfo
+  ): MetaInfo = {
+    MetaInfo(
+      apiMetaInfo.createdOn,
+      apiMetaInfo.createdBy.map(member => MemberId(member.memberId)),
+      apiMetaInfo.lastUpdated,
+      apiMetaInfo.lastUpdatedBy.map(member => MemberId(member.memberId)),
+      apiMetaInfo.currentStatus match {
+        case ApiStatus.DRAFT      => Status.DRAFT
+        case ApiStatus.ACTIVE     => Status.ACTIVE
+        case ApiStatus.SUSPENDED  => Status.SUSPENDED
+        case ApiStatus.TERMINATED => Status.TERMINATED
+        case ApiStatus.Unrecognized(unrecognizedValue) =>
+          Status.Unrecognized(unrecognizedValue)
+      },
+      apiMetaInfo.children.map(child => OrganizationId(child.id))
+    )
+  }
   override def findOrganizationsByMember(
       currentState: OrganizationState,
       findOrganizationsByMember: FindOrganizationsByMember
@@ -168,18 +262,49 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def organizationEstablished(
       currentState: OrganizationState,
       organizationEstablished: OrganizationEstablished
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OrganizationEstablished` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org) => {
+        effects.error(
+          s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
+        )
+        currentState
+      }
+      case _ => {
+        val organization = Organization(
+          organizationEstablished.orgId,
+          organizationEstablished.info,
+          organizationEstablished.parent.flatMap(_.id),
+          organizationEstablished.members.toSeq.flatMap(member =>
+            member.memberId
+          ),
+          organizationEstablished.owners.toSeq.flatMap(owner => owner.owners),
+          organizationEstablished.contacts.toSeq.flatMap(contacts =>
+            contacts.contacts
+          ),
+          organizationEstablished.meta,
+          "name is missing",
+          OrganizationStatus.Active
+        )
+
+        currentState.withOrganization(organization)
+      }
+    }
+  }
 
   override def organizationInfoUpdated(
       currentState: OrganizationState,
       organizationInfoUpdated: OrganizationInfoUpdated
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OrganizationInfoUpdated` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org)
+          if org.status == OrganizationStatus.Draft || org.status == OrganizationStatus.Active => {
+        org.copy(info = organizationInfoUpdated.info)
+        currentState.withOrganization(org)
+      }
+      case _ => currentState
+    }
+  }
 
   override def organizationStatusUpdated(
       currentState: OrganizationState,
