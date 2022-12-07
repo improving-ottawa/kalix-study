@@ -4,6 +4,7 @@ import com.google.protobuf.timestamp.Timestamp
 import com.improving._
 import com.improving.organization.{
   ApiAddMembersToOrganization,
+  ApiAddOwnersToOrganization,
   ApiAddress,
   ApiCAPostalCode,
   ApiEditOrganizationInfo,
@@ -16,6 +17,8 @@ import com.improving.organization.{
   ApiOrganizationStatus,
   ApiOrganizationStatusUpdated,
   ApiParent,
+  ApiRemoveMembersFromOrganization,
+  ApiRemoveOwnersFromOrganization,
   ApiUpdateInfo,
   ApiUpdateParent
 }
@@ -76,7 +79,11 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         ApiMemberId("member2"),
         ApiMemberId("member3")
       ),
-      Seq.empty,
+      Seq[ApiMemberId](
+        ApiMemberId("member10"),
+        ApiMemberId("member11"),
+        ApiMemberId("member12")
+      ),
       Seq.empty,
       Some(ApiMemberId(establishingMemberId)),
       Some(
@@ -284,7 +291,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       getOrganizationInfoResult.reply shouldEqual ApiInfo.defaultInstance
     }
 
-    "correctly add owners to the organization" in {
+    "correctly add members to the organization" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val establishOrganizationResult =
@@ -326,7 +333,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       meta.lastUpdatedBy shouldBe Some(MemberId("member100"))
     }
 
-    "should return empty result from add owners to the organization with invalid state" in {
+    "should return empty result from add members to the organization with invalid state" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
@@ -343,6 +350,194 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         testKit.addMembersToOrganization(apiAddMembersToOrganization)
 
       apiAddMembersToOrganizationResult.events should have size 0
+    }
+
+    "correctly remove members from organization" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiRemoveMembersFromOrganization = ApiRemoveMembersFromOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member1"),
+          ApiMemberId("member2"),
+          ApiMemberId("member4")
+        ),
+        Some(ApiMemberId("member100"))
+      )
+
+      val apiRemoveMembersFromOrganizationResult =
+        testKit.removeMembersFromOrganization(
+          apiRemoveMembersFromOrganization
+        )
+
+      apiRemoveMembersFromOrganizationResult.events should have size 1
+
+      val members = testKit.currentState.organization
+        .map(_.members)
+        .getOrElse(Seq.empty[MemberId])
+      members should have size 1
+
+      members shouldEqual Seq(
+        MemberId("member3")
+      )
+
+      val meta = testKit.currentState.organization
+        .flatMap(_.orgMeta)
+        .getOrElse(MetaInfo.defaultInstance)
+
+      meta.lastUpdatedBy shouldBe Some(MemberId("member100"))
+    }
+
+    "should return empty result from remove members to the organization with invalid state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiRemoveMembersFromOrganization = ApiRemoveMembersFromOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member1"),
+          ApiMemberId("member2"),
+          ApiMemberId("member4")
+        ),
+        Some(ApiMemberId("member100"))
+      )
+
+      val apiRemoveMembersFromOrganizationResult =
+        testKit.removeMembersFromOrganization(apiRemoveMembersFromOrganization)
+
+      apiRemoveMembersFromOrganizationResult.events should have size 0
+    }
+
+    "correctly add owners to the organization" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiAddOwnersToOrganization = ApiAddOwnersToOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member10"),
+          ApiMemberId("member11"),
+          ApiMemberId("member12"),
+          ApiMemberId("member13"),
+          ApiMemberId("member14")
+        ),
+        Some(ApiMemberId("member11"))
+      )
+
+      val apiAddOwnersToOrganizationResult =
+        testKit.addOwnersToOrganization(apiAddOwnersToOrganization)
+
+      apiAddOwnersToOrganizationResult.events should have size 1
+
+      val owners = testKit.currentState.organization
+        .map(_.owners)
+        .getOrElse(Seq.empty[MemberId])
+      owners should have size 5
+
+      owners shouldEqual Seq(
+        MemberId("member10"),
+        MemberId("member11"),
+        MemberId("member12"),
+        MemberId("member13"),
+        MemberId("member14")
+      )
+
+      val meta = testKit.currentState.organization
+        .flatMap(_.orgMeta)
+        .getOrElse(MetaInfo.defaultInstance)
+
+      meta.lastUpdatedBy shouldBe Some(MemberId("member11"))
+    }
+
+    "should return empty result from add owners to the organization with invalid state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiAddOwnersToOrganization = ApiAddOwnersToOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member1"),
+          ApiMemberId("member2"),
+          ApiMemberId("member4")
+        ),
+        Some(ApiMemberId("member1"))
+      )
+
+      val apiAddOwnersToOrganizationResult =
+        testKit.addOwnersToOrganization(apiAddOwnersToOrganization)
+
+      apiAddOwnersToOrganizationResult.events should have size 0
+    }
+
+    "correctly remove owners from organization" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiRemoveOwnersFromOrganization = ApiRemoveOwnersFromOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member10"),
+          ApiMemberId("member11"),
+          ApiMemberId("member5"),
+          ApiMemberId("member6"),
+          ApiMemberId("member7")
+        ),
+        Some(ApiMemberId("member1"))
+      )
+
+      val apiRemoveOwnersFromOrganizationResult =
+        testKit.removeOwnersFromOrganization(
+          apiRemoveOwnersFromOrganization
+        )
+
+      apiRemoveOwnersFromOrganizationResult.events should have size 1
+
+      val owners = testKit.currentState.organization
+        .map(_.owners)
+        .getOrElse(Seq.empty[MemberId])
+      owners should have size 1
+
+      owners shouldEqual Seq(
+        MemberId("member12")
+      )
+
+      val meta = testKit.currentState.organization
+        .flatMap(_.orgMeta)
+        .getOrElse(MetaInfo.defaultInstance)
+
+      meta.lastUpdatedBy shouldBe Some(MemberId("member1"))
+    }
+
+    "should return empty result from remove owners to the organization with invalid state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiRemoveOwnersFromOrganization = ApiRemoveOwnersFromOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member1"),
+          ApiMemberId("member2"),
+          ApiMemberId("member4")
+        ),
+        Some(ApiMemberId("member1"))
+      )
+
+      val apiRemoveOwnersFromOrganizationResult =
+        testKit.removeOwnersFromOrganization(
+          apiRemoveOwnersFromOrganization
+        )
+
+      apiRemoveOwnersFromOrganizationResult.events should have size 0
     }
   }
 }

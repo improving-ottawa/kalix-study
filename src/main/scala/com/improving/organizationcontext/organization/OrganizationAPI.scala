@@ -643,7 +643,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if currentState.organization.map(_.status) != Some(
             OrganizationStatus.TERMINATED
-          ) && org.oid == ownersAddedToOrganization.orgId =>
+          ) && org.oid == ownersAddedToOrganization.orgId => {
         currentState.withOrganization(
           org.copy(
             owners =
@@ -651,6 +651,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             orgMeta = ownersAddedToOrganization.meta
           )
         )
+      }
       case _ => currentState
     }
   }
@@ -658,10 +659,24 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def ownersRemovedFromOrganization(
       currentState: OrganizationState,
       ownersRemovedFromOrganization: OwnersRemovedFromOrganization
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OwnersRemovedFromOrganization` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == ownersRemovedFromOrganization.orgId => {
+        currentState.withOrganization(
+          org.copy(
+            owners = org.owners.filterNot(
+              ownersRemovedFromOrganization.removedOwners.contains(_)
+            ),
+            orgMeta = ownersRemovedFromOrganization.meta
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
   override def parentUpdated(
       currentState: OrganizationState,
