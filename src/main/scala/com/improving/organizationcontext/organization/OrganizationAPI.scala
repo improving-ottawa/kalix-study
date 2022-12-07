@@ -2,6 +2,7 @@ package com.improving.organizationcontext.organization
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
+import com.improving.Address.PostalCode
 import com.improving.organization
 import com.improving.organizationcontext.{
   ContactList,
@@ -29,10 +30,13 @@ import com.improving.organizationcontext.{
 import com.improving.organization.ApiAddress.PostalCode
 import com.improving.organization.{
   ApiAddOwnersToOrganization,
+  ApiAddress,
+  ApiCAPostalCode,
   ApiInfo,
   ApiMetaInfo,
   ApiOrganizationStatus,
-  ApiParent
+  ApiParent,
+  ApiUSPostalCode
 }
 import com.improving.{Address, MemberId, OrganizationId}
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
@@ -66,26 +70,101 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def getOrganizationInfo(
       currentState: OrganizationState,
       apiGetOrganizationInfo: organization.ApiGetOrganizationInfo
-  ): EventSourcedEntity.Effect[organization.ApiInfo] =
-    effects.error(
-      "The command handler for `GetOrganizationInfo` is not implemented, yet"
-    )
-
+  ): EventSourcedEntity.Effect[organization.ApiInfo] = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == Some(
+            OrganizationId(apiGetOrganizationInfo.orgId)
+          ) => {
+        val event = GetOrganizationInfo(
+          Some(OrganizationId(apiGetOrganizationInfo.orgId))
+        )
+        effects
+          .emitEvent(event)
+          .thenReply(state => {
+            val infoOpt = state.organization.flatMap(_.info)
+            val apiInfoOpt = infoOpt.map(info => {
+              ApiInfo(
+                info.name,
+                info.shortName,
+                info.address.map(addr => {
+                  convertAddressToApiAdress(addr)
+                }),
+                info.isPrivate,
+                info.url,
+                info.logo
+              )
+            })
+            apiInfoOpt.getOrElse(ApiInfo.defaultInstance)
+          })
+      }
+      case _ => effects.reply(ApiInfo.defaultInstance)
+    }
+  }
   override def removeMembersFromOrganization(
       currentState: OrganizationState,
       apiRemoveMembersFromOrganization: organization.ApiRemoveMembersFromOrganization
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `RemoveMembersFromOrganization` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == Some(
+            OrganizationId(apiRemoveMembersFromOrganization.orgId)
+          ) => {
+        val event = MembersRemovedFromOrganization(
+          Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
+          apiRemoveMembersFromOrganization.membersToRemove.map(member =>
+            MemberId(member.memberId)
+          ),
+          apiRemoveMembersFromOrganization.updatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
   override def removeOwnersFromOrganization(
       currentState: OrganizationState,
       apiRemoveOwnersFromOrganization: organization.ApiRemoveOwnersFromOrganization
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `RemoveOwnersFromOrganization` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == Some(
+            OrganizationId(apiRemoveOwnersFromOrganization.orgId)
+          ) =>
+        val now = java.time.Instant.now()
+        val updatingMember =
+          apiRemoveOwnersFromOrganization.updatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        val event = OwnersRemovedFromOrganization(
+          Some(OrganizationId(apiRemoveOwnersFromOrganization.orgId)),
+          apiRemoveOwnersFromOrganization.ownersToRemove.map(member =>
+            MemberId(member.memberId)
+          ),
+          Some(
+            MetaInfo(
+              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              updatingMember,
+              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              updatingMember,
+              org.status,
+              Seq.empty[OrganizationId]
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
   override def addMembersToOrganization(
       currentState: OrganizationState,
@@ -206,14 +285,32 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       apiAddress.stateProvince,
       apiAddress.country,
       apiAddress.postalCode match {
-        case PostalCode.Empty => Address.PostalCode.Empty
-        case PostalCode.UsPostalCode(_) =>
+        case ApiAddress.PostalCode.Empty => Address.PostalCode.Empty
+        case ApiAddress.PostalCode.UsPostalCode(_) =>
           Address.PostalCode.UsPostalCode(
             com.improving.USPostalCode.defaultInstance
           )
-        case PostalCode.CaPostalCode(_) =>
+        case ApiAddress.PostalCode.CaPostalCode(_) =>
           Address.PostalCode.CaPostalCode(
             com.improving.CAPostalCode.defaultInstance
+          )
+      }
+    )
+  }
+
+  private def convertAddressToApiAdress(address: Address): ApiAddress = {
+    ApiAddress(
+      address.line1,
+      address.line2,
+      address.city,
+      address.stateProvince,
+      address.country,
+      address.postalCode match {
+        case Address.PostalCode.UsPostalCode(_) =>
+          ApiAddress.PostalCode.UsPostalCode(ApiUSPostalCode.defaultInstance)
+        case Address.PostalCode.CaPostalCode(_) =>
+          ApiAddress.PostalCode.CaPostalCode(
+            ApiCAPostalCode.defaultInstance
           )
       }
     )
@@ -398,7 +495,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           ) && org.oid == membersAddedToOrganization.orgId =>
         currentState.withOrganization(
           org.copy(
-            members = org.members ++ membersAddedToOrganization.newMembers,
+            members =
+              (org.members ++ membersAddedToOrganization.newMembers).distinct,
             orgMeta = membersAddedToOrganization.meta
           )
         )
@@ -548,7 +646,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           ) && org.oid == ownersAddedToOrganization.orgId =>
         currentState.withOrganization(
           org.copy(
-            owners = org.owners ++ ownersAddedToOrganization.newOwners,
+            owners =
+              (org.owners ++ ownersAddedToOrganization.newOwners).distinct,
             orgMeta = ownersAddedToOrganization.meta
           )
         )

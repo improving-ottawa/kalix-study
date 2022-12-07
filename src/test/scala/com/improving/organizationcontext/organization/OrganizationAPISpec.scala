@@ -3,10 +3,12 @@ package com.improving.organizationcontext.organization
 import com.google.protobuf.timestamp.Timestamp
 import com.improving._
 import com.improving.organization.{
+  ApiAddMembersToOrganization,
   ApiAddress,
   ApiCAPostalCode,
   ApiEditOrganizationInfo,
   ApiEstablishOrganization,
+  ApiGetOrganizationInfo,
   ApiInfo,
   ApiMemberId,
   ApiMetaInfo,
@@ -18,6 +20,7 @@ import com.improving.organization.{
   ApiUpdateParent
 }
 import com.improving.organizationcontext.{
+  GetOrganizationInfo,
   MetaInfo,
   OrganizationEstablished,
   OrganizationInfoUpdated,
@@ -68,7 +71,11 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         )
       ),
       Some(ApiParent(parentIdTest)),
-      Seq.empty,
+      Seq[ApiMemberId](
+        ApiMemberId("member1"),
+        ApiMemberId("member2"),
+        ApiMemberId("member3")
+      ),
       Seq.empty,
       Seq.empty,
       Some(ApiMemberId(establishingMemberId)),
@@ -131,6 +138,37 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
     }
 
+    "return empty effect from edit and update info with terminated status" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiEditOrganizationInfo = ApiEditOrganizationInfo(
+        orgId = "testOrgId",
+        newInfo = Some(
+          ApiUpdateInfo(
+            name = "sample-name",
+            shortName = "sample-shortname",
+            address = Some(
+              ApiAddress(
+                line1 = "line1",
+                line2 = "line2",
+                city = "city",
+                stateProvince = "state",
+                country = "canada",
+                postalCode = ApiAddress.PostalCode.CaPostalCode(
+                  ApiCAPostalCode.defaultInstance
+                )
+              )
+            )
+          )
+        )
+      )
+
+      val updateInfoResult =
+        testKit.editOrganizationInfo(apiEditOrganizationInfo)
+
+      updateInfoResult.events should have size 0
+    }
+
     "correctly update organization parent" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
@@ -153,6 +191,18 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       parentUpdated.newParent shouldBe defined
 
       parentUpdated.newParent shouldBe Some(OrganizationId(newParentId))
+    }
+
+    "return empty from update organization parent with invalid state's status" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiUpdateParent =
+        ApiUpdateParent(testOrgId, Some(ApiOrganizationId(newParentId)))
+
+      val updateParentResult = testKit.updateParent(apiUpdateParent)
+
+      updateParentResult.events should have size 0
+
     }
 
     "correctly update organization status" in {
@@ -184,6 +234,115 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       testKit.currentState.organization.map(_.status) shouldBe Some(
         OrganizationStatus.SUSPENDED
       )
+    }
+
+    "return empty result from update organization status with invalid state's status" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiOrganizationStatusUpdated =
+        ApiOrganizationStatusUpdated(
+          testOrgId,
+          ApiOrganizationStatus.SUSPENDED
+        )
+
+      val updateOrganizationStatusResult =
+        testKit.updateOrganizationStatus(apiOrganizationStatusUpdated)
+
+      updateOrganizationStatusResult.events should have size 0
+    }
+
+    "correctly return result from getOrganizationInfo" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiGetOrganizationInfo = ApiGetOrganizationInfo(testOrgId)
+
+      val getOrganizationInfoResult =
+        testKit.getOrganizationInfo(apiGetOrganizationInfo)
+
+      getOrganizationInfoResult.events should have size 1
+
+      Some(
+        getOrganizationInfoResult.reply
+      ) == apiEstablishOrganization.info shouldBe true
+    }
+
+    "return empty result from getOrganizationInfo with invalid state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiGetOrganizationInfo = ApiGetOrganizationInfo(testOrgId)
+
+      val getOrganizationInfoResult =
+        testKit.getOrganizationInfo(apiGetOrganizationInfo)
+
+      getOrganizationInfoResult.events should have size 0
+
+      getOrganizationInfoResult.reply shouldEqual ApiInfo.defaultInstance
+    }
+
+    "correctly add owners to the organization" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val establishOrganizationResult =
+        testKit.establishOrganization(apiEstablishOrganization)
+
+      establishOrganizationResult.events should have size 1
+
+      val apiAddMembersToOrganization = ApiAddMembersToOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member1"),
+          ApiMemberId("member2"),
+          ApiMemberId("member4")
+        ),
+        Some(ApiMemberId("member100"))
+      )
+
+      val apiAddMembersToOrganizationResult =
+        testKit.addMembersToOrganization(apiAddMembersToOrganization)
+
+      apiAddMembersToOrganizationResult.events should have size 1
+
+      val members = testKit.currentState.organization
+        .map(_.members)
+        .getOrElse(Seq.empty[MemberId])
+      members should have size 4
+
+      members shouldEqual Seq(
+        MemberId("member1"),
+        MemberId("member2"),
+        MemberId("member3"),
+        MemberId("member4")
+      )
+
+      val meta = testKit.currentState.organization
+        .flatMap(_.orgMeta)
+        .getOrElse(MetaInfo.defaultInstance)
+
+      meta.lastUpdatedBy shouldBe Some(MemberId("member100"))
+    }
+
+    "should return empty result from add owners to the organization with invalid state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val apiAddMembersToOrganization = ApiAddMembersToOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member1"),
+          ApiMemberId("member2"),
+          ApiMemberId("member4")
+        ),
+        Some(ApiMemberId("member100"))
+      )
+
+      val apiAddMembersToOrganizationResult =
+        testKit.addMembersToOrganization(apiAddMembersToOrganization)
+
+      apiAddMembersToOrganizationResult.events should have size 0
     }
   }
 }
