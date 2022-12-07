@@ -1,6 +1,7 @@
 package com.improving.organizationcontext.organization
 
 import com.google.protobuf.empty.Empty
+import com.google.protobuf.timestamp.Timestamp
 import com.improving.organization
 import com.improving.organizationcontext.{
   ContactList,
@@ -27,6 +28,7 @@ import com.improving.organizationcontext.{
 }
 import com.improving.organization.ApiAddress.PostalCode
 import com.improving.organization.{
+  ApiAddOwnersToOrganization,
   ApiInfo,
   ApiMetaInfo,
   ApiOrganizationStatus,
@@ -45,21 +47,119 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     extends AbstractOrganizationAPI {
   override def emptyState: OrganizationState = OrganizationState.defaultInstance
 
+  override def findOrganizationsByOwner(
+      currentState: OrganizationState,
+      apiMemberId: organization.ApiMemberId
+  ): EventSourcedEntity.Effect[organization.ApiOrganizationListByOwner] =
+    effects.error(
+      "The command handler for `FindOrganizationsByOwner` is not implemented, yet"
+    )
+
+  override def findOrganizationsByMember(
+      currentState: OrganizationState,
+      apiMemberId: organization.ApiMemberId
+  ): EventSourcedEntity.Effect[organization.ApiOrganizationListByMember] =
+    effects.error(
+      "The command handler for `FindOrganizationsByMember` is not implemented, yet"
+    )
+
+  override def getOrganizationInfo(
+      currentState: OrganizationState,
+      apiGetOrganizationInfo: organization.ApiGetOrganizationInfo
+  ): EventSourcedEntity.Effect[organization.ApiInfo] =
+    effects.error(
+      "The command handler for `GetOrganizationInfo` is not implemented, yet"
+    )
+
+  override def removeMembersFromOrganization(
+      currentState: OrganizationState,
+      apiRemoveMembersFromOrganization: organization.ApiRemoveMembersFromOrganization
+  ): EventSourcedEntity.Effect[Empty] =
+    effects.error(
+      "The command handler for `RemoveMembersFromOrganization` is not implemented, yet"
+    )
+
+  override def removeOwnersFromOrganization(
+      currentState: OrganizationState,
+      apiRemoveOwnersFromOrganization: organization.ApiRemoveOwnersFromOrganization
+  ): EventSourcedEntity.Effect[Empty] =
+    effects.error(
+      "The command handler for `RemoveOwnersFromOrganization` is not implemented, yet"
+    )
+
   override def addMembersToOrganization(
       currentState: OrganizationState,
       apiAddMembersToOrganization: organization.ApiAddMembersToOrganization
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `AddMembersToOrganization` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == Some(
+            OrganizationId(apiAddMembersToOrganization.orgId)
+          ) =>
+        val now = java.time.Instant.now()
+        val updatingMember =
+          apiAddMembersToOrganization.updatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        val event = MembersAddedToOrganization(
+          Some(OrganizationId(apiAddMembersToOrganization.orgId)),
+          apiAddMembersToOrganization.membersToAdd.map(member =>
+            MemberId(member.memberId)
+          ),
+          Some(
+            MetaInfo(
+              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              updatingMember,
+              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              updatingMember,
+              org.status,
+              Seq.empty[OrganizationId]
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
   override def addOwnersToOrganization(
       currentState: OrganizationState,
       apiAddOwnersToOrganization: organization.ApiAddOwnersToOrganization
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `AddOwnersToOrganization` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == Some(
+            OrganizationId(apiAddOwnersToOrganization.orgId)
+          ) =>
+        val now = java.time.Instant.now()
+        val updatingMember =
+          apiAddOwnersToOrganization.updatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        val event = OwnersAddedToOrganization(
+          Some(OrganizationId(apiAddOwnersToOrganization.orgId)),
+          apiAddOwnersToOrganization.ownersToAdd.map(member =>
+            MemberId(member.memberId)
+          ),
+          Some(
+            MetaInfo(
+              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              updatingMember,
+              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              updatingMember,
+              org.status,
+              Seq.empty[OrganizationId]
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
   override def editOrganizationInfo(
       currentState: OrganizationState,
@@ -242,8 +342,9 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] =
     currentState.organization match {
       case Some(org)
-          if org.oid == apiOrganizationStatusUpdated.orgId
-            .map(oid => OrganizationId(oid.id)) => {
+          if org.oid == Some(
+            OrganizationId(apiOrganizationStatusUpdated.orgId)
+          ) => {
         val event = OrganizationStatusUpdated(
           org.oid,
           convertApiOrganizationStatusToOrganizationStatus(
@@ -258,58 +359,121 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def findOrganizationsByMember(
       currentState: OrganizationState,
       findOrganizationsByMember: FindOrganizationsByMember
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `FindOrganizationsByMember` is not implemented, yet"
-    )
+  ): OrganizationState = currentState.organization match {
+    case Some(org)
+        if org.members
+          .exists(id => Some(id) == findOrganizationsByMember.member) =>
+      currentState
+    case _ => OrganizationState.defaultInstance
+  }
 
   override def findOrganizationsByOwner(
       currentState: OrganizationState,
       findOrganizationsByOwner: FindOrganizationsByOwner
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `FindOrganizationsByOwner` is not implemented, yet"
-    )
+  ): OrganizationState = currentState.organization match {
+    case Some(org)
+        if org.owners
+          .exists(id => Some(id) == findOrganizationsByOwner.owner) =>
+      currentState
+    case _ => OrganizationState.defaultInstance
+  }
 
   override def getOrganizationInfo(
       currentState: OrganizationState,
       getOrganizationInfo: GetOrganizationInfo
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `GetOrganizationInfo` is not implemented, yet"
-    )
+  ): OrganizationState = currentState.organization match {
+    case Some(org) if org.oid == getOrganizationInfo.orgId =>
+      currentState
+    case _ => OrganizationState.defaultInstance
+  }
 
   override def membersAddedToOrganization(
       currentState: OrganizationState,
       membersAddedToOrganization: MembersAddedToOrganization
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `MembersAddedToOrganization` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == membersAddedToOrganization.orgId =>
+        currentState.withOrganization(
+          org.copy(
+            members = org.members ++ membersAddedToOrganization.newMembers,
+            orgMeta = membersAddedToOrganization.meta
+          )
+        )
+      case _ => currentState
+    }
+  }
 
   override def membersRemovedFromOrganization(
       currentState: OrganizationState,
       membersRemovedFromOrganization: MembersRemovedFromOrganization
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `MembersRemovedFromOrganization` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == membersRemovedFromOrganization.orgId => {
+        val meta = org.orgMeta.map(meta => {
+          meta.copy(
+            lastUpdated = Some(timestamp),
+            lastUpdatedBy = membersRemovedFromOrganization.updatingMember
+          )
+        })
+        currentState.withOrganization(
+          org.copy(
+            members = org.members.filterNot(
+              membersRemovedFromOrganization.removedMembers.contains(_)
+            ),
+            orgMeta = meta
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
   override def organizationAccountsUpdated(
       currentState: OrganizationState,
       organizationAccountsUpdated: OrganizationAccountsUpdated
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OrganizationAccountsUpdated` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == organizationAccountsUpdated.orgId => {
+        currentState.withOrganization(
+          org.copy(
+            info = organizationAccountsUpdated.info,
+            orgMeta = organizationAccountsUpdated.meta
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
   override def organizationContactsUpdated(
       currentState: OrganizationState,
       organizationContactsUpdated: OrganizationContactsUpdated
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OrganizationContactsUpdated` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == organizationContactsUpdated.orgId => {
+        currentState.withOrganization(
+          org.copy(
+            contacts = organizationContactsUpdated.contacts
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
   override def organizationEstablished(
       currentState: OrganizationState,
@@ -335,8 +499,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             contacts.contacts
           ),
           organizationEstablished.meta,
-          "name is missing",
-          OrganizationStatus.ACTIVE
+          organizationEstablished.info
+            .map(_.name)
+            .getOrElse("Name is not available."),
+          OrganizationStatus.DRAFT
         )
 
         currentState.withOrganization(organization)
@@ -374,10 +540,21 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def ownersAddedToOrganization(
       currentState: OrganizationState,
       ownersAddedToOrganization: OwnersAddedToOrganization
-  ): OrganizationState =
-    throw new RuntimeException(
-      "The event handler for `OwnersAddedToOrganization` is not implemented, yet"
-    )
+  ): OrganizationState = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == ownersAddedToOrganization.orgId =>
+        currentState.withOrganization(
+          org.copy(
+            owners = org.owners ++ ownersAddedToOrganization.newOwners,
+            orgMeta = ownersAddedToOrganization.meta
+          )
+        )
+      case _ => currentState
+    }
+  }
 
   override def ownersRemovedFromOrganization(
       currentState: OrganizationState,

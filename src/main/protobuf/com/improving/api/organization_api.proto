@@ -69,6 +69,10 @@ message ApiMemberId {
     string member_id = 1 [(kalix.field).entity_key = true];
 }
 
+message ApiGetOrganizationInfo {
+    string org_id = 1 [(kalix.field).entity_key = true];
+}
+
 message ApiContacts {
     ApiMemberId primaryContacts = 1;
     repeated ApiMemberId billingContacts = 2;
@@ -91,20 +95,20 @@ message ApiUpdateParent {
 
 message ApiAddMembersToOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    string member_to_add = 2;
-    string updating_member = 3;
+    repeated ApiMemberId membersToAdd = 2;
+    ApiMemberId updatingMember = 3;
 }
 
 message ApiAddOwnersToOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    string owners_to_add = 2;
-    string updating_member = 3;
+    repeated ApiMemberId ownersToAdd = 2;
+    ApiMemberId updatingMember = 3;
 }
 
 message ApiEditOrganizationInfo {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiUpdateInfo newInfo = 2;
-    string editingMember = 3;
+    ApiMemberId editingMember = 3;
 }
 
 message ApiEstablishOrganization {
@@ -118,18 +122,33 @@ message ApiEstablishOrganization {
     ApiMetaInfo meta = 8;
 }
 
-message ApiOwnersRemovedFromOrganization {
+message ApiRemoveOwnersFromOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId ownersToRemove = 2;
+    repeated ApiMemberId ownersToRemove = 2;
     ApiMemberId updatingMember = 3;
 
 }
 
+message ApiRemoveMembersFromOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    repeated ApiMemberId membersToRemove = 2;
+    ApiMemberId updatingMember = 3;
+}
+
 message ApiOrganizationStatusUpdated {
-    ApiOrganizationId orgId = 1;
+    string org_id = 1 [(kalix.field).entity_key = true];
     ApiOrganizationStatus newStatus = 2;
 }
 
+message ApiOrganizationListByMember {
+    ApiMemberId member = 1;
+    repeated ApiOrganizationId organizations = 2;
+}
+
+message ApiOrganizationListByOwner {
+    ApiMemberId owner = 1;
+    repeated ApiOrganizationId organizations = 2;
+}
 
 service OrganizationService {
 
@@ -155,16 +174,51 @@ service OrganizationService {
         }
     };
 
+    rpc FindOrganizationsByOwner(ApiMemberId) returns (ApiOrganizationListByOwner) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/find-by-owner"
+            body: "*"
+        };
+    }
+
+    rpc FindOrganizationsByMember(ApiMemberId) returns (ApiOrganizationListByMember) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/find-by-member"
+            body: "*"
+        };
+    }
+
+    rpc GetOrganizationInfo(ApiGetOrganizationInfo) returns (ApiInfo) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/organization-info"
+            body: "*"
+        };
+    }
+
     rpc AddMembersToOrganization(ApiAddMembersToOrganization) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/organization/{org_id}/add-member"
+            post: "/organization/{org_id}/add-members"
+            body: "*"
+        };
+    }
+
+    rpc RemoveMembersFromOrganization(ApiRemoveMembersFromOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/remove-members"
             body: "*"
         };
     }
 
     rpc AddOwnersToOrganization(ApiAddOwnersToOrganization) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/organization/{org_id}/add-owner"
+            post: "/organization/{org_id}/add-owners"
+            body: "*"
+        };
+    }
+
+    rpc RemoveOwnersFromOrganization(ApiRemoveOwnersFromOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/remove-owners"
             body: "*"
         };
     }

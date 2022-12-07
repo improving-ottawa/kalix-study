@@ -165,7 +165,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
-          Some(ApiOrganizationId(testOrgId)),
+          testOrgId,
           ApiOrganizationStatus.SUSPENDED
         )
 
@@ -180,6 +180,10 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         updateOrganizationStatusResult.nextEvent[OrganizationStatusUpdated]
 
       organizationStatusUpdated.newStatus shouldBe OrganizationStatus.SUSPENDED
+
+      testKit.currentState.organization.map(_.status) shouldBe Some(
+        OrganizationStatus.SUSPENDED
+      )
     }
   }
 }

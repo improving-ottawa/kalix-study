@@ -67,7 +67,7 @@ message UpdateInfo {
 }
 
 message FindOrganizationsByMember {
-    MemberId member_ids = 1;
+    MemberId member = 1;
 }
 
 message FindOrganizationsByOwner {
