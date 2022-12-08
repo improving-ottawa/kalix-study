@@ -15,8 +15,8 @@ message ApiOrganization {
     ApiOrganizationId oid = 1;
     ApiInfo info = 2;
     ApiOrganizationId parent = 3;
-    repeated ApiMemberId members = 4;
-    repeated ApiMemberId owners = 5;
+    repeated string member_ids = 4;
+    repeated string owner_ids = 5;
     repeated ApiContacts contacts = 6;
     ApiMetaInfo orgMeta = 7;
     string name = 8;

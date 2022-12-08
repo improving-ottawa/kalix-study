@@ -122,7 +122,7 @@ service OrganizationByMemberView {
 
     rpc FindOrganizationByMember(ByMemberRequest) returns (stream com.improving.organization.ApiOrganization) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM organizations WHERE :member_id = 1",
+            query: "SELECT * FROM organizations WHERE :member_id = ANY(member_ids)",
             stream_updates: true
         };
         option (google.api.http) = {
@@ -235,7 +235,7 @@ service OrganizationByOwnerView {
 
     rpc FindOrganizationByOwner(ByOwnerRequest) returns (stream com.improving.organization.ApiOrganization) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM organizations WHERE :owner_id = 1",
+            query: "SELECT * FROM organizations WHERE :owner_id = ANY(owner_ids)",
             stream_updates: true
 
         };

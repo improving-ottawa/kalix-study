@@ -48,9 +48,9 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
         _.id.map(org => ApiOrganizationId(org.id))
       ),
       organizationEstablished.members.toList
-        .flatMap(_.memberId.map(member => ApiMemberId(member.id))),
+        .flatMap(_.memberId.map(member => member.id)),
       organizationEstablished.owners.toList
-        .flatMap(_.owners.map(owner => ApiMemberId(owner.id))),
+        .flatMap(_.owners.map(owner => owner.id)),
       organizationEstablished.contacts.toList.flatMap(
         _.contacts.map(contact =>
           ApiContacts(
@@ -72,11 +72,11 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
       state: ApiOrganization,
       membersAddedToOrganization: MembersAddedToOrganization
   ): UpdateEffect[ApiOrganization] = {
-    val members = state.members
+    val members = state.memberIds
     effects.updateState(
-      state.copy(members =
+      state.copy(memberIds =
         (members ++ membersAddedToOrganization.newMembers.map(member =>
-          ApiMemberId(member.id)
+          member.id
         )).distinct
       )
     )
@@ -86,12 +86,12 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
       state: ApiOrganization,
       membersRemovedFromOrganization: MembersRemovedFromOrganization
   ): UpdateEffect[ApiOrganization] = {
-    val members = state.members
+    val members = state.memberIds
     effects.updateState(
-      state.copy(members =
+      state.copy(memberIds =
         members.filterNot(member =>
           membersRemovedFromOrganization.removedMembers
-            .map(member => ApiMemberId(member.id))
+            .map(member => member.id)
             .contains(member)
         )
       )
@@ -211,11 +211,11 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
       state: ApiOrganization,
       ownersAddedToOrganization: OwnersAddedToOrganization
   ): UpdateEffect[ApiOrganization] = {
-    val owners = state.owners
+    val owners = state.ownerIds
     effects.updateState(
-      state.copy(owners =
+      state.copy(ownerIds =
         (owners ++ ownersAddedToOrganization.newOwners.map(member =>
-          ApiMemberId(member.id)
+          member.id
         )).distinct
       )
     )
@@ -225,12 +225,12 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
       state: ApiOrganization,
       ownersRemovedFromOrganization: OwnersRemovedFromOrganization
   ): UpdateEffect[ApiOrganization] = {
-    val owners = state.owners
+    val owners = state.ownerIds
     effects.updateState(
-      state.copy(owners =
+      state.copy(ownerIds =
         owners.filterNot(owner =>
           ownersRemovedFromOrganization.removedOwners
-            .map(member => ApiMemberId(member.id))
+            .map(member => member.id)
             .contains(owner)
         )
       )
