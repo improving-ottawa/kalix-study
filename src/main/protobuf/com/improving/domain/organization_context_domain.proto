@@ -14,7 +14,7 @@ enum OrganizationStatus {
 
 
 message Contacts {
-    MemberId primaryContacts = 1;
+    repeated MemberId primaryContacts = 1;
     repeated MemberId billingContacts = 2;
     repeated MemberId distributionContacts = 3;
 }

@@ -11,6 +11,18 @@ import "google/api/annotations.proto";
 
 package com.improving.organization;
 
+message ApiOrganization {
+    ApiOrganizationId oid = 1;
+    ApiInfo info = 2;
+    ApiOrganizationId parent = 3;
+    repeated ApiMemberId members = 4;
+    repeated ApiMemberId owners = 5;
+    repeated ApiContacts contacts = 6;
+    ApiMetaInfo orgMeta = 7;
+    string name = 8;
+    ApiOrganizationStatus status = 9;
+}
+
 enum ApiOrganizationStatus {
     DRAFT = 0;
     ACTIVE = 1;
@@ -74,7 +86,7 @@ message ApiGetOrganizationInfo {
 }
 
 message ApiContacts {
-    ApiMemberId primaryContacts = 1;
+    repeated ApiMemberId primaryContacts = 1;
     repeated ApiMemberId billingContacts = 2;
     repeated ApiMemberId distributionContacts = 3;
 }
@@ -155,7 +167,7 @@ service OrganizationService {
     option (kalix.codegen) = {
         event_sourced_entity: {
             name: "com.improving.organizationcontext.organization.OrganizationAPI"
-            entity_type: "organization"
+            entity_type: "organizations"
             state: "com.improving.organizationcontext.organization.OrganizationState"
             events: [
                 "com.improving.organizationcontext.FindOrganizationsByMember",
@@ -176,14 +188,14 @@ service OrganizationService {
 
     rpc FindOrganizationsByOwner(ApiMemberId) returns (ApiOrganizationListByOwner) {
         option (google.api.http) = {
-            post: "/organization/{org_id}/find-by-owner"
+            get: "/organizations/by_owner/{member_id}"
             body: "*"
         };
     }
 
     rpc FindOrganizationsByMember(ApiMemberId) returns (ApiOrganizationListByMember) {
         option (google.api.http) = {
-            post: "/organization/{org_id}/find-by-member"
+            get: "/organizations/by_member/{member_id}"
             body: "*"
         };
     }

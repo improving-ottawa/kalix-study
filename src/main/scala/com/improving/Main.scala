@@ -1,5 +1,7 @@
 package com.improving
 
+import com.improving.organizationcontext.OrganizationByMemberViewImpl
+import com.improving.organizationcontext.OrganizationByOwnerViewImpl
 import com.improving.organizationcontext.organization.OrganizationAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
@@ -19,7 +21,9 @@ object Main {
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
     KalixFactory.withComponents(
-      new OrganizationAPI(_))
+      new OrganizationAPI(_),
+      new OrganizationByMemberViewImpl(_),
+      new OrganizationByOwnerViewImpl(_))
   }
 
   def main(args: Array[String]): Unit = {
