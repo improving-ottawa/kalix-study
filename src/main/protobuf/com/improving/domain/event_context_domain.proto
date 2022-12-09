@@ -12,6 +12,7 @@ enum EventStatus {
     PAST = 2;
     CANCELLED = 3;
     DELAYED = 4;
+    UNKNOWN = 5;
 }
 
 message ReservationId {

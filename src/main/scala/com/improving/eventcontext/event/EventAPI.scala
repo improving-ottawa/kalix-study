@@ -55,7 +55,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               currentState.event
                 .map(_.status)
                 .getOrElse(
-                  EventStatus.Unrecognized
+                  EventStatus.UNKNOWN
                 )
             )
           )
