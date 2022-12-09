@@ -1,5 +1,6 @@
 package com.improving
 
+import com.improving.eventcontext.event.EventAPI
 import com.improving.organizationcontext.OrganizationByMemberViewImpl
 import com.improving.organizationcontext.OrganizationByOwnerViewImpl
 import com.improving.organizationcontext.organization.OrganizationAPI
@@ -21,6 +22,7 @@ object Main {
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
     KalixFactory.withComponents(
+      new EventAPI(_),
       new OrganizationAPI(_),
       new OrganizationByMemberViewImpl(_),
       new OrganizationByOwnerViewImpl(_))

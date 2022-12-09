@@ -1,13 +1,12 @@
 package com.improving.organizationcontext
 
 import com.google.protobuf.any.{Any => ScalaPbAny}
-import com.improving.Address
+import com.improving.{Address, ApiMemberId}
 import com.improving.organization.{
   ApiAddress,
   ApiCAPostalCode,
   ApiContacts,
   ApiInfo,
-  ApiMemberId,
   ApiMetaInfo,
   ApiOrganization,
   ApiOrganizationId,

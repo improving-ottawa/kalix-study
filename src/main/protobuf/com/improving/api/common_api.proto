@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package com.improving;
+
+import "kalix/annotations.proto";
+
+message ApiMemberId {
+    string member_id = 1 [(kalix.field).entity_key = true];
+}

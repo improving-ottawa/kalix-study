@@ -1,9 +1,7 @@
 // This is the public API offered by your entity.
 syntax = "proto3";
 
-import "com/improving/domain/common_domain.proto";
-import "com/improving/domain/organization_context_domain.proto";
-import "com/improving/domain/organization_domain.proto";
+import "com/improving/api/common_api.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
@@ -70,15 +68,11 @@ message ApiMetaInfo {
 }
 
 message ApiOrganizationId {
-    string id = 1;
+    string org_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiParent {
     string org_id = 1 [(kalix.field).entity_key = true];
-}
-
-message ApiMemberId {
-    string member_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiGetOrganizationInfo {

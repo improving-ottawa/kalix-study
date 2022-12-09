@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+
+package com.improving.event;
+
+import "com/improving/api/common_api.proto";
+import "com/improving/api/organization_api.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+message ApiReservationId {
+    string reservation_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiEventInfo {
+    string eventName = 1;
+    string description = 2;
+    string eventURL = 3; // URL type?
+    organization.ApiOrganizationId sponsoringOrg = 4;
+    string geoLocation = 5; // Location?
+    ApiReservationId reservation = 6;
+    google.protobuf.Timestamp expectedStart = 7;
+    google.protobuf.Timestamp expectedEnd = 8;
+    bool isPrivate = 9;
+}
+
+message ApiChangeEventInfo {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiMemberId changingMember = 3;
+}
+
+message ApiScheduleEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiMemberId schedulingMember = 3;
+}
+
+message ApiCancelEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId cancellingMember = 3;
+}
+
+message ApiRescheduleEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    google.protobuf.Timestamp start = 2;
+    google.protobuf.Timestamp end = 3;
+    ApiMemberId reschedulingMember = 4;
+}
+
+message ApiDelayEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    string reason = 2;
+    google.protobuf.Duration expectedDuration = 3;
+    ApiMemberId delayingMember = 4;
+}
+
+message ApiStartEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId startingMember = 2;
+}
+
+message ApiEndEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId endingMember = 2;
+}
+
+message ApiAddLiveUpdate {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiLiveUpdate update = 2;
+}
+
+message ApiLiveUpdate {
+    string from = 1;
+    string to = 2;
+}
+
+service EventService {
+
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "com.improving.eventcontext.event.EventAPI"
+            entity_type: "events"
+            state: "com.improving.eventcontext.event.EventState"
+            events: [
+                "com.improving.eventcontext.EventInfoChanged",
+                "com.improving.eventcontext.EventScheduled",
+                "com.improving.eventcontext.EventCancelled",
+                "com.improving.eventcontext.EventRescheduled",
+                "com.improving.eventcontext.EventDelayed",
+                "com.improving.eventcontext.EventStarted",
+                "com.improving.eventcontext.EventEnded"]
+        }
+    };
+
+    rpc ChangeEventInfo(ApiChangeEventInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/change-event-info"
+            body: "*"
+        };
+    }
+
+    rpc ScheduleEvent(ApiScheduleEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/schedule-event"
+            body: "*"
+        };
+    }
+
+    rpc CancelEvent(ApiCancelEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/cancel-event"
+            body: "*"
+        };
+    }
+
+    rpc RescheduleEvent(ApiRescheduleEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/reschedule-event"
+            body: "*"
+        };
+    }
+
+    rpc DelayEvent(ApiDelayEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/delay-event"
+            body: "*"
+        };
+    }
+
+    rpc StartEvent(ApiStartEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/start-event"
+            body: "*"
+        };
+    }
+
+    rpc EndEvent(ApiEndEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/end-event"
+            body: "*"
+        };
+    }
+
+    rpc AddLiveUpdate(ApiAddLiveUpdate) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/add-live-update"
+            body: "*"
+        };
+    }
+}

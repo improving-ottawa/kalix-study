@@ -11,7 +11,6 @@ import com.improving.organization.{
   ApiEstablishOrganization,
   ApiGetOrganizationInfo,
   ApiInfo,
-  ApiMemberId,
   ApiMetaInfo,
   ApiOrganizationId,
   ApiOrganizationStatus,

@@ -3,7 +3,13 @@ package com.improving.organizationcontext.organization
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import com.improving.Address.PostalCode
-import com.improving.organization
+import com.improving.{
+  Address,
+  ApiMemberId,
+  MemberId,
+  OrganizationId,
+  organization
+}
 import com.improving.organizationcontext.{
   ContactList,
   Contacts,
@@ -38,7 +44,6 @@ import com.improving.organization.{
   ApiParent,
   ApiUSPostalCode
 }
-import com.improving.{Address, MemberId, OrganizationId}
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -53,7 +58,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def findOrganizationsByOwner(
       currentState: OrganizationState,
-      apiMemberId: organization.ApiMemberId
+      apiMemberId: ApiMemberId
   ): EventSourcedEntity.Effect[organization.ApiOrganizationListByOwner] =
     effects.error(
       "The command handler for `FindOrganizationsByOwner` is not implemented, yet"
@@ -61,7 +66,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def findOrganizationsByMember(
       currentState: OrganizationState,
-      apiMemberId: organization.ApiMemberId
+      apiMemberId: ApiMemberId
   ): EventSourcedEntity.Effect[organization.ApiOrganizationListByMember] =
     effects.error(
       "The command handler for `FindOrganizationsByMember` is not implemented, yet"
@@ -397,7 +402,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       convertApiOrganizationStatusToOrganizationStatus(
         apiMetaInfo.currentStatus
       ),
-      apiMetaInfo.children.map(child => OrganizationId(child.id))
+      apiMetaInfo.children.map(child => OrganizationId(child.orgId))
     )
   }
 
@@ -424,7 +429,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
         val event = ParentUpdated(
           Some(OrganizationId(apiUpdateParent.orgId)),
-          apiUpdateParent.newParent.map(parent => OrganizationId(parent.id))
+          apiUpdateParent.newParent.map(parent => OrganizationId(parent.orgId))
         )
 
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)

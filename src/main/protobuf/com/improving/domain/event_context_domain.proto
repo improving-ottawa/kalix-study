@@ -18,11 +18,6 @@ message ReservationId {
     string id = 1;
 }
 
-message Event {
-    EventId id = 1;
-    EventStatus state = 2;
-}
-
 message EventCancelled {
     EventId id = 1;
 }
