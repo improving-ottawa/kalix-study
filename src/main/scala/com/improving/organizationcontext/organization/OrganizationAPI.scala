@@ -56,22 +56,6 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     extends AbstractOrganizationAPI {
   override def emptyState: OrganizationState = OrganizationState.defaultInstance
 
-  override def findOrganizationsByOwner(
-      currentState: OrganizationState,
-      apiMemberId: ApiMemberId
-  ): EventSourcedEntity.Effect[organization.ApiOrganizationListByOwner] =
-    effects.error(
-      "The command handler for `FindOrganizationsByOwner` is not implemented, yet"
-    )
-
-  override def findOrganizationsByMember(
-      currentState: OrganizationState,
-      apiMemberId: ApiMemberId
-  ): EventSourcedEntity.Effect[organization.ApiOrganizationListByMember] =
-    effects.error(
-      "The command handler for `FindOrganizationsByMember` is not implemented, yet"
-    )
-
   override def getOrganizationInfo(
       currentState: OrganizationState,
       apiGetOrganizationInfo: organization.ApiGetOrganizationInfo

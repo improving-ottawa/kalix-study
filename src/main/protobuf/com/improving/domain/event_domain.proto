@@ -7,7 +7,7 @@ import "com/improving/domain/event_context_domain.proto";
 package com.improving.eventcontext.event;
 
 message Event {
-    EventId id = 1;
+    EventId eventId = 1;
     EventInfo info = 2;
     EventMetaInfo meta = 3;
     EventStatus status = 4;

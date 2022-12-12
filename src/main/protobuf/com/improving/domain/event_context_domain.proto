@@ -20,11 +20,12 @@ message ReservationId {
 }
 
 message EventCancelled {
-    EventId id = 1;
+    EventId eventId = 1;
+    MemberId cancellingMember = 2;
 }
 
 message EventDelayed {
-    EventId id = 1;
+    EventId eventId = 1;
     string reason = 2;
     EventMetaInfo meta = 3;
     google.protobuf.Duration expectedDuration = 4;
@@ -80,8 +81,9 @@ message EventScheduled {
 }
 
 message EventStarted {
-    EventInfo info = 1;
-    EventMetaInfo meta = 2;
+    EventId  eventId = 1;
+    EventInfo info = 2;
+    EventMetaInfo meta = 3;
 }
 
 message LiveUpdate {

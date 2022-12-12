@@ -1,7 +1,7 @@
 package com.improving.organization
 
 import akka.actor.TypedActor.context
-import com.improving.Main
+import com.improving.{Main, OrganizationId}
 import com.improving.organizationcontext.{
   ByMemberRequest,
   OrganizationByMemberView,
@@ -42,7 +42,17 @@ class OrganizationServiceIntegrationSpec
 
     "have example test that can be removed" in {
       memberViewClient
-        .processOrganizationEstablished(OrganizationEstablished())
+        .processOrganizationEstablished(
+          OrganizationEstablished(
+            Some(OrganizationId("1")),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
+          )
+        )
         .futureValue
         .status shouldBe ApiOrganizationStatus.DRAFT
     }

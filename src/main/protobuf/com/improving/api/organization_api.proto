@@ -180,20 +180,6 @@ service OrganizationService {
         }
     };
 
-    rpc FindOrganizationsByOwner(ApiMemberId) returns (ApiOrganizationListByOwner) {
-        option (google.api.http) = {
-            get: "/organizations/by_owner/{member_id}"
-            body: "*"
-        };
-    }
-
-    rpc FindOrganizationsByMember(ApiMemberId) returns (ApiOrganizationListByMember) {
-        option (google.api.http) = {
-            get: "/organizations/by_member/{member_id}"
-            body: "*"
-        };
-    }
-
     rpc GetOrganizationInfo(ApiGetOrganizationInfo) returns (ApiInfo) {
         option (google.api.http) = {
             post: "/organization/{org_id}/organization-info"
