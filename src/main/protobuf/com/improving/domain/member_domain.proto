@@ -15,5 +15,5 @@ message Member {
 }
 
 message MemberState {
-    Member state  = 1;
+    Member member = 1;
 }
