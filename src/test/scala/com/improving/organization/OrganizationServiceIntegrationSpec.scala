@@ -1,7 +1,7 @@
 package com.improving.organization
 
 import akka.actor.TypedActor.context
-import com.improving.{Main, OrganizationId}
+import com.improving.OrganizationId
 import com.improving.organizationcontext.{
   ByMemberRequest,
   OrganizationByMemberView,

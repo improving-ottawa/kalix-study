@@ -6,14 +6,14 @@ package com.improving;
  * Pattern of: \d{5}(-\d{4})?
  */
 message USPostalCode {
-    string postal_code = 1;
+    string postalCode = 1;
 }
 
 /**
  * Pattern of: [A-Z]\d[A-Z]\d[A-Z]\d
  */
 message CAPostalCode {
-    string postal_code = 1;
+    string postalCode = 1;
 }
 
 message Address {
@@ -22,9 +22,9 @@ message Address {
     string city = 3;
     string stateProvince = 4;
     string country = 5;
-    oneof postal_code {
-        USPostalCode us_postal_code = 6;
-        CAPostalCode ca_postal_code = 7;
+    oneof postalCode {
+        USPostalCode usPostalCode = 6;
+        CAPostalCode caPostalCode = 7;
     }
 }
 
@@ -42,7 +42,7 @@ message EmailAddress {
  */
 message MobileNumber {
      string value = 1;
- }
+}
 
 message Contact {
     string firstName = 1;

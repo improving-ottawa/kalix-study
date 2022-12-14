@@ -5,10 +5,6 @@ import "google/protobuf/timestamp.proto";
 
 package com.improving.membercontext;
 
-enum Status {
-    ACTIVE = 0;
-    SUSPENDED = 1;
-}
 
 enum NotificationPreference {
     EMAIL = 0;
@@ -16,12 +12,11 @@ enum NotificationPreference {
     APPLICATION = 2;
 }
 
-message GetMemberData {
-    MemberId memberId = 1;
-}
-
-message GetMembersByMetaInfo {
-    MetaInfoQuery queryData = 1;
+enum MemberStatus {
+    ACTIVE = 0;
+    INACTIVE = 2;
+    SUSPENDED = 3;
+    TERMINATED = 4;
 }
 
 message Info {
@@ -73,7 +68,7 @@ message MetaInfo {
     MemberId reatedBy = 2;
     google.protobuf.Timestamp lastModifiedOn = 3;
     MemberId lastModifiedBy = 4;
-    Status memberStatus = 5;
+    MemberStatus memberStatus = 5;
 }
 
 message MetaInfoQuery {
@@ -81,7 +76,7 @@ message MetaInfoQuery {
     MemberId createdBy = 2;
     google.protobuf.Timestamp lastModifiedOn = 3;
     MemberId lastModifiedBy = 4;
-    Status memberStatus = 5;
+    MemberStatus memberStatus = 5;
 }
 
 message MemberMap {

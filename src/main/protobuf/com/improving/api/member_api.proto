@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+
+package com.improving.member;
+
+
+import "com/improving/api/common_api.proto";
+import "com/improving/api/organization_api.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+
+enum ApiNotificationPreference {
+    EMAIL = 0;
+    SMS = 1;
+    APPLICATION = 2;
+}
+
+enum ApiMemberStatus {
+    ACTIVE = 0;
+    INACTIVE = 2;
+    SUSPENDED = 3;
+    TERMINATED = 4;
+}
+
+message ApiInfo {
+    ApiContact contact = 1;
+    string handle = 2;
+    string avatar = 3; // URL type?
+    string firstName = 4;
+    string lastName = 5;
+    ApiMobileNumber mobileNumber = 6;
+    ApiEmailAddress emailAddress = 7;
+    ApiNotificationPreference notificationPreference = 8;
+    repeated organization.ApiOrganizationId organizationMembership = 9;
+    ApiTenantId tenant = 10;
+}
+
+message ApiRegisterMember {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiInfo info = 2;
+    ApiMemberId registeringMember = 3;
+}
+
+message ApiRegisterMemberList {
+//    memberList: Alias of Type ‘MemberMap’
+    ApiMemberId registeringMember = 2;
+}
+
+message ApiUpdateMemberInfo {
+//    memberList: Alias of Type ‘MemberMap’
+    ApiMemberId registeringMember = 2;
+}
+
+message ApiUpdateMemberStatus {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId actingMember = 2;
+    ApiMemberStatus newStatus = 3;
+}
+
+service MemberService {
+
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "com.improving.membercontext.member.MemberAPI"
+            entity_type: "members"
+            state: "com.improving.membercontext.member.MemberState"
+            events: [
+                "com.improving.membercontext.MemberInfoUpdated",
+                "com.improving.membercontext.MemberListRegistered",
+                "com.improving.membercontext.MemberRegistered",
+                "com.improving.membercontext.MemberStatusUpdated"]
+        }
+    };
+
+
+    rpc RegisterMember(ApiRegisterMember) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/register"
+            body: "*"
+        };
+    }
+
+    rpc MemberStatusUpdated(ApiUpdateMemberStatus) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/update-status"
+            body: "*"
+        };
+    }
+
+    rpc UpdateMemberInfo(ApiUpdateMemberInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/update-info"
+            body: "*"
+        };
+    }
+
+    rpc RegisterMemberList(ApiRegisterMemberList) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/register-memberlist"
+            body: "*"
+        };
+    }
+}

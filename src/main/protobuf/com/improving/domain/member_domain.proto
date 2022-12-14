@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "com/improving/domain/common_domain.proto";
+import "com/improving/domain/member_context_domain.proto";
+
+
+package com.improving.membercontext.member;
+
+
+message Member {
+    MemberId memberId = 1;
+    Info info = 2;
+    MetaInfo meta = 3;
+    MemberStatus status = 4;
+}
+
+message MemberState {
+    Member state  = 1;
+}

@@ -1,7 +1,6 @@
-package com.improving.event
+package com.improving.member
 
 import akka.actor.ActorSystem
-import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -16,7 +15,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class EventServiceIntegrationSpec
+class MemberServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -27,9 +26,9 @@ class EventServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[EventService])
+  private val client = testKit.getGrpcClient(classOf[MemberService])
 
-  "EventService" must {
+  "MemberService" must {
 
     "have example test that can be removed" in {
       pending
