@@ -42,20 +42,36 @@ message ApiRegisterMember {
     ApiMemberId registeringMember = 3;
 }
 
+message ApiMemberMap {
+    map<string, ApiInfo> map = 1;
+}
+
 message ApiRegisterMemberList {
-//    memberList: Alias of Type ‘MemberMap’
+    ApiMemberMap memberList = 1;
     ApiMemberId registeringMember = 2;
 }
 
 message ApiUpdateMemberInfo {
-//    memberList: Alias of Type ‘MemberMap’
-    ApiMemberId registeringMember = 2;
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiUpdateInfo info = 2;
+    ApiMemberId actingMember = 3;
 }
 
 message ApiUpdateMemberStatus {
     string member_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId actingMember = 2;
     ApiMemberStatus newStatus = 3;
+}
+
+message ApiUpdateInfo {
+    string handle = 1;
+    string avatar = 2; // URL type?
+    string firstName = 3;
+    string lastName = 4;
+    ApiMobileNumber mobileNumber = 5;
+    ApiEmailAddress emailAddress = 6;
+    ApiNotificationPreference notificationPreference = 7;
+    repeated organization.ApiOrganizationId organizationMembership = 8;
 }
 
 service MemberService {
@@ -81,7 +97,7 @@ service MemberService {
         };
     }
 
-    rpc MemberStatusUpdated(ApiUpdateMemberStatus) returns (google.protobuf.Empty) {
+    rpc UpdateMemberStatus(ApiUpdateMemberStatus) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/member/{member_id}/update-status"
             body: "*"

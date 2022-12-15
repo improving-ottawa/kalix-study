@@ -1,6 +1,7 @@
 package com.improving.member
 
 import akka.actor.ActorSystem
+import com.improving.Main
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures

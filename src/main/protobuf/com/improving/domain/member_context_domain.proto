@@ -82,8 +82,7 @@ message MetaInfoQuery {
 }
 
 message MemberMap {
-    MemberId from = 1;
-    Info to = 2;
+    map<string, Info> map = 1;
 }
 
 message UpdateInfo {

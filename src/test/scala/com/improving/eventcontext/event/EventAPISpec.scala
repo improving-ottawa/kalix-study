@@ -34,20 +34,6 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class EventAPISpec extends AnyWordSpec with Matchers {
   "The EventAPI" should {
-    "have example test that can be removed" in {
-      val testKit = EventAPITestKit(new EventAPI(_))
-      pending
-      // use the testkit to execute a command:
-      // val result: EventSourcedResult[R] = testKit.someOperation(SomeRequest("id"));
-      // verify the emitted events
-      // val actualEvent: ExpectedEvent = result.nextEventOfType[ExpectedEvent]
-      // actualEvent shouldBe expectedEvent
-      // verify the final state after applying the events
-      // testKit.state() shouldBe expectedState
-      // verify the reply
-      // result.reply shouldBe expectedReply
-      // verify the final state after the command
-    }
 
     "correctly process commands of type ChangeEventInfo" in {
       val testKit = EventAPITestKit(new EventAPI(_))

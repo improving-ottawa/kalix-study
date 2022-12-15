@@ -1,13 +1,8 @@
 package com.improving.organization
 
 import akka.actor.TypedActor.context
-import com.improving.OrganizationId
-import com.improving.organizationcontext.{
-  ByMemberRequest,
-  OrganizationByMemberView,
-  OrganizationByOwnerView,
-  OrganizationEstablished
-}
+import com.improving.{Main, OrganizationId}
+import com.improving.organizationcontext.{ByMemberRequest, OrganizationByMemberView, OrganizationByOwnerView, OrganizationEstablished}
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures

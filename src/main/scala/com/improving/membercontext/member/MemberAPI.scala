@@ -4,8 +4,11 @@ import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import com.improving.member.{
   ApiInfo,
+  ApiMemberMap,
   ApiMemberStatus,
-  ApiNotificationPreference
+  ApiNotificationPreference,
+  ApiRegisterMemberList,
+  ApiUpdateInfo
 }
 import com.improving.{
   ApiContact,
@@ -21,6 +24,7 @@ import com.improving.membercontext.{
   Info,
   MemberInfoUpdated,
   MemberListRegistered,
+  MemberMap,
   MemberRegistered,
   MemberStatus,
   MemberStatusUpdated,
@@ -52,7 +56,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = apiRegisterMember.registeringMember.map(member =>
           MemberId(member.memberId)
-        ) // ??? not sure if this is correct ???
+        )
         val event = MemberRegistered(
           Some(MemberId(apiRegisterMember.memberId)),
           apiRegisterMember.info.map(convertApiInfoToInfo),
@@ -121,7 +125,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         MemberStatus.Unrecognized(unrecognizedValue)
     }
   }
-  override def memberStatusUpdated(
+  override def updateMemberStatus(
       currentState: MemberState,
       apiUpdateMemberStatus: member.ApiUpdateMemberStatus
   ): EventSourcedEntity.Effect[Empty] = {
@@ -137,9 +141,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           Some(
             MetaInfo(
               Some(timestamp),
-              state.memberId, // ??? not sure if this is correct ???
+              state.memberId,
               Some(timestamp),
-              state.memberId, // ??? not sure if this is correct ???
+              state.memberId,
               convertApiMemberStatusToMemberStatus(
                 apiUpdateMemberStatus.newStatus
               )
@@ -155,34 +159,117 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   override def updateMemberInfo(
       currentState: MemberState,
       apiUpdateMemberInfo: member.ApiUpdateMemberInfo
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `UpdateMemberInfo` is not implemented, yet"
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.member match {
+      case Some(state)
+          if state.memberId == Some(
+            MemberId(apiUpdateMemberInfo.memberId)
+          ) => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>
+          MemberId(member.memberId)
+        )
+        val event = MemberInfoUpdated(
+          Some(MemberId(apiUpdateMemberInfo.memberId)),
+          apiUpdateMemberInfo.info.map(info =>
+            convertApiUpdateInfoToInfo(info)
+          ),
+          Some(
+            MetaInfo(
+              Some(timestamp),
+              memberIdOpt,
+              Some(timestamp),
+              memberIdOpt,
+              state.status
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
+  private def convertApiUpdateInfoToInfo(apiUpdateInfo: ApiUpdateInfo): Info = {
+    Info(
+      Some(
+        Contact(
+          apiUpdateInfo.firstName,
+          apiUpdateInfo.lastName,
+          apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
+          apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
+          "username not found here"
+        )
+      ),
+      apiUpdateInfo.handle,
+      apiUpdateInfo.avatar,
+      apiUpdateInfo.firstName,
+      apiUpdateInfo.lastName,
+      apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
+      apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
+      convertNotificationPreference(apiUpdateInfo.notificationPreference),
+      apiUpdateInfo.organizationMembership.map(org =>
+        OrganizationId(org.orgId)
+      ),
+      Some(TenantId("tenantId not found here????"))
     )
+  }
 
   override def registerMemberList(
       currentState: MemberState,
       apiRegisterMemberList: member.ApiRegisterMemberList
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `RegisterMemberList` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.member match {
+      case Some(_) =>
+        val event = MemberListRegistered(
+          apiRegisterMemberList.memberList.map(convertApiMemberMapToMemberMap),
+          apiRegisterMemberList.registeringMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
+  private def convertApiMemberMapToMemberMap(
+      apiMemberMap: ApiMemberMap
+  ): MemberMap = {
+    MemberMap(
+      apiMemberMap.map.map { case (s, aif) => (s, convertApiInfoToInfo(aif)) }
+    )
+  }
   override def memberInfoUpdated(
       currentState: MemberState,
       memberInfoUpdated: MemberInfoUpdated
-  ): MemberState =
-    throw new RuntimeException(
-      "The event handler for `MemberInfoUpdated` is not implemented, yet"
-    )
+  ): MemberState = {
+    currentState.member match {
+      case Some(state) if state.memberId == memberInfoUpdated.memberId => {
+        currentState.withMember(
+          state.copy(
+            info = memberInfoUpdated.info,
+            meta = memberInfoUpdated.meta
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
   override def memberListRegistered(
       currentState: MemberState,
       memberListRegistered: MemberListRegistered
-  ): MemberState =
-    throw new RuntimeException(
-      "The event handler for `MemberListRegistered` is not implemented, yet"
-    )
+  ): MemberState = {
+    currentState.member match {
+      case Some(state) => {
+        currentState.withMember(
+          state
+        ) // ??? what should be done with MemberMap
+      }
+      case _ => currentState
+    }
+  }
 
   override def memberRegistered(
       currentState: MemberState,
@@ -219,5 +306,4 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       case _ => currentState
     }
   }
-
 }
