@@ -47,8 +47,9 @@ message ApiMemberMap {
 }
 
 message ApiRegisterMemberList {
-    ApiMemberMap memberList = 1;
-    ApiMemberId registeringMember = 2;
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberMap memberList = 2;
+    ApiMemberId registeringMember = 3;
 }
 
 message ApiUpdateMemberInfo {
@@ -74,47 +75,3 @@ message ApiUpdateInfo {
     repeated organization.ApiOrganizationId organizationMembership = 8;
 }
 
-service MemberService {
-
-    option (kalix.codegen) = {
-        event_sourced_entity: {
-            name: "com.improving.membercontext.member.MemberAPI"
-            entity_type: "members"
-            state: "com.improving.membercontext.member.MemberState"
-            events: [
-                "com.improving.membercontext.MemberInfoUpdated",
-                "com.improving.membercontext.MemberListRegistered",
-                "com.improving.membercontext.MemberRegistered",
-                "com.improving.membercontext.MemberStatusUpdated"]
-        }
-    };
-
-
-    rpc RegisterMember(ApiRegisterMember) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/member/register"
-            body: "*"
-        };
-    }
-
-    rpc UpdateMemberStatus(ApiUpdateMemberStatus) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/member/{member_id}/update-status"
-            body: "*"
-        };
-    }
-
-    rpc UpdateMemberInfo(ApiUpdateMemberInfo) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/member/{member_id}/update-info"
-            body: "*"
-        };
-    }
-
-    rpc RegisterMemberList(ApiRegisterMemberList) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/member/{member_id}/register-memberlist"
-            body: "*"
-        };
-    }
-}
