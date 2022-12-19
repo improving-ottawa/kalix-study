@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "com/improving/api/organization_api.proto";
+import "com/improving/organization/api/organization_api.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";

@@ -4,10 +4,11 @@ syntax = "proto3";
 package com.improving.member;
 
 
-import "com/improving/api/common_api.proto";
-import "com/improving/api/organization_api.proto";
+import "com/improving/common/common_api.proto";
+import "com/improving/organization/api/organization_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
 enum ApiNotificationPreference {
@@ -21,6 +22,7 @@ enum ApiMemberStatus {
     INACTIVE = 2;
     SUSPENDED = 3;
     TERMINATED = 4;
+    UNKNOWN = 5;
 }
 
 message ApiInfo {
@@ -75,3 +77,20 @@ message ApiUpdateInfo {
     repeated organization.ApiOrganizationId organizationMembership = 8;
 }
 
+message ApiGetMemberData {
+    string member_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiMetaInfo {
+    google.protobuf.Timestamp createdOn = 1;
+    ApiMemberId createdBy = 2;
+    google.protobuf.Timestamp lastModifiedOn = 3;
+    ApiMemberId lastModifiedBy = 4;
+    ApiMemberStatus memberStatus = 5;
+}
+
+message ApiMemberData  {
+    ApiMemberId memberId = 1;
+    ApiUpdateInfo info = 2;
+    ApiMetaInfo meta = 3;
+}

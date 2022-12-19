@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "com/improving/domain/common_domain.proto";
+import "com/improving/common/common_domain.proto";
 import "google/protobuf/timestamp.proto";
 
 package com.improving.organizationcontext;

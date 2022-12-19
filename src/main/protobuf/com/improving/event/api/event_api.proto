@@ -3,8 +3,8 @@ syntax = "proto3";
 
 package com.improving.event;
 
-import "com/improving/api/common_api.proto";
-import "com/improving/api/organization_api.proto";
+import "com/improving/common/common_api.proto";
+import "com/improving/organization/api/organization_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/empty.proto";

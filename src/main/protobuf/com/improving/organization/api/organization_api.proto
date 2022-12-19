@@ -1,7 +1,7 @@
 // This is the public API offered by your entity.
 syntax = "proto3";
 
-import "com/improving/api/common_api.proto";
+import "com/improving/common/common_api.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";

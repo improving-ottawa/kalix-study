@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+
+package com.improving.membercontext;
+
+import "com/improving/common/common_api.proto";
+import "com/improving/member/api/member_api.proto";
+import "com/improving/member/domain/member_context_domain.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+message ApiMetaInfoQuery {
+    google.protobuf.Timestamp createdOn = 1;
+    ApiMemberId createdBy = 2;
+    google.protobuf.Timestamp lastModifiedOn = 3;
+    ApiMemberId lastModifiedBy = 4;
+    member.ApiMemberStatus memberStatus = 5;
+}
+
+message ByMetaInfoRequest {
+    ApiMetaInfoQuery queryData = 1;
+}
+
+service MemberByMetaInfoView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessRegisterMember(MemberRegistered) returns (com.improving.member.ApiMemberData) {
+        option (google.api.http) = {
+            post: "/member/register"
+            body: "*"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_meta_info"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (com.improving.member.ApiMemberData) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/update-status"
+            body: "*"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_meta_info"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (com.improving.member.ApiMemberData) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/update-info"
+            body: "*"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_meta_info"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessRegisterMemberList(MemberListRegistered) returns (com.improving.member.ApiMemberData) {
+        option (google.api.http) = {
+            post: "/member/register-memberlist"
+            body: "*"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_meta_info"
+            transform_updates: true
+        };
+    }
+
+    rpc GetMembersByMetaInfo(ByMetaInfoRequest) returns (stream com.improving.member.ApiMemberData) {
+        option (kalix.method).view.query = {
+            query: """SELECT * FROM member_by_meta_info WHERE :queryData.createdBy.member_id = memberId.member_id OR :queryData.createdOn = meta.createdOn OR :queryData.lastModifiedOn = meta.lastModifiedOn OR :queryData.lastModifiedBy = meta.lastModifiedBy OR :queryData.memberStatus = meta.memberStatus"""
+        };
+        option (google.api.http) = {
+            get: "/members/by_meta_info/{queryData}"
+        };
+    }
+}

@@ -13,6 +13,7 @@ import com.improving.{
   TenantId
 }
 import com.improving.member.{
+  ApiGetMemberData,
   ApiInfo,
   ApiMemberStatus,
   ApiNotificationPreference,
@@ -201,6 +202,44 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
         MobileNumber("898-000-9876")
       )
 
+    }
+
+    "get member data should work correctly" in {
+      val testKit = MemberAPITestKit(new MemberAPI(_))
+
+      val command = ApiRegisterMember(
+        testMemberId,
+        Some(apiInfo),
+        Some(ApiMemberId(testMemberId))
+      )
+
+      val result = testKit.registerMember(command)
+
+      result.events should have size 1
+
+      val getMemberDataCommand = ApiGetMemberData(
+        testMemberId
+      )
+
+      val getMemberDataResult = testKit.getMemberData(getMemberDataCommand)
+
+      getMemberDataResult.reply.getInfo.emailAddress
+        .map(_.value) shouldBe testKit.currentState.member
+        .flatMap(_.info)
+        .flatMap(_.emailAddress)
+        .map(_.value)
+
+      getMemberDataResult.reply.getInfo.mobileNumber
+        .map(_.value) shouldBe testKit.currentState.member
+        .flatMap(_.info)
+        .flatMap(_.mobileNumber)
+        .map(_.value)
+
+      getMemberDataResult.reply.getMeta.lastModifiedBy
+        .map(_.memberId) shouldBe testKit.currentState.member
+        .flatMap(_.meta)
+        .flatMap(_.lastModifiedBy)
+        .map(_.id)
     }
   }
 }

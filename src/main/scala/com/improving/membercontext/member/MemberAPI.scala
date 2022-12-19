@@ -2,35 +2,17 @@ package com.improving.membercontext.member
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import com.improving.member.{
-  ApiInfo,
-  ApiMemberMap,
-  ApiMemberStatus,
-  ApiNotificationPreference,
-  ApiRegisterMemberList,
-  ApiUpdateInfo
-}
-import com.improving.{
-  ApiContact,
-  Contact,
-  EmailAddress,
-  MemberId,
-  MobileNumber,
-  OrganizationId,
-  TenantId,
-  member
-}
+import com.improving.member.{ApiGetMemberData, ApiMemberData}
+import com.improving.{ApiMemberId, MemberId, member}
 import com.improving.membercontext.{
-  Info,
   MemberInfoUpdated,
   MemberListRegistered,
-  MemberMap,
   MemberRegistered,
   MemberStatus,
   MemberStatusUpdated,
-  MetaInfo,
-  NotificationPreference
+  MetaInfo
 }
+import com.improving.membercontext.infrastructure.util._
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -75,56 +57,6 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
-  private def convertApiInfoToInfo(apiInfo: ApiInfo): Info = {
-    Info(
-      apiInfo.contact.map(convertApiContactToContact),
-      apiInfo.handle,
-      apiInfo.avatar,
-      apiInfo.firstName,
-      apiInfo.lastName,
-      apiInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
-      apiInfo.emailAddress.map(email => EmailAddress(email.value)),
-      convertNotificationPreference(apiInfo.notificationPreference),
-      apiInfo.organizationMembership.map(org => OrganizationId(org.orgId)),
-      apiInfo.tenant.map(tenant => TenantId(tenant.tenantId))
-    )
-  }
-
-  private def convertApiContactToContact(apiContact: ApiContact): Contact = {
-    Contact(
-      apiContact.firstName,
-      apiContact.lastName,
-      apiContact.emailAddress.map(email => EmailAddress(email.value)),
-      apiContact.phone.map(mobile => MobileNumber(mobile.value)),
-      apiContact.userName
-    )
-  }
-
-  private def convertNotificationPreference(
-      apiNotificationPreference: ApiNotificationPreference
-  ): NotificationPreference = {
-    apiNotificationPreference match {
-      case ApiNotificationPreference.EMAIL => NotificationPreference.EMAIL
-      case ApiNotificationPreference.SMS   => NotificationPreference.SMS
-      case ApiNotificationPreference.APPLICATION =>
-        NotificationPreference.APPLICATION
-      case ApiNotificationPreference.Unrecognized(unrecognizedValue) =>
-        NotificationPreference.Unrecognized(unrecognizedValue)
-    }
-  }
-
-  private def convertApiMemberStatusToMemberStatus(
-      apiMemberStatus: ApiMemberStatus
-  ): MemberStatus = {
-    apiMemberStatus match {
-      case ApiMemberStatus.ACTIVE     => MemberStatus.ACTIVE
-      case ApiMemberStatus.INACTIVE   => MemberStatus.INACTIVE
-      case ApiMemberStatus.SUSPENDED  => MemberStatus.SUSPENDED
-      case ApiMemberStatus.TERMINATED => MemberStatus.TERMINATED
-      case ApiMemberStatus.Unrecognized(unrecognizedValue) =>
-        MemberStatus.Unrecognized(unrecognizedValue)
-    }
-  }
   override def updateMemberStatus(
       currentState: MemberState,
       apiUpdateMemberStatus: member.ApiUpdateMemberStatus
@@ -144,7 +76,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               state.memberId,
               Some(timestamp),
               state.memberId,
-              convertApiMemberStatusToMemberStatus(
+              convertMemberStatus(
                 apiUpdateMemberStatus.newStatus
               )
             )
@@ -191,31 +123,6 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
-  private def convertApiUpdateInfoToInfo(apiUpdateInfo: ApiUpdateInfo): Info = {
-    Info(
-      Some(
-        Contact(
-          apiUpdateInfo.firstName,
-          apiUpdateInfo.lastName,
-          apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
-          apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
-          "username not found here"
-        )
-      ),
-      apiUpdateInfo.handle,
-      apiUpdateInfo.avatar,
-      apiUpdateInfo.firstName,
-      apiUpdateInfo.lastName,
-      apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
-      apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
-      convertNotificationPreference(apiUpdateInfo.notificationPreference),
-      apiUpdateInfo.organizationMembership.map(org =>
-        OrganizationId(org.orgId)
-      ),
-      Some(TenantId("tenantId not found here????"))
-    )
-  }
-
   override def registerMemberList(
       currentState: MemberState,
       apiRegisterMemberList: member.ApiRegisterMemberList
@@ -233,13 +140,24 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
-  private def convertApiMemberMapToMemberMap(
-      apiMemberMap: ApiMemberMap
-  ): MemberMap = {
-    MemberMap(
-      apiMemberMap.map.map { case (s, aif) => (s, convertApiInfoToInfo(aif)) }
-    )
+  override def getMemberData(
+      currentState: MemberState,
+      apiGetMemberData: ApiGetMemberData
+  ): EventSourcedEntity.Effect[ApiMemberData] = {
+    currentState.member match {
+      case Some(state)
+          if state.memberId == Some(MemberId(apiGetMemberData.memberId)) => {
+        val apiMemberData = ApiMemberData(
+          Some(ApiMemberId(apiGetMemberData.memberId)),
+          state.info.map(convertInfoToApiUpdateInfo),
+          state.meta.map(convertMetaInfoToApiMetaInfo)
+        )
+        effects.reply(apiMemberData)
+      }
+      case _ => effects.reply(ApiMemberData.defaultInstance)
+    }
   }
+
   override def memberInfoUpdated(
       currentState: MemberState,
       memberInfoUpdated: MemberInfoUpdated

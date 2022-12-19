@@ -4,9 +4,9 @@ syntax = "proto3";
 package com.improving.member;
 
 
-import "com/improving/api/common_api.proto";
-import "com/improving/api/member_api.proto";
-import "com/improving/api/organization_api.proto";
+import "com/improving/common/common_api.proto";
+import "com/improving/member/api/member_api.proto";
+import "com/improving/organization/api/organization_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
@@ -51,6 +51,13 @@ service MemberService {
     rpc RegisterMemberList(ApiRegisterMemberList) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/member/register-memberlist"
+            body: "*"
+        };
+    }
+
+    rpc GetMemberData(ApiGetMemberData) returns (ApiMemberData) {
+        option (google.api.http) = {
+            get: "/member/{member_id}/member-data"
             body: "*"
         };
     }

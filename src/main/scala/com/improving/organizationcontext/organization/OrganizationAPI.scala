@@ -2,21 +2,13 @@ package com.improving.organizationcontext.organization
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import com.improving.Address.PostalCode
-import com.improving.{
-  Address,
-  ApiMemberId,
-  MemberId,
-  OrganizationId,
-  organization
-}
+import com.improving.{MemberId, OrganizationId, organization}
 import com.improving.organizationcontext.{
   ContactList,
   Contacts,
   FindOrganizationsByMember,
   FindOrganizationsByOwner,
   GetOrganizationInfo,
-  Info,
   MemberList,
   MembersAddedToOrganization,
   MembersRemovedFromOrganization,
@@ -30,20 +22,10 @@ import com.improving.organizationcontext.{
   OwnerList,
   OwnersAddedToOrganization,
   OwnersRemovedFromOrganization,
-  Parent,
   ParentUpdated
 }
-import com.improving.organization.ApiAddress.PostalCode
-import com.improving.organization.{
-  ApiAddOwnersToOrganization,
-  ApiAddress,
-  ApiCAPostalCode,
-  ApiInfo,
-  ApiMetaInfo,
-  ApiOrganizationStatus,
-  ApiParent,
-  ApiUSPostalCode
-}
+import com.improving.organizationcontext.infrastructure.util._
+import com.improving.organization.ApiInfo
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -251,60 +233,6 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     }
   }
 
-  private def convertUpdateInfoToInfo(
-      updateInfo: organization.ApiUpdateInfo
-  ): Info = {
-    Info(
-      updateInfo.name,
-      updateInfo.shortName,
-      updateInfo.address.map(convertApiAdressToAddress(_)),
-      updateInfo.isPrivate,
-      updateInfo.url,
-      updateInfo.logo
-    )
-  }
-
-  private def convertApiAdressToAddress(
-      apiAddress: organization.ApiAddress
-  ): Address = {
-    Address(
-      apiAddress.line1,
-      apiAddress.line2,
-      apiAddress.city,
-      apiAddress.stateProvince,
-      apiAddress.country,
-      apiAddress.postalCode match {
-        case ApiAddress.PostalCode.Empty => Address.PostalCode.Empty
-        case ApiAddress.PostalCode.UsPostalCode(_) =>
-          Address.PostalCode.UsPostalCode(
-            com.improving.USPostalCode.defaultInstance
-          )
-        case ApiAddress.PostalCode.CaPostalCode(_) =>
-          Address.PostalCode.CaPostalCode(
-            com.improving.CAPostalCode.defaultInstance
-          )
-      }
-    )
-  }
-
-  private def convertAddressToApiAdress(address: Address): ApiAddress = {
-    ApiAddress(
-      address.line1,
-      address.line2,
-      address.city,
-      address.stateProvince,
-      address.country,
-      address.postalCode match {
-        case Address.PostalCode.UsPostalCode(_) =>
-          ApiAddress.PostalCode.UsPostalCode(ApiUSPostalCode.defaultInstance)
-        case Address.PostalCode.CaPostalCode(_) =>
-          ApiAddress.PostalCode.CaPostalCode(
-            ApiCAPostalCode.defaultInstance
-          )
-      }
-    )
-  }
-
   override def establishOrganization(
       currentState: OrganizationState,
       apiEstablishOrganization: organization.ApiEstablishOrganization
@@ -358,50 +286,6 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     }
   }
 
-  private def convertApiInfoToInfo(apiInfo: ApiInfo): Info = {
-    Info(
-      apiInfo.name,
-      apiInfo.shortName,
-      apiInfo.address.map(convertApiAdressToAddress(_)),
-      apiInfo.isPrivate,
-      apiInfo.url,
-      apiInfo.logo
-    )
-  }
-
-  private def convertApiParentToParent(apiParent: ApiParent): Parent = {
-    Parent(
-      Some(OrganizationId(apiParent.orgId))
-    )
-  }
-
-  private def convertApiMetaInfoToMetaInfo(
-      apiMetaInfo: ApiMetaInfo
-  ): MetaInfo = {
-    MetaInfo(
-      apiMetaInfo.createdOn,
-      apiMetaInfo.createdBy.map(member => MemberId(member.memberId)),
-      apiMetaInfo.lastUpdated,
-      apiMetaInfo.lastUpdatedBy.map(member => MemberId(member.memberId)),
-      convertApiOrganizationStatusToOrganizationStatus(
-        apiMetaInfo.currentStatus
-      ),
-      apiMetaInfo.children.map(child => OrganizationId(child.orgId))
-    )
-  }
-
-  private def convertApiOrganizationStatusToOrganizationStatus(
-      apiOrganizationStatus: ApiOrganizationStatus
-  ): OrganizationStatus = {
-    apiOrganizationStatus match {
-      case ApiOrganizationStatus.DRAFT      => OrganizationStatus.DRAFT
-      case ApiOrganizationStatus.ACTIVE     => OrganizationStatus.ACTIVE
-      case ApiOrganizationStatus.SUSPENDED  => OrganizationStatus.SUSPENDED
-      case ApiOrganizationStatus.TERMINATED => OrganizationStatus.TERMINATED
-      case ApiOrganizationStatus.Unrecognized(unrecognizedValue) =>
-        OrganizationStatus.Unrecognized(unrecognizedValue)
-    }
-  }
   override def updateParent(
       currentState: OrganizationState,
       apiUpdateParent: organization.ApiUpdateParent

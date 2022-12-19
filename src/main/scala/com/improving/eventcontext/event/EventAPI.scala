@@ -2,20 +2,18 @@ package com.improving.eventcontext.event
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import com.improving.event.ApiEventInfo
-import com.improving.{EventId, MemberId, OrganizationId, event}
+import com.improving.eventcontext.infrastructure.util._
+import com.improving.{EventId, MemberId, event}
 import com.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
   EventEnded,
-  EventInfo,
   EventInfoChanged,
   EventMetaInfo,
   EventRescheduled,
   EventScheduled,
   EventStarted,
-  EventStatus,
-  ReservationId
+  EventStatus
 }
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -66,23 +64,6 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
     }
   }
 
-  private def convertApiEventInfoToEventInfo(
-      apiEventInfo: ApiEventInfo
-  ): EventInfo = {
-    EventInfo(
-      apiEventInfo.eventName,
-      apiEventInfo.description,
-      apiEventInfo.eventURL,
-      apiEventInfo.sponsoringOrg.map(org => OrganizationId(org.orgId)),
-      apiEventInfo.geoLocation,
-      apiEventInfo.reservation.map(reservation =>
-        ReservationId(reservation.reservationId)
-      ),
-      apiEventInfo.expectedStart,
-      apiEventInfo.expectedEnd,
-      apiEventInfo.isPrivate
-    )
-  }
   override def scheduleEvent(
       currentState: EventState,
       apiScheduleEvent: event.ApiScheduleEvent
@@ -367,9 +348,6 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               )
           )
         )
-
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
         currentState.withEvent(
           event.copy(

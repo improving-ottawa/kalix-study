@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package com.improving.event;
 
-import "com/improving/api/event_api.proto";
+import "com/improving/event/api/event_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";

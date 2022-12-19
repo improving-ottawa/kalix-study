@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package com.improving.membercontext.membermap;
 
-import "com/improving/domain/common_domain.proto";
-import "com/improving/domain/member_context_domain.proto";
+import "com/improving/common/common_domain.proto";
+import "com/improving/member/domain/member_context_domain.proto";
 import "kalix/annotations.proto";
 
 option (kalix.file).replicated_entity = {

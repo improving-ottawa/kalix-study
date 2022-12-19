@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-import "com/improving/domain/common_domain.proto";
-import "com/improving/domain/organization_context_domain.proto";
+import "com/improving/common/common_domain.proto";
+import "com/improving/organization/domain/organization_context_domain.proto";
 
 
 package com.improving.organizationcontext.organization;

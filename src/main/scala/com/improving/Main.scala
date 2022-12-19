@@ -1,10 +1,10 @@
 package com.improving
 
 import com.improving.eventcontext.event.EventAPI
+import com.improving.membercontext.MemberByMetaInfoViewImpl
 import com.improving.membercontext.member.MemberAPI
 import com.improving.membercontext.membermap.MemberMap
-import com.improving.organizationcontext.OrganizationByMemberViewImpl
-import com.improving.organizationcontext.OrganizationByOwnerViewImpl
+import com.improving.organizationcontext.{OrganizationByMemberViewImpl, OrganizationByOwnerViewImpl}
 import com.improving.organizationcontext.organization.OrganizationAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
@@ -28,6 +28,7 @@ object Main {
       new MemberAPI(_),
       new MemberMap(_),
       new OrganizationAPI(_),
+      new MemberByMetaInfoViewImpl(_),
       new OrganizationByMemberViewImpl(_),
       new OrganizationByOwnerViewImpl(_)
     )
