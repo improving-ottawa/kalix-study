@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package app.improving.membercontext.membermap;
+
+import "app/improving/common/common_domain.proto";
+import "app/improving/member/domain/member_context_domain.proto";
+import "kalix/annotations.proto";
+
+option (kalix.file).replicated_entity = {
+    name: "MemberMap"
+    entity_type: "member-map"
+    replicated_register_map: {
+        key: "MemberId"
+        value: "Info"
+    }
+};
+
+message MemberId {
+    string id = 1;
+}
+
+message Info {
+    Contact contact = 1;
+    string handle = 2;
+    string avatar = 3; // URL type?
+    string firstName = 4;
+    string lastName = 5;
+    MobileNumber mobileNumber = 6;
+    EmailAddress emailAddress = 7;
+    NotificationPreference notificationPreference = 8;
+    repeated OrganizationId organizationMembership = 9;
+    TenantId tenant = 10;
+}

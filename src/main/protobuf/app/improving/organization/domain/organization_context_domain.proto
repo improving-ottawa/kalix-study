@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+import "app/improving/common/common_domain.proto";
+import "google/protobuf/timestamp.proto";
+
+package app.improving.organizationcontext;
+
+enum OrganizationStatus {
+    DRAFT = 0;
+    ACTIVE = 1;
+    SUSPENDED = 2;
+    TERMINATED = 3;
+}
+
+
+message Contacts {
+    repeated MemberId primaryContacts = 1;
+    repeated MemberId billingContacts = 2;
+    repeated MemberId distributionContacts = 3;
+}
+
+message ContactList {
+    repeated Contacts contacts = 1;
+}
+
+message Info {
+    string name = 1;
+    string shortName = 2;
+    Address address = 3;
+    bool isPrivate = 4;
+    string url = 5; // URL type?
+    string logo = 6; // URL type?
+}
+
+message MemberList {
+    repeated MemberId member_id = 1;
+}
+
+message MetaInfo {
+    google.protobuf.Timestamp createdOn = 1;
+    MemberId createdBy = 2;
+    google.protobuf.Timestamp   lastUpdated = 3;
+    MemberId lastUpdatedBy = 4;
+    OrganizationStatus currentStatus = 5;
+    repeated OrganizationId children = 6;
+}
+
+message Parent {
+    OrganizationId id = 1;
+}
+
+message OwnerList {
+    repeated MemberId owners = 1;
+}
+
+message PublicOrganizationEvent {
+
+}
+
+message UpdateInfo {
+    string name = 1;
+    string shortName = 2;
+    Address address = 3;
+    bool isPrivate = 4;
+    string url = 5; // URL type?
+    string logo = 6; // URL type?
+}
+
+message FindOrganizationsByMember {
+    MemberId member = 1;
+}
+
+message FindOrganizationsByOwner {
+    MemberId owner = 1;
+}
+
+message GetOrganizationInfo {
+    OrganizationId orgId = 1;
+}
+
+message MembersAddedToOrganization {
+    OrganizationId orgId = 1;
+    repeated MemberId newMembers = 2;
+    MetaInfo meta = 3;
+}
+
+message MembersRemovedFromOrganization {
+    OrganizationId orgId = 1;
+    repeated MemberId removedMembers = 2;
+    MemberId updatingMember = 3;
+}
+
+message OrganizationAccountsUpdated {
+    OrganizationId orgId = 1;
+    Info info = 2;
+    MetaInfo meta = 3;
+}
+
+message OrganizationContactsUpdated {
+    OrganizationId orgId = 1;
+    repeated Contacts contacts = 2;
+    MetaInfo meta = 3;
+}
+
+message OrganizationEstablished {
+    OrganizationId orgId = 1;
+    Info info = 2;
+    Parent parent = 3;
+    MemberList members = 4;
+    OwnerList owners = 5;
+    ContactList contacts = 6;
+    MetaInfo meta = 7;
+}
+
+message OrganizationInfo {
+    OrganizationId orgId = 1;
+    Info info = 2;
+}
+
+message OrganizationInfoUpdated {
+    OrganizationId orgId = 1;
+    Info info = 2;
+    MetaInfo meta = 3;
+}
+
+message OrganizationListByMember {
+    MemberId member = 1;
+    repeated OrganizationId organizations = 2;
+}
+
+message OrganizationListByOwner {
+    MemberId owner = 1;
+    repeated OrganizationId organizations = 2;
+}
+
+message OrganizationStatusUpdated {
+    OrganizationId orgId = 1;
+    OrganizationStatus newStatus = 2;
+}
+
+message OwnersAddedToOrganization {
+    OrganizationId orgId = 1;
+    repeated MemberId newOwners = 2;
+    MetaInfo meta = 3;
+}
+
+message OwnersRemovedFromOrganization {
+    OrganizationId orgId = 1;
+    repeated MemberId removedOwners = 2;
+    MetaInfo meta = 3;
+}
+
+message ParentUpdated {
+    OrganizationId id = 1;
+    OrganizationId newParent = 2;
+    MetaInfo meta = 3;
+}

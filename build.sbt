@@ -1,6 +1,6 @@
 organization := "com.improving"
 
-scalaVersion := "2.13.7"
+scalaVersion := "2.13.10"
 
 enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
 dockerBaseImage := "docker.io/library/adoptopenjdk:11-jre-hotspot"
