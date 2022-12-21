@@ -41,3 +41,23 @@ message ApiGeoLocation {
     double longitude = 2;
     double elevation = 3;
 }
+
+message ApiUSPostalCode {
+    string postal_code = 1;
+}
+
+message ApiCAPostalCode {
+    string postal_code = 1;
+}
+
+message ApiAddress {
+    string line1 = 1;
+    string line2 = 2;
+    string city = 3;
+    string stateProvince = 4;
+    string country = 5;
+    oneof postal_code {
+        ApiUSPostalCode us_postal_code = 6;
+        ApiCAPostalCode ca_postal_code = 7;
+    }
+}

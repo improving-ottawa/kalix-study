@@ -75,6 +75,7 @@ message ApiUpdateInfo {
     ApiEmailAddress emailAddress = 6;
     ApiNotificationPreference notificationPreference = 7;
     repeated organization.ApiOrganizationId organizationMembership = 8;
+    ApiTenantId tenantId = 9;
 }
 
 message ApiGetMemberData {

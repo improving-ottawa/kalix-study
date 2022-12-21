@@ -94,4 +94,5 @@ message UpdateInfo {
     EmailAddress emailAddress = 6;
     NotificationPreference notificationPreference = 7;
     repeated  OrganizationId organizationMembership = 8;
+    TenantId tenantId = 9;
 }

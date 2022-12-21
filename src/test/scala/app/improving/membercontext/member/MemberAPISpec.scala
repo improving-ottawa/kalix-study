@@ -15,14 +15,21 @@ import app.improving.{
 import app.improving.member.{
   ApiGetMemberData,
   ApiInfo,
+  ApiMemberMap,
   ApiMemberStatus,
   ApiNotificationPreference,
   ApiRegisterMember,
+  ApiRegisterMemberList,
   ApiUpdateInfo,
   ApiUpdateMemberInfo,
   ApiUpdateMemberStatus
 }
-import app.improving.membercontext.{Info, MemberStatus, NotificationPreference}
+import app.improving.membercontext.{
+  Info,
+  MemberMap,
+  MemberStatus,
+  NotificationPreference
+}
 import app.improving.organization.ApiOrganizationId
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -240,6 +247,34 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
         .flatMap(_.meta)
         .flatMap(_.lastModifiedBy)
         .map(_.id)
+    }
+
+    "memberList registered should work correctly" in {
+      val testKit = MemberAPITestKit(new MemberAPI(_))
+
+      val command = ApiRegisterMember(
+        testMemberId,
+        Some(apiInfo),
+        Some(ApiMemberId(testMemberId))
+      )
+
+      val result = testKit.registerMember(command)
+
+      result.events should have size 1
+
+      val memberMap =
+        ApiMemberMap(Map[String, ApiInfo](testMemberId -> apiInfo))
+
+      val apiRegisterMemberList = ApiRegisterMemberList(
+        testMemberId,
+        Some(memberMap),
+        Some(ApiMemberId(testMemberId2))
+      )
+
+      val apiRegisterMemberListResult =
+        testKit.registerMemberList(apiRegisterMemberList)
+
+      apiRegisterMemberListResult.events should have size 1
     }
   }
 }

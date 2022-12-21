@@ -5,7 +5,7 @@ import "google/protobuf/timestamp.proto";
 
 package app.improving.tenantcontext;
 
-enum Status {
+enum TenantStatus {
     DRAFT = 0;
     ACTIVE = 1;
     SUSPENDED = 2;
@@ -22,7 +22,7 @@ message MetaInfo {
     Contact createdBy = 2;
     google.protobuf.Timestamp lastUpdated = 3;
     MemberId lastUpdatedBy = 4;
-    Status currentStatus = 5;
+    TenantStatus currentStatus = 5;
 }
 
 message PrimaryContactUpdated {
@@ -30,34 +30,6 @@ message PrimaryContactUpdated {
     Contact oldContact = 2;
     Contact newContact = 3;
     MetaInfo meta = 4;
-}
-
-message DraftTenant {
-    string name =  1;
-    Contact primaryContact = 2;
-    MetaInfo meta = 3;
-}
-
-message ActiveTenant {
-    string name =  1;
-    Contact primaryContact = 2;
-    Info info = 3;
-    MetaInfo meta = 4;
-}
-
-message SuspendedTenant {
-    string name =  1;
-    Contact primaryContact = 2;
-    Info info = 3;
-    MetaInfo meta = 4;
-}
-
-message Tenant {
-    oneof state {
-        ActiveTenant activeTenant = 1;
-        DraftTenant draftTenant = 2;
-        SuspendedTenant suspendedTenant = 3;
-    }
 }
 
 message TenantActivated {
@@ -68,11 +40,10 @@ message TenantActivated {
 
 message TenantEstablished {
     TenantId tenantId = 1;
-    Info tenantInfo = 2;
-    MetaInfo metaInfo = 3;
+    Info info = 2;
+    MetaInfo meta = 3;
     string name = 4;
     Contact primaryContact = 5;
-    MetaInfo meta = 6;
 }
 
 message TenantNameChanged {

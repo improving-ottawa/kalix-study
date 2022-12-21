@@ -130,14 +130,39 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       apiRegisterMemberList: member.ApiRegisterMemberList
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
-      case Some(_) =>
-        val event = MemberListRegistered(
-          apiRegisterMemberList.memberList.map(convertApiMemberMapToMemberMap),
-          apiRegisterMemberList.registeringMember.map(member =>
-            MemberId(member.memberId)
-          )
+      case Some(_) => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
+          MemberId(member.memberId)
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        val memberMap =
+          apiRegisterMemberList.memberList
+            .map(convertApiMemberMapToMemberMap)
+            .getOrElse(MemberMap.defaultInstance)
+            .map
+
+        memberMap.foreach {
+          case (memberId, info) => {
+            val event = MemberRegistered(
+              Some(MemberId(memberId)),
+              Some(info),
+              Some(
+                MetaInfo(
+                  Some(timestamp),
+                  memberIdOpt,
+                  Some(timestamp),
+                  memberIdOpt,
+                  MemberStatus.ACTIVE
+                )
+              )
+            )
+            effects.emitEvent(event)
+          }
+        }
+        effects.reply(Empty.defaultInstance)
+      }
+
       case _ => effects.reply(Empty.defaultInstance)
     }
   }

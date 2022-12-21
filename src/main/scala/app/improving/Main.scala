@@ -7,6 +7,7 @@ import app.improving.membercontext.membermap.MemberMap
 import app.improving.organizationcontext.OrganizationByMemberViewImpl
 import app.improving.organizationcontext.OrganizationByOwnerViewImpl
 import app.improving.organizationcontext.organization.OrganizationAPI
+import app.improving.tenantcontext.tenant.TenantAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -29,9 +30,11 @@ object Main {
       new MemberAPI(_),
       new MemberMap(_),
       new OrganizationAPI(_),
+      new TenantAPI(_),
       new MemberByMetaInfoViewImpl(_),
       new OrganizationByMemberViewImpl(_),
-      new OrganizationByOwnerViewImpl(_))
+      new OrganizationByOwnerViewImpl(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

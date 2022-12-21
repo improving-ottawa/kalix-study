@@ -1,5 +1,6 @@
 package app.improving.organizationcontext.organization
 
+import app.improving.common.infrastructure.util.convertAddressToApiAddress
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{MemberId, OrganizationId, organization}
@@ -61,7 +62,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
                 info.name,
                 info.shortName,
                 info.address.map(addr => {
-                  convertAddressToApiAdress(addr)
+                  convertAddressToApiAddress(addr)
                 }),
                 info.isPrivate,
                 info.url,

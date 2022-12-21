@@ -1,17 +1,19 @@
 package app.improving.organizationcontext
 
-
-import app.improving.{Address, ApiMemberId}
-import app.improving.organization.{
+import app.improving.{
+  Address,
   ApiAddress,
   ApiCAPostalCode,
+  ApiMemberId,
+  ApiUSPostalCode
+}
+import app.improving.organization.{
   ApiContacts,
   ApiInfo,
   ApiMetaInfo,
   ApiOrganization,
   ApiOrganizationId,
-  ApiOrganizationStatus,
-  ApiUSPostalCode
+  ApiOrganizationStatus
 }
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext

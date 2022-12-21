@@ -85,7 +85,7 @@ object util {
           apiUpdateInfo.lastName,
           apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
           apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
-          "username not found here"
+          apiUpdateInfo.handle
         )
       ),
       apiUpdateInfo.handle,
@@ -98,7 +98,7 @@ object util {
       apiUpdateInfo.organizationMembership.map(org =>
         OrganizationId(org.orgId)
       ),
-      Some(TenantId("tenantId not found here????"))
+      apiUpdateInfo.tenantId.map(tenant => TenantId(tenant.tenantId))
     )
   }
 

@@ -5,8 +5,6 @@ import app.improving._
 import app.improving.organization.{
   ApiAddMembersToOrganization,
   ApiAddOwnersToOrganization,
-  ApiAddress,
-  ApiCAPostalCode,
   ApiEditOrganizationInfo,
   ApiEstablishOrganization,
   ApiGetOrganizationInfo,
