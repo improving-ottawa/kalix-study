@@ -8,7 +8,7 @@ import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
-package app.improving.tenant;
+package app.improving.tenantcontext.tenant;
 
 enum ApiTenantStatus {
     DRAFT = 0;

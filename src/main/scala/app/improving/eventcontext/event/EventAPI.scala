@@ -3,7 +3,7 @@ package app.improving.eventcontext.event
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.eventcontext.infrastructure.util._
-import app.improving.{EventId, MemberId, event}
+import app.improving.{EventId, MemberId}
 import app.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
@@ -30,7 +30,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
   override def changeEventInfo(
       currentState: EventState,
-      apiChangeEventInfo: event.ApiChangeEventInfo
+      apiChangeEventInfo: ApiChangeEventInfo
   ): EventSourcedEntity.Effect[Empty] = {
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
@@ -66,7 +66,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
   override def scheduleEvent(
       currentState: EventState,
-      apiScheduleEvent: event.ApiScheduleEvent
+      apiScheduleEvent: ApiScheduleEvent
   ): EventSourcedEntity.Effect[Empty] = {
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
@@ -91,7 +91,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
                 .map(_.status)
                 .getOrElse(
                   EventStatus.UNKNOWN
-                ) //??? What status should it be here?!!!
+                ) // ??? What status should it be here?!!!
             )
           )
         )
@@ -102,7 +102,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
   override def cancelEvent(
       currentState: EventState,
-      apiCancelEvent: event.ApiCancelEvent
+      apiCancelEvent: ApiCancelEvent
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.event match {
       case Some(event)
@@ -121,7 +121,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
   override def rescheduleEvent(
       currentState: EventState,
-      apiRescheduleEvent: event.ApiRescheduleEvent
+      apiRescheduleEvent: ApiRescheduleEvent
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.event match {
       case Some(event)
@@ -155,7 +155,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
   override def delayEvent(
       currentState: EventState,
-      apiDelayEvent: event.ApiDelayEvent
+      apiDelayEvent: ApiDelayEvent
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.event match {
       case Some(event)
@@ -184,7 +184,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
   override def startEvent(
       currentState: EventState,
-      apiStartEvent: event.ApiStartEvent
+      apiStartEvent: ApiStartEvent
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.event match {
       case Some(event)
@@ -214,7 +214,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   }
   override def endEvent(
       currentState: EventState,
-      apiEndEvent: event.ApiEndEvent
+      apiEndEvent: ApiEndEvent
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.event match {
       case Some(event)
@@ -241,7 +241,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   }
   override def addLiveUpdate(
       currentState: EventState,
-      apiAddLiveUpdate: event.ApiAddLiveUpdate
+      apiAddLiveUpdate: ApiAddLiveUpdate
   ): EventSourcedEntity.Effect[Empty] =
     effects.error(
       "The command handler for `AddLiveUpdate` is not implemented, yet"

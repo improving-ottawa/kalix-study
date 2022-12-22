@@ -1,8 +1,7 @@
-package app.improving.tenant
+package app.improving.eventcontext.event
 
 import akka.actor.ActorSystem
 import app.improving.Main
-import app.improving.tenantcontext.tenant.TenantService
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
@@ -18,7 +17,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class TenantServiceIntegrationSpec
+class EventServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -29,9 +28,9 @@ class TenantServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[TenantService])
+  private val client = testKit.getGrpcClient(classOf[EventService])
 
-  "TenantService" must {
+  "EventService" must {
 
     "have example test that can be removed" in {
       pending

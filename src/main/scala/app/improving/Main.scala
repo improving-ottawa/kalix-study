@@ -1,6 +1,7 @@
 package app.improving
 
 import app.improving.eventcontext.event.EventAPI
+import app.improving.membercontext.member.MemberActionServiceImpl
 import app.improving.membercontext.MemberByMetaInfoViewImpl
 import app.improving.membercontext.member.MemberAPI
 import app.improving.membercontext.membermap.MemberMap
@@ -31,6 +32,7 @@ object Main {
       new MemberMap(_),
       new OrganizationAPI(_),
       new TenantAPI(_),
+      new MemberActionServiceImpl(_),
       new MemberByMetaInfoViewImpl(_),
       new OrganizationByMemberViewImpl(_),
       new OrganizationByOwnerViewImpl(_)

@@ -1,8 +1,7 @@
-package app.improving.tenant
+package app.improving.tenantcontext.tenant
 
 import akka.actor.ActorSystem
 import app.improving.Main
-import app.improving.tenantcontext.tenant.TenantService
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll

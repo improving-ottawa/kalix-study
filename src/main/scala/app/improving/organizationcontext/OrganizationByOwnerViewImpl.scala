@@ -7,7 +7,7 @@ import app.improving.{
   ApiMemberId,
   ApiUSPostalCode
 }
-import app.improving.organization.{
+import app.improving.organizationcontext.organization.{
   ApiContacts,
   ApiInfo,
   ApiMetaInfo,

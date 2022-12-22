@@ -1,13 +1,11 @@
 syntax = "proto3";
 
 
-package app.improving.member;
+package app.improving.membercontext.member;
 
 
 import "app/improving/common/common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
-import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
@@ -34,7 +32,7 @@ message ApiInfo {
     ApiMobileNumber mobileNumber = 6;
     ApiEmailAddress emailAddress = 7;
     ApiNotificationPreference notificationPreference = 8;
-    repeated organization.ApiOrganizationId organizationMembership = 9;
+    repeated organizationcontext.organization.ApiOrganizationId organizationMembership = 9;
     ApiTenantId tenant = 10;
 }
 
@@ -74,7 +72,7 @@ message ApiUpdateInfo {
     ApiMobileNumber mobileNumber = 5;
     ApiEmailAddress emailAddress = 6;
     ApiNotificationPreference notificationPreference = 7;
-    repeated organization.ApiOrganizationId organizationMembership = 8;
+    repeated organizationcontext.organization.ApiOrganizationId organizationMembership = 8;
     ApiTenantId tenantId = 9;
 }
 

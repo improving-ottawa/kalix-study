@@ -1,8 +1,17 @@
-package app.improving.tenant
+package app.improving.organizationcontext.organization
 
 import akka.actor.ActorSystem
 import app.improving.Main
-import app.improving.tenantcontext.tenant.TenantService
+import app.improving.organizationcontext.organization.ApiAddMembersToOrganization
+import app.improving.organizationcontext.organization.ApiAddOwnersToOrganization
+import app.improving.organizationcontext.organization.ApiEditOrganizationInfo
+import app.improving.organizationcontext.organization.ApiEstablishOrganization
+import app.improving.organizationcontext.organization.ApiGetOrganizationInfo
+import app.improving.organizationcontext.organization.ApiInfo
+import app.improving.organizationcontext.organization.ApiOrganizationStatusUpdated
+import app.improving.organizationcontext.organization.ApiRemoveMembersFromOrganization
+import app.improving.organizationcontext.organization.ApiRemoveOwnersFromOrganization
+import app.improving.organizationcontext.organization.ApiUpdateParent
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
@@ -18,7 +27,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class TenantServiceIntegrationSpec
+class OrganizationServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -29,9 +38,9 @@ class TenantServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[TenantService])
+  private val client = testKit.getGrpcClient(classOf[OrganizationService])
 
-  "TenantService" must {
+  "OrganizationService" must {
 
     "have example test that can be removed" in {
       pending

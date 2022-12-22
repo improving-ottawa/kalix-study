@@ -1,7 +1,7 @@
 package app.improving.tenantcontext.tenant
 
 import app.improving.common.infrastructure.util.convertApiAddressToAddress
-import app.improving.tenant.{
+import app.improving.tenantcontext.tenant.{
   ApiActivateTenant,
   ApiChangeTenantName,
   ApiEstablishTenant,

@@ -1,6 +1,6 @@
 package app.improving.membercontext
 
-import app.improving.member.ApiMemberData
+import app.improving.membercontext.member.ApiMemberData
 import app.improving.membercontext.infrastructure.util._
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext

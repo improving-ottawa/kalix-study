@@ -28,7 +28,7 @@ service MemberByMetaInfoView {
         view: {}
     };
 
-    rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.member.ApiMemberData) {
+    rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
         option (google.api.http) = {
             post: "/member/register"
         };
@@ -38,7 +38,7 @@ service MemberByMetaInfoView {
         };
     }
 
-    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.member.ApiMemberData) {
+    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
         option (google.api.http) = {
             post: "/member/{member_id}/update-status"
         };
@@ -48,7 +48,7 @@ service MemberByMetaInfoView {
         };
     }
 
-    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.member.ApiMemberData) {
+    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
         option (google.api.http) = {
             post: "/member/{member_id}/update-info"
         };
@@ -58,7 +58,7 @@ service MemberByMetaInfoView {
         };
     }
 
-    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.member.ApiMemberData) {
+    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
         option (google.api.http) = {
             post: "/member/register-memberlist"
         };
@@ -68,7 +68,7 @@ service MemberByMetaInfoView {
         };
     }
 
-    rpc GetMembersByMetaInfo(ByMetaInfoRequest) returns (stream app.improving.member.ApiMemberData) {
+    rpc GetMembersByMetaInfo(ByMetaInfoRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
         option (kalix.method).view.query = {
             query: "SELECT * FROM member_by_meta_info WHERE :queryData.createdBy.member_id = memberId.member_id OR :queryData.createdOn = meta.createdOn OR :queryData.lastModifiedOn = meta.lastModifiedOn OR :queryData.lastModifiedBy = meta.lastModifiedBy OR :queryData.memberStatus = meta.memberStatus"
         };

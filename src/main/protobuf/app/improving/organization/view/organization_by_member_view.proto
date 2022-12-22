@@ -3,11 +3,10 @@ syntax = "proto3";
 
 package app.improving.organizationcontext;
 
+
 import "app/improving/organization/api/organization_api.proto";
 import "app/improving/organization/domain/organization_context_domain.proto";
-import "app/improving/organization/domain/organization_domain.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
 import "kalix/annotations.proto";
 
 message ByMemberRequest {
@@ -19,7 +18,7 @@ service OrganizationByMemberView {
         view: {}
     };
 
-    rpc ProcessOrganizationEstablished(OrganizationEstablished) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOrganizationEstablished(OrganizationEstablished) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -29,7 +28,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessMembersAddedToOrganization(MembersAddedToOrganization) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessMembersAddedToOrganization(MembersAddedToOrganization) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -39,7 +38,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessMembersRemovedFromOrganization(MembersRemovedFromOrganization) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessMembersRemovedFromOrganization(MembersRemovedFromOrganization) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -49,7 +48,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessOrganizationAccountsUpdated(OrganizationAccountsUpdated) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOrganizationAccountsUpdated(OrganizationAccountsUpdated) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -59,7 +58,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessOrganizationContactsUpdated(OrganizationContactsUpdated) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOrganizationContactsUpdated(OrganizationContactsUpdated) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -69,7 +68,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessOrganizationInfoUpdated(OrganizationInfoUpdated) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOrganizationInfoUpdated(OrganizationInfoUpdated) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -79,7 +78,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessOrganizationStatusUpdated(OrganizationStatusUpdated) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOrganizationStatusUpdated(OrganizationStatusUpdated) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -89,7 +88,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessOwnersAddedToOrganization(OwnersAddedToOrganization) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOwnersAddedToOrganization(OwnersAddedToOrganization) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -99,7 +98,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc ProcessOwnersRemovedFromOrganization(OwnersRemovedFromOrganization) returns (app.improving.organization.ApiOrganization) {
+    rpc ProcessOwnersRemovedFromOrganization(OwnersRemovedFromOrganization) returns (organizationcontext.organization.ApiOrganization) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "organizations"
         };
@@ -109,7 +108,7 @@ service OrganizationByMemberView {
         };
     }
 
-    rpc FindOrganizationByMember(ByMemberRequest) returns (stream app.improving.organization.ApiOrganization) {
+    rpc FindOrganizationByMember(ByMemberRequest) returns (stream organizationcontext.organization.ApiOrganization) {
         option (kalix.method).view.query = {
             query: "SELECT * FROM organizations_by_member WHERE :member_id = ANY(member_ids)"
         };

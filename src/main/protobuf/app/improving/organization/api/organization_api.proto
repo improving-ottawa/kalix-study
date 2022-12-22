@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
-package app.improving.organization;
+package app.improving.organizationcontext.organization;
 
 message ApiOrganization {
     ApiOrganizationId oid = 1;

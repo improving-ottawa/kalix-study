@@ -2,18 +2,18 @@ package app.improving.organizationcontext.infrastructure
 
 import app.improving.common.infrastructure.util.convertApiAddressToAddress
 import app.improving.{MemberId, OrganizationId}
-import app.improving.organization.{
-  ApiInfo,
-  ApiMetaInfo,
-  ApiOrganizationStatus,
-  ApiParent,
-  ApiUpdateInfo
-}
 import app.improving.organizationcontext.{
   Info,
   MetaInfo,
   OrganizationStatus,
   Parent
+}
+import app.improving.organizationcontext.organization.{
+  ApiInfo,
+  ApiMetaInfo,
+  ApiOrganizationStatus,
+  ApiParent,
+  ApiUpdateInfo
 }
 
 object util {

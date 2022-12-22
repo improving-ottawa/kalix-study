@@ -1,8 +1,6 @@
 package app.improving.tenantcontext.tenant
 
-import app.improving.{ApiContact, MemberId, TenantId}
-import app.improving.tenant._
-import app.improving.tenant.ApiTenantEstablished
+import app.improving.{MemberId, TenantId}
 import app.improving.tenantcontext.infrastructure.util.{
   convertApiContactToContact,
   convertApiInfoToInfo

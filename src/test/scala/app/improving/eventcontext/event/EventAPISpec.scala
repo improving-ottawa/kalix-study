@@ -4,9 +4,8 @@ import com.google.protobuf.duration.Duration
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{ApiGeoLocation, ApiMemberId, MemberId}
-import app.improving.event.{ApiCancelEvent, ApiChangeEventInfo, ApiDelayEvent, ApiEndEvent, ApiEventInfo, ApiRescheduleEvent, ApiReservationId, ApiScheduleEvent, ApiStartEvent}
 import app.improving.eventcontext.{EventScheduled, EventStatus}
-import app.improving.organization.ApiOrganizationId
+import app.improving.organizationcontext.organization.ApiOrganizationId
 import kalix.scalasdk.testkit.EventSourcedResult
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

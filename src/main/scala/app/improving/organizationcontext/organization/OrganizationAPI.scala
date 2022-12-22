@@ -3,7 +3,7 @@ package app.improving.organizationcontext.organization
 import app.improving.common.infrastructure.util.convertAddressToApiAddress
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{MemberId, OrganizationId, organization}
+import app.improving.{MemberId, OrganizationId}
 import app.improving.organizationcontext.{
   ContactList,
   Contacts,
@@ -26,7 +26,18 @@ import app.improving.organizationcontext.{
   ParentUpdated
 }
 import app.improving.organizationcontext.infrastructure.util._
-import app.improving.organization.ApiInfo
+import app.improving.organizationcontext.organization.{
+  ApiAddMembersToOrganization,
+  ApiAddOwnersToOrganization,
+  ApiEditOrganizationInfo,
+  ApiEstablishOrganization,
+  ApiGetOrganizationInfo,
+  ApiInfo,
+  ApiOrganizationStatusUpdated,
+  ApiRemoveMembersFromOrganization,
+  ApiRemoveOwnersFromOrganization,
+  ApiUpdateParent
+}
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -41,8 +52,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def getOrganizationInfo(
       currentState: OrganizationState,
-      apiGetOrganizationInfo: organization.ApiGetOrganizationInfo
-  ): EventSourcedEntity.Effect[organization.ApiInfo] = {
+      apiGetOrganizationInfo: ApiGetOrganizationInfo
+  ): EventSourcedEntity.Effect[ApiInfo] = {
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
@@ -77,7 +88,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   }
   override def removeMembersFromOrganization(
       currentState: OrganizationState,
-      apiRemoveMembersFromOrganization: organization.ApiRemoveMembersFromOrganization
+      apiRemoveMembersFromOrganization: ApiRemoveMembersFromOrganization
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
@@ -103,7 +114,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def removeOwnersFromOrganization(
       currentState: OrganizationState,
-      apiRemoveOwnersFromOrganization: organization.ApiRemoveOwnersFromOrganization
+      apiRemoveOwnersFromOrganization: ApiRemoveOwnersFromOrganization
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
@@ -140,7 +151,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def addMembersToOrganization(
       currentState: OrganizationState,
-      apiAddMembersToOrganization: organization.ApiAddMembersToOrganization
+      apiAddMembersToOrganization: ApiAddMembersToOrganization
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
@@ -177,7 +188,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def addOwnersToOrganization(
       currentState: OrganizationState,
-      apiAddOwnersToOrganization: organization.ApiAddOwnersToOrganization
+      apiAddOwnersToOrganization: ApiAddOwnersToOrganization
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
@@ -214,7 +225,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def editOrganizationInfo(
       currentState: OrganizationState,
-      apiEditOrganizationInfo: organization.ApiEditOrganizationInfo
+      apiEditOrganizationInfo: ApiEditOrganizationInfo
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
@@ -236,7 +247,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def establishOrganization(
       currentState: OrganizationState,
-      apiEstablishOrganization: organization.ApiEstablishOrganization
+      apiEstablishOrganization: ApiEstablishOrganization
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org) =>
@@ -289,7 +300,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def updateParent(
       currentState: OrganizationState,
-      apiUpdateParent: organization.ApiUpdateParent
+      apiUpdateParent: ApiUpdateParent
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
@@ -309,7 +320,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
   override def updateOrganizationStatus(
       currentState: OrganizationState,
-      apiOrganizationStatusUpdated: organization.ApiOrganizationStatusUpdated
+      apiOrganizationStatusUpdated: ApiOrganizationStatusUpdated
   ): EventSourcedEntity.Effect[Empty] =
     currentState.organization match {
       case Some(org)

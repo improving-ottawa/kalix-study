@@ -3,6 +3,7 @@ package app.improving.event
 import akka.actor.ActorSystem
 import com.google.protobuf.empty.Empty
 import app.improving.Main
+import app.improving.eventcontext.event.EventService
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures

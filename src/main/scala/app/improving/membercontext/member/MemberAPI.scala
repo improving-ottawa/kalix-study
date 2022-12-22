@@ -2,19 +2,15 @@ package app.improving.membercontext.member
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.member.{ApiGetMemberData, ApiMemberData}
-import app.improving.{ApiMemberId, MemberId, member}
+import app.improving.{ApiMemberId, MemberId}
 import app.improving.membercontext.{
   MemberInfoUpdated,
-  MemberListRegistered,
-  MemberMap,
   MemberRegistered,
   MemberStatus,
   MemberStatusUpdated,
   MetaInfo
 }
 import app.improving.membercontext.infrastructure.util._
-import app.improving.membercontext.membermap.{Key, SetValue, Value}
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -28,7 +24,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 
   override def registerMember(
       currentState: MemberState,
-      apiRegisterMember: member.ApiRegisterMember
+      apiRegisterMember: ApiRegisterMember
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(_) =>
@@ -61,7 +57,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 
   override def updateMemberStatus(
       currentState: MemberState,
-      apiUpdateMemberStatus: member.ApiUpdateMemberStatus
+      apiUpdateMemberStatus: ApiUpdateMemberStatus
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
@@ -92,7 +88,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 
   override def updateMemberInfo(
       currentState: MemberState,
-      apiUpdateMemberInfo: member.ApiUpdateMemberInfo
+      apiUpdateMemberInfo: ApiUpdateMemberInfo
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
@@ -125,47 +121,47 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
-  override def registerMemberList(
-      currentState: MemberState,
-      apiRegisterMemberList: member.ApiRegisterMemberList
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.member match {
-      case Some(_) => {
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
-          MemberId(member.memberId)
-        )
-        val memberMap =
-          apiRegisterMemberList.memberList
-            .map(convertApiMemberMapToMemberMap)
-            .getOrElse(MemberMap.defaultInstance)
-            .map
-
-        memberMap.foreach {
-          case (memberId, info) => {
-            val event = MemberRegistered(
-              Some(MemberId(memberId)),
-              Some(info),
-              Some(
-                MetaInfo(
-                  Some(timestamp),
-                  memberIdOpt,
-                  Some(timestamp),
-                  memberIdOpt,
-                  MemberStatus.ACTIVE
-                )
-              )
-            )
-            effects.emitEvent(event)
-          }
-        }
-        effects.reply(Empty.defaultInstance)
-      }
-
-      case _ => effects.reply(Empty.defaultInstance)
-    }
-  }
+//  override def registerMemberList(
+//      currentState: MemberState,
+//      apiRegisterMemberList: member.ApiRegisterMemberList
+//  ): EventSourcedEntity.Effect[Empty] = {
+//    currentState.member match {
+//      case Some(_) => {
+//        val now = java.time.Instant.now()
+//        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+//        val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
+//          MemberId(member.memberId)
+//        )
+//        val memberMap =
+//          apiRegisterMemberList.memberList
+//            .map(convertApiMemberMapToMemberMap)
+//            .getOrElse(MemberMap.defaultInstance)
+//            .map
+//
+//        memberMap.foreach {
+//          case (memberId, info) => {
+//            val event = MemberRegistered(
+//              Some(MemberId(memberId)),
+//              Some(info),
+//              Some(
+//                MetaInfo(
+//                  Some(timestamp),
+//                  memberIdOpt,
+//                  Some(timestamp),
+//                  memberIdOpt,
+//                  MemberStatus.ACTIVE
+//                )
+//              )
+//            )
+//            effects.emitEvent(event)
+//          }
+//        }
+//        effects.reply(Empty.defaultInstance)
+//      }
+//
+//      case _ => effects.reply(Empty.defaultInstance)
+//    }
+//  }
 
   override def getMemberData(
       currentState: MemberState,
@@ -202,42 +198,42 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
-  override def memberListRegistered(
-      currentState: MemberState,
-      memberListRegistered: MemberListRegistered
-  ): MemberState = {
-    currentState.member match {
-      case Some(state) => {
-        val map = memberListRegistered.memberList.getOrElse(MemberMap()).map
-
-        map.foreach {
-          case (id, info) => {
-            val value = Value(
-              info.contact,
-              info.handle,
-              info.avatar,
-              info.firstName,
-              info.lastName,
-              info.mobileNumber,
-              info.emailAddress,
-              info.notificationPreference,
-              info.organizationMembership,
-              info.tenant
-            )
-            val setValue = SetValue(
-              id,
-              state.memberId.map(member => Key(member.id)),
-              Some(value)
-            )
-
-            components.memberMap.set(setValue)
-          }
-        }
-        currentState
-      }
-      case _ => currentState
-    }
-  }
+//  override def memberListRegistered(
+//      currentState: MemberState,
+//      memberListRegistered: MemberListRegistered
+//  ): MemberState = {
+//    currentState.member match {
+//      case Some(state) => {
+//        val map = memberListRegistered.memberList.getOrElse(MemberMap()).map
+//
+//        map.foreach {
+//          case (id, info) => {
+//            val value = Value(
+//              info.contact,
+//              info.handle,
+//              info.avatar,
+//              info.firstName,
+//              info.lastName,
+//              info.mobileNumber,
+//              info.emailAddress,
+//              info.notificationPreference,
+//              info.organizationMembership,
+//              info.tenant
+//            )
+//            val setValue = SetValue(
+//              id,
+//              state.memberId.map(member => Key(member.id)),
+//              Some(value)
+//            )
+//
+//            components.memberMap.set(setValue)
+//          }
+//        }
+//        currentState
+//      }
+//      case _ => currentState
+//    }
+//  }
 
   override def memberRegistered(
       currentState: MemberState,

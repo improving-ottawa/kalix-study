@@ -5,7 +5,7 @@ import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
-package app.improving.tenant;
+package app.improving.tenantcontext.tenant;
 
 service TenantService {
 

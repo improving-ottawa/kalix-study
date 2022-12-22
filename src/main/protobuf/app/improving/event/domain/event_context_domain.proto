@@ -46,6 +46,7 @@ message EventInfo {
     google.protobuf.Timestamp expectedStart = 7;
     google.protobuf.Timestamp expectedEnd = 8;
     bool isPrivate = 9;
+    string reason = 10;
 }
 
 message EventInfoChanged {

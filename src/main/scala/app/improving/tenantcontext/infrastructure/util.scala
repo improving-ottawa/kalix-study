@@ -2,8 +2,8 @@ package app.improving.tenantcontext.infrastructure
 
 import app.improving.{ApiContact, Contact, EmailAddress, MobileNumber}
 import app.improving.common.infrastructure.util._
-import app.improving.tenant.ApiInfo
 import app.improving.tenantcontext.Info
+import app.improving.tenantcontext.tenant.ApiInfo
 
 object util {
 

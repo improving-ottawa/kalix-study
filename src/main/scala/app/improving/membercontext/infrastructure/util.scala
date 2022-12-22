@@ -11,7 +11,7 @@ import app.improving.{
   OrganizationId,
   TenantId
 }
-import app.improving.member.{
+import app.improving.membercontext.member.{
   ApiInfo,
   ApiMemberData,
   ApiMemberMap,
@@ -28,8 +28,7 @@ import app.improving.membercontext.{
   MetaInfo,
   NotificationPreference
 }
-import app.improving.organization.ApiOrganizationId
-
+import app.improving.organizationcontext.organization.ApiOrganizationId
 object util {
 
   def convertInfoToApiUpdateInfo(info: Info): ApiUpdateInfo = {

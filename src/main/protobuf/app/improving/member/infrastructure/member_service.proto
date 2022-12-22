@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 
-package app.improving.member;
+package app.improving.membercontext.member;
 
 
 import "app/improving/common/common_api.proto";
@@ -20,7 +20,6 @@ service MemberService {
             state: "app.improving.membercontext.member.MemberState"
             events: [
                 "app.improving.membercontext.MemberInfoUpdated",
-                "app.improving.membercontext.MemberListRegistered",
                 "app.improving.membercontext.MemberRegistered",
                 "app.improving.membercontext.MemberStatusUpdated"]
         }
@@ -44,13 +43,6 @@ service MemberService {
     rpc UpdateMemberInfo(ApiUpdateMemberInfo) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/member/{member_id}/update-info"
-            body: "*"
-        };
-    }
-
-    rpc RegisterMemberList(ApiRegisterMemberList) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/member/register-memberlist"
             body: "*"
         };
     }

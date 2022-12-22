@@ -1,8 +1,13 @@
 package app.improving.organization
 
-
+import app.improving.organizationcontext.organization.ApiOrganizationStatus
 import app.improving.{Main, OrganizationId}
-import app.improving.organizationcontext.{ByMemberRequest, OrganizationByMemberView, OrganizationByOwnerView, OrganizationEstablished}
+import app.improving.organizationcontext.{
+  ByMemberRequest,
+  OrganizationByMemberView,
+  OrganizationByOwnerView,
+  OrganizationEstablished
+}
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
