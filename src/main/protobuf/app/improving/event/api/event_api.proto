@@ -9,8 +9,27 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
+enum ApiEventStatus {
+    SCHEDULED = 0;
+    INPROGRESS = 1;
+    PAST = 2;
+    CANCELLED = 3;
+    DELAYED = 4;
+    UNKNOWN = 5;
+}
 message ApiReservationId {
     string reservation_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiGetEventById {
+    string event_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+    ApiEventStatus status = 4;
 }
 
 message ApiEventInfo {
@@ -23,6 +42,16 @@ message ApiEventInfo {
     google.protobuf.Timestamp expectedStart = 7;
     google.protobuf.Timestamp expectedEnd = 8;
     bool isPrivate = 9;
+}
+
+message ApiEventMetaInfo {
+    ApiMemberId scheduledBy = 1;
+    google.protobuf.Timestamp scheduledOn = 2;
+    ApiMemberId lastModifiedBy = 3;
+    google.protobuf.Timestamp lastModifiedOn = 4;
+    google.protobuf.Timestamp actualStart = 5;
+    google.protobuf.Timestamp actualEnd = 6;
+    ApiEventStatus status = 7;
 }
 
 message ApiChangeEventInfo {

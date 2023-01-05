@@ -1,18 +1,8 @@
 package app.improving.organizationcontext.organization
 
-import akka.actor.ActorSystem
-import app.improving.Main
-import app.improving.organizationcontext.organization.ApiAddMembersToOrganization
-import app.improving.organizationcontext.organization.ApiAddOwnersToOrganization
-import app.improving.organizationcontext.organization.ApiEditOrganizationInfo
-import app.improving.organizationcontext.organization.ApiEstablishOrganization
-import app.improving.organizationcontext.organization.ApiGetOrganizationInfo
-import app.improving.organizationcontext.organization.ApiInfo
-import app.improving.organizationcontext.organization.ApiOrganizationStatusUpdated
-import app.improving.organizationcontext.organization.ApiRemoveMembersFromOrganization
-import app.improving.organizationcontext.organization.ApiRemoveOwnersFromOrganization
-import app.improving.organizationcontext.organization.ApiUpdateParent
-import com.google.protobuf.empty.Empty
+import app.improving._
+import app.improving.organizationcontext._
+import TestData._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -21,6 +11,8 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
+
+import java.time.Instant
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -38,14 +30,71 @@ class OrganizationServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[OrganizationService])
+  private val client =
+    testKit.getGrpcClient(classOf[OrganizationService])
+
+  private val memberViewClient =
+    testKit.getGrpcClient(classOf[OrganizationByMemberView])
+  private val ownerViewClient =
+    testKit.getGrpcClient(classOf[OrganizationByOwnerView])
 
   "OrganizationService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "process established organization for view" in {
+      memberViewClient
+        .processOrganizationEstablished(
+          OrganizationEstablished(
+            Some(OrganizationId("1")),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
+          )
+        )
+        .futureValue
+        .status shouldBe ApiOrganizationStatus.DRAFT
+    }
+
+    "establish organization correctly" in {
+      client.establishOrganization(apiEstablishOrganization).futureValue
+
+      val organization =
+        client.getOrganization(ApiGetOrganizationById(testOrgId)).futureValue
+
+      organization.status shouldBe ApiOrganizationStatus.DRAFT
+
+      organization.oid shouldBe Some(
+        ApiOrganizationId(apiEstablishOrganization.orgId)
+      )
+
+      client.updateOrganizationStatus(
+        ApiOrganizationStatusUpdated(testOrgId, ApiOrganizationStatus.ACTIVE)
+      )
+
+      val activeOrganization =
+        client.getOrganization(ApiGetOrganizationById(testOrgId)).futureValue
+
+      activeOrganization.status shouldBe ApiOrganizationStatus.ACTIVE
+
+      val apiAddMembersToOrganization = ApiAddMembersToOrganization(
+        testOrgId,
+        Seq[ApiMemberId](
+          ApiMemberId("member20"),
+          ApiMemberId("member22"),
+          ApiMemberId("member24")
+        ),
+        Some(ApiMemberId("member100"))
+      )
+
+      client.addMembersToOrganization(apiAddMembersToOrganization).futureValue
+
+      val addedMemberOrganization =
+        client.getOrganization(ApiGetOrganizationById(testOrgId)).futureValue
+
+      addedMemberOrganization.memberIds should contain("member20")
+      addedMemberOrganization.memberIds should have size 6
     }
 
   }

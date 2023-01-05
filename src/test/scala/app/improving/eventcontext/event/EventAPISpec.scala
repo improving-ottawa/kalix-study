@@ -9,7 +9,7 @@ import app.improving.organizationcontext.organization.ApiOrganizationId
 import kalix.scalasdk.testkit.EventSourcedResult
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-
+import TestData._
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -20,27 +20,6 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type ChangeEventInfo" in {
       val testKit = EventAPITestKit(new EventAPI(_))
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
-
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
 
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
@@ -81,27 +60,6 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type ScheduleEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
-
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
       result.events should have size 1
@@ -117,27 +75,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type CancelEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
 
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
       result.events should have size 1
@@ -165,27 +103,6 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type RescheduleEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
-
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
       result.events should have size 1
@@ -227,27 +144,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type DelayEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
 
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
       result.events should have size 1
@@ -291,27 +188,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type StartEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
 
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
       result.events should have size 1
@@ -343,27 +220,6 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type EndEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
-      val now = java.time.Instant.now()
-      val start = Timestamp.of(now.getEpochSecond, now.getNano)
-      val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
-
-      val event = ApiScheduleEvent(
-        "event-1",
-        Some(
-          ApiEventInfo(
-            "try-out-event",
-            "School footbal try out",
-            "www.nowhere.com",
-            Some(ApiOrganizationId("org-1")),
-            Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-            Some(ApiReservationId("reserve-1")),
-            Some(start),
-            Some(end),
-            false
-          )
-        ),
-        Some(ApiMemberId("1"))
-      )
       val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
 
       result.events should have size 1

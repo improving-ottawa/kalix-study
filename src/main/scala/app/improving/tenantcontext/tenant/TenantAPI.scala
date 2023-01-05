@@ -1,10 +1,7 @@
 package app.improving.tenantcontext.tenant
 
-import app.improving.{MemberId, TenantId}
-import app.improving.tenantcontext.infrastructure.util.{
-  convertApiContactToContact,
-  convertApiInfoToInfo
-}
+import app.improving._
+import app.improving.tenantcontext.infrastructure.util._
 import app.improving.tenantcontext.{
   MetaInfo,
   PrimaryContactUpdated,
@@ -16,6 +13,7 @@ import app.improving.tenantcontext.{
 }
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
+import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -166,6 +164,20 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
       case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
+  override def getTenantById(
+      currentState: TenantState,
+      apiGetTenantById: ApiGetTenantById
+  ): EventSourcedEntity.Effect[ApiTenant] = {
+    currentState.tenant match {
+      case Some(tenant)
+          if tenant.tenantId == Some(TenantId(apiGetTenantById.tenantId)) => {
+        effects.reply(convertTenantToApiTenant(tenant))
+
+      }
+      case _ => effects.error("Tenant Not Found!", Status.Code.NOT_FOUND)
     }
   }
 

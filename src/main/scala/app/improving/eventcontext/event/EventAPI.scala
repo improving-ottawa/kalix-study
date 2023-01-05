@@ -8,6 +8,7 @@ import app.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
   EventEnded,
+  EventInfo,
   EventInfoChanged,
   EventMetaInfo,
   EventRescheduled,
@@ -87,11 +88,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               Some(timestamp),
               apiScheduleEvent.info.flatMap(_.expectedStart),
               apiScheduleEvent.info.flatMap(_.expectedEnd),
-              currentState.event
-                .map(_.status)
-                .getOrElse(
-                  EventStatus.UNKNOWN
-                ) // ??? What status should it be here?!!!
+              EventStatus.SCHEDULED
             )
           )
         )
@@ -247,6 +244,19 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       "The command handler for `AddLiveUpdate` is not implemented, yet"
     )
 
+  override def getEventById(
+      currentState: EventState,
+      apiGetEventById: ApiGetEventById
+  ): EventSourcedEntity.Effect[ApiEvent] = {
+    currentState.event match {
+      case Some(event)
+          if event.eventId == Some(EventId(apiGetEventById.eventId)) => {
+        effects.reply(convertEventToApiEvent(event))
+      }
+      case _ => effects.reply(ApiEvent.defaultInstance)
+    }
+  }
+
   override def eventInfoChanged(
       currentState: EventState,
       eventInfoChanged: EventInfoChanged
@@ -270,7 +280,9 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       case _ =>
         currentState.withEvent(
           Event(
-            Some(EventId(UUID.randomUUID().toString)),
+            Some(
+              EventId(UUID.randomUUID().toString)
+            ), // There is no id being passed in???
             eventScheduled.info,
             eventScheduled.meta,
             EventStatus.SCHEDULED

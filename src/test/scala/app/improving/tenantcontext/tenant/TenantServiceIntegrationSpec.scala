@@ -1,8 +1,6 @@
 package app.improving.tenantcontext.tenant
 
-import akka.actor.ActorSystem
-import app.improving.Main
-import com.google.protobuf.empty.Empty
+import app.improving._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -11,6 +9,7 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
+import TestData._
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -32,10 +31,33 @@ class TenantServiceIntegrationSpec
 
   "TenantService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "create tenant correctly" in {
+      val command = ApiEstablishTenant(
+        testTenantId,
+        Some(apiInfo)
+      )
+      client.establishTenant(command).futureValue
+
+      val tenant = client
+        .getTenantById(ApiGetTenantById(testTenantId))
+        .futureValue
+
+      tenant.name shouldBe apiInfo.name
+
+      tenant.status shouldBe ApiTenantStatus.DRAFT
+
+      val apiActivateTenant = ApiActivateTenant(
+        testTenantId,
+        testTenantId2
+      )
+
+      client.activateTenant(apiActivateTenant).futureValue
+
+      val activatedTenant = client
+        .getTenantById(ApiGetTenantById(testTenantId))
+        .futureValue
+
+      activatedTenant.status shouldBe ApiTenantStatus.ACTIVE
     }
 
   }

@@ -1,8 +1,7 @@
 package app.improving.membercontext.member
 
-import akka.actor.ActorSystem
-import app.improving.Main
-import com.google.protobuf.empty.Empty
+import TestData._
+import app.improving.{ApiMemberId, Main}
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -32,10 +31,18 @@ class MemberServiceIntegrationSpec
 
   "MemberService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "register member correctly" in {
+      val command = ApiRegisterMember(
+        testMemberId,
+        Some(apiInfo),
+        Some(ApiMemberId(testMemberId))
+      )
+      client.registerMember(command).futureValue
+
+      val memberData =
+        client.getMemberData(ApiGetMemberData(testMemberId)).futureValue
+
+      memberData.meta.map(_.memberStatus) shouldBe Some(ApiMemberStatus.ACTIVE)
     }
 
   }

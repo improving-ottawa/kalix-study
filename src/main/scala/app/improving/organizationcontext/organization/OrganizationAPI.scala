@@ -1,6 +1,5 @@
 package app.improving.organizationcontext.organization
 
-import app.improving.common.infrastructure.util.convertAddressToApiAddress
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{MemberId, OrganizationId}
@@ -50,6 +49,23 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     extends AbstractOrganizationAPI {
   override def emptyState: OrganizationState = OrganizationState.defaultInstance
 
+  override def getOrganization(
+      currentState: OrganizationState,
+      apiGetOrganizationById: ApiGetOrganizationById
+  ): EventSourcedEntity.Effect[ApiOrganization] = {
+    currentState.organization match {
+      case Some(org)
+          if currentState.organization.map(_.status) != Some(
+            OrganizationStatus.TERMINATED
+          ) && org.oid == Some(
+            OrganizationId(apiGetOrganizationById.orgId)
+          ) => {
+        effects.reply(convertOrganizationToApiOrganization(org))
+      }
+      case _ => effects.reply(ApiOrganization.defaultInstance)
+    }
+  }
+
   override def getOrganizationInfo(
       currentState: OrganizationState,
       apiGetOrganizationInfo: ApiGetOrganizationInfo
@@ -68,18 +84,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           .emitEvent(event)
           .thenReply(state => {
             val infoOpt = state.organization.flatMap(_.info)
-            val apiInfoOpt = infoOpt.map(info => {
-              ApiInfo(
-                info.name,
-                info.shortName,
-                info.address.map(addr => {
-                  convertAddressToApiAddress(addr)
-                }),
-                info.isPrivate,
-                info.url,
-                info.logo
-              )
-            })
+            val apiInfoOpt = infoOpt.map(convertInfoToApiInfo)
             apiInfoOpt.getOrElse(ApiInfo.defaultInstance)
           })
       }
@@ -575,5 +580,4 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     }
     case _ => currentState
   }
-
 }

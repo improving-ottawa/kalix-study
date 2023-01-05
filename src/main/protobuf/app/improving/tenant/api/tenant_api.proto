@@ -16,6 +16,15 @@ enum ApiTenantStatus {
     SUSPENDED = 2;
 }
 
+message ApiTenant {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string name =  2;
+    ApiContact primaryContact = 3;
+    ApiInfo info = 4;
+    ApiMetaInfo meta = 5;
+    ApiTenantStatus status = 6;
+}
+
 message ApiInfo {
     string name = 1;
     ApiContact primaryContact = 2;
@@ -83,4 +92,8 @@ message ApiChangeTenantName {
     string tenant_id = 1 [(kalix.field).entity_key = true];
     string newName = 2;
     string updatingUser = 3;
+}
+
+message ApiGetTenantById {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
 }

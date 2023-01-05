@@ -1,16 +1,9 @@
 package app.improving.organizationcontext
 
-import app.improving.{
-  Address,
-  ApiAddress,
-  ApiCAPostalCode,
-  ApiMemberId,
-  ApiUSPostalCode
-}
+import app.improving.ApiMemberId
+import app.improving.organizationcontext.infrastructure.util._
 import app.improving.organizationcontext.organization.{
   ApiContacts,
-  ApiInfo,
-  ApiMetaInfo,
   ApiOrganization,
   ApiOrganizationId,
   ApiOrganizationStatus
@@ -37,36 +30,6 @@ class OrganizationByMemberViewImpl(context: ViewContext)
       effects.updateState(
         convertOrganizationEstablishedToOrganization(organizationEstablished)
       )
-  }
-
-  private def convertOrganizationEstablishedToOrganization(
-      organizationEstablished: OrganizationEstablished
-  ): ApiOrganization = {
-    ApiOrganization(
-      organizationEstablished.orgId.map(org => ApiOrganizationId(org.id)),
-      organizationEstablished.info.map(convertInfoToApiInfo),
-      organizationEstablished.parent.flatMap(
-        _.id.map(org => ApiOrganizationId(org.id))
-      ),
-      organizationEstablished.members.toList
-        .flatMap(_.memberId.map(member => member.id)),
-      organizationEstablished.owners.toList
-        .flatMap(_.owners.map(owner => owner.id)),
-      organizationEstablished.contacts.toList.flatMap(
-        _.contacts.map(contact =>
-          ApiContacts(
-            contact.primaryContacts.map(ct => ApiMemberId(ct.id)),
-            contact.billingContacts.map(ct => ApiMemberId(ct.id)),
-            contact.distributionContacts.map(ct => ApiMemberId(ct.id))
-          )
-        )
-      ),
-      organizationEstablished.meta.map(convertMetaInfoToApiMetaInfo),
-      organizationEstablished.info
-        .map(_.name)
-        .getOrElse("Name is not provided."),
-      ApiOrganizationStatus.DRAFT
-    )
   }
 
   override def processMembersAddedToOrganization(
@@ -110,63 +73,6 @@ class OrganizationByMemberViewImpl(context: ViewContext)
           organizationAccountsUpdated.meta.map(convertMetaInfoToApiMetaInfo)
       )
     )
-  }
-
-  private def convertAddressToApiAdress(address: Address): ApiAddress = {
-    ApiAddress(
-      address.line1,
-      address.line2,
-      address.city,
-      address.stateProvince,
-      address.country,
-      address.postalCode match {
-        case Address.PostalCode.UsPostalCode(_) =>
-          ApiAddress.PostalCode.UsPostalCode(ApiUSPostalCode.defaultInstance)
-        case Address.PostalCode.CaPostalCode(_) =>
-          ApiAddress.PostalCode.CaPostalCode(
-            ApiCAPostalCode.defaultInstance
-          )
-      }
-    )
-  }
-
-  private def convertInfoToApiInfo(info: Info): ApiInfo = {
-    ApiInfo(
-      info.name,
-      info.shortName,
-      info.address.map(convertAddressToApiAdress(_)),
-      info.isPrivate,
-      info.url,
-      info.logo
-    )
-  }
-
-  private def convertMetaInfoToApiMetaInfo(
-      metaInfo: MetaInfo
-  ): ApiMetaInfo = {
-    ApiMetaInfo(
-      metaInfo.createdOn,
-      metaInfo.createdBy.map(member => ApiMemberId(member.id)),
-      metaInfo.lastUpdated,
-      metaInfo.lastUpdatedBy.map(member => ApiMemberId(member.id)),
-      convertOrganizationStatusToApiOrganizationStatus(
-        metaInfo.currentStatus
-      ),
-      metaInfo.children.map(child => ApiOrganizationId(child.id))
-    )
-  }
-
-  private def convertOrganizationStatusToApiOrganizationStatus(
-      organizationStatus: OrganizationStatus
-  ): ApiOrganizationStatus = {
-    organizationStatus match {
-      case OrganizationStatus.DRAFT      => ApiOrganizationStatus.DRAFT
-      case OrganizationStatus.ACTIVE     => ApiOrganizationStatus.ACTIVE
-      case OrganizationStatus.SUSPENDED  => ApiOrganizationStatus.SUSPENDED
-      case OrganizationStatus.TERMINATED => ApiOrganizationStatus.TERMINATED
-      case OrganizationStatus.Unrecognized(unrecognizedValue) =>
-        ApiOrganizationStatus.Unrecognized(unrecognizedValue)
-    }
   }
 
   override def processOrganizationContactsUpdated(

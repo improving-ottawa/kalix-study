@@ -1,21 +1,7 @@
 package app.improving.tenantcontext.tenant
 
 import app.improving.common.infrastructure.util.convertApiAddressToAddress
-import app.improving.tenantcontext.tenant.{
-  ApiActivateTenant,
-  ApiChangeTenantName,
-  ApiEstablishTenant,
-  ApiInfo,
-  ApiSuspendTenant,
-  ApiUpdatePrimaryContact
-}
-import app.improving.{
-  ApiAddress,
-  ApiCAPostalCode,
-  ApiContact,
-  ApiEmailAddress,
-  ApiMobileNumber
-}
+import TestData._
 import app.improving.tenantcontext.TenantStatus
 import app.improving.tenantcontext.infrastructure.util.convertApiContactToContact
 import org.scalatest.matchers.should.Matchers
@@ -28,39 +14,6 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class TenantAPISpec extends AnyWordSpec with Matchers {
   "The TenantAPI" should {
-
-    val testTenantId = "test-tenant-id"
-    val testTenantId2 = "test-tenant-id2"
-    val newName = "new-name"
-    val apiContact = ApiContact(
-      "firtname",
-      "lastname",
-      Some(ApiEmailAddress("email@email.com")),
-      Some(ApiMobileNumber("999-999-999")),
-      "username"
-    )
-    val newApiContact = ApiContact(
-      "firtname1",
-      "lastname1",
-      Some(ApiEmailAddress("email1@email.com")),
-      Some(ApiMobileNumber("888-888-888")),
-      "username1"
-    )
-    val apiAddress = ApiAddress(
-      "line1",
-      "line2",
-      "city",
-      "state",
-      "canada",
-      ApiAddress.PostalCode.CaPostalCode(
-        ApiCAPostalCode.defaultInstance
-      )
-    )
-    val apiInfo = ApiInfo(
-      "name",
-      Some(apiContact),
-      Some(apiAddress)
-    )
 
     "correctly process commands of type EstablishTenant" in {
       val testKit = TenantAPITestKit(new TenantAPI(_))

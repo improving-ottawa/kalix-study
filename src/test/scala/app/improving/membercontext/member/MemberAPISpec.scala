@@ -1,36 +1,8 @@
 package app.improving.membercontext.member
 
-import app.improving.{
-  ApiContact,
-  ApiEmailAddress,
-  ApiMemberId,
-  ApiMobileNumber,
-  ApiTenantId,
-  Contact,
-  EmailAddress,
-  MobileNumber,
-  OrganizationId,
-  TenantId
-}
-import app.improving.membercontext.member.{
-  ApiGetMemberData,
-  ApiInfo,
-  ApiMemberMap,
-  ApiMemberStatus,
-  ApiNotificationPreference,
-  ApiRegisterMember,
-  ApiRegisterMemberList,
-  ApiUpdateInfo,
-  ApiUpdateMemberInfo,
-  ApiUpdateMemberStatus
-}
-import app.improving.membercontext.{
-  Info,
-  MemberMap,
-  MemberStatus,
-  NotificationPreference
-}
-import app.improving.organizationcontext.organization.ApiOrganizationId
+import TestData._
+import app.improving._
+import app.improving.membercontext.MemberStatus
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -41,58 +13,6 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class MemberAPISpec extends AnyWordSpec with Matchers {
   "The MemberAPI" should {
-    val testMemberId = "test-member-id"
-    val testMemberId2 = "test-member-id2"
-    val testOrganizationId = "test-organization-id"
-    val testTenantId = "test-tenant-id"
-    val apiContact = ApiContact(
-      "member-first-name",
-      "member-last-name",
-      Some(ApiEmailAddress("member@memberapi.com")),
-      Some(ApiMobileNumber("987-878-0987")),
-      "user-name"
-    )
-    val apiInfo = ApiInfo(
-      Some(apiContact),
-      "handle",
-      "avartar",
-      "member-name",
-      "short-name",
-      Some(ApiMobileNumber("987-878-0987")),
-      Some(ApiEmailAddress("member@memberapi.com")),
-      ApiNotificationPreference.SMS,
-      Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
-      Some(ApiTenantId(testTenantId))
-    )
-    val apiUpdateInfo = ApiUpdateInfo(
-      "new-handle",
-      "new-avatar",
-      "new-firstname",
-      "new-lastname",
-      Some(ApiMobileNumber("898-000-9876")),
-      Some(ApiEmailAddress("newemail@member.com")),
-      ApiNotificationPreference.EMAIL,
-      Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId))
-    )
-    val contact = Contact(
-      "member-first-name",
-      "member-last-name",
-      Some(EmailAddress("member@memberapi.com")),
-      Some(MobileNumber("987-878-0987")),
-      "user-name"
-    )
-    val info = Info(
-      Some(contact),
-      "handle",
-      "avartar",
-      "member-name",
-      "short-name",
-      Some(MobileNumber("987-878-0987")),
-      Some(EmailAddress("member@memberapi.com")),
-      NotificationPreference.SMS,
-      Seq[OrganizationId](OrganizationId(testMemberId)),
-      Some(TenantId(testTenantId))
-    )
 
     "register member should work correctly" in {
       val testKit = MemberAPITestKit(new MemberAPI(_))

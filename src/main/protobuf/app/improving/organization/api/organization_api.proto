@@ -58,6 +58,10 @@ message ApiGetOrganizationInfo {
     string org_id = 1 [(kalix.field).entity_key = true];
 }
 
+message ApiGetOrganizationById {
+    string org_id = 1 [(kalix.field).entity_key = true];
+}
+
 message ApiContacts {
     repeated ApiMemberId primaryContacts = 1;
     repeated ApiMemberId billingContacts = 2;

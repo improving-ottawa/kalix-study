@@ -31,6 +31,12 @@ service OrganizationService {
         }
     };
 
+    rpc GetOrganization(organizationcontext.organization.ApiGetOrganizationById) returns (organizationcontext.organization.ApiOrganization) {
+        option (google.api.http) = {
+            get: "/organization/{org_id}"
+        };
+    }
+
     rpc GetOrganizationInfo(organizationcontext.organization.ApiGetOrganizationInfo) returns (organizationcontext.organization.ApiInfo) {
         option (google.api.http) = {
             get: "/organization/{org_id}/organization-info"
