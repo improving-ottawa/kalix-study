@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+import "app/improving/common/common_domain.proto";
+import "google/protobuf/timestamp.proto";
+
+package app.improving.productcontext;
+
+enum ProductStatus {
+    ACTIVE = 0;
+    INACTIVE = 2;
+    UNKNOWN = 3;
+}
+
+message ProductInfo {
+    string sku = 1;
+    string  name = 2;
+    string  description = 3;
+    string section = 4;
+    string row = 5;
+    string seat = 6;
+    EventId event = 7;
+    repeated string image = 8;
+    double price = 9;
+    double cost = 10;
+    StoreId store = 11;
+}
+
+message ProductInfoUpdate {
+    string sku = 1;
+    string  name = 2;
+    string  description = 3;
+    string section = 4;
+    string row = 5;
+    string seat = 6;
+    EventId event = 7;
+    repeated string image = 8;
+    double price = 9;
+    double cost = 10;
+    StoreId store = 11;
+}
+
+message ProductMetaInfo {
+    MemberId createdBy = 1;
+    google.protobuf.Timestamp createdOn = 2;
+    MemberId lastModifiedBy = 3;
+    google.protobuf.Timestamp lastModifiedOn = 4;
+}
+
+message ProductCreated {}
+message ProductInfoUpdated {}
+message ProductDeleted {}
+message ProductActivated {}
+message ProductInactivated {}
+message GetProductInfo {}
+message ProductInfoResult {}
+message GetProductsInStore {}
+message ProductsInStore {}
+message GetTicketsForEvent {}
+message TicketsForEvent {}

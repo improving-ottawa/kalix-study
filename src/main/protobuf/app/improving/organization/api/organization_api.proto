@@ -2,10 +2,8 @@
 syntax = "proto3";
 
 import "app/improving/common/common_api.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
-import "google/api/annotations.proto";
 
 package app.improving.organizationcontext.organization;
 

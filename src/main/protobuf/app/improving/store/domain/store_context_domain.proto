@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "app/improving/common/common_domain.proto";
+import "google/protobuf/timestamp.proto";
+
+package app.improving.storecontext;
+
+enum StoreStatus {
+    DRAFT = 0;
+    OPEN = 2;
+    CLOSED = 3;
+    UNKNOWN = 5;
+}
+
+message StoreInfo {
+    StoreId id = 1;
+    string  name = 2;
+    string  description = 3;
+    repeated ProductId products = 4;
+    EventId  event = 5;
+}
+
+message StoreMetaInfo {
+    MemberId createdBy = 1;
+    google.protobuf.Timestamp createdOn = 2;
+    MemberId lastModifiedBy = 3;
+    google.protobuf.Timestamp lastModifiedOn = 4;
+    StoreStatus status = 5;
+}
+
+
+message StoreCreated {}
+message StoreUpdated {}
+message StoreDeleted {}
+message StoreOpened {}
+message StoreClosed {}
+message ProductAddedToStore {}
+message ProductRemovedFromStore {}
+message ProductInventoryIncremented {}
+message ProductInventoryDecremented {}
+message GetStoreInfo {}

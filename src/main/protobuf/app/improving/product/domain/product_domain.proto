@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "app/improving/common/common_domain.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+
+
+package app.improving.productcontext.product;
+
+message Product {
+    ProductId productId = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+    ProductStatus status = 4;
+}
+
+message ProductState {
+    Product product = 1;
+}

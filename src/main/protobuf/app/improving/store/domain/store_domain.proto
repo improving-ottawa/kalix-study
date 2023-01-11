@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+import "app/improving/common/common_domain.proto";
+import "app/improving/store/domain/store_context_domain.proto";
+
+
+package app.improving.storecontext.store;
+
+message Store {
+    StoreId storeId = 1;
+    StoreInfo info = 2;
+    StoreMetaInfo meta = 3;
+    StoreStatus status = 4;
+}
+
+message StoreState {
+    Store store = 1;
+}
