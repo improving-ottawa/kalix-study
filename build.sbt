@@ -2,6 +2,24 @@ organization := "com.improving"
 
 scalaVersion := "2.13.10"
 
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
+lazy val api = project.in(file("api"))
+  .configure(Kalix.apiComponent("api"))
+
+lazy val org = project.in(file("organization"))
+  .configure(Kalix.kalixServiceComponent("organization"))
+  .dependsOn(api)
+
+lazy val root = project.in(file(".")).settings(
+  publish := {},
+  publishLocal := {},
+  // pgpSigner / skip := true,
+  publishTo := Some(Resolver.defaultLocal)
+).aggregate(org)
+
+
+/*
 enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
 dockerBaseImage := "docker.io/library/adoptopenjdk:11-jre-hotspot"
 dockerUsername := sys.props.get("docker.username")
@@ -52,3 +70,4 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.14" % Test,
   "org.scalamock" %% "scalamock" % "5.2.0" % Test
 )
+*/
