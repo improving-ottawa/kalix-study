@@ -77,8 +77,9 @@ message EventResults {
 }
 
 message EventScheduled {
-    EventInfo info = 1;
-    EventMetaInfo meta = 2;
+    EventId  eventId = 1;
+    EventInfo info = 2;
+    EventMetaInfo meta = 3;
 }
 
 message EventStarted {

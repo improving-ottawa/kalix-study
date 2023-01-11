@@ -10,6 +10,7 @@ object TestData {
   val testOrgId = "test-org-id"
   val parentIdTest = "parent-id-test"
   val newParentId = "new-parent-id"
+  val testTenantId = "test-tenant-id"
   val establishingMemberId = "establishing-member-id"
   val now = Instant.now()
   val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
@@ -31,7 +32,11 @@ object TestData {
               ApiCAPostalCode.defaultInstance
             )
           )
-        )
+        ),
+        true,
+        "www.test.com",
+        "N/A",
+        Some(ApiTenantId(testTenantId))
       )
     ),
     Some(ApiParent(parentIdTest)),

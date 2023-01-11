@@ -236,7 +236,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if org.status == OrganizationStatus.DRAFT || org.status == OrganizationStatus.ACTIVE => {
         org.copy(info =
-          apiEditOrganizationInfo.newInfo.map(convertUpdateInfoToInfo(_))
+          apiEditOrganizationInfo.newInfo.map(convertApiUpdateInfoToInfo(_))
         )
 
         val event =

@@ -79,6 +79,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       }
       case _ => {
         val event = EventScheduled(
+          Some(EventId(apiScheduleEvent.eventId)),
           apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
           Some(
             EventMetaInfo(
@@ -280,9 +281,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       case _ =>
         currentState.withEvent(
           Event(
-            Some(
-              EventId(UUID.randomUUID().toString)
-            ), // There is no id being passed in???
+            eventScheduled.eventId,
             eventScheduled.info,
             eventScheduled.meta,
             EventStatus.SCHEDULED

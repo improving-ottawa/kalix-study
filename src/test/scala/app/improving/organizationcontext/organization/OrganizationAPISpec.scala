@@ -53,7 +53,11 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
                   ApiCAPostalCode.defaultInstance
                 )
               )
-            )
+            ),
+            isPrivate = true,
+            url = "www.test.com",
+            logo = "N/A",
+            tenant = Some(ApiTenantId(testTenantId))
           )
         )
       )
@@ -90,7 +94,11 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
                   ApiCAPostalCode.defaultInstance
                 )
               )
-            )
+            ),
+            isPrivate = true,
+            url = "www.test.com",
+            logo = "N/A",
+            tenant = Some(ApiTenantId(testTenantId))
           )
         )
       )

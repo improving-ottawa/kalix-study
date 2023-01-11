@@ -12,10 +12,12 @@ import app.improving.{
   ApiEmailAddress,
   ApiMemberId,
   ApiMobileNumber,
+  ApiTenantId,
   ApiUSPostalCode,
   Contact,
   MemberId,
-  OrganizationId
+  OrganizationId,
+  TenantId
 }
 import app.improving.organizationcontext.{
   Contacts,
@@ -39,7 +41,7 @@ import app.improving.organizationcontext.organization.{
 
 object util {
 
-  def convertUpdateInfoToInfo(
+  def convertApiUpdateInfoToInfo(
       updateInfo: ApiUpdateInfo
   ): Info = {
     Info(
@@ -48,7 +50,8 @@ object util {
       updateInfo.address.map(convertApiAddressToAddress(_)),
       updateInfo.isPrivate,
       updateInfo.url,
-      updateInfo.logo
+      updateInfo.logo,
+      updateInfo.tenant.map(tenant => TenantId(tenant.tenantId))
     )
   }
 
@@ -59,7 +62,8 @@ object util {
       apiInfo.address.map(convertApiAddressToAddress(_)),
       apiInfo.isPrivate,
       apiInfo.url,
-      apiInfo.logo
+      apiInfo.logo,
+      apiInfo.tenant.map(tenant => TenantId(tenant.tenantId))
     )
   }
 
@@ -72,7 +76,8 @@ object util {
       }),
       info.isPrivate,
       info.url,
-      info.logo
+      info.logo,
+      info.tenant.map(tenant => ApiTenantId(tenant.id))
     )
   }
   def convertApiParentToParent(apiParent: ApiParent): Parent = {

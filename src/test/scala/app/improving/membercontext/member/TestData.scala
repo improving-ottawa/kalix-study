@@ -9,6 +9,7 @@ object TestData {
   val testMemberId2 = "test-member-id2"
   val testOrganizationId = "test-organization-id"
   val testTenantId = "test-tenant-id"
+  val testTenantId1 = "test-tenant-id1"
   val apiContact = ApiContact(
     "member-first-name",
     "member-last-name",
@@ -36,7 +37,8 @@ object TestData {
     Some(ApiMobileNumber("898-000-9876")),
     Some(ApiEmailAddress("newemail@member.com")),
     ApiNotificationPreference.EMAIL,
-    Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId))
+    Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId)),
+    Some(ApiTenantId(testTenantId1))
   )
   val contact = Contact(
     "member-first-name",

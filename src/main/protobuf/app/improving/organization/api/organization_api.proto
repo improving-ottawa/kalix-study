@@ -35,6 +35,7 @@ message ApiInfo {
         bool isPrivate = 4;
         string url = 5; // URL type?
         string logo = 6; // URL type?
+        ApiTenantId tenant = 7;
 }
 
 message ApiMetaInfo {
@@ -75,6 +76,7 @@ message ApiUpdateInfo {
     bool isPrivate = 4;
     string url = 5; // URL type?
     string logo = 6; // URL type?
+    ApiTenantId tenant = 7;
 }
 
 message ApiUpdateParent {
