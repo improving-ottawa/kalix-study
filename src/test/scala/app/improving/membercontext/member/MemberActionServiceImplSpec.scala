@@ -1,21 +1,12 @@
 package app.improving.membercontext.member
 
-import app.improving.{
-  ApiContact,
-  ApiEmailAddress,
-  ApiMemberId,
-  ApiMobileNumber,
-  ApiTenantId,
-  Contact,
-  EmailAddress,
-  MobileNumber
-}
-import app.improving.organizationcontext.organization.ApiOrganizationId
+import app.improving.ApiMemberId
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.MockRegistry
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import TestData._
 
 import scala.concurrent.Future
 
@@ -30,47 +21,6 @@ class MemberActionServiceImplSpec
     with AsyncMockFactory {
 
   "MemberActionServiceImpl" must {
-
-    val testMemberId = "test-member-id"
-    val testMemberId2 = "test-member-id2"
-    val testOrganizationId = "test-organization-id"
-    val testTenantId = "test-tenant-id"
-    val apiContact = ApiContact(
-      "member-first-name",
-      "member-last-name",
-      Some(ApiEmailAddress("member@memberapi.com")),
-      Some(ApiMobileNumber("987-878-0987")),
-      "user-name"
-    )
-    val apiInfo = ApiInfo(
-      Some(apiContact),
-      "handle",
-      "avartar",
-      "member-name",
-      "short-name",
-      Some(ApiMobileNumber("987-878-0987")),
-      Some(ApiEmailAddress("member@memberapi.com")),
-      ApiNotificationPreference.SMS,
-      Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
-      Some(ApiTenantId(testTenantId))
-    )
-    val apiUpdateInfo = ApiUpdateInfo(
-      "new-handle",
-      "new-avatar",
-      "new-firstname",
-      "new-lastname",
-      Some(ApiMobileNumber("898-000-9876")),
-      Some(ApiEmailAddress("newemail@member.com")),
-      ApiNotificationPreference.EMAIL,
-      Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId))
-    )
-    val contact = Contact(
-      "member-first-name",
-      "member-last-name",
-      Some(EmailAddress("member@memberapi.com")),
-      Some(MobileNumber("987-878-0987")),
-      "user-name"
-    )
 
     "handle command RegisterMemberList" in {
 
