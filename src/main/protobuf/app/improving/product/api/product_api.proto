@@ -54,8 +54,12 @@ message ApiProductMetaInfo {
     google.protobuf.Timestamp lastModifiedOn = 4;
 }
 
-message ApiCreateProduct {}
-message ApiUpdateProductInfo {}
+message ApiCreateProduct {
+    string sku = 1 [(kalix.field).entity_key = true];
+}
+message ApiUpdateProductInfo {
+    string sku = 1 [(kalix.field).entity_key = true];
+}
 message ApiDeleteProduct {
     string sku = 1 [(kalix.field).entity_key = true];
 }
