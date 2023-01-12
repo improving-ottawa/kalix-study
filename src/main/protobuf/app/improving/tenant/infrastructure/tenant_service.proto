@@ -61,7 +61,6 @@ service TenantService {
     rpc GetTenantById(ApiGetTenantById) returns (ApiTenant) {
         option (google.api.http) = {
             get: "/tenant/{tenant_id}"
-            body: "*"
         };
     }
 }
