@@ -5,6 +5,7 @@ import app.improving.membercontext.member.MemberActionServiceImpl
 import app.improving.membercontext.MemberByMetaInfoViewImpl
 import app.improving.membercontext.member.MemberAPI
 import app.improving.membercontext.membermap.MemberMap
+import app.improving.ordercontext.order.OrderAPI
 import app.improving.organizationcontext.OrganizationByMemberViewImpl
 import app.improving.organizationcontext.OrganizationByOwnerViewImpl
 import app.improving.organizationcontext.organization.OrganizationAPI
@@ -32,6 +33,7 @@ object Main {
       new EventAPI(_),
       new MemberAPI(_),
       new MemberMap(_),
+      new OrderAPI(_),
       new OrganizationAPI(_),
       new ProductAPI(_),
       new StoreAPI(_),
