@@ -28,7 +28,7 @@ object Dependencies {
 
   val scalaPbCompilerPlugin: ModuleID = "com.thesamet.scalapb" %% "compilerplugin" % scalapbCompiler
 
-  val kalixScalaSdk: ModuleID = "io.kalix" %% "kalix-scala-sdk" % KalixSdkVersion
+  // lazy val kalixScalaSdk: ModuleID = "io.kalix" %% "kalix-scala-sdk" % KalixSdkVersion
 
   val basicTestingDependencies: Seq[ModuleID] = Seq(
     "org.scalatest" %% "scalatest" % scalatest % Test,
