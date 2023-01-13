@@ -16,4 +16,3 @@ lazy val root = project.in(file(".")).settings(
   publishLocal := {},
   publishTo := Some(Resolver.defaultLocal)
 ).aggregate(org)
-
