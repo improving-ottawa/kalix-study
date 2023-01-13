@@ -31,11 +31,6 @@ object Dependencies {
   val kalixScalaSdk: ModuleID = "io.kalix" %% "kalix-scala-sdk" % KalixSdkVersion
 
   val basicTestingDependencies: Seq[ModuleID] = Seq(
-    "com.typesafe.akka" %% "akka-actor-testkit-typed" % akka % Test, // For capturing Logback appender
-    "com.typesafe.akka" %% "akka-slf4j" % akka % Test,
-    "com.typesafe.akka" %% "akka-discovery" % akka % Test,
-    "com.typesafe.akka" %% "akka-protobuf-v3" % akka % Test,
-    "com.typesafe.akka" %% "akka-stream" % akka % Test,
     "org.scalatest" %% "scalatest" % scalatest % Test,
     "org.scalamock" %% "scalamock" % scalamock % Test
   )
