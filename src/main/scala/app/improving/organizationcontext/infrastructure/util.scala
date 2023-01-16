@@ -12,6 +12,7 @@ import app.improving.{
   ApiEmailAddress,
   ApiMemberId,
   ApiMobileNumber,
+  ApiOrganizationId,
   ApiTenantId,
   ApiUSPostalCode,
   Contact,
@@ -27,18 +28,7 @@ import app.improving.organizationcontext.{
   OrganizationStatus,
   Parent
 }
-import app.improving.organizationcontext.organization.{
-  ApiContacts,
-  ApiInfo,
-  ApiMetaInfo,
-  ApiOrganization,
-  ApiOrganizationId,
-  ApiOrganizationStatus,
-  ApiParent,
-  ApiUpdateInfo,
-  Organization
-}
-
+import app.improving.organizationcontext.organization._
 object util {
 
   def convertApiUpdateInfoToInfo(
@@ -97,7 +87,7 @@ object util {
       convertApiOrganizationStatusToOrganizationStatus(
         apiMetaInfo.currentStatus
       ),
-      apiMetaInfo.children.map(child => OrganizationId(child.orgId))
+      apiMetaInfo.children.map(child => OrganizationId(child.organizationId))
     )
   }
 
@@ -189,14 +179,14 @@ object util {
     )
   }
 
-  def convertOrganizationEstablishedToOrganization(
+  def convertOrganizationEstablishedToApiOrganization(
       organizationEstablished: OrganizationEstablished
   ): ApiOrganization = {
     ApiOrganization(
       organizationEstablished.orgId.map(org => ApiOrganizationId(org.id)),
       organizationEstablished.info.map(convertInfoToApiInfo),
       organizationEstablished.parent.flatMap(
-        _.id.map(org => ApiOrganizationId(org.id))
+        _.orgId.map(org => ApiOrganizationId(org.id))
       ),
       organizationEstablished.members.toList
         .flatMap(_.memberId.map(member => member.id)),

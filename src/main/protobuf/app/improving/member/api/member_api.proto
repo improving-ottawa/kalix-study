@@ -32,7 +32,7 @@ message ApiInfo {
     ApiMobileNumber mobileNumber = 6;
     ApiEmailAddress emailAddress = 7;
     ApiNotificationPreference notificationPreference = 8;
-    repeated organizationcontext.organization.ApiOrganizationId organizationMembership = 9;
+    repeated ApiOrganizationId organizationMembership = 9;
     ApiTenantId tenant = 10;
 }
 
@@ -72,7 +72,7 @@ message ApiUpdateInfo {
     ApiMobileNumber mobileNumber = 5;
     ApiEmailAddress emailAddress = 6;
     ApiNotificationPreference notificationPreference = 7;
-    repeated organizationcontext.organization.ApiOrganizationId organizationMembership = 8;
+    repeated ApiOrganizationId organizationMembership = 8;
     ApiTenantId tenantId = 9;
 }
 

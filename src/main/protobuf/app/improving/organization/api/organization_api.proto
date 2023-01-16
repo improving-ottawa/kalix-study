@@ -45,10 +45,6 @@ message ApiMetaInfo {
     repeated ApiOrganizationId children = 6;
 }
 
-message ApiOrganizationId {
-    string org_id = 1 [(kalix.field).entity_key = true];
-}
-
 message ApiParent {
     string org_id = 1 [(kalix.field).entity_key = true];
 }

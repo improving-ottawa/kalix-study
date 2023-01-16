@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 
 package app.improving.productcontext.product;
 
-service StoreService {
+service ProductService {
     option (kalix.codegen) = {
         event_sourced_entity: {
             name: "app.improving.productcontext.product.ProductAPI"
@@ -58,18 +58,6 @@ service StoreService {
     rpc GetProductInfo(ApiGetProductInfo) returns (productcontext.product.ApiProductInfoResult) {
         option (google.api.http) = {
             get: "/product/{sku}/product-info"
-        };
-    }
-
-    rpc GetProductsInStore(ApiGetProductsInStore) returns (productcontext.product.ApiProductsInStore) {
-        option (google.api.http) = {
-            get: "/product/by-store/{store_id}"
-        };
-    }
-
-    rpc GetTicketsForEvent(ApiGetTicketsForEvent) returns (productcontext.product.ApiTicketsForEvent) {
-        option (google.api.http) = {
-            get: "/product/by-event/{event_id}"
         };
     }
 }

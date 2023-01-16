@@ -1,9 +1,18 @@
 package app.improving.storecontext.store
 
-import app.improving.storecontext.store
-import com.google.protobuf.empty.Empty
-import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
-import kalix.scalasdk.testkit.EventSourcedResult
+import TestData._
+import app.improving.{ApiMemberId, MemberId, ProductId}
+import app.improving.storecontext.{
+  ProductsAddedToStore,
+  ProductsRemovedFromStore,
+  StoreClosed,
+  StoreCreated,
+  StoreDeleted,
+  StoreOpened,
+  StoreStatus,
+  StoreUpdated
+}
+import app.improving.storecontext.infrastructure.util._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -14,79 +23,357 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class StoreAPISpec extends AnyWordSpec with Matchers {
   "The StoreAPI" should {
-    "have example test that can be removed" in {
-      val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // use the testkit to execute a command:
-      // val result: EventSourcedResult[R] = testKit.someOperation(SomeRequest("id"));
-      // verify the emitted events
-      // val actualEvent: ExpectedEvent = result.nextEventOfType[ExpectedEvent]
-      // actualEvent shouldBe expectedEvent
-      // verify the final state after applying the events
-      // testKit.state() shouldBe expectedState
-      // verify the reply
-      // result.reply shouldBe expectedReply
-      // verify the final state after the command
-    }
 
     "correctly process commands of type CreateStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.createStore(ApiCreateStore(...))
+
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.info.isDefined shouldBe true
+      storeCreated.meta.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
     }
 
     "correctly process commands of type UpdateStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.updateStore(ApiUpdateStore(...))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+
+      val apiUpdateStore = ApiUpdateStore(
+        testStoreId,
+        Some(apiStoreInfoUpdate),
+        Some(apiStoreMetaInfo)
+      )
+
+      val updateStoreResult = testKit.updateStore(apiUpdateStore)
+
+      updateStoreResult.events should have size 1
+
+      val storeUpdated = updateStoreResult.nextEvent[StoreUpdated]
+
+      storeUpdated.info shouldBe Some(
+        convertApiStoreInfoToStoreInfo(
+          apiStoreInfoUpdate
+        )
+      )
+      storeUpdated.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember1)
+      )
     }
 
     "correctly process commands of type DeleteStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.deleteStore(ApiDeleteStore(...))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiDeleteStore = ApiDeleteStore(
+        "other-id",
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiDeleteStoreResult = testKit.deleteStore(nullApiDeleteStore)
+
+      nullApiDeleteStoreResult.events should have size 0
+
+      val apiDeleteStore = ApiDeleteStore(
+        testStoreId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val deleteStoreResult = testKit.deleteStore(apiDeleteStore)
+
+      deleteStoreResult.events should have size 1
+
+      val storeDeleted = deleteStoreResult.nextEvent[StoreDeleted]
+
+      storeDeleted.meta.map(_.status) shouldBe Some(StoreStatus.DELETED)
+      storeDeleted.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember2)
+      )
     }
 
     "correctly process commands of type OpenStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.openStore(ApiOpenStore(...))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiOpenStore = ApiOpenStore(
+        "other-id",
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiOpenStoreResult = testKit.openStore(nullApiOpenStore)
+
+      nullApiOpenStoreResult.events should have size 0
+
+      val apiOpenStore = ApiOpenStore(
+        testStoreId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiOpenStoreResult = testKit.openStore(apiOpenStore)
+
+      apiOpenStoreResult.events should have size 1
+
+      val storeOpened = apiOpenStoreResult.nextEvent[StoreOpened]
+
+      storeOpened.meta.map(_.status) shouldBe Some(StoreStatus.OPEN)
+      storeOpened.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember2)
+      )
     }
 
     "correctly process commands of type CloseStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.closeStore(ApiCloseStore(...))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiOpenStore = ApiOpenStore(
+        "other-id",
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiOpenStoreResult = testKit.openStore(nullApiOpenStore)
+
+      nullApiOpenStoreResult.events should have size 0
+
+      val apiOpenStore = ApiOpenStore(
+        testStoreId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiOpenStoreResult = testKit.openStore(apiOpenStore)
+
+      apiOpenStoreResult.events should have size 1
+
+      val storeOpened = apiOpenStoreResult.nextEvent[StoreOpened]
+
+      storeOpened.meta.map(_.status) shouldBe Some(StoreStatus.OPEN)
+      storeOpened.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember2)
+      )
+
+      val nullApiCloseStore = ApiCloseStore(
+        "other-id",
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiCloseStoreResult = testKit.closeStore(nullApiCloseStore)
+
+      nullApiCloseStoreResult.events should have size 0
+
+      val apiCloseStore = ApiCloseStore(
+        testStoreId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiCloseStoreResult = testKit.closeStore(apiCloseStore)
+
+      apiCloseStoreResult.events should have size 1
+
+      val storeClosed = apiCloseStoreResult.nextEvent[StoreClosed]
+
+      storeClosed.meta.map(_.status) shouldBe Some(StoreStatus.CLOSED)
+      storeClosed.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember2)
+      )
     }
 
     "correctly process commands of type AddProductToStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.addProductToStore(ApiAddProductToStore(...))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiAddProductToStore = ApiAddProductsToStore(
+        "other-id",
+        testProductsUpdate,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiAddProductToStoreResult =
+        testKit.addProductsToStore(nullApiAddProductToStore)
+
+      nullApiAddProductToStoreResult.events should have size 0
+
+      val apiAddProductToStore = ApiAddProductsToStore(
+        testStoreId,
+        testProductsUpdate,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiAddProductToStoreResult =
+        testKit.addProductsToStore(apiAddProductToStore)
+
+      apiAddProductToStoreResult.events should have size 1
+
+      val productsAddedToStore =
+        apiAddProductToStoreResult.nextEvent[ProductsAddedToStore]
+
+      productsAddedToStore.info.map(_.products) shouldBe Some(
+        testProducts ++ testProductsUpdate
+      ).map(_.map(product => ProductId(product.productId)))
+      productsAddedToStore.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember2)
+      )
     }
 
     "correctly process commands of type RemoveProductFromStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.removeProductFromStore(ApiRemoveProductFromStore(...))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiAddProductToStore = ApiAddProductsToStore(
+        "other-id",
+        testProductsUpdate,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiAddProductToStoreResult =
+        testKit.addProductsToStore(nullApiAddProductToStore)
+
+      nullApiAddProductToStoreResult.events should have size 0
+
+      val apiAddProductToStore = ApiAddProductsToStore(
+        testStoreId,
+        testProductsUpdate,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiAddProductToStoreResult =
+        testKit.addProductsToStore(apiAddProductToStore)
+
+      apiAddProductToStoreResult.events should have size 1
+
+      val productsAddedToStore =
+        apiAddProductToStoreResult.nextEvent[ProductsAddedToStore]
+
+      productsAddedToStore.info.map(_.products) shouldBe Some(
+        testProducts ++ testProductsUpdate
+      ).map(_.map(product => ProductId(product.productId)))
+      productsAddedToStore.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember2)
+      )
+
+      val nullApiRemoveProductsFromStore = ApiRemoveProductsFromStore(
+        "other-id",
+        testProductsUpdate,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiRemoveProductsFromStoreResult =
+        testKit.removeProductsFromStore(nullApiRemoveProductsFromStore)
+
+      nullApiRemoveProductsFromStoreResult.events should have size 0
+
+      val apiRemoveProductsFromStore = ApiRemoveProductsFromStore(
+        testStoreId,
+        testProductsUpdate,
+        Some(ApiMemberId(testMember3))
+      )
+
+      val apiRemoveProductsFromStoreResult =
+        testKit.removeProductsFromStore(apiRemoveProductsFromStore)
+
+      apiRemoveProductsFromStoreResult.events should have size 1
+
+      val removeProductsFromStore =
+        apiRemoveProductsFromStoreResult.nextEvent[ProductsRemovedFromStore]
+
+      removeProductsFromStore.info.map(_.products) shouldBe Some(
+        testProducts
+      ).map(_.map(product => ProductId(product.productId)))
+      removeProductsFromStore.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testMember3)
+      )
     }
 
-    "correctly process commands of type IncrementProductInventory" in {
+    "correctly process commands of type GetProductsInStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.incrementProductInventory(ApiIncrementProductInventory(...))
-    }
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
 
-    "correctly process commands of type DecrementProductInventory" in {
-      val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.decrementProductInventory(ApiDecrementProductInventory(...))
-    }
+      createStoreResult.events should have size 1
 
-    "correctly process commands of type GetStoreInfo" in {
-      val testKit = StoreAPITestKit(new StoreAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.getStoreInfo(ApiGetStoreInfo(...))
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiGetProductInStore = ApiGetProductsInStore(
+        "other-id"
+      )
+
+      val nullApiGetProductInStoreResult =
+        testKit.getProductsInStore(nullApiGetProductInStore)
+
+      nullApiGetProductInStoreResult.events should have size 0
+
+      val apiGetProductInStore = ApiGetProductsInStore(
+        testStoreId
+      )
+
+      val apiGetProductInStoreResult =
+        testKit.getProductsInStore(apiGetProductInStore)
+
+      apiGetProductInStoreResult.reply shouldBe ApiProductsInStore(
+        testStoreId,
+        testProducts
+      )
     }
   }
 }

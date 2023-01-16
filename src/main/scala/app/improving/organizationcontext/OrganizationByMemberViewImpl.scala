@@ -4,9 +4,7 @@ import app.improving.ApiMemberId
 import app.improving.organizationcontext.infrastructure.util._
 import app.improving.organizationcontext.organization.{
   ApiContacts,
-  ApiOrganization,
-  ApiOrganizationId,
-  ApiOrganizationStatus
+  ApiOrganization
 }
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -28,7 +26,7 @@ class OrganizationByMemberViewImpl(context: ViewContext)
     if (state != emptyState) effects.ignore()
     else
       effects.updateState(
-        convertOrganizationEstablishedToOrganization(organizationEstablished)
+        convertOrganizationEstablishedToApiOrganization(organizationEstablished)
       )
   }
 

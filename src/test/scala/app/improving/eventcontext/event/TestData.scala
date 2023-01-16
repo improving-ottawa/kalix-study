@@ -1,7 +1,6 @@
 package app.improving.eventcontext.event
 
 import app.improving._
-import app.improving.organizationcontext.organization.ApiOrganizationId
 import com.google.protobuf.timestamp.Timestamp
 
 object TestData {

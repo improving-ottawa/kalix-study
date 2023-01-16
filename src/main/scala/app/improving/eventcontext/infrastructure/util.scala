@@ -1,6 +1,12 @@
 package app.improving.eventcontext.infrastructure
 
-import app.improving.{ApiGeoLocation, ApiMemberId, GeoLocation, OrganizationId}
+import app.improving.{
+  ApiGeoLocation,
+  ApiMemberId,
+  ApiOrganizationId,
+  GeoLocation,
+  OrganizationId
+}
 import app.improving.eventcontext.event._
 import app.improving.eventcontext.{
   EventInfo,
@@ -8,7 +14,6 @@ import app.improving.eventcontext.{
   EventStatus,
   ReservationId
 }
-import app.improving.organizationcontext.organization.ApiOrganizationId
 
 object util {
 
@@ -19,7 +24,7 @@ object util {
       apiEventInfo.eventName,
       apiEventInfo.description,
       apiEventInfo.eventURL,
-      apiEventInfo.sponsoringOrg.map(org => OrganizationId(org.orgId)),
+      apiEventInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId)),
       apiEventInfo.geoLocation.map(location =>
         GeoLocation(location.latitude, location.longitude, location.elevation)
       ),

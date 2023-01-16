@@ -9,6 +9,7 @@ import app.improving.ordercontext.order.OrderAPI
 import app.improving.organizationcontext.OrganizationByMemberViewImpl
 import app.improving.organizationcontext.OrganizationByOwnerViewImpl
 import app.improving.organizationcontext.organization.OrganizationAPI
+import app.improving.productcontext.TicketByEventViewImpl
 import app.improving.productcontext.product.ProductAPI
 import app.improving.storecontext.store.StoreAPI
 import app.improving.tenantcontext.tenant.TenantAPI
@@ -39,9 +40,11 @@ object Main {
       new StoreAPI(_),
       new TenantAPI(_),
       new MemberActionServiceImpl(_),
+//      new MemberByEventQueryView(_),
       new MemberByMetaInfoViewImpl(_),
       new OrganizationByMemberViewImpl(_),
-      new OrganizationByOwnerViewImpl(_)
+      new OrganizationByOwnerViewImpl(_),
+      new TicketByEventViewImpl(_)
     )
   }
 

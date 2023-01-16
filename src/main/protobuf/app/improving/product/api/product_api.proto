@@ -2,6 +2,7 @@
 syntax = "proto3";
 
 import "app/improving/common/common_api.proto";
+import "app/improving/common/common_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
@@ -10,7 +11,8 @@ package app.improving.productcontext.product;
 enum ApiProductStatus {
     ACTIVE = 0;
     INACTIVE = 2;
-    UNKNOWN = 3;
+    DELETED = 3;
+    UNKNOWN = 4;
 }
 
 message ApiProduct {
@@ -56,28 +58,38 @@ message ApiProductMetaInfo {
 
 message ApiCreateProduct {
     string sku = 1 [(kalix.field).entity_key = true];
+    ApiProductInfo info = 2;
+    ApiProductMetaInfo meta = 3;
 }
 message ApiUpdateProductInfo {
     string sku = 1 [(kalix.field).entity_key = true];
+    ApiProductInfo info = 2;
+    ApiMemberId updatingMember = 3;
 }
 message ApiDeleteProduct {
     string sku = 1 [(kalix.field).entity_key = true];
+    ApiMemberId deletingMember = 2;
 }
 message ApiActivateProduct {
     string sku = 1 [(kalix.field).entity_key = true];
+    ApiMemberId activatingMember = 2;
 }
 message ApiInactivateProduct {
     string sku = 1 [(kalix.field).entity_key = true];
+    ApiMemberId inactivatingMember = 2;
 }
 message ApiGetProductInfo {
     string sku = 1 [(kalix.field).entity_key = true];
 }
-message ApiProductInfoResult {}
-message ApiGetProductsInStore {
-    string store_id = 1 [(kalix.field).entity_key = true];
+message ApiProductInfoResult {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiProductInfo info = 2;
 }
-message ApiProductsInStore {}
+
 message ApiGetTicketsForEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
 }
-message ApiTicketsForEvent {}
+message ApiTicketsForEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    repeated ProductId tickets  = 2;
+}

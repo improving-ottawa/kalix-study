@@ -17,7 +17,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class StoreServiceIntegrationSpec
+class ProductServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -28,9 +28,9 @@ class StoreServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[StoreService])
+  private val client = testKit.getGrpcClient(classOf[ProductService])
 
-  "StoreService" must {
+  "ProductService" must {
 
     "have example test that can be removed" in {
       pending

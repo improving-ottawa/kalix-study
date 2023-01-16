@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package app.improving.productcontext;
+
+import "app/improving/common/common_domain.proto";
+import "app/improving/product/api/product_api.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+import "kalix/annotations.proto";
+
+message TicketByEventRequest {
+    string eventId = 1;
+}
+
+message TicketByEventResponse {
+    ProductId productId = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+    ProductStatus status = 4;
+}
+
+
+service TicketByEventView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc FindMembersByEventTime(TicketByEventRequest) returns (stream TicketByEventResponse) {
+        option (kalix.method).view.query = {
+            query: "SELECT "
+                    "* "
+                    "FROM products "
+                    "WHERE products.info.event.id = :eventId "
+        };
+    }
+
+
+}

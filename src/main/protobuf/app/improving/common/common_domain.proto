@@ -80,6 +80,15 @@ message OrderId {
     string id = 1;
 }
 
+message VenueId {
+    string id = 1;
+}
+
+message LocationId {
+    string id = 1;
+}
+
+
 message GeoLocation {
     double latitude = 1;
     double longitude = 2;

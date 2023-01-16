@@ -5,6 +5,7 @@ import app.improving.{
   ApiEmailAddress,
   ApiMemberId,
   ApiMobileNumber,
+  ApiOrganizationId,
   Contact,
   EmailAddress,
   MobileNumber,
@@ -28,7 +29,6 @@ import app.improving.membercontext.{
   MetaInfo,
   NotificationPreference
 }
-import app.improving.organizationcontext.organization.ApiOrganizationId
 object util {
 
   def convertInfoToApiUpdateInfo(info: Info): ApiUpdateInfo = {
@@ -95,7 +95,7 @@ object util {
       apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
       convertNotificationPreference(apiUpdateInfo.notificationPreference),
       apiUpdateInfo.organizationMembership.map(org =>
-        OrganizationId(org.orgId)
+        OrganizationId(org.organizationId)
       ),
       apiUpdateInfo.tenantId.map(tenant => TenantId(tenant.tenantId))
     )
@@ -111,7 +111,9 @@ object util {
       apiInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
       apiInfo.emailAddress.map(email => EmailAddress(email.value)),
       convertNotificationPreference(apiInfo.notificationPreference),
-      apiInfo.organizationMembership.map(org => OrganizationId(org.orgId)),
+      apiInfo.organizationMembership.map(org =>
+        OrganizationId(org.organizationId)
+      ),
       apiInfo.tenant.map(tenant => TenantId(tenant.tenantId))
     )
   }

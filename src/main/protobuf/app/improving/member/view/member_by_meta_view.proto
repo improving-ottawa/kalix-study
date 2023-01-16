@@ -32,6 +32,9 @@ service MemberByMetaInfoView {
         option (google.api.http) = {
             post: "/member/register"
         };
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
         option (kalix.method).view.update = {
             table: "member_by_meta_info"
             transform_updates: true
@@ -41,6 +44,9 @@ service MemberByMetaInfoView {
     rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
         option (google.api.http) = {
             post: "/member/{member_id}/update-status"
+        };
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
         };
         option (kalix.method).view.update = {
             table: "member_by_meta_info"
@@ -52,6 +58,9 @@ service MemberByMetaInfoView {
         option (google.api.http) = {
             post: "/member/{member_id}/update-info"
         };
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
         option (kalix.method).view.update = {
             table: "member_by_meta_info"
             transform_updates: true
@@ -61,6 +70,9 @@ service MemberByMetaInfoView {
     rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
         option (google.api.http) = {
             post: "/member/register-memberlist"
+        };
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
         };
         option (kalix.method).view.update = {
             table: "member_by_meta_info"

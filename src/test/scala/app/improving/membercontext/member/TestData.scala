@@ -2,7 +2,6 @@ package app.improving.membercontext.member
 
 import app.improving._
 import app.improving.membercontext.{Info, NotificationPreference}
-import app.improving.organizationcontext.organization.ApiOrganizationId
 
 object TestData {
   val testMemberId = "test-member-id"

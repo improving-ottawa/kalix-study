@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "app/improving/product/api/product_api.proto";
 import "app/improving/store/api/store_api.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
@@ -17,11 +18,10 @@ service StoreService {
                 "app.improving.storecontext.StoreCreated",
                 "app.improving.storecontext.StoreDeleted",
                 "app.improving.storecontext.StoreOpened",
+                "app.improving.storecontext.StoreUpdated",
                 "app.improving.storecontext.StoreClosed",
-                "app.improving.storecontext.ProductAddedToStore",
-                "app.improving.storecontext.ProductRemovedFromStore",
-                "app.improving.storecontext.ProductInventoryIncremented",
-                "app.improving.storecontext.ProductInventoryDecremented"]
+                "app.improving.storecontext.ProductsAddedToStore",
+                "app.improving.storecontext.ProductsRemovedFromStore"]
         }
     };
 
@@ -57,29 +57,19 @@ service StoreService {
         };
     }
 
-    rpc AddProductToStore(ApiAddProductToStore) returns (google.protobuf.Empty) {
+    rpc AddProductsToStore(ApiAddProductsToStore) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/store/{store_id}/add-product"
         };
     }
-    rpc RemoveProductFromStore(ApiRemoveProductFromStore) returns (google.protobuf.Empty) {
+    rpc RemoveProductsFromStore(ApiRemoveProductsFromStore) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/store/{store_id}/remove-product"
         };
     }
-    rpc IncrementProductInventory(ApiIncrementProductInventory) returns (google.protobuf.Empty) {
+    rpc GetProductsInStore(ApiGetProductsInStore) returns (ApiProductsInStore) {
         option (google.api.http) = {
-            post: "/store/{store_id}/increment-product-inventory"
-        };
-    }
-    rpc DecrementProductInventory(ApiDecrementProductInventory) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/store/{store_id}/decrement-product-inventory"
-        };
-    }
-    rpc GetStoreInfo(ApiGetStoreInfo) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            get: "/store/{store_id}/store-info"
+            get: "/store/{store_id}/products-in-store"
         };
     }
 

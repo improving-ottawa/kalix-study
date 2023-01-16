@@ -8,11 +8,12 @@ package app.improving.productcontext;
 enum ProductStatus {
     ACTIVE = 0;
     INACTIVE = 2;
-    UNKNOWN = 3;
+    DELETED = 3;
+    UNKNOWN = 4;
 }
 
 message ProductInfo {
-    string sku = 1;
+    ProductId sku = 1;
     string  name = 2;
     string  description = 3;
     string section = 4;
@@ -26,7 +27,7 @@ message ProductInfo {
 }
 
 message ProductInfoUpdate {
-    string sku = 1;
+    ProductId sku = 1;
     string  name = 2;
     string  description = 3;
     string section = 4;
@@ -46,14 +47,33 @@ message ProductMetaInfo {
     google.protobuf.Timestamp lastModifiedOn = 4;
 }
 
-message ProductCreated {}
-message ProductInfoUpdated {}
-message ProductDeleted {}
-message ProductActivated {}
-message ProductInactivated {}
-message GetProductInfo {}
-message ProductInfoResult {}
-message GetProductsInStore {}
-message ProductsInStore {}
-message GetTicketsForEvent {}
-message TicketsForEvent {}
+message ProductCreated {
+    ProductId sku = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+}
+message ProductInfoUpdated {
+    ProductId sku = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+}
+message ProductDeleted {
+    ProductId sku = 1;
+    MemberId deletingMember = 2;
+}
+message ProductActivated {
+    ProductId sku = 1;
+    MemberId activatingMember = 2;
+}
+message ProductInactivated {
+    ProductId sku = 1;
+    MemberId inactivatingMember = 2;
+}
+message GetProductInfo {
+    ProductId sku = 1;
+}
+message ProductInfoResult {
+    ProductId sku = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+}

@@ -36,7 +36,7 @@ message ApiEventInfo {
     string eventName = 1;
     string description = 2;
     string eventURL = 3;
-    organizationcontext.organization.ApiOrganizationId sponsoringOrg = 4;
+    ApiOrganizationId sponsoringOrg = 4;
     ApiGeoLocation geoLocation = 5;
     ApiReservationId reservation = 6;
     google.protobuf.Timestamp expectedStart = 7;

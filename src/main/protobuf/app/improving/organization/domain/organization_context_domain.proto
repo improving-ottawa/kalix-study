@@ -47,7 +47,7 @@ message MetaInfo {
 }
 
 message Parent {
-    OrganizationId id = 1;
+    OrganizationId orgId = 1;
 }
 
 message OwnerList {
@@ -153,7 +153,7 @@ message OwnersRemovedFromOrganization {
 }
 
 message ParentUpdated {
-    OrganizationId id = 1;
+    OrganizationId orgId = 1;
     OrganizationId newParent = 2;
     MetaInfo meta = 3;
 }

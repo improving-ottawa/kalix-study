@@ -1,12 +1,17 @@
 package app.improving.productcontext.product
 
-import app.improving.productcontext.ProductActivated
-import app.improving.productcontext.ProductCreated
-import app.improving.productcontext.ProductDeleted
-import app.improving.productcontext.ProductInactivated
-import app.improving.productcontext.ProductInfoUpdated
-import app.improving.productcontext.product
+import app.improving.{MemberId, ProductId}
+import app.improving.productcontext.{
+  ProductActivated,
+  ProductCreated,
+  ProductDeleted,
+  ProductInactivated,
+  ProductInfoUpdated,
+  ProductStatus
+}
+import app.improving.productcontext.infrastructure.util._
 import com.google.protobuf.empty.Empty
+import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -15,47 +20,243 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class ProductAPI(context: EventSourcedEntityContext) extends AbstractProductAPI {
-  override def emptyState: ProductState =
-    throw new UnsupportedOperationException("Not implemented yet, replace with your empty entity state")
+class ProductAPI(context: EventSourcedEntityContext)
+    extends AbstractProductAPI {
+  override def emptyState: ProductState = ProductState.defaultInstance
 
-  override def createProduct(currentState: ProductState, apiCreateProduct: ApiCreateProduct): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `CreateProduct` is not implemented, yet")
+  override def createProduct(
+      currentState: ProductState,
+      apiCreateProduct: ApiCreateProduct
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.product match {
+      case Some(product) if product != Product.defaultInstance =>
+        effects.reply(Empty.defaultInstance)
+      case _ => {
+        val event = ProductCreated(
+          Some(ProductId(apiCreateProduct.sku)),
+          apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
+          apiCreateProduct.meta.map(convertApiProductMetaInfoToProductMetaInfo)
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+    }
+  }
 
-  override def updateProductInfo(currentState: ProductState, apiUpdateProductInfo: ApiUpdateProductInfo): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `UpdateProductInfo` is not implemented, yet")
+  override def updateProductInfo(
+      currentState: ProductState,
+      apiUpdateProductInfo: ApiUpdateProductInfo
+  ): EventSourcedEntity.Effect[Empty] =
+    currentState.product match {
+      case Some(product)
+          if product.sku == Some(
+            ProductId(apiUpdateProductInfo.sku)
+          ) && product.status != ProductStatus.DELETED => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val event = ProductInfoUpdated(
+          Some(ProductId(apiUpdateProductInfo.sku)),
+          apiUpdateProductInfo.info.map(convertApiProductInfoToProductInfo),
+          product.meta.map(
+            _.copy(
+              lastModifiedBy = apiUpdateProductInfo.updatingMember.map(member =>
+                MemberId(member.memberId)
+              ),
+              lastModifiedOn = Some(timestamp)
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
 
-  override def deleteProduct(currentState: ProductState, apiDeleteProduct: ApiDeleteProduct): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `DeleteProduct` is not implemented, yet")
+  override def deleteProduct(
+      currentState: ProductState,
+      apiDeleteProduct: ApiDeleteProduct
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.product match {
+      case Some(product)
+          if product.sku == Some(
+            ProductId(apiDeleteProduct.sku)
+          ) && product.status != ProductStatus.DELETED => {
+        val event = ProductDeleted(
+          product.sku,
+          apiDeleteProduct.deletingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
-  override def activateProduct(currentState: ProductState, apiActivateProduct: ApiActivateProduct): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `ActivateProduct` is not implemented, yet")
+  override def activateProduct(
+      currentState: ProductState,
+      apiActivateProduct: ApiActivateProduct
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.product match {
+      case Some(product)
+          if product.sku == Some(
+            ProductId(apiActivateProduct.sku)
+          ) && product.status != ProductStatus.DELETED => {
+        val event = ProductActivated(
+          product.sku,
+          apiActivateProduct.activatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
-  override def inactivateProduct(currentState: ProductState, apiInactivateProduct: ApiInactivateProduct): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `InactivateProduct` is not implemented, yet")
+  override def inactivateProduct(
+      currentState: ProductState,
+      apiInactivateProduct: ApiInactivateProduct
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.product match {
+      case Some(product)
+          if product.sku == Some(
+            ProductId(apiInactivateProduct.sku)
+          ) && product.status != ProductStatus.DELETED => {
+        val event = ProductInactivated(
+          product.sku,
+          apiInactivateProduct.inactivatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
-  override def getProductInfo(currentState: ProductState, apiGetProductInfo: ApiGetProductInfo): EventSourcedEntity.Effect[ApiProductInfoResult] =
-    effects.error("The command handler for `GetProductInfo` is not implemented, yet")
+  override def getProductInfo(
+      currentState: ProductState,
+      apiGetProductInfo: ApiGetProductInfo
+  ): EventSourcedEntity.Effect[ApiProductInfoResult] = {
+    currentState.product match {
+      case Some(product)
+          if product.sku == Some(
+            ProductId(apiGetProductInfo.sku)
+          ) && product.status != ProductStatus.DELETED => {
+        val apiProductInfoResult = ApiProductInfoResult(
+          apiGetProductInfo.sku,
+          product.info.map(convertProductInfoToApiProductInfo)
+        )
+        effects.reply(apiProductInfoResult)
+      }
+      case _ => effects.reply(ApiProductInfoResult.defaultInstance)
+    }
+  }
 
-  override def getProductsInStore(currentState: ProductState, apiGetProductsInStore: ApiGetProductsInStore): EventSourcedEntity.Effect[ApiProductsInStore] =
-    effects.error("The command handler for `GetProductsInStore` is not implemented, yet")
+  override def productCreated(
+      currentState: ProductState,
+      productCreated: ProductCreated
+  ): ProductState = {
+    currentState.product match {
+      case Some(product)
+          if product != Product.defaultInstance && product.status != ProductStatus.DELETED =>
+        currentState
+      case _ => {
+        val product = Product(
+          productCreated.sku,
+          productCreated.info,
+          productCreated.meta,
+          ProductStatus.ACTIVE
+        )
+        currentState.withProduct(product)
+      }
+    }
+  }
+  override def productInfoUpdated(
+      currentState: ProductState,
+      productInfoUpdated: ProductInfoUpdated
+  ): ProductState = {
+    currentState.product match {
+      case Some(product)
+          if product.sku == productInfoUpdated.sku && product.status != ProductStatus.DELETED => {
+        currentState.withProduct(
+          product.copy(
+            info = productInfoUpdated.info,
+            meta = productInfoUpdated.meta
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
+  override def productDeleted(
+      currentState: ProductState,
+      productDeleted: ProductDeleted
+  ): ProductState = {
+    currentState.product match {
+      case Some(product)
+          if product.sku == productDeleted.sku && product.status != ProductStatus.DELETED => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        currentState.withProduct(
+          product.copy(
+            meta = product.meta.map(
+              _.copy(
+                lastModifiedBy = productDeleted.deletingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            ),
+            status = ProductStatus.DELETED
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
+  override def productActivated(
+      currentState: ProductState,
+      productActivated: ProductActivated
+  ): ProductState = {
+    currentState.product match {
+      case Some(product) if product.sku == productActivated.sku => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        currentState.withProduct(
+          product.copy(
+            meta = product.meta.map(
+              _.copy(
+                lastModifiedBy = productActivated.activatingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            ),
+            status = ProductStatus.ACTIVE
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
-  override def getTicketsForEvent(currentState: ProductState, apiGetTicketsForEvent: ApiGetTicketsForEvent): EventSourcedEntity.Effect[ApiTicketsForEvent] =
-    effects.error("The command handler for `GetTicketsForEvent` is not implemented, yet")
-
-  override def productCreated(currentState: ProductState, productCreated: ProductCreated): ProductState =
-    throw new RuntimeException("The event handler for `ProductCreated` is not implemented, yet")
-
-  override def productInfoUpdated(currentState: ProductState, productInfoUpdated: ProductInfoUpdated): ProductState =
-    throw new RuntimeException("The event handler for `ProductInfoUpdated` is not implemented, yet")
-
-  override def productDeleted(currentState: ProductState, productDeleted: ProductDeleted): ProductState =
-    throw new RuntimeException("The event handler for `ProductDeleted` is not implemented, yet")
-
-  override def productActivated(currentState: ProductState, productActivated: ProductActivated): ProductState =
-    throw new RuntimeException("The event handler for `ProductActivated` is not implemented, yet")
-
-  override def productInactivated(currentState: ProductState, productInactivated: ProductInactivated): ProductState =
-    throw new RuntimeException("The event handler for `ProductInactivated` is not implemented, yet")
-
+  override def productInactivated(
+      currentState: ProductState,
+      productInactivated: ProductInactivated
+  ): ProductState = {
+    currentState.product match {
+      case Some(product) if product.sku == productInactivated.sku => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        currentState.withProduct(
+          product.copy(
+            meta = product.meta.map(
+              _.copy(
+                lastModifiedBy = productInactivated.inactivatingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            ),
+            status = ProductStatus.INACTIVE
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 }

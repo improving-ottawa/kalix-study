@@ -314,7 +314,9 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
         val event = ParentUpdated(
           Some(OrganizationId(apiUpdateParent.orgId)),
-          apiUpdateParent.newParent.map(parent => OrganizationId(parent.orgId))
+          apiUpdateParent.newParent.map(parent =>
+            OrganizationId(parent.organizationId)
+          )
         )
 
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
@@ -478,7 +480,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         val organization = Organization(
           organizationEstablished.orgId,
           organizationEstablished.info,
-          organizationEstablished.parent.flatMap(_.id),
+          organizationEstablished.parent.flatMap(_.orgId),
           organizationEstablished.members.toSeq.flatMap(member =>
             member.memberId
           ),
@@ -573,7 +575,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       parentUpdated: ParentUpdated
   ): OrganizationState = currentState.organization match {
     case Some(org)
-        if org.status != OrganizationStatus.TERMINATED && org.oid == parentUpdated.id => {
+        if org.status != OrganizationStatus.TERMINATED && org.oid == parentUpdated.orgId => {
       currentState.withOrganization(
         org.copy(parent = parentUpdated.newParent)
       )
