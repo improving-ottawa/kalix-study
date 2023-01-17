@@ -85,7 +85,6 @@ service EventService {
     rpc GetEventById(event.ApiGetEventById) returns (event.ApiEvent) {
         option (google.api.http) = {
             get: "/event/{event_id}"
-            body: "*"
         };
     }
 }

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+import "app/improving/product/api/product_api.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package app.improving.productcontext.product;
+
+service ProductService {
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.productcontext.product.ProductAPI"
+            entity_type: "products"
+            state: "app.improving.productcontext.product.ProductState"
+            events: [
+                "app.improving.productcontext.ProductCreated",
+                "app.improving.productcontext.ProductInfoUpdated",
+                "app.improving.productcontext.ProductDeleted",
+                "app.improving.productcontext.ProductActivated",
+                "app.improving.productcontext.ProductInactivated"
+            ]
+        }
+    };
+
+    rpc CreateProduct(ApiCreateProduct) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/product/create"
+            body: "*"
+        };
+    }
+
+    rpc UpdateProductInfo(ApiUpdateProductInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/product/product-info"
+            body: "*"
+        };
+    }
+
+    rpc DeleteProduct(ApiDeleteProduct) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/product/{sku}"
+        };
+    }
+
+    rpc ActivateProduct(ApiActivateProduct) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/product/{sku}/activate"
+        };
+    }
+
+    rpc InactivateProduct(ApiInactivateProduct) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/product/{sku}/inactivate"
+        };
+    }
+
+    rpc GetProductInfo(ApiGetProductInfo) returns (productcontext.product.ApiProductInfoResult) {
+        option (google.api.http) = {
+            get: "/product/{sku}/product-info"
+        };
+    }
+}

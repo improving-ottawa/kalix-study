@@ -2,10 +2,8 @@
 syntax = "proto3";
 
 import "app/improving/common/common_api.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
-import "google/api/annotations.proto";
 
 package app.improving.organizationcontext.organization;
 
@@ -45,10 +43,6 @@ message ApiMetaInfo {
     ApiMemberId lastUpdatedBy = 4;
     ApiOrganizationStatus currentStatus = 5;
     repeated ApiOrganizationId children = 6;
-}
-
-message ApiOrganizationId {
-    string org_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiParent {

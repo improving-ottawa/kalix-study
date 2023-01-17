@@ -1,0 +1,95 @@
+// This is the public API offered by your entity.
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/common/common_domain.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+package app.improving.productcontext.product;
+
+enum ApiProductStatus {
+    ACTIVE = 0;
+    INACTIVE = 2;
+    DELETED = 3;
+    UNKNOWN = 4;
+}
+
+message ApiProduct {
+    ApiProductId productId = 1;
+    ApiProductInfo info = 2;
+    ApiProductMetaInfo meta = 3;
+    ApiProductStatus status = 4;
+}
+message ApiProductInfo {
+    string sku = 1 [(kalix.field).entity_key = true];
+    string  name = 2;
+    string  description = 3;
+    string section = 4;
+    string row = 5;
+    string seat = 6;
+    ApiEventId event = 7;
+    repeated string image = 8;
+    double price = 9;
+    double cost = 10;
+    ApiStoreId store = 11;
+}
+
+message ApiProductInfoUpdate {
+    string sku = 1 [(kalix.field).entity_key = true];
+    string  name = 2;
+    string  description = 3;
+    string section = 4;
+    string row = 5;
+    string seat = 6;
+    ApiEventId event = 7;
+    repeated string image = 8;
+    double price = 9;
+    double cost = 10;
+    ApiStoreId store = 11;
+}
+
+message ApiProductMetaInfo {
+    ApiMemberId createdBy = 1;
+    google.protobuf.Timestamp createdOn = 2;
+    ApiMemberId lastModifiedBy = 3;
+    google.protobuf.Timestamp lastModifiedOn = 4;
+}
+
+message ApiCreateProduct {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiProductInfo info = 2;
+    ApiProductMetaInfo meta = 3;
+}
+message ApiUpdateProductInfo {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiProductInfo info = 2;
+    ApiMemberId updatingMember = 3;
+}
+message ApiDeleteProduct {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiMemberId deletingMember = 2;
+}
+message ApiActivateProduct {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiMemberId activatingMember = 2;
+}
+message ApiInactivateProduct {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiMemberId inactivatingMember = 2;
+}
+message ApiGetProductInfo {
+    string sku = 1 [(kalix.field).entity_key = true];
+}
+message ApiProductInfoResult {
+    string sku = 1 [(kalix.field).entity_key = true];
+    ApiProductInfo info = 2;
+}
+
+message ApiGetTicketsForEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+}
+message ApiTicketsForEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    repeated ProductId tickets  = 2;
+}

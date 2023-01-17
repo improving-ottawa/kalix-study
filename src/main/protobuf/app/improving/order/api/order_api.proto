@@ -1,0 +1,70 @@
+// This is the public API offered by your entity.
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/order/domain/order_context_domain.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+package app.improving.ordercontext.order;
+
+enum ApiOrderStatus {
+    DRAFT = 0;
+    PENDING = 1;
+    INPROCESS = 2;
+    READY = 3;
+    DELIVERED = 4;
+    CANCELLED = 5;
+    UNKNOWN = 6;
+}
+
+message ApiOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderInfo info = 2;
+    ApiOrderMetaInfo meta = 3;
+    ApiOrderStatus status = 4;
+}
+
+message ApiLineItem {
+    ApiProductId product = 1;
+    int32     quantity = 2;
+    double    lineTotal = 3;
+}
+
+message ApiOrderInfo {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    repeated ApiLineItem lineItems = 2;
+    string specialInstructions = 3;
+    double orderTotal = 4;
+}
+
+message ApiOrderMetaInfo  {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId memberId = 2;
+    ApiStoreId storeId = 3;
+    google.protobuf.Timestamp createdOn = 4;
+    ApiMemberId lastModifiedBy = 5;
+    google.protobuf.Timestamp lastModifiedOn = 6;
+    ApiOrderStatus status = 7;
+}
+
+message ApiCreateOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderInfo info = 2;
+}
+
+message ApiChangeOrderStatus {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderStatus oldStatus = 2;
+    ApiOrderStatus newStatus = 3;
+}
+message ApiUpdateOrderInfo {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderInfo info = 2;
+}
+message ApiCancelOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+}
+message ApiGetOrderInfo {
+    string order_id = 1 [(kalix.field).entity_key = true];
+}

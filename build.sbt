@@ -1,4 +1,4 @@
-organization := "com.improving"
+organization := "app.improving"
 
 ThisBuild / scalaVersion := "2.13.10"
 

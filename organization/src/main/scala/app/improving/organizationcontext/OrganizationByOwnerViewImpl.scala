@@ -1,11 +1,10 @@
 package app.improving.organizationcontext
 
-import app.improving.{
-  Address,
-  ApiAddress,
-  ApiCAPostalCode,
-  ApiMemberId,
-  ApiUSPostalCode
+import app.improving.organizationcontext.infrastructure.util._
+import app.improving.ApiMemberId
+import app.improving.organizationcontext.organization.{
+  ApiContacts,
+  ApiOrganization
 }
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -27,7 +26,7 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
     if (state != emptyState) effects.ignore()
     else
       effects.updateState(
-        convertOrganizationEstablishedToOrganization(organizationEstablished)
+        convertOrganizationEstablishedToApiOrganization(organizationEstablished)
       )
   }
 

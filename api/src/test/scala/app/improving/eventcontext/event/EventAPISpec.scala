@@ -3,7 +3,7 @@ package app.improving.eventcontext.event
 import com.google.protobuf.duration.Duration
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiGeoLocation, ApiMemberId, MemberId}
+import app.improving.{ApiGeoLocation, ApiMemberId, ApiOrganizationId, MemberId}
 import app.improving.eventcontext.{EventScheduled, EventStatus}
 import kalix.scalasdk.testkit.EventSourcedResult
 import org.scalatest.matchers.should.Matchers
