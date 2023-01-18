@@ -3,7 +3,6 @@ package app.improving.tenantcontext.infrastructure
 import app.improving._
 import app.improving.common.infrastructure.util._
 import app.improving.tenantcontext.{Info, MetaInfo, TenantStatus}
-import app.improving.tenantcontext.tenant._
 
 object util {
 

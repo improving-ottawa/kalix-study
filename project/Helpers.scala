@@ -10,8 +10,6 @@ import sbtdynver.DynVerPlugin.autoImport.dynverSeparator
 import sbtprotoc.ProtocPlugin.autoImport.PB
 import scalapb.GeneratorOption.{FlatPackage, RetainSourceCodeInfo, SingleLineToProtoString}
 import sbtdynver.DynVerPlugin.autoImport._
-import sbtbuildinfo.BuildInfoPlugin
-import sbtbuildinfo.BuildInfoPlugin.autoImport._
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -45,7 +43,7 @@ object Compilation {
         (Compile / run).evaluated
       },
       Compile / scalacOptions ++= Seq(
-        "-target:11",
+        "-release:11",
         "-deprecation",
         "-feature",
         "-unchecked",
@@ -153,24 +151,6 @@ object Packaging {
   }
 }
 
-object Misc {
-
-  def buildInfo(project: Project): Project = {
-    project
-      .enablePlugins(BuildInfoPlugin)
-      .settings(
-        buildInfoKeys := Seq[BuildInfoKey](
-          name,
-          version,
-          scalaVersion,
-          sbtVersion
-        ),
-        buildInfoPackage := "hello"
-        // buildInfoOptions ++= Seq(BuildInfoOption.ToMap, BuildInfoOption.BuildTime, BuildInfoOption.ConstantValue)
-      )
-  }
-}
-
 object Kalix {
 
   def serviceImpl(componentName: String)(project: Project): Project = {
@@ -180,7 +160,6 @@ object Kalix {
       .configure(Compilation.scalapbConfiguration)
       .configure(Compilation.scalapbCodeGenConfiguration)
       .configure(Testing.scalaTest)
-      // .configure(componentBaseConfiguration)
       .configure(Packaging.docker)
       .settings(
         name := componentName,

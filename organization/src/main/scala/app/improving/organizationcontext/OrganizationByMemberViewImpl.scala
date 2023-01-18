@@ -1,7 +1,6 @@
 package app.improving.organizationcontext
 
 import app.improving.ApiMemberId
-import app.improving.organizationcontext.infrastructure.util._
 import app.improving.organizationcontext.organization.{
   ApiContacts,
   ApiOrganization

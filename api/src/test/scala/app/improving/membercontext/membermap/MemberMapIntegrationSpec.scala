@@ -5,7 +5,6 @@ import app.improving.membercontext.NotificationPreference
 import app.improving.{
   Contact,
   EmailAddress,
-  Main,
   MobileNumber,
   OrganizationId,
   TenantId
