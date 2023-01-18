@@ -50,30 +50,22 @@ class TicketByEventViewImpl(context: ViewContext)
       state: ApiProduct,
       productActivated: ProductActivated
   ): UpdateEffect[ApiProduct] = {
-    if (
-      state.productId == productActivated.sku.map(sku => ApiProductId(sku.id))
-    ) {
-      effects.updateState(
-        state.copy(
-          status = ApiProductStatus.ACTIVE
-        )
+    effects.updateState(
+      state.copy(
+        status = ApiProductStatus.ACTIVE
       )
-    } else effects.ignore()
+    )
   }
 
   override def processProductInactivated(
       state: ApiProduct,
       productInactivated: ProductInactivated
   ): UpdateEffect[ApiProduct] = {
-    if (
-      state.productId == productInactivated.sku.map(sku => ApiProductId(sku.id))
-    ) {
-      effects.updateState(
-        state.copy(
-          status = ApiProductStatus.INACTIVE
-        )
+    effects.updateState(
+      state.copy(
+        status = ApiProductStatus.INACTIVE
       )
-    } else effects.ignore()
+    )
   }
 
 }

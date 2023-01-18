@@ -2,6 +2,7 @@
 syntax = "proto3";
 
 import "app/improving/common/common_api.proto";
+import "app/improving/common/common_domain.proto";
 import "app/improving/order/domain/order_context_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
@@ -48,23 +49,38 @@ message ApiOrderMetaInfo  {
     ApiOrderStatus status = 7;
 }
 
+message ApiOrderInfoUpdate {
+        string order_id = 1 [(kalix.field).entity_key = true];
+        repeated ApiLineItem lineItems = 2;
+        string specialInstructions = 3;
+        double orderTotal = 4;
+}
 message ApiCreateOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
+    ApiMemberId creatingMember = 3;
+    ApiStoreId storeId = 4;
 }
 
-message ApiChangeOrderStatus {
+message ApiUpdateOrderStatus {
     string order_id = 1 [(kalix.field).entity_key = true];
-    ApiOrderStatus oldStatus = 2;
-    ApiOrderStatus newStatus = 3;
+    ApiOrderStatus newStatus = 2;
+    ApiMemberId updatingMember = 3;
 }
 message ApiUpdateOrderInfo {
     string order_id = 1 [(kalix.field).entity_key = true];
-    ApiOrderInfo info = 2;
+    ApiOrderInfoUpdate update = 2;
+    ApiMemberId updatingMember = 3;
 }
 message ApiCancelOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId cancellingMember = 2;
 }
 message ApiGetOrderInfo {
     string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId requestingMember = 2;
+}
+message ApiOrderInfoResult {
+    ApiOrderId orderId = 1;
+    ApiOrderInfo info = 2;
 }

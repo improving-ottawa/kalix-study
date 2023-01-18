@@ -117,8 +117,12 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       establishOrganizationResult.events should have size 1
 
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
       val apiUpdateParent =
-        ApiUpdateParent(testOrgId, Some(ApiOrganizationId(newParentId)))
+        ApiUpdateParent(orgId, Some(ApiOrganizationId(newParentId)))
 
       val updateParentResult = testKit.updateParent(apiUpdateParent)
 
@@ -152,10 +156,13 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         testKit.establishOrganization(apiEstablishOrganization)
 
       establishOrganizationResult.events should have size 1
-
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
-          testOrgId,
+          orgId,
           ApiOrganizationStatus.SUSPENDED
         )
 
@@ -199,7 +206,11 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       establishOrganizationResult.events should have size 1
 
-      val apiGetOrganizationInfo = ApiGetOrganizationInfo(testOrgId)
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
+      val apiGetOrganizationInfo = ApiGetOrganizationInfo(orgId)
 
       val getOrganizationInfoResult =
         testKit.getOrganizationInfo(apiGetOrganizationInfo)
@@ -231,9 +242,12 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         testKit.establishOrganization(apiEstablishOrganization)
 
       establishOrganizationResult.events should have size 1
-
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
-        testOrgId,
+        orgId,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),
@@ -292,9 +306,12 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         testKit.establishOrganization(apiEstablishOrganization)
 
       establishOrganizationResult.events should have size 1
-
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
       val apiRemoveMembersFromOrganization = ApiRemoveMembersFromOrganization(
-        testOrgId,
+        orgId,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),
@@ -352,9 +369,12 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         testKit.establishOrganization(apiEstablishOrganization)
 
       establishOrganizationResult.events should have size 1
-
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
       val apiAddOwnersToOrganization = ApiAddOwnersToOrganization(
-        testOrgId,
+        orgId,
         Seq[ApiMemberId](
           ApiMemberId("member10"),
           ApiMemberId("member11"),
@@ -416,9 +436,12 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         testKit.establishOrganization(apiEstablishOrganization)
 
       establishOrganizationResult.events should have size 1
-
+      val orgId = testKit.currentState.organization
+        .flatMap(_.oid)
+        .map(_.id)
+        .getOrElse("Organization Id is not found.")
       val apiRemoveOwnersFromOrganization = ApiRemoveOwnersFromOrganization(
-        testOrgId,
+        orgId,
         Seq[ApiMemberId](
           ApiMemberId("member10"),
           ApiMemberId("member11"),

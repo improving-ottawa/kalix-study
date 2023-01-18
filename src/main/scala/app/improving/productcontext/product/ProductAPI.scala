@@ -33,7 +33,7 @@ class ProductAPI(context: EventSourcedEntityContext)
         effects.reply(Empty.defaultInstance)
       case _ => {
         val event = ProductCreated(
-          Some(ProductId(apiCreateProduct.sku)),
+          Some(ProductId(java.util.UUID.randomUUID().toString)),
           apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
           apiCreateProduct.meta.map(convertApiProductMetaInfoToProductMetaInfo)
         )

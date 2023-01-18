@@ -1,11 +1,10 @@
 package app.improving.ordercontext.order
 
-import app.improving.ordercontext.OrderCanceled
-import app.improving.ordercontext.OrderCreated
-import app.improving.ordercontext.OrderInfoUpdated
-import app.improving.ordercontext.OrderStatusChanged
-import app.improving.ordercontext.order
+import app.improving._
+import app.improving.ordercontext._
+import app.improving.ordercontext.infrastructure.util._
 import com.google.protobuf.empty.Empty
+import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -15,34 +14,224 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 // or delete it so it is regenerated as needed.
 
 class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
-  override def emptyState: OrderState =
-    throw new UnsupportedOperationException("Not implemented yet, replace with your empty entity state")
+  override def emptyState: OrderState = OrderState.defaultInstance
 
-  override def createOrder(currentState: OrderState, apiCreateOrder: ApiCreateOrder): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `CreateOrder` is not implemented, yet")
+  override def createOrder(
+      currentState: OrderState,
+      apiCreateOrder: ApiCreateOrder
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.order match {
+      case Some(_) => effects.reply(Empty.defaultInstance)
+      case _ => {
+        val orderIdOpt = Some(OrderId(java.util.UUID.randomUUID().toString))
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val memberIdOpt =
+          apiCreateOrder.creatingMember.map(member => MemberId(member.memberId))
+        val orderInfoOpt = apiCreateOrder.info
+          .map(convertApiOrderInfoToOrderInfo)
+          .map(calculateOrderTotal)
+        val event = OrderCreated(
+          orderIdOpt,
+          orderInfoOpt,
+          Some(
+            OrderMetaInfo(
+              orderIdOpt,
+              memberIdOpt,
+              apiCreateOrder.storeId.map(store => StoreId(store.storeId)),
+              Some(timestamp),
+              memberIdOpt,
+              Some(timestamp),
+              OrderStatus.DRAFT
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+    }
+  }
 
-  override def changeOrderStatus(currentState: OrderState, apiChangeOrderStatus: ApiChangeOrderStatus): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `ChangeOrderStatus` is not implemented, yet")
+  override def updateOrderStatus(
+      currentState: OrderState,
+      apiUpdateOrderStatus: ApiUpdateOrderStatus
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.order match {
+      case Some(order)
+          if order.orderId == Some(OrderId(apiUpdateOrderStatus.orderId)) => {
+        val event = OrderStatusUpdated(
+          order.orderId,
+          convertApiOrderStatusToOrderStatus(apiUpdateOrderStatus.newStatus),
+          apiUpdateOrderStatus.updatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
-  override def updateOrderInfo(currentState: OrderState, apiUpdateOrderInfo: ApiUpdateOrderInfo): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `UpdateOrderInfo` is not implemented, yet")
+  override def updateOrderInfo(
+      currentState: OrderState,
+      apiUpdateOrderInfo: ApiUpdateOrderInfo
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.order match {
+      case Some(order)
+          if order.orderId == Some(OrderId(apiUpdateOrderInfo.orderId)) => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val orderInfo = apiUpdateOrderInfo.update
+          .map(convertApiUpdateOrderInfoToOrderInfo)
+          .map(calculateOrderTotal)
+        val updatingMemberIdOpt =
+          apiUpdateOrderInfo.updatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        val event = OrderInfoUpdated(
+          order.orderId,
+          orderInfo,
+          order.meta.map(
+            _.copy(
+              lastModifiedBy = updatingMemberIdOpt,
+              lastModifiedOn = Some(timestamp),
+              status =
+                currentState.order.map(_.status).getOrElse(OrderStatus.UNKNOWN)
+            )
+          ),
+          updatingMemberIdOpt
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
-  override def cancelOrder(currentState: OrderState, apiCancelOrder: ApiCancelOrder): EventSourcedEntity.Effect[Empty] =
-    effects.error("The command handler for `CancelOrder` is not implemented, yet")
+  override def cancelOrder(
+      currentState: OrderState,
+      apiCancelOrder: ApiCancelOrder
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.order match {
+      case Some(order)
+          if order.orderId == Some(OrderId(apiCancelOrder.orderId)) => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val cancellingMemberIdOpt =
+          apiCancelOrder.cancellingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        val event = OrderCanceled(
+          order.orderId,
+          order.info,
+          order.meta.map(
+            _.copy(
+              lastModifiedBy = cancellingMemberIdOpt,
+              lastModifiedOn = Some(timestamp),
+              status = OrderStatus.CANCELLED
+            )
+          ),
+          cancellingMemberIdOpt
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
 
-  override def getOrderInfo(currentState: OrderState, apiGetOrderInfo: ApiGetOrderInfo): EventSourcedEntity.Effect[ApiOrderInfo] =
-    effects.error("The command handler for `GetOrderInfo` is not implemented, yet")
+  override def getOrderInfo(
+      currentState: OrderState,
+      apiGetOrderInfo: ApiGetOrderInfo
+  ): EventSourcedEntity.Effect[ApiOrderInfoResult] = {
+    currentState.order match {
+      case Some(order)
+          if order.orderId == Some(OrderId(apiGetOrderInfo.orderId)) => {
+        val result = ApiOrderInfoResult(
+          Some(ApiOrderId(apiGetOrderInfo.orderId)),
+          order.info.map(convertOrderInfoToApiOrderInfo)
+        )
+        effects.reply(result)
+      }
+      case _ => effects.reply(ApiOrderInfoResult.defaultInstance)
+    }
+  }
+  override def orderCreated(
+      currentState: OrderState,
+      orderCreated: OrderCreated
+  ): OrderState = {
+    currentState.order match {
+      case Some(_) => currentState
+      case _ => {
+        currentState.withOrder(
+          Order(
+            orderCreated.orderId,
+            orderCreated.info,
+            orderCreated.meta,
+            OrderStatus.DRAFT
+          )
+        )
+      }
+    }
+  }
 
-  override def orderCreated(currentState: OrderState, orderCreated: OrderCreated): OrderState =
-    throw new RuntimeException("The event handler for `OrderCreated` is not implemented, yet")
+  override def orderStatusUpdated(
+      currentState: OrderState,
+      orderStatusUpdated: OrderStatusUpdated
+  ): OrderState = {
+    currentState.order match {
+      case Some(order) if order.orderId == orderStatusUpdated.orderId => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val updatedMetaOpt = order.meta.map(
+          _.copy(
+            lastModifiedBy = orderStatusUpdated.updatingMember.map(member =>
+              MemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = orderStatusUpdated.newStatus
+          )
+        )
+        currentState.withOrder(
+          order.copy(
+            status = orderStatusUpdated.newStatus,
+            meta = updatedMetaOpt
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
-  override def orderStatusChanged(currentState: OrderState, orderStatusChanged: OrderStatusChanged): OrderState =
-    throw new RuntimeException("The event handler for `OrderStatusChanged` is not implemented, yet")
-
-  override def orderInfoUpdated(currentState: OrderState, orderInfoUpdated: OrderInfoUpdated): OrderState =
-    throw new RuntimeException("The event handler for `OrderInfoUpdated` is not implemented, yet")
-
-  override def orderCanceled(currentState: OrderState, orderCanceled: OrderCanceled): OrderState =
-    throw new RuntimeException("The event handler for `OrderCanceled` is not implemented, yet")
+  override def orderInfoUpdated(
+      currentState: OrderState,
+      orderInfoUpdated: OrderInfoUpdated
+  ): OrderState = {
+    currentState.order match {
+      case Some(order) if order.orderId == orderInfoUpdated.orderId => {
+        currentState.withOrder(
+          order.copy(
+            info = orderInfoUpdated.info,
+            meta = orderInfoUpdated.meta
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
+  override def orderCanceled(
+      currentState: OrderState,
+      orderCanceled: OrderCanceled
+  ): OrderState = {
+    currentState.order match {
+      case Some(order) if order.orderId == orderCanceled.orderId => {
+        currentState.withOrder(
+          order.copy(
+            info = orderCanceled.info,
+            meta = orderCanceled.meta,
+            status = OrderStatus.CANCELLED
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
 
 }

@@ -53,8 +53,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       storeCreated.storeId.isDefined shouldBe true
 
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiUpdateStore = ApiUpdateStore(
-        testStoreId,
+        storeId,
         Some(apiStoreInfoUpdate),
         Some(apiStoreMetaInfo)
       )
@@ -96,9 +100,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val nullApiDeleteStoreResult = testKit.deleteStore(nullApiDeleteStore)
 
       nullApiDeleteStoreResult.events should have size 0
-
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiDeleteStore = ApiDeleteStore(
-        testStoreId,
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -135,9 +142,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val nullApiOpenStoreResult = testKit.openStore(nullApiOpenStore)
 
       nullApiOpenStoreResult.events should have size 0
-
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiOpenStore = ApiOpenStore(
-        testStoreId,
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -174,9 +184,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val nullApiOpenStoreResult = testKit.openStore(nullApiOpenStore)
 
       nullApiOpenStoreResult.events should have size 0
-
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiOpenStore = ApiOpenStore(
-        testStoreId,
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -201,7 +214,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       nullApiCloseStoreResult.events should have size 0
 
       val apiCloseStore = ApiCloseStore(
-        testStoreId,
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -240,9 +253,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         testKit.addProductsToStore(nullApiAddProductToStore)
 
       nullApiAddProductToStoreResult.events should have size 0
-
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiAddProductToStore = ApiAddProductsToStore(
-        testStoreId,
+        storeId,
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -286,9 +302,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         testKit.addProductsToStore(nullApiAddProductToStore)
 
       nullApiAddProductToStoreResult.events should have size 0
-
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiAddProductToStore = ApiAddProductsToStore(
-        testStoreId,
+        storeId,
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -320,7 +339,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       nullApiRemoveProductsFromStoreResult.events should have size 0
 
       val apiRemoveProductsFromStore = ApiRemoveProductsFromStore(
-        testStoreId,
+        storeId,
         testProductsUpdate,
         Some(ApiMemberId(testMember3))
       )
@@ -362,16 +381,19 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         testKit.getProductsInStore(nullApiGetProductInStore)
 
       nullApiGetProductInStoreResult.events should have size 0
-
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
       val apiGetProductInStore = ApiGetProductsInStore(
-        testStoreId
+        storeId
       )
 
       val apiGetProductInStoreResult =
         testKit.getProductsInStore(apiGetProductInStore)
 
       apiGetProductInStoreResult.reply shouldBe ApiProductsInStore(
-        testStoreId,
+        storeId,
         testProducts
       )
     }

@@ -25,7 +25,7 @@ service TenantService {
 
     rpc EstablishTenant(ApiEstablishTenant) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/tenant/{tenant_id}/establish-tenant"
+            post: "/tenant/establish-tenant"
             body: "info"
         };
     }

@@ -35,7 +35,7 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = TenantEstablished(
-          Some(TenantId(apiEstablishTenant.tenantId)),
+          Some(TenantId(java.util.UUID.randomUUID().toString)),
           apiEstablishTenant.info.map(convertApiInfoToInfo),
           Some(
             MetaInfo(
