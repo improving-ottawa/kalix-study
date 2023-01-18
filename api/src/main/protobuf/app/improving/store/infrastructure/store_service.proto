@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-import "app/improving/product/api/product_api.proto";
 import "app/improving/store/api/store_api.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
