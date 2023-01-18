@@ -60,8 +60,12 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
 
       result.events should have size 1
 
+      val tenantId = testKit.currentState.tenant
+        .flatMap(_.tenantId)
+        .map(_.id)
+        .getOrElse("TenantId is not found.")
       val activateTenantEvent = ApiActivateTenant(
-        testTenantId,
+        tenantId,
         testTenantId2
       )
 
@@ -87,9 +91,12 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
       val result = testKit.establishTenant(command)
 
       result.events should have size 1
-
+      val tenantId = testKit.currentState.tenant
+        .flatMap(_.tenantId)
+        .map(_.id)
+        .getOrElse("TenantId is not found.")
       val suspendTenantEvent = ApiSuspendTenant(
-        testTenantId,
+        tenantId,
         testTenantId2
       )
 
@@ -115,9 +122,12 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
       val result = testKit.establishTenant(command)
 
       result.events should have size 1
-
+      val tenantId = testKit.currentState.tenant
+        .flatMap(_.tenantId)
+        .map(_.id)
+        .getOrElse("TenantId is not found.")
       val updatePrimaryContactEvent = ApiUpdatePrimaryContact(
-        testTenantId,
+        tenantId,
         Some(newApiContact),
         testTenantId2
       )
@@ -142,9 +152,12 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
       val result = testKit.establishTenant(command)
 
       result.events should have size 1
-
+      val tenantId = testKit.currentState.tenant
+        .flatMap(_.tenantId)
+        .map(_.id)
+        .getOrElse("TenantId is not found.")
       val changeTenantNameEvent = ApiChangeTenantName(
-        testTenantId,
+        tenantId,
         newName,
         testTenantId2
       )

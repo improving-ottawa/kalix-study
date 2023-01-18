@@ -31,6 +31,13 @@ service OrganizationService {
         }
     };
 
+    rpc EstablishOrganization(organizationcontext.organization.ApiEstablishOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/establish-organization"
+            body: "*"
+        };
+    }
+
     rpc GetOrganization(organizationcontext.organization.ApiGetOrganizationById) returns (organizationcontext.organization.ApiOrganization) {
         option (google.api.http) = {
             get: "/organization/{org_id}"
@@ -74,13 +81,6 @@ service OrganizationService {
     rpc EditOrganizationInfo(organizationcontext.organization.ApiEditOrganizationInfo) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/organization/{org_id}/edit-organization-info"
-            body: "*"
-        };
-    }
-
-    rpc EstablishOrganization(organizationcontext.organization.ApiEstablishOrganization) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            post: "/organization/{org_id}/establish-organization"
             body: "*"
         };
     }

@@ -37,7 +37,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         val memberIdOpt =
           apiCreateStore.creatingMember.map(member => MemberId(member.memberId))
         val event = StoreCreated(
-          Some(StoreId(apiCreateStore.storeId)),
+          Some(StoreId(java.util.UUID.randomUUID().toString)),
           apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
           Some(
             StoreMetaInfo(

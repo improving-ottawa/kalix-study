@@ -38,8 +38,33 @@ message OrderMetaInfo  {
     OrderStatus status = 7;
 }
 
-message OrderCreated {}
-message OrderStatusChanged {}
-message OrderInfoUpdated {}
-message OrderCanceled {}
-message GetOrderInfo {}
+message OrderCreated {
+    OrderId orderId = 1;
+    OrderInfo info = 2;
+    OrderMetaInfo meta = 3;
+}
+message OrderStatusUpdated {
+    OrderId orderId = 1;
+    OrderStatus newStatus = 2;
+    MemberId updatingMember = 3;
+}
+message OrderInfoUpdated {
+    OrderId orderId = 1;
+    OrderInfo info = 2;
+    OrderMetaInfo meta = 3;
+    MemberId updatingMember = 4;
+}
+message OrderCanceled {
+    OrderId orderId = 1;
+    OrderInfo info = 2;
+    OrderMetaInfo meta = 3;
+    MemberId cancellingMember = 4;
+}
+message GetOrderInfo {
+    OrderId orderId = 1;
+    MemberId requestingMember = 2;
+}
+message OrderInfoResult {
+    OrderId orderId = 1;
+    OrderInfo info = 2;
+}

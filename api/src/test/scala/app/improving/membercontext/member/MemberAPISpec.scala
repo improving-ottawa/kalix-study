@@ -1,8 +1,9 @@
 package app.improving.membercontext.member
 
-import TestData._
+import TestData.{testMemberId, _}
 import app.improving._
 import app.improving.membercontext.MemberStatus
+import app.improving.membercontext.infrastructure.util.convertApiInfoToInfo
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -33,7 +34,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt.map(_.status) shouldBe Some(MemberStatus.ACTIVE)
 
-      memberOpt.flatMap(_.info) shouldBe Some(info)
+      memberOpt.flatMap(_.info) shouldBe Some(convertApiInfoToInfo(apiInfo))
     }
 
     "member status update should work correctly" in {
@@ -55,8 +56,12 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt.map(_.status) shouldBe Some(MemberStatus.ACTIVE)
 
+      val testMember = testKit.currentState.member
+        .flatMap(_.memberId)
+        .map(_.id)
+        .getOrElse("MemberId not found.")
       val updateCommand = ApiUpdateMemberStatus(
-        testMemberId,
+        testMember,
         Some(ApiMemberId(testMemberId2)),
         ApiMemberStatus.INACTIVE
       )
@@ -89,10 +94,13 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.flatMap(_.info) shouldBe Some(info)
+      val testMember = testKit.currentState.member
+        .flatMap(_.memberId)
+        .map(_.id)
+        .getOrElse("MemberId not found.")
 
       val updateCommand = ApiUpdateMemberInfo(
-        testMemberId,
+        testMember,
         Some(apiUpdateInfo),
         Some(ApiMemberId(testMemberId2))
       )
@@ -144,8 +152,13 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       result.events should have size 1
 
+      val testMember = testKit.currentState.member
+        .flatMap(_.memberId)
+        .map(_.id)
+        .getOrElse("MemberId not found.")
+
       val getMemberDataCommand = ApiGetMemberData(
-        testMemberId
+        testMember
       )
 
       val getMemberDataResult = testKit.getMemberData(getMemberDataCommand)

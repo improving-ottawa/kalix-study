@@ -16,7 +16,7 @@ enum ApiProductStatus {
 }
 
 message ApiProduct {
-    ApiProductId productId = 1;
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfo info = 2;
     ApiProductMetaInfo meta = 3;
     ApiProductStatus status = 4;

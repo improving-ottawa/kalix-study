@@ -11,6 +11,8 @@ import app.improving.eventcontext.event._
 import app.improving.eventcontext.{
   EventInfo,
   EventMetaInfo,
+  EventRescheduled,
+  EventScheduled,
   EventStatus,
   ReservationId
 }
@@ -91,4 +93,31 @@ object util {
       convertEventStatusToApiEventStatus(event.status)
     )
   }
+
+  def convertEventScheduledToApiEvent(
+      eventScheduled: EventScheduled
+  ): ApiEvent = {
+    ApiEvent(
+      eventScheduled.eventId.map(_.id).getOrElse("Event ID Not Found!"),
+      eventScheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
+      eventScheduled.meta.map(meta =>
+        convertEventMetaInfoToApiEventMetaInfo(meta)
+      ),
+      ApiEventStatus.SCHEDULED
+    )
+  }
+
+  def convertEventReScheduledToApiEvent(
+      eventRescheduled: EventRescheduled
+  ): ApiEvent = {
+    ApiEvent(
+      eventRescheduled.eventId.map(_.id).getOrElse("Event ID Not Found!"),
+      eventRescheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
+      eventRescheduled.meta.map(meta =>
+        convertEventMetaInfoToApiEventMetaInfo(meta)
+      ),
+      ApiEventStatus.SCHEDULED
+    )
+  }
+
 }

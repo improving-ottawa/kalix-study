@@ -15,7 +15,7 @@ service OrderService {
             state: "app.improving.ordercontext.order.OrderState"
             events: [
                 "app.improving.ordercontext.OrderCreated",
-                "app.improving.ordercontext.OrderStatusChanged",
+                "app.improving.ordercontext.OrderStatusUpdated",
                 "app.improving.ordercontext.OrderInfoUpdated",
                 "app.improving.ordercontext.OrderCanceled"
             ]
@@ -29,9 +29,9 @@ service OrderService {
         };
     }
 
-    rpc ChangeOrderStatus(ApiChangeOrderStatus) returns (google.protobuf.Empty) {
+    rpc UpdateOrderStatus(ApiUpdateOrderStatus) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/order/{order_id}/change-order-status"
+            post: "/order/{order_id}/update-order-status"
             body: "*"
         };
     }
@@ -46,10 +46,11 @@ service OrderService {
     rpc CancelOrder(ApiCancelOrder) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/order/{order_id}/cancel-order"
+            body: "*"
         };
     }
 
-    rpc GetOrderInfo(ApiGetOrderInfo) returns (ApiOrderInfo) {
+    rpc GetOrderInfo(ApiGetOrderInfo) returns (ApiOrderInfoResult) {
         option (google.api.http) = {
             get: "/order/{order_id}/order-info"
         };

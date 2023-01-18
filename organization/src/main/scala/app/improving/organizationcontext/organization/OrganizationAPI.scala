@@ -169,6 +169,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             OrganizationId(apiAddOwnersToOrganization.orgId)
           ) =>
         val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val updatingMember =
           apiAddOwnersToOrganization.updatingMember.map(member =>
             MemberId(member.memberId)
@@ -180,9 +181,9 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           ),
           Some(
             MetaInfo(
-              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              Some(timestamp),
               updatingMember,
-              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
+              Some(timestamp),
               updatingMember,
               org.status,
               Seq.empty[OrganizationId]
@@ -227,7 +228,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         )
       case _ => {
         val event = OrganizationEstablished(
-          Some(OrganizationId(apiEstablishOrganization.orgId)),
+          Some(OrganizationId(java.util.UUID.randomUUID().toString)),
           apiEstablishOrganization.info.map(convertApiInfoToInfo(_)),
           apiEstablishOrganization.parent.map(convertApiParentToParent(_)),
           Some(

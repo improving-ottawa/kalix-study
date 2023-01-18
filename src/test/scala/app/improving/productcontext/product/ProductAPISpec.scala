@@ -61,8 +61,12 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
 
       productCreated.sku.isDefined shouldBe true
 
+      val sku = testKit.currentState.product
+        .flatMap(_.sku)
+        .map(_.id)
+        .getOrElse("ProductId is not found.")
       val updateProductInfoResult =
-        testKit.updateProductInfo(apiUpdateProductInfo)
+        testKit.updateProductInfo(apiUpdateProductInfo.copy(sku = sku))
 
       updateProductInfoResult.events should have size 1
 
@@ -98,8 +102,12 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
         createProductResult.nextEvent[ProductCreated]
 
       productCreated.sku.isDefined shouldBe true
-
-      val deleteProductResult = testKit.deleteProduct(apiDeleteProduct)
+      val sku = testKit.currentState.product
+        .flatMap(_.sku)
+        .map(_.id)
+        .getOrElse("ProductId is not found.")
+      val deleteProductResult =
+        testKit.deleteProduct(apiDeleteProduct.copy(sku = sku))
 
       deleteProductResult.events should have size 1
 
@@ -134,9 +142,12 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       testKit.currentState.product.map(_.status) shouldBe Some(
         ProductStatus.ACTIVE
       )
-
+      val sku = testKit.currentState.product
+        .flatMap(_.sku)
+        .map(_.id)
+        .getOrElse("ProductId is not found.")
       val apiInactivateProduct = ApiInactivateProduct(
-        testSku,
+        sku,
         Some(ApiMemberId(testMemberId1))
       )
 
@@ -148,7 +159,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       val productInactivated =
         inactivateProductResult.nextEvent[ProductInactivated]
 
-      productInactivated.sku shouldBe Some(ProductId(testSku))
+      productInactivated.sku shouldBe Some(ProductId(sku))
 
       testKit.currentState.product.map(_.status) shouldBe Some(
         ProductStatus.INACTIVE
@@ -169,7 +180,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       )
 
       val apiActivateProduct = ApiActivateProduct(
-        testSku,
+        sku,
         Some(ApiMemberId(testMemberId1))
       )
 
@@ -180,7 +191,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       val productActivated =
         apiActivateProductResult.nextEvent[ProductActivated]
 
-      productActivated.sku shouldBe Some(ProductId(testSku))
+      productActivated.sku shouldBe Some(ProductId(sku))
 
       testKit.currentState.product.map(_.status) shouldBe Some(
         ProductStatus.ACTIVE

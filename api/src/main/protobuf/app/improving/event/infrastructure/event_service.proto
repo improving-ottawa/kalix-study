@@ -26,16 +26,16 @@ service EventService {
         }
     };
 
-    rpc ChangeEventInfo(event.ApiChangeEventInfo) returns (google.protobuf.Empty) {
+    rpc ScheduleEvent(event.ApiScheduleEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/event/{event_id}/change-event-info"
+            post: "/event/schedule-event"
             body: "*"
         };
     }
 
-    rpc ScheduleEvent(event.ApiScheduleEvent) returns (google.protobuf.Empty) {
+    rpc ChangeEventInfo(event.ApiChangeEventInfo) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/event/{event_id}/schedule-event"
+            post: "/event/{event_id}/change-event-info"
             body: "*"
         };
     }

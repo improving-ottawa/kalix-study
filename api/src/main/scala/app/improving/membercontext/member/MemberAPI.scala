@@ -38,7 +38,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           MemberId(member.memberId)
         )
         val event = MemberRegistered(
-          Some(MemberId(apiRegisterMember.memberId)),
+          Some(MemberId(java.util.UUID.randomUUID().toString)),
           apiRegisterMember.info.map(convertApiInfoToInfo),
           Some(
             MetaInfo(

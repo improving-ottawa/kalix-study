@@ -1,9 +1,18 @@
 package app.improving.ordercontext.order
 
-import app.improving.ordercontext.order
-import com.google.protobuf.empty.Empty
-import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
-import kalix.scalasdk.testkit.EventSourcedResult
+import TestData._
+import app.improving.MemberId
+import app.improving.ordercontext.infrastructure.util.{
+  convertApiOrderInfoToOrderInfo,
+  convertApiOrderStatusToOrderStatus
+}
+import app.improving.ordercontext.{
+  OrderCanceled,
+  OrderCreated,
+  OrderInfoUpdated,
+  OrderStatus,
+  OrderStatusUpdated
+}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -14,49 +23,176 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class OrderAPISpec extends AnyWordSpec with Matchers {
   "The OrderAPI" should {
-    "have example test that can be removed" in {
-      val testKit = OrderAPITestKit(new OrderAPI(_))
-      pending
-      // use the testkit to execute a command:
-      // val result: EventSourcedResult[R] = testKit.someOperation(SomeRequest("id"));
-      // verify the emitted events
-      // val actualEvent: ExpectedEvent = result.nextEventOfType[ExpectedEvent]
-      // actualEvent shouldBe expectedEvent
-      // verify the final state after applying the events
-      // testKit.state() shouldBe expectedState
-      // verify the reply
-      // result.reply shouldBe expectedReply
-      // verify the final state after the command
-    }
 
     "correctly process commands of type CreateOrder" in {
       val testKit = OrderAPITestKit(new OrderAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.createOrder(ApiCreateOrder(...))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+      orderCreated.info shouldBe defined
+      orderCreated.meta shouldBe defined
+
+      orderCreated.info.map(_.orderTotal).getOrElse(0.0) shouldBe testLineItems
+        .map(item => item.lineTotal * item.quantity)
+        .sum
+
+      val nullCreateOrderResult = testKit.createOrder(apiCreateOrder)
+
+      nullCreateOrderResult.events should have size 0
     }
 
-    "correctly process commands of type ChangeOrderStatus" in {
+    "correctly process commands of type UpdateOrderStatus" in {
       val testKit = OrderAPITestKit(new OrderAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.changeOrderStatus(ApiChangeOrderStatus(...))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+
+      val orderId = testKit.currentState.order
+        .flatMap(_.orderId)
+        .map(_.id)
+        .getOrElse("OrderId is not found.")
+      val updateOrderStatusResult =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            orderId = orderId
+          )
+        )
+
+      updateOrderStatusResult.events should have size 1
+
+      val orderStatusUpdated =
+        updateOrderStatusResult.nextEvent[OrderStatusUpdated]
+
+      orderStatusUpdated.updatingMember shouldBe Some(
+        MemberId(testUpdatingMemberId)
+      )
+
+      orderStatusUpdated.newStatus shouldBe convertApiOrderStatusToOrderStatus(
+        testNewOrderStatus
+      )
+
+      val nullupdateOrderStatusResult =
+        testKit.updateOrderStatus(nullApiUpdateOrderStatus)
+
+      nullupdateOrderStatusResult.events should have size 0
     }
 
     "correctly process commands of type UpdateOrderInfo" in {
       val testKit = OrderAPITestKit(new OrderAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.updateOrderInfo(ApiUpdateOrderInfo(...))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+
+      val orderId = testKit.currentState.order
+        .flatMap(_.orderId)
+        .map(_.id)
+        .getOrElse("OrderId is not found.")
+      val updateOrderInfoResult =
+        testKit.updateOrderInfo(apiUpdateOrderInfo.copy(orderId = orderId))
+
+      updateOrderInfoResult.events should have size 1
+
+      val orderInfoUpdated = updateOrderInfoResult.nextEvent[OrderInfoUpdated]
+
+      orderInfoUpdated.orderId shouldBe defined
+      orderInfoUpdated.info shouldBe defined
+      orderInfoUpdated.meta shouldBe defined
+
+      orderInfoUpdated.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testUpdatingMemberId)
+      )
+
+      orderInfoUpdated.info
+        .map(_.orderTotal)
+        .getOrElse(0.0) shouldBe testLineItemsUpdate
+        .map(item => item.lineTotal * item.quantity)
+        .sum
+
+      val nullUpdateOrderInfoResult =
+        testKit.updateOrderInfo(nullApiUpdateOrderInfo)
+
+      nullUpdateOrderInfoResult.events should have size 0
     }
 
     "correctly process commands of type CancelOrder" in {
       val testKit = OrderAPITestKit(new OrderAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.cancelOrder(ApiCancelOrder(...))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+
+      val orderId = testKit.currentState.order
+        .flatMap(_.orderId)
+        .map(_.id)
+        .getOrElse("OrderId is not found.")
+
+      val cancelOrderResult =
+        testKit.cancelOrder(apiCancelOrder.copy(orderId = orderId))
+
+      cancelOrderResult.events should have size 1
+
+      val orderCancelled = cancelOrderResult.nextEvent[OrderCanceled]
+
+      orderCancelled.orderId shouldBe defined
+      orderCancelled.info shouldBe defined
+      orderCancelled.meta shouldBe defined
+
+      orderCancelled.meta.map(_.status) shouldBe Some(OrderStatus.CANCELLED)
+      orderCancelled.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testCancellingMemberId)
+      )
+
+      val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
+
+      nullCancelOrderResult.events should have size 0
     }
 
     "correctly process commands of type GetOrderInfo" in {
       val testKit = OrderAPITestKit(new OrderAPI(_))
-      pending
-      // val result: EventSourcedResult[ApiOrderInfo] = testKit.getOrderInfo(ApiGetOrderInfo(...))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderId = testKit.currentState.order
+        .flatMap(_.orderId)
+        .map(_.id)
+        .getOrElse("OrderId is not found.")
+
+      val getOrderInfoResult =
+        testKit.getOrderInfo(apiGetOrderInfo.copy(orderId = orderId))
+
+      val result = getOrderInfoResult.reply
+
+      result.orderId shouldBe defined
+      result.info shouldBe defined
+
+      result.info shouldBe Some(
+        testOrderInfo.copy(orderTotal =
+          testLineItems
+            .map(item => item.lineTotal * item.quantity)
+            .sum
+        )
+      )
     }
   }
 }

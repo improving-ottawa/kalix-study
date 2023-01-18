@@ -1,8 +1,27 @@
 package app.improving.productcontext.infrastructure
 
-import app.improving.{ApiEventId, ApiMemberId, ApiProductId, ApiStoreId, EventId, MemberId, ProductId, StoreId}
-import app.improving.productcontext.{ProductCreated, ProductInfo, ProductMetaInfo, ProductStatus}
-import app.improving.productcontext.product.{ApiProduct, ApiProductInfo, ApiProductMetaInfo, ApiProductStatus}
+import app.improving.{
+  ApiEventId,
+  ApiMemberId,
+  ApiProductId,
+  ApiStoreId,
+  EventId,
+  MemberId,
+  ProductId,
+  StoreId
+}
+import app.improving.productcontext.{
+  ProductCreated,
+  ProductInfo,
+  ProductMetaInfo,
+  ProductStatus
+}
+import app.improving.productcontext.product.{
+  ApiProduct,
+  ApiProductInfo,
+  ApiProductMetaInfo,
+  ApiProductStatus
+}
 
 object util {
 
@@ -69,7 +88,7 @@ object util {
       productCreated: ProductCreated
   ): ApiProduct = {
     ApiProduct(
-      productCreated.sku.map(sku => ApiProductId(sku.id)),
+      productCreated.sku.map(_.id).getOrElse("ProductId is not found"),
       productCreated.info.map(convertProductInfoToApiProductInfo),
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
       ApiProductStatus.ACTIVE
