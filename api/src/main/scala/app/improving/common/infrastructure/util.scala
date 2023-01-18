@@ -41,6 +41,7 @@ object util {
           ApiAddress.PostalCode.CaPostalCode(
             ApiCAPostalCode.defaultInstance
           )
+        case Address.PostalCode.Empty => ApiAddress.PostalCode.Empty
       }
     )
   }

@@ -2,10 +2,7 @@ package app.improving.eventcontext.event
 
 import app.improving.eventcontext.event.EventAPI
 import app.improving.membercontext.member.MemberActionServiceImpl
-import app.improving.membercontext.{
-  MemberByEventQueryView,
-  MemberByMetaInfoViewImpl
-}
+import app.improving.membercontext.{MemberByEventQueryView, MemberByMetaInfoViewImpl}
 import app.improving.membercontext.member.{MemberAPI, MemberActionServiceImpl}
 import app.improving.membercontext.membermap.MemberMap
 import app.improving.ordercontext.order.{OrderAPI, OrderAction, OrderActionImpl}

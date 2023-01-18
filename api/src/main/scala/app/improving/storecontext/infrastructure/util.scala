@@ -1,14 +1,7 @@
-package app.improving.infrastructure
+package app.improving.storecontext.infrastructure
 
-import app.improving.{
-  EventId,
-  LocationId,
-  MemberId,
-  OrganizationId,
-  ProductId,
-  StoreId,
-  VenueId
-}
+import app.improving.storecontext.store.{ApiStoreInfo, ApiStoreMetaInfo, ApiStoreStatus}
+import app.improving.{EventId, LocationId, MemberId, OrganizationId, ProductId, StoreId, VenueId}
 import app.improving.storecontext.{StoreInfo, StoreMetaInfo, StoreStatus}
 
 object util {

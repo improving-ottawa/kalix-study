@@ -42,13 +42,13 @@ object Dependencies {
 
   val utilityDependencies: Seq[ModuleID] = Seq(
     "org.scala-lang.modules" %% "scala-xml" % scalaxml,
-    "io.scalaland" %% "chimney" % chimney,
+    // "io.scalaland" %% "chimney" % chimney,
     "com.github.pureconfig" %% "pureconfig" % pureconfig,
     // "dev.optics" %% "monocle-core" % monocle,
     // "dev.optics" %% "monocle-macro" % monocle,
     // noinspection SbtDependencyVersionInspection
-    "commons-codec" % "commons-codec" % commonsCodec,
-    "org.typelevel" %% "cats-core" % cats
+    // "commons-codec" % "commons-codec" % commonsCodec,
+    // "org.typelevel" %% "cats-core" % cats
   )
 
   val httpDependencies: Seq[ModuleID] = Seq(

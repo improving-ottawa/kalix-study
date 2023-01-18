@@ -3,10 +3,8 @@ package app.improving.ordercontext.order
 import app.improving.ApiOrganizationId
 import app.improving.eventcontext.event.ApiGetEventById
 import app.improving.organizationcontext.organization.ApiGetOrganizationById
-import app.improving.productcontext.product.ApiGetProductInfo
 import com.google.protobuf.empty.Empty
-import kalix.scalasdk.action.Action
-import kalix.scalasdk.action.ActionCreationContext
+
 import scala.concurrent.Future
 
 ////////////////////////////////////////////////////////////////////////////////////////

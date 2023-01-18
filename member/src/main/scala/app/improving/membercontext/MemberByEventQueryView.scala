@@ -1,26 +1,11 @@
 package app.improving.membercontext
 
-import app.improving.eventcontext.EventCancelled
-import app.improving.eventcontext.EventDelayed
-import app.improving.eventcontext.EventEnded
-import app.improving.eventcontext.EventRescheduled
-import app.improving.eventcontext.EventScheduled
-import app.improving.eventcontext.EventStarted
+import app.improving.eventcontext._
 import app.improving.eventcontext.event.ApiEvent
 import app.improving.membercontext.member.ApiMemberData
-import app.improving.ordercontext.OrderCanceled
-import app.improving.ordercontext.OrderCreated
-import app.improving.ordercontext.OrderInfoUpdated
-import app.improving.ordercontext.OrderStatusUpdated
+import app.improving.ordercontext.{OrderCanceled, OrderCreated, OrderInfoUpdated, OrderStatusUpdated}
 import app.improving.ordercontext.order.ApiOrder
-import app.improving.productcontext.ProductActivated
-import app.improving.productcontext.ProductCreated
-import app.improving.productcontext.ProductDeleted
-import app.improving.productcontext.ProductInactivated
-import app.improving.productcontext.ProductInfoUpdated
-import app.improving.productcontext.product.ApiProduct
-import kalix.scalasdk.view.View.UpdateEffect
-import kalix.scalasdk.view.ViewContext
+import app.improving.productcontext._
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //

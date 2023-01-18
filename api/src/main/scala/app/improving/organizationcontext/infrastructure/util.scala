@@ -1,9 +1,7 @@
 package app.improving.organizationcontext.infrastructure
 
-import app.improving.common.infrastructure.util.{
-  convertAddressToApiAddress,
-  convertApiAddressToAddress
-}
+import app.improving.common.infrastructure.util.convertApiAddressToAddress
+
 import app.improving.{
   Address,
   ApiAddress,
@@ -162,7 +160,7 @@ object util {
     )
   }
 
-  def convertAddressToApiAdress(address: Address): ApiAddress = {
+  def convertAddressToApiAddress(address: Address): ApiAddress = {
     ApiAddress(
       address.line1,
       address.line2,
@@ -176,6 +174,7 @@ object util {
           ApiAddress.PostalCode.CaPostalCode(
             ApiCAPostalCode.defaultInstance
           )
+        case Address.PostalCode.Empty => ApiAddress.PostalCode.Empty
       }
     )
   }

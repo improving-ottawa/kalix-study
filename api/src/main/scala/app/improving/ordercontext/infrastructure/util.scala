@@ -2,6 +2,7 @@ package app.improving.ordercontext.infrastructure
 
 import app.improving._
 import app.improving.ordercontext._
+import app.improving.ordercontext.order.{ApiLineItem, ApiOrder, ApiOrderInfo, ApiOrderInfoUpdate, ApiOrderMetaInfo, ApiOrderStatus}
 
 object util {
 

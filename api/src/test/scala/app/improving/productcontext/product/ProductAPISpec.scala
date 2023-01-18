@@ -1,6 +1,5 @@
 package app.improving.productcontext.product
 
-import app.improving.productcontext.product
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.testkit.EventSourcedResult

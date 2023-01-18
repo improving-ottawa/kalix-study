@@ -1,27 +1,8 @@
 package app.improving.productcontext.infrastructure
 
-import app.improving.{
-  ApiEventId,
-  ApiMemberId,
-  ApiProductId,
-  ApiStoreId,
-  EventId,
-  MemberId,
-  ProductId,
-  StoreId
-}
-import app.improving.productcontext.{
-  ProductCreated,
-  ProductInfo,
-  ProductMetaInfo,
-  ProductStatus
-}
-import app.improving.productcontext.product.{
-  ApiProduct,
-  ApiProductInfo,
-  ApiProductMetaInfo,
-  ApiProductStatus
-}
+import app.improving.productcontext.product.{ApiProduct, ApiProductInfo, ApiProductMetaInfo, ApiProductStatus}
+import app.improving.{ApiEventId, ApiMemberId, ApiStoreId, EventId, MemberId, ProductId, StoreId}
+import app.improving.productcontext.{ProductCreated, ProductInfo, ProductMetaInfo}
 
 object util {
 
