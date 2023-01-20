@@ -17,21 +17,6 @@ import scala.util.matching.Regex
 
 object Compilation {
 
-  def codeQuality(project: Project): Project = {
-    project
-      .settings(
-        // ThisBuild / scapegoatVersion := Versions.scapegoat,
-        // scapegoatIgnoredFiles := Seq(
-        //  ".*/target/scala-2.13/akka-grpc/.*",
-        //  ".*/target/scala-2.13/src_managed/.*"
-        //),
-        Compile / scalacOptions ++= Seq(
-          "-Wconf:src=target/scala-2\\.13/akka-grpc/.*:s",
-          "-Wconf:src=target/scala-2\\.13/src_managed/.*:s",
-        )
-      )
-  }
-
   def scala(project: Project): Project = {
     project.settings(
       ThisBuild / dynverSeparator := "-",
@@ -59,31 +44,6 @@ object Compilation {
     )
   }
 
-  def scalapbConfiguration(project: Project): Project =
-    project
-      .settings(
-        libraryDependencies ++= scalaPbDependencies
-      )
-
-  def scalapbCodeGenConfiguration(project: Project): Project =
-    project
-      .settings(
-        Compile / PB.targets := Seq(
-          scalapb.gen(
-            FlatPackage,
-            SingleLineToProtoString,
-            RetainSourceCodeInfo
-          ) -> (Compile / sourceManaged).value / "scalapb"
-        ),
-        //        Compile / packageSrc / mappings ++= {
-        //          val generatedSources = ((Compile / managedSources).value ** "*") filter {
-        //            _.isFile
-        //          }
-        //          generatedSources.get pair relativeTo((Compile / sourceManaged).value)
-        //        },
-        libraryDependencies += scalaPbCompilerPlugin,
-        Compile / PB.recompile := sys.env.get("SCALAPB_RECOMPILE").exists(_.toLowerCase.startsWith("t"))
-      )
 
 }
 
@@ -156,39 +116,47 @@ object Kalix {
   def service(componentName: String)(project: Project): Project = {
     project.enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
       .configure(Compilation.scala)
-      .configure(Compilation.codeQuality)
-      .configure(Compilation.scalapbConfiguration)
-      .configure(Compilation.scalapbCodeGenConfiguration)
       .configure(Testing.scalaTest)
       .configure(Packaging.docker)
       .settings(
         name := componentName,
         run / fork := true,
         libraryDependencies ++= utilityDependencies ++ loggingDependencies,
+        Compile / managedSourceDirectories ++= Seq(
+          file(componentName) / "target" / "scala-2.13" / "akka-grpc",
+          file(componentName) / "target" / "scala-2.13" / " src_managed"
+        ),
+        Compile / unmanagedSourceDirectories ++= Seq(
+          file(componentName) / "target" / "scala-2.13" / " kalix-unmanaged",
+        )
       )
   }
 
   def library(componentName: String)(project: Project): Project = {
     project.enablePlugins(KalixPlugin)
       .configure(Compilation.scala)
-      .configure(Compilation.codeQuality)
-      .configure(Compilation.scalapbConfiguration)
-      .configure(Compilation.scalapbCodeGenConfiguration)
       .configure(Testing.scalaTest)
       .settings(
         name := componentName,
         run / fork := true,
         libraryDependencies ++= loggingDependencies,
+        Compile / managedSourceDirectories ++= Seq(
+          file(componentName) / "target" / "scala-2.13" / "akka-grpc",
+          file(componentName) / "target" / "scala-2.13" / " src_managed"
+        ),
+        Compile /unmanagedSourceDirectories ++= Seq(
+          file(componentName) / "target" / "scala-2.13" / " kalix-unmanaged",
+        )
       )
   }
 
-  def dependsOn(module: Project, name: String)(project: Project): Project = {
+  def dependsOn(dependency: Project, name: String)(project: Project): Project = {
     project.settings(
       libraryDependencies ++= {
         Seq(
           "app.improving" %% name % version.value % "protobuf"
         )
       }
-    ).dependsOn(module)
+    ).dependsOn(dependency)
   }
 }
