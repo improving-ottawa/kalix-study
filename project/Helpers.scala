@@ -153,8 +153,8 @@ object Packaging {
 
 object Kalix {
 
-  def serviceImpl(componentName: String)(project: Project): Project = {
-    project.enablePlugins(JavaAppPackaging, DockerPlugin)
+  def service(componentName: String)(project: Project): Project = {
+    project.enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
       .configure(Compilation.scala)
       .configure(Compilation.codeQuality)
       .configure(Compilation.scalapbConfiguration)
@@ -168,19 +168,27 @@ object Kalix {
       )
   }
 
-  def apiImpl(componentName: String)(project: Project): Project = {
-    project.enablePlugins(KalixPlugin, JavaAppPackaging)
+  def library(componentName: String)(project: Project): Project = {
+    project.enablePlugins(KalixPlugin)
       .configure(Compilation.scala)
       .configure(Compilation.codeQuality)
       .configure(Compilation.scalapbConfiguration)
       .configure(Compilation.scalapbCodeGenConfiguration)
       .configure(Testing.scalaTest)
-      // .configure(componentBaseConfiguration)
-      .configure(Packaging.docker)
       .settings(
         name := componentName,
         run / fork := true,
-        libraryDependencies ++= utilityDependencies ++ loggingDependencies,
+        libraryDependencies ++= loggingDependencies,
       )
+  }
+
+  def dependsOn(module: Project, name: String)(project: Project): Project = {
+    project.settings(
+      libraryDependencies ++= {
+        Seq(
+          "app.improving" %% name % version.value % "protobuf"
+        )
+      }
+    ).dependsOn(module)
   }
 }

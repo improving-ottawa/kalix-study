@@ -4,44 +4,43 @@ ThisBuild / scalaVersion := "2.13.10"
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-lazy val api = project.in(file("api"))
-  .configure(Kalix.apiImpl("api"))
+lazy val common: Project = project.in(file("common"))
+  .configure(Kalix.library("common"))
+
+lazy val gateway = project.in(file("gateway"))
+  .configure(Kalix.service("gateway"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val org = project.in(file("organization"))
-  .configure(Kalix.serviceImpl("organization"))
-  .dependsOn(api, api % "protobuf")
+  .configure(Kalix.service("organization"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val event = project.in(file("event"))
-  .configure(Kalix.serviceImpl("event"))
-  .dependsOn(api, api % "protobuf")
+  .configure(Kalix.service("event"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val member = project.in(file("member"))
-  .configure(Kalix.serviceImpl("member"))
-  .dependsOn(api, api % "protobuf")
+  .configure(Kalix.service("member"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val order = project.in(file("order"))
-  .configure(Kalix.serviceImpl("order"))
-  .dependsOn(api, api % "protobuf")
+  .configure(Kalix.service("order"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val product = project.in(file("product"))
-  .configure(Kalix.serviceImpl("product"))
-  .dependsOn(api, api % "protobuf")
+  .configure(Kalix.service("product"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val store = project.in(file("store"))
-  .configure(Kalix.serviceImpl("store"))
-  .dependsOn(api, api % "protobuf")
+  .configure(Kalix.service("store"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val tenant = project.in(file("tenant"))
-  .configure(Kalix.serviceImpl("tenant"))
-  .settings(
-    libraryDependencies ++= Seq(
-      "app.improving" %% "api" % version.value % "protobuf"
-    )
-  )
-  .dependsOn(api)
+  .configure(Kalix.service("tenant"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val root = project.in(file(".")).settings(
   publish := {},
   publishLocal := {},
   publishTo := Some(Resolver.defaultLocal)
-).aggregate(api, org, event, member, order, product, store, tenant)
+).aggregate(common, gateway, org, event, member, order, product, store, tenant)
