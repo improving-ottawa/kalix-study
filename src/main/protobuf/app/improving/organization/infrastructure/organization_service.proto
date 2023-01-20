@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/organization/api/organization_api.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package app.improving.organizationcontext.organization;
+
+service OrganizationService {
+
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.organizationcontext.organization.OrganizationAPI"
+            entity_type: "organizations"
+            state: "app.improving.organizationcontext.organization.OrganizationState"
+            events: [
+                "app.improving.organizationcontext.FindOrganizationsByMember",
+                "app.improving.organizationcontext.FindOrganizationsByOwner",
+                "app.improving.organizationcontext.GetOrganizationInfo",
+                "app.improving.organizationcontext.MembersAddedToOrganization",
+                "app.improving.organizationcontext.MembersRemovedFromOrganization",
+                "app.improving.organizationcontext.OrganizationAccountsUpdated",
+                "app.improving.organizationcontext.OrganizationContactsUpdated",
+                "app.improving.organizationcontext.OrganizationEstablished",
+                "app.improving.organizationcontext.OrganizationInfoUpdated",
+                "app.improving.organizationcontext.OrganizationStatusUpdated",
+                "app.improving.organizationcontext.OwnersAddedToOrganization",
+                "app.improving.organizationcontext.OwnersRemovedFromOrganization",
+                "app.improving.organizationcontext.ParentUpdated"]
+        }
+    };
+
+    rpc EstablishOrganization(organizationcontext.organization.ApiEstablishOrganization) returns (ApiOrganizationId) {
+        option (google.api.http) = {
+            post: "/organization/establish-organization"
+            body: "*"
+        };
+    }
+
+    rpc GetOrganization(organizationcontext.organization.ApiGetOrganizationById) returns (organizationcontext.organization.ApiOrganization) {
+        option (google.api.http) = {
+            get: "/organization/{org_id}"
+        };
+    }
+
+    rpc GetOrganizationInfo(organizationcontext.organization.ApiGetOrganizationInfo) returns (organizationcontext.organization.ApiInfo) {
+        option (google.api.http) = {
+            get: "/organization/{org_id}/organization-info"
+        };
+    }
+
+    rpc AddMembersToOrganization(organizationcontext.organization.ApiAddMembersToOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/add-members"
+            body: "*"
+        };
+    }
+
+    rpc RemoveMembersFromOrganization(organizationcontext.organization.ApiRemoveMembersFromOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/remove-members"
+            body: "*"
+        };
+    }
+
+    rpc AddOwnersToOrganization(organizationcontext.organization.ApiAddOwnersToOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/add-owners"
+            body: "*"
+        };
+    }
+
+    rpc RemoveOwnersFromOrganization(organizationcontext.organization.ApiRemoveOwnersFromOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/remove-owners"
+            body: "*"
+        };
+    }
+
+    rpc EditOrganizationInfo(organizationcontext.organization.ApiEditOrganizationInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/edit-organization-info"
+            body: "*"
+        };
+    }
+
+    rpc UpdateParent(organizationcontext.organization.ApiUpdateParent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/update-parent"
+        };
+    }
+
+    rpc UpdateOrganizationStatus(organizationcontext.organization.ApiOrganizationStatusUpdated) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/update-organization-status"
+        };
+    }
+}

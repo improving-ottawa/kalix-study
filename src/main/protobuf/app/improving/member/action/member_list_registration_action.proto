@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package app.improving.membercontext.member;
+
+import "app/improving/member/api/member_api.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+
+service MemberActionService {
+    option (kalix.codegen) = {
+        action: {}
+    };
+
+    rpc RegisterMemberList(ApiRegisterMemberList) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/register-memberlist"
+            body: "*"
+        };
+    }
+
+}

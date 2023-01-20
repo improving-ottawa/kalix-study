@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/common/common_domain.proto";
+import "app/improving/organization/api/organization_api.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package app.improving.tenantcontext.tenant;
+
+enum ApiTenantStatus {
+    DRAFT = 0;
+    ACTIVE = 1;
+    SUSPENDED = 2;
+}
+
+message ApiTenant {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string name =  2;
+    ApiContact primaryContact = 3;
+    ApiInfo info = 4;
+    ApiMetaInfo meta = 5;
+    ApiTenantStatus status = 6;
+}
+
+message ApiInfo {
+    string name = 1;
+    ApiContact primaryContact = 2;
+    ApiAddress address = 3;
+}
+
+message ApiMetaInfo {
+    google.protobuf.Timestamp createdOn = 1;
+    ApiContact createdBy = 2;
+    google.protobuf.Timestamp lastUpdated = 3;
+    ApiMemberId lastUpdatedBy = 4;
+    ApiTenantStatus currentStatus = 5;
+}
+
+message ApiPrimaryContactUpdated {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    ApiContact oldContact = 2;
+    ApiContact newContact = 3;
+    ApiMetaInfo meta = 4;
+}
+
+message ApiTenantActivated {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string name = 2;
+    ApiMetaInfo meta = 3;
+}
+
+message ApiTenantEstablished {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    ApiInfo info = 2;
+    ApiMetaInfo meta = 3;
+    string name = 4;
+    ApiContact primaryContact = 5;
+}
+
+message ApiTenantNameChanged {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string oldName = 2;
+    string newName = 3;
+    ApiMetaInfo meta = 4;
+}
+
+message ApiEstablishTenant {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    ApiInfo info = 2;
+}
+
+message ApiActivateTenant {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string updatingUser = 2;
+}
+
+message ApiSuspendTenant {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string updatingUser = 2;
+}
+
+message ApiUpdatePrimaryContact {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    ApiContact newContact = 2;
+    string updatingUser = 3;
+}
+
+message ApiChangeTenantName {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    string newName = 2;
+    string updatingUser = 3;
+}
+
+message ApiGetTenantById {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+}

@@ -1,0 +1,11 @@
+2023-01-19 09:37:05,816 ERROR kalix.javasdk.impl.DiscoveryImpl - Error reported from Kalix system: KLX-00121 An incoming event for the view [OrganizationByMemberView] was missing the subject id attribute `ce-subject`, view updates are stalled.
+
+Each update passed to a view must have a subject id, used as a primary key in the view, each unique subject-id can only have one entry in the view, if the update comes from a message broker the subject id is defined with the cloud event attribute [ce-subject].
+
+At app/improving/organization/view/organization_by_member_view.proto:16:1:
+service OrganizationByMemberView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessOrganizationEstablished(OrganizationEstablished) returns (organizationcontext.organization.ApiOrganization) {

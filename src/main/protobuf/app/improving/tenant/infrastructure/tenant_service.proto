@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/tenant/api/tenant_api.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package app.improving.tenantcontext.tenant;
+
+service TenantService {
+
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.tenantcontext.tenant.TenantAPI"
+            entity_type: "tenants"
+            state: "app.improving.tenantcontext.tenant.TenantState"
+            events: [
+                "app.improving.tenantcontext.TenantEstablished",
+                "app.improving.tenantcontext.TenantActivated",
+                "app.improving.tenantcontext.TenantSuspended",
+                "app.improving.tenantcontext.PrimaryContactUpdated",
+                "app.improving.tenantcontext.TenantNameChanged"]
+        }
+    };
+
+    rpc EstablishTenant(ApiEstablishTenant) returns (ApiTenantId) {
+        option (google.api.http) = {
+            post: "/tenant/establish-tenant"
+            body: "info"
+        };
+    }
+
+    rpc ActivateTenant(ApiActivateTenant) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/tenant/{tenant_id}/activate-tenant"
+        };
+    }
+
+    rpc SuspendTenant(ApiSuspendTenant) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/tenant/{tenant_id}/suspend-tenant"
+        };
+    }
+
+    rpc UpdatePrimaryContact(ApiUpdatePrimaryContact) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/tenant/{tenant_id}/update-primary-contact"
+            body: "*"
+        };
+    }
+
+    rpc ChangeTenantName(ApiChangeTenantName) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/tenant/{tenant_id}/change-name"
+            body: "*"
+        };
+    }
+
+    rpc GetTenantById(ApiGetTenantById) returns (ApiTenant) {
+        option (google.api.http) = {
+            get: "/tenant/{tenant_id}"
+        };
+    }
+}
