@@ -1,4 +1,4 @@
-organization := "app.improving"
+ThisBuild / organization := "app.improving"
 
 ThisBuild / scalaVersion := "2.13.10"
 
@@ -33,7 +33,12 @@ lazy val store = project.in(file("store"))
 
 lazy val tenant = project.in(file("tenant"))
   .configure(Kalix.serviceImpl("tenant"))
-  .dependsOn(api, api % "protobuf")
+  .settings(
+    libraryDependencies ++= Seq(
+      "app.improving" %% "api" % version.value % "protobuf"
+    )
+  )
+  .dependsOn(api)
 
 lazy val root = project.in(file(".")).settings(
   publish := {},

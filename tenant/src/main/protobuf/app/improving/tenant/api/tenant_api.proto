@@ -1,12 +1,9 @@
 syntax = "proto3";
 
 import "app/improving/common/common_api.proto";
-import "app/improving/common/common_domain.proto";
-import "app/improving/organization/api/organization_api.proto";
-import "google/protobuf/empty.proto";
+// import "app/improving/organization/api/organization_api.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
-import "google/api/annotations.proto";
 
 package app.improving.tenantcontext.tenant;
 
