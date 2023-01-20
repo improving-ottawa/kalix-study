@@ -71,43 +71,42 @@ class MemberMapIntegrationSpec
     )
 
     "set and get value from map should work correctly" in {
-      pending
-//      val Member1Key = Key("member1")
-//      val Member2Key = Key("member2")
-//
-//      val memberId = "test-member-id"
-//
-//      val updateResult =
-//        for {
-//          _ <- memberMapService.set(
-//            SetValue(
-//              memberId,
-//              key = Some(Member1Key),
-//              value = Some(value1)
-//            )
-//          )
-//          _ <- memberMapService.set(
-//            SetValue(
-//              memberId,
-//              key = Some(Member2Key),
-//              value = Some(value2)
-//            )
-//          )
-//        } yield ()
-//      updateResult.futureValue
-//
-//      val state =
-//        memberMapService.getAll(GetAllValues(memberId)).futureValue
-//
-//      state.values.map(_.value.get.firstName) shouldBe Seq(
-//        "member-name",
-//        "member-name2"
-//      )
-//
-//      state.values shouldEqual Seq[CurrentValue](
-//        CurrentValue(Some(Member1Key), Some(value1)),
-//        CurrentValue(Some(Member2Key), Some(value2))
-//      )
+      val Member1Key = Key("member1")
+      val Member2Key = Key("member2")
+
+      val memberId = "test-member-id"
+
+      val updateResult =
+        for {
+          _ <- memberMapService.set(
+            SetValue(
+              memberId,
+              key = Some(Member1Key),
+              value = Some(value1)
+            )
+          )
+          _ <- memberMapService.set(
+            SetValue(
+              memberId,
+              key = Some(Member2Key),
+              value = Some(value2)
+            )
+          )
+        } yield ()
+      updateResult.futureValue
+
+      val state =
+        memberMapService.getAll(GetAllValues(memberId)).futureValue
+
+      state.values.map(_.value.get.firstName) shouldBe Seq(
+        "member-name",
+        "member-name2"
+      )
+
+      state.values shouldEqual Seq[CurrentValue](
+        CurrentValue(Some(Member1Key), Some(value1)),
+        CurrentValue(Some(Member2Key), Some(value2))
+      )
     }
   }
 

@@ -1,12 +1,12 @@
 package app.improving.ordercontext.order
 
-import app.improving.ApiOrganizationId
+import app.improving.ApiOrderId
 import app.improving.eventcontext.event.ApiGetEventById
 import app.improving.organizationcontext.organization.ApiGetOrganizationById
 import app.improving.productcontext.product.ApiGetProductInfo
-import com.google.protobuf.empty.Empty
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
+
 import scala.concurrent.Future
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
 
   override def purchaseTicket(
       order: ApiCreateOrder
-  ): Action.Effect[Empty] = {
+  ): Action.Effect[ApiOrderId] = {
     val orderInfo = order.info.getOrElse(ApiOrderInfo())
     val productIds = orderInfo.lineItems.map(
       _.product.map(_.productId).getOrElse("ProductId is not found.")
@@ -50,33 +50,47 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           .map(_.eventId)
           .getOrElse("EventId is not found.")
 
-      for {
+      val tupleFut = (for {
         eventId <- eventIdFut
         event <- components.eventAPI
           .getEventById(ApiGetEventById(eventId))
           .execute()
-        organization = event.info
-          .flatMap(_.sponsoringOrg)
-          .getOrElse(ApiOrganizationId("OrganizationId is not found."))
-        organization <- components.organizationAPI
-          .getOrganization(
-            ApiGetOrganizationById(organization.organizationId)
-          )
-          .execute()
       } yield {
-        if (event.info.map(_.isPrivate) == Some(false)) {
-          true
-        } else if (organization.memberIds.contains(memberId)) {
-          true
-        } else {
-          false
+        (
+          event.info.map(_.isPrivate) == Some(false),
+          event.info
+            .flatMap(_.sponsoringOrg)
+        )
+      })
+
+      // true -> event is not private (private is false)
+      tupleFut.flatMap(tuple =>
+        tuple match {
+          case (true, _) => Future.successful(true)
+          case (false, Some(orgId)) => {
+            for {
+              organization <- components.organizationAPI
+                .getOrganization(
+                  ApiGetOrganizationById(orgId.organizationId)
+                )
+                .execute()
+            } yield {
+              if (organization.memberIds.contains(memberId)) {
+                true
+              } else {
+                false
+              }
+            }
+          }
+          case (false, None) => Future.successful(false)
         }
-      }
+      )
     }))
 
     val orderValidFut = productInfoResults.map(seq => seq.forall(x => x))
     val call = components.orderAPI.createOrder(order)
 
+    println(s"----------- ${orderValidFut.value}")
     effects.asyncEffect(
       orderValidFut.map(valid =>
         valid match {

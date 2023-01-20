@@ -1,8 +1,6 @@
 package app.improving.ordercontext.order
 
-import akka.actor.ActorSystem
 import app.improving.Main
-import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -11,6 +9,10 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
+import TestData._
+import app.improving.eventcontext.event.EventService
+import app.improving.membercontext.member.MemberService
+import app.improving.productcontext.product.ProductService
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -28,14 +30,22 @@ class OrderServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[OrderService])
+  private val order = testKit.getGrpcClient(classOf[OrderService])
+  private val event = testKit.getGrpcClient(classOf[EventService])
+  private val product = testKit.getGrpcClient(classOf[ProductService])
+  private val member = testKit.getGrpcClient(classOf[MemberService])
+
+  private val action = testKit.getGrpcClient(classOf[OrderAction])
 
   "OrderService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "purchase order correctly" in {
+      val orderId = order.createOrder(apiCreateOrder)
+      println(orderId.value)
+
+      val failedOrder = action.purchaseTicket(apiCreateOrder)
+
+      true shouldBe true
     }
 
   }

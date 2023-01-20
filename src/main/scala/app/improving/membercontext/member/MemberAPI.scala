@@ -11,6 +11,7 @@ import app.improving.membercontext.{
   MetaInfo
 }
 import app.improving.membercontext.infrastructure.util._
+import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -25,11 +26,11 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   override def registerMember(
       currentState: MemberState,
       apiRegisterMember: ApiRegisterMember
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiMemberId] = {
     currentState.member match {
       case Some(_) =>
         effects.reply(
-          Empty.defaultInstance
+          ApiMemberId.defaultInstance
         ) // already registered so just return.
       case _ => {
         val now = java.time.Instant.now()
@@ -37,8 +38,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         val memberIdOpt = apiRegisterMember.registeringMember.map(member =>
           MemberId(member.memberId)
         )
+        val memberId = java.util.UUID.randomUUID().toString
         val event = MemberRegistered(
-          Some(MemberId(java.util.UUID.randomUUID().toString)),
+          Some(MemberId(memberId)),
           apiRegisterMember.info.map(convertApiInfoToInfo),
           Some(
             MetaInfo(
@@ -50,7 +52,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
             )
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiMemberId(memberId))
       }
     }
   }
@@ -171,13 +173,17 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       case Some(state)
           if state.memberId == Some(MemberId(apiGetMemberData.memberId)) => {
         val apiMemberData = ApiMemberData(
-          Some(ApiMemberId(apiGetMemberData.memberId)),
+          apiGetMemberData.memberId,
           state.info.map(convertInfoToApiUpdateInfo),
           state.meta.map(convertMetaInfoToApiMetaInfo)
         )
         effects.reply(apiMemberData)
       }
-      case _ => effects.reply(ApiMemberData.defaultInstance)
+      case _ =>
+        effects.error(
+          s"MemberData ID ${apiGetMemberData.memberId} IS NOT FOUND.",
+          Status.Code.NOT_FOUND
+        )
     }
   }
 

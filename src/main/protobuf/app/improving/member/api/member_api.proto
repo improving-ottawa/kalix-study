@@ -89,7 +89,7 @@ message ApiMetaInfo {
 }
 
 message ApiMemberData  {
-    ApiMemberId memberId = 1;
+    string member_id = 1 [(kalix.field).entity_key = true];
     ApiUpdateInfo info = 2;
     ApiMetaInfo meta = 3;
 }

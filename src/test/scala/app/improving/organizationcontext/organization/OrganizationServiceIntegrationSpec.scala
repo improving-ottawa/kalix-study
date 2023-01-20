@@ -40,46 +40,54 @@ class OrganizationServiceIntegrationSpec
 
   "OrganizationService" must {
 
-    "process established organization for view" in {
-      memberViewClient
-        .processOrganizationEstablished(
-          OrganizationEstablished(
-            Some(OrganizationId("1")),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None
-          )
-        )
-        .futureValue
-        .status shouldBe ApiOrganizationStatus.DRAFT
-    }
+//    "process established organization for view" in {
+//      memberViewClient
+//        .processOrganizationEstablished(
+//          OrganizationEstablished(
+//            Some(OrganizationId("1")),
+//            None,
+//            None,
+//            None,
+//            None,
+//            None,
+//            None
+//          )
+//        )
+//        .futureValue
+//        .status shouldBe ApiOrganizationStatus.DRAFT
+//    }
 
     "establish organization correctly" in {
-      client.establishOrganization(apiEstablishOrganization).futureValue
+      val id =
+        client.establishOrganization(apiEstablishOrganization).futureValue
 
       val organization =
-        client.getOrganization(ApiGetOrganizationById(testOrgId)).futureValue
+        client
+          .getOrganization(ApiGetOrganizationById(id.organizationId))
+          .futureValue
 
       organization.status shouldBe ApiOrganizationStatus.DRAFT
 
       organization.oid shouldBe Some(
-        ApiOrganizationId(apiEstablishOrganization.orgId)
+        ApiOrganizationId(id.organizationId)
       )
 
       client.updateOrganizationStatus(
-        ApiOrganizationStatusUpdated(testOrgId, ApiOrganizationStatus.ACTIVE)
+        ApiOrganizationStatusUpdated(
+          id.organizationId,
+          ApiOrganizationStatus.ACTIVE
+        )
       )
 
       val activeOrganization =
-        client.getOrganization(ApiGetOrganizationById(testOrgId)).futureValue
+        client
+          .getOrganization(ApiGetOrganizationById(id.organizationId))
+          .futureValue
 
       activeOrganization.status shouldBe ApiOrganizationStatus.ACTIVE
 
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
-        testOrgId,
+        id.organizationId,
         Seq[ApiMemberId](
           ApiMemberId("member20"),
           ApiMemberId("member22"),

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package app.improving.productcontext;
 
+import "app/improving/common/common_api.proto";
 import "app/improving/common/common_domain.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/domain/product_context_domain.proto";
@@ -12,10 +13,10 @@ message TicketByEventRequest {
 }
 
 message TicketByEventResponse {
-    ProductId productId = 1;
-    ProductInfo info = 2;
-    ProductMetaInfo meta = 3;
-    ProductStatus status = 4;
+    string sku = 1;
+    product.ApiProductInfo info = 2;
+    product.ApiProductMetaInfo meta = 3;
+    product.ApiProductStatus status = 4;
 }
 
 
@@ -77,8 +78,8 @@ service TicketByEventView {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "* "
-                    "FROM products "
-                    "WHERE products.info.event.id = :eventId "
+                    "FROM ticket_by_event_product "
+                    "WHERE ticket_by_event_product.info.event.event_id = :eventId "
         };
     }
 

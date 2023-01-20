@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "app/improving/common/common_api.proto";
 import "app/improving/product/api/product_api.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
@@ -23,7 +24,7 @@ service ProductService {
         }
     };
 
-    rpc CreateProduct(ApiCreateProduct) returns (google.protobuf.Empty) {
+    rpc CreateProduct(ApiCreateProduct) returns (ApiProductId) {
         option (google.api.http) = {
             post: "/product/create"
             body: "*"

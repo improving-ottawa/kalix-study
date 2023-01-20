@@ -5,6 +5,7 @@ import app.improving.ordercontext._
 import app.improving.ordercontext.infrastructure.util._
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
+import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -19,11 +20,13 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   override def createOrder(
       currentState: OrderState,
       apiCreateOrder: ApiCreateOrder
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiOrderId] = {
     currentState.order match {
-      case Some(_) => effects.reply(Empty.defaultInstance)
+      case Some(_) => effects.reply(ApiOrderId.defaultInstance)
       case _ => {
-        val orderIdOpt = Some(OrderId(java.util.UUID.randomUUID().toString))
+        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        val orderId = java.util.UUID.randomUUID().toString
+        val orderIdOpt = Some(OrderId(orderId))
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt =
@@ -46,7 +49,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             )
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiOrderId(orderId))
       }
     }
   }
@@ -150,7 +153,11 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         )
         effects.reply(result)
       }
-      case _ => effects.reply(ApiOrderInfoResult.defaultInstance)
+      case _ =>
+        effects.error(
+          s"OrderInfo ID ${apiGetOrderInfo.orderId} IS NOT FOUND.",
+          Status.Code.NOT_FOUND
+        )
     }
   }
   override def orderCreated(

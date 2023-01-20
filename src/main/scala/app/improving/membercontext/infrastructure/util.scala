@@ -172,7 +172,9 @@ object util {
       memberRegistered: MemberRegistered
   ): ApiMemberData = {
     ApiMemberData(
-      memberRegistered.memberId.map(member => ApiMemberId(member.id)),
+      memberRegistered.memberId
+        .map(member => member.id)
+        .getOrElse("MemberId is not found."),
       memberRegistered.info.map(convertInfoToApiUpdateInfo),
       memberRegistered.meta.map(convertMetaInfoToApiMetaInfo)
     )

@@ -3,6 +3,7 @@ syntax = "proto3";
 
 package app.improving.membercontext;
 
+import "app/improving/common/common_api.proto";
 import "app/improving/common/common_domain.proto";
 import "app/improving/event/api/event_api.proto";
 import "app/improving/event/domain/event_context_domain.proto";
@@ -18,7 +19,10 @@ import "kalix/annotations.proto";
 
 /**
  * "SELECT"
- *            " members.info AS member"
+ *            "members.memberId AS memberId "
+ *            "members.info AS info "
+ *            "members.meta AS meta "
+ *            "members.meta.memberStatus AS status "
  *            "FROM members "
  *            "JOIN orders ON orders.meta.memberId = members.member_id "
  *            "JOIN products ON products.product_id = ANY(orders.lineItems.product.id) "
@@ -31,10 +35,9 @@ message MemberByEventTimeRequest {
 }
 
 message MemberByEventTimeResponse {
-    MemberId memberId = 1;
-    Info info = 2;
-    MetaInfo meta = 3;
-    MemberStatus status = 4;
+    ApiMemberId memberId = 1;
+    member.ApiInfo info = 2;
+    member.ApiMetaInfo meta = 3;
 }
 
 service MemberByEventQuery {
@@ -232,18 +235,18 @@ service MemberByEventQuery {
         };
     }
 
-    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (stream MemberByEventTimeResponse) {
+    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (stream member.ApiMemberData) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "members.memberId AS memberId "
-                    "members.info AS info "
-                    "members.meta AS meta "
-                    "members.status AS status "
-                    "FROM members "
-                    "JOIN orders ON orders.meta.memberId = members.memberId "
-                    "JOIN products ON products.productId = ANY(orders.lineItems.productId) "
-                    "JOIN events ON products.info.event.id = events.eventId "
-                    "WHERE :given_time >= events.info.expectedStart AND :given_time < events.info.expectedEnd "
+                    "member_by_event_member.member_id AS member_id, "
+                    "member_by_event_member.info AS info, "
+                    "member_by_event_member.meta AS meta "
+                    "FROM  member_by_event_member "
+                    "JOIN member_by_event_order ON member_by_event_order.meta.memberId.member_id = member_by_event_member.member_id "
+                    "JOIN member_by_event_product ON member_by_event_product.sku = member_by_event_order.order_id  "
+                    "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
+                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+
         };
     }
 }

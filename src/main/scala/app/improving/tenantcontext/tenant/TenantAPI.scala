@@ -28,14 +28,15 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
   override def establishTenant(
       currentState: TenantState,
       apiEstablishTenant: ApiEstablishTenant
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiTenantId] = {
     currentState.tenant match {
-      case Some(_) => effects.reply(Empty.defaultInstance)
+      case Some(_) => effects.reply(ApiTenantId.defaultInstance)
       case _ => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val tenandId = java.util.UUID.randomUUID().toString
         val event = TenantEstablished(
-          Some(TenantId(java.util.UUID.randomUUID().toString)),
+          Some(TenantId(tenandId)),
           apiEstablishTenant.info.map(convertApiInfoToInfo),
           Some(
             MetaInfo(
@@ -53,7 +54,7 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
             .flatMap(_.primaryContact)
             .map(convertApiContactToContact)
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiTenantId(tenandId))
       }
     }
   }
@@ -171,13 +172,19 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
       currentState: TenantState,
       apiGetTenantById: ApiGetTenantById
   ): EventSourcedEntity.Effect[ApiTenant] = {
+    println(currentState.tenant + " ---------------tenant")
+    println(apiGetTenantById + " ---------------apiGetTenantById")
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == Some(TenantId(apiGetTenantById.tenantId)) => {
         effects.reply(convertTenantToApiTenant(tenant))
 
       }
-      case _ => effects.error("Tenant Not Found!", Status.Code.NOT_FOUND)
+      case _ =>
+        effects.error(
+          s"Tenant By ID ${apiGetTenantById.tenantId} Is Not Found!",
+          Status.Code.NOT_FOUND
+        )
     }
   }
 
@@ -188,6 +195,9 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(_) => currentState
       case _ => {
+        println(
+          s"tenantEstablished!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ${tenantEstablished.tenantId}"
+        )
         currentState.withTenant(
           Tenant(
             tenantEstablished.tenantId,

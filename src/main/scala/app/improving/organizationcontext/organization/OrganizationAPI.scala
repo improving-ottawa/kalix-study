@@ -2,7 +2,7 @@ package app.improving.organizationcontext.organization
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{MemberId, OrganizationId}
+import app.improving.{ApiOrganizationId, MemberId, OrganizationId}
 import app.improving.organizationcontext.{
   ContactList,
   Contacts,
@@ -37,6 +37,7 @@ import app.improving.organizationcontext.organization.{
   ApiRemoveOwnersFromOrganization,
   ApiUpdateParent
 }
+import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -62,7 +63,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           ) => {
         effects.reply(convertOrganizationToApiOrganization(org))
       }
-      case _ => effects.reply(ApiOrganization.defaultInstance)
+      case _ =>
+        effects.error(
+          s"OrganizationBy ID ${apiGetOrganizationById.orgId} IS NOT FOUND.",
+          Status.Code.NOT_FOUND
+        )
     }
   }
 
@@ -88,7 +93,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             apiInfoOpt.getOrElse(ApiInfo.defaultInstance)
           })
       }
-      case _ => effects.reply(ApiInfo.defaultInstance)
+      case _ =>
+        effects.error(
+          s"OrganizationInfo By ID ${apiGetOrganizationInfo.orgId} IS NOT FOUND.",
+          Status.Code.NOT_FOUND
+        )
     }
   }
   override def removeMembersFromOrganization(
@@ -254,15 +263,16 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def establishOrganization(
       currentState: OrganizationState,
       apiEstablishOrganization: ApiEstablishOrganization
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiOrganizationId] = {
     currentState.organization match {
       case Some(org) =>
         effects.error(
           s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
         )
       case _ => {
+        val orgId = java.util.UUID.randomUUID().toString
         val event = OrganizationEstablished(
-          Some(OrganizationId(java.util.UUID.randomUUID().toString)),
+          Some(OrganizationId(orgId)),
           apiEstablishOrganization.info.map(convertApiInfoToInfo(_)),
           apiEstablishOrganization.parent.map(convertApiParentToParent(_)),
           Some(
@@ -299,7 +309,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           apiEstablishOrganization.meta.map(convertApiMetaInfoToMetaInfo(_))
         )
 
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiOrganizationId(orgId))
       }
     }
   }

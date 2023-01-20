@@ -29,9 +29,6 @@ service MemberByMetaInfoView {
     };
 
     rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
-        option (google.api.http) = {
-            post: "/member/register"
-        };
         option (kalix.method).eventing.in = {
             event_sourced_entity: "members"
         };
@@ -42,9 +39,6 @@ service MemberByMetaInfoView {
     }
 
     rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
-        option (google.api.http) = {
-            post: "/member/{member_id}/update-status"
-        };
         option (kalix.method).eventing.in = {
             event_sourced_entity: "members"
         };
@@ -55,9 +49,6 @@ service MemberByMetaInfoView {
     }
 
     rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
-        option (google.api.http) = {
-            post: "/member/{member_id}/update-info"
-        };
         option (kalix.method).eventing.in = {
             event_sourced_entity: "members"
         };
@@ -68,9 +59,6 @@ service MemberByMetaInfoView {
     }
 
     rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
-        option (google.api.http) = {
-            post: "/member/register-memberlist"
-        };
         option (kalix.method).eventing.in = {
             event_sourced_entity: "members"
         };
@@ -80,12 +68,10 @@ service MemberByMetaInfoView {
         };
     }
 
+    //WHERE :queryData.createdBy.member_id = memberId.memberId.member_id  OR :queryData.createdOn = meta.createdOn OR :queryData.lastModifiedOn = meta.lastModifiedOn OR :queryData.lastModifiedBy = meta.lastModifiedBy OR :queryData.memberStatus = meta.memberStatus
     rpc GetMembersByMetaInfo(ByMetaInfoRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM member_by_meta_info WHERE :queryData.createdBy.member_id = memberId.member_id OR :queryData.createdOn = meta.createdOn OR :queryData.lastModifiedOn = meta.lastModifiedOn OR :queryData.lastModifiedBy = meta.lastModifiedBy OR :queryData.memberStatus = meta.memberStatus"
-        };
-        option (google.api.http) = {
-            get: "/members/by_meta_info/{queryData}"
+            query: "SELECT * FROM member_by_meta_info "
         };
     }
 }

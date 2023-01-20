@@ -3,7 +3,7 @@ package app.improving.eventcontext.event
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.eventcontext.infrastructure.util._
-import app.improving.{EventId, MemberId}
+import app.improving.{ApiEventId, EventId, MemberId}
 import app.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
@@ -16,6 +16,7 @@ import app.improving.eventcontext.{
   EventStarted,
   EventStatus
 }
+import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -68,18 +69,19 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def scheduleEvent(
       currentState: EventState,
       apiScheduleEvent: ApiScheduleEvent
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiEventId] = {
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     val memberIdOpt =
       apiScheduleEvent.schedulingMember.map(member => MemberId(member.memberId))
     currentState.event match {
       case Some(_) => {
-        effects.reply(Empty.defaultInstance)
+        effects.reply(ApiEventId.defaultInstance)
       }
       case _ => {
+        val eventId = java.util.UUID.randomUUID().toString
         val event = EventScheduled(
-          Some(EventId(java.util.UUID.randomUUID().toString)),
+          Some(EventId(eventId)),
           apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
           Some(
             EventMetaInfo(
@@ -93,7 +95,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             )
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiEventId(eventId))
       }
     }
   }
@@ -254,7 +256,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           if event.eventId == Some(EventId(apiGetEventById.eventId)) => {
         effects.reply(convertEventToApiEvent(event))
       }
-      case _ => effects.reply(ApiEvent.defaultInstance)
+      case _ =>
+        effects.error(
+          s"Event By ID ${apiGetEventById.eventId} IS NOT FOUND.",
+          Status.Code.NOT_FOUND
+        )
     }
   }
 

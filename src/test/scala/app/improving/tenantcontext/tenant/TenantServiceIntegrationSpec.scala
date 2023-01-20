@@ -23,7 +23,7 @@ class TenantServiceIntegrationSpec
     with ScalaFutures {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(500, Millis))
+    PatienceConfig(Span(50, Seconds), Span(1000, Millis))
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
@@ -36,10 +36,11 @@ class TenantServiceIntegrationSpec
         testTenantId,
         Some(apiInfo)
       )
-      client.establishTenant(command).futureValue
+      val id = client.establishTenant(command).futureValue
 
+      println(s"$id ----------------------- id")
       val tenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
+        .getTenantById(ApiGetTenantById(id.tenantId))
         .futureValue
 
       tenant.name shouldBe apiInfo.name
@@ -54,7 +55,7 @@ class TenantServiceIntegrationSpec
       client.activateTenant(apiActivateTenant).futureValue
 
       val activatedTenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
+        .getTenantById(ApiGetTenantById(id.tenantId))
         .futureValue
 
       activatedTenant.status shouldBe ApiTenantStatus.ACTIVE

@@ -1,6 +1,6 @@
 package app.improving.storecontext.store
 
-import app.improving.{ApiProductId, MemberId, ProductId, StoreId}
+import app.improving.{ApiProductId, ApiStoreId, MemberId, ProductId, StoreId}
 import app.improving.storecontext.{
   ProductsAddedToStore,
   ProductsRemovedFromStore,
@@ -28,16 +28,18 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   override def createStore(
       currentState: StoreState,
       apiCreateStore: ApiCreateStore
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiStoreId] = {
     currentState.store match {
-      case Some(_) => effects.reply(Empty.defaultInstance)
+      case Some(_) => effects.reply(ApiStoreId.defaultInstance)
       case _ => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val memberIdOpt =
+        val memberIdOpt = {
           apiCreateStore.creatingMember.map(member => MemberId(member.memberId))
+        }
+        val storeId = java.util.UUID.randomUUID().toString
         val event = StoreCreated(
-          Some(StoreId(java.util.UUID.randomUUID().toString)),
+          Some(StoreId(storeId)),
           apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
           Some(
             StoreMetaInfo(
@@ -49,7 +51,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             )
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiStoreId(storeId))
       }
     }
   }

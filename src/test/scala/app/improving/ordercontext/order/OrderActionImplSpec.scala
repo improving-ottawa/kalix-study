@@ -1,11 +1,12 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiMemberId, ApiProductId, ApiStoreId}
+import app.improving.{ApiMemberId, ApiOrderId, ApiProductId, ApiStoreId}
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.MockRegistry
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
 import scala.concurrent.Future
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
@@ -24,7 +25,7 @@ class OrderActionImplSpec
       val mockOrderService = mock[OrderAction]
       (mockOrderService.purchaseTicket _)
         .when(*)
-        .returns(Future.successful(Empty.defaultInstance))
+        .returns(Future.successful(ApiOrderId.defaultInstance))
 
       val mockRegistry = MockRegistry.withMock(mockOrderService)
 

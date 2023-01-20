@@ -27,7 +27,7 @@ class MemberActionServiceImplSpec
       val mockMemberService = mock[MemberService]
       (mockMemberService.registerMember _)
         .when(*)
-        .returns(Future.successful(Empty.defaultInstance))
+        .returns(Future.successful(ApiMemberId.defaultInstance))
 
       val mockRegistry = MockRegistry.withMock(mockMemberService)
 

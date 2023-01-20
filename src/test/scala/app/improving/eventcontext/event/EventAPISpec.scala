@@ -3,7 +3,13 @@ package app.improving.eventcontext.event
 import com.google.protobuf.duration.Duration
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiGeoLocation, ApiMemberId, ApiOrganizationId, MemberId}
+import app.improving.{
+  ApiEventId,
+  ApiGeoLocation,
+  ApiMemberId,
+  ApiOrganizationId,
+  MemberId
+}
 import app.improving.eventcontext.{EventScheduled, EventStatus}
 import kalix.scalasdk.testkit.EventSourcedResult
 import org.scalatest.matchers.should.Matchers
@@ -20,7 +26,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type ChangeEventInfo" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 
@@ -59,7 +65,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type ScheduleEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 
@@ -75,7 +81,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type CancelEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 
@@ -102,7 +108,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type RescheduleEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 
@@ -144,7 +150,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type DelayEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 
@@ -188,7 +194,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
     "correctly process commands of type StartEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 
@@ -219,7 +225,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type EndEvent" in {
       val testKit = EventAPITestKit(new EventAPI(_))
-      val result: EventSourcedResult[Empty] = testKit.scheduleEvent(event)
+      val result: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(event)
 
       result.events should have size 1
 

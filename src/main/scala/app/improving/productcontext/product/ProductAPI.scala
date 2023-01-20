@@ -1,6 +1,6 @@
 package app.improving.productcontext.product
 
-import app.improving.{MemberId, ProductId}
+import app.improving.{ApiProductId, MemberId, ProductId}
 import app.improving.productcontext.{
   ProductActivated,
   ProductCreated,
@@ -12,6 +12,7 @@ import app.improving.productcontext.{
 import app.improving.productcontext.infrastructure.util._
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
+import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
@@ -27,17 +28,18 @@ class ProductAPI(context: EventSourcedEntityContext)
   override def createProduct(
       currentState: ProductState,
       apiCreateProduct: ApiCreateProduct
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[ApiProductId] = {
+    val productId = java.util.UUID.randomUUID().toString
     currentState.product match {
       case Some(product) if product != Product.defaultInstance =>
-        effects.reply(Empty.defaultInstance)
+        effects.reply(ApiProductId.defaultInstance)
       case _ => {
         val event = ProductCreated(
-          Some(ProductId(java.util.UUID.randomUUID().toString)),
+          Some(ProductId(productId)),
           apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
           apiCreateProduct.meta.map(convertApiProductMetaInfoToProductMetaInfo)
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(event).thenReply(_ => ApiProductId(productId))
       }
     }
   }
@@ -148,7 +150,11 @@ class ProductAPI(context: EventSourcedEntityContext)
         )
         effects.reply(apiProductInfoResult)
       }
-      case _ => effects.reply(ApiProductInfoResult.defaultInstance)
+      case _ =>
+        effects.error(
+          s"Product By ID ${apiGetProductInfo.sku} IS NOT FOUND.",
+          Status.Code.NOT_FOUND
+        )
     }
   }
 

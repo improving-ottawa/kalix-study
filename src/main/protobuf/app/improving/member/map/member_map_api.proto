@@ -59,8 +59,8 @@ service MemberMapService {
             name: "app.improving.membercontext.membermap.MemberMap"
             entity_type: "member-map"
             replicated_register_map: {
-                key: "app.improving.membercontext.membermap.MemberId"
-                value: "app.improving.membercontext.membermap.Info"
+                key: "app.improving.membercontext.membermap.MapMemberId"
+                value: "app.improving.membercontext.membermap.MapMemberInfo"
             }
         }
     };

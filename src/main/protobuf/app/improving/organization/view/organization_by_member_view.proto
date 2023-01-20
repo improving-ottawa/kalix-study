@@ -112,8 +112,5 @@ service OrganizationByMemberView {
         option (kalix.method).view.query = {
             query: "SELECT * FROM organizations_by_member WHERE :member_id = ANY(member_ids)"
         };
-        option (google.api.http) = {
-            get: "/organizations/by_member/{member_id}"
-        };
     }
 }

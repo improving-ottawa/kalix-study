@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "app/improving/common/common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
@@ -31,7 +32,7 @@ service OrganizationService {
         }
     };
 
-    rpc EstablishOrganization(organizationcontext.organization.ApiEstablishOrganization) returns (google.protobuf.Empty) {
+    rpc EstablishOrganization(organizationcontext.organization.ApiEstablishOrganization) returns (ApiOrganizationId) {
         option (google.api.http) = {
             post: "/organization/establish-organization"
             body: "*"
@@ -88,14 +89,12 @@ service OrganizationService {
     rpc UpdateParent(organizationcontext.organization.ApiUpdateParent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/organization/{org_id}/update-parent"
-            body: "newParent"
         };
     }
 
     rpc UpdateOrganizationStatus(organizationcontext.organization.ApiOrganizationStatusUpdated) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/organization/{org_id}/update-organization-status"
-            body: "newStatus"
         };
     }
 }

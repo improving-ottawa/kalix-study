@@ -3,6 +3,7 @@ syntax = "proto3";
 
 package app.improving.eventcontext.event;
 
+import "app/improving/common/common_api.proto";
 import "app/improving/event/api/event_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
@@ -26,7 +27,7 @@ service EventService {
         }
     };
 
-    rpc ScheduleEvent(event.ApiScheduleEvent) returns (google.protobuf.Empty) {
+    rpc ScheduleEvent(event.ApiScheduleEvent) returns (ApiEventId) {
         option (google.api.http) = {
             post: "/event/schedule-event"
             body: "*"

@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "app/improving/common/common_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
@@ -23,7 +24,7 @@ service TenantService {
         }
     };
 
-    rpc EstablishTenant(ApiEstablishTenant) returns (google.protobuf.Empty) {
+    rpc EstablishTenant(ApiEstablishTenant) returns (ApiTenantId) {
         option (google.api.http) = {
             post: "/tenant/establish-tenant"
             body: "info"
@@ -33,14 +34,12 @@ service TenantService {
     rpc ActivateTenant(ApiActivateTenant) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/tenant/{tenant_id}/activate-tenant"
-            body: "updatingUser"
         };
     }
 
     rpc SuspendTenant(ApiSuspendTenant) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/tenant/{tenant_id}/suspend-tenant"
-            body: "updatingUser"
         };
     }
 

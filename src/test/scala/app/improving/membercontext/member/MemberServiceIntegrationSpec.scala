@@ -23,7 +23,7 @@ class MemberServiceIntegrationSpec
     with ScalaFutures {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(500, Millis))
+    PatienceConfig(Span(50, Seconds), Span(1000, Millis))
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 

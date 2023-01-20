@@ -14,11 +14,11 @@ import kalix.scalasdk.replicatedentity.ReplicatedRegisterMap
 class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
 
   def set(
-      currentData: ReplicatedRegisterMap[MemberId, Info],
+      currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       setValue: SetValue
   ): ReplicatedEntity.Effect[Empty] = {
-    val key = MemberId(setValue.getKey.id)
-    val value = Info(
+    val key = MapMemberId(setValue.getKey.id)
+    val value = MapMemberInfo(
       setValue.getValue.contact,
       setValue.getValue.handle,
       setValue.getValue.avatar,
@@ -36,20 +36,20 @@ class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
   }
 
   def remove(
-      currentData: ReplicatedRegisterMap[MemberId, Info],
+      currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       removeValue: RemoveValue
   ): ReplicatedEntity.Effect[Empty] = {
-    val key = MemberId(removeValue.getKey.id)
+    val key = MapMemberId(removeValue.getKey.id)
     effects
       .update(currentData.remove(key))
       .thenReply(Empty.defaultInstance)
   }
 
   def get(
-      currentData: ReplicatedRegisterMap[MemberId, Info],
+      currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       getValue: GetValue
   ): ReplicatedEntity.Effect[CurrentValue] = {
-    val key = MemberId(getValue.getKey.id)
+    val key = MapMemberId(getValue.getKey.id)
     val maybeValue = currentData.get(key)
     val currentValue = membermap.CurrentValue(
       getValue.key,
@@ -72,7 +72,7 @@ class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
   }
 
   def getAll(
-      currentData: ReplicatedRegisterMap[MemberId, Info],
+      currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       getAllValues: GetAllValues
   ): ReplicatedEntity.Effect[CurrentValues] = {
     val allData =
