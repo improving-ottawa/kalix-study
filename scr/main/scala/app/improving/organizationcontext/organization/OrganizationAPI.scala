@@ -270,7 +270,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
         )
       case _ => {
-        val orgId = java.util.UUID.randomUUID().toString
+        val orgId = apiEstablishOrganization.orgId
         val event = OrganizationEstablished(
           Some(OrganizationId(orgId)),
           apiEstablishOrganization.info.map(convertApiInfoToInfo(_)),

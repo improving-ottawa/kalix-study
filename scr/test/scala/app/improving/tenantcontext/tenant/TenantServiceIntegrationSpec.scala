@@ -32,15 +32,9 @@ class TenantServiceIntegrationSpec
   "TenantService" must {
 
     "create tenant correctly" in {
-      val command = ApiEstablishTenant(
-        testTenantId,
-        Some(apiInfo)
-      )
-      val id = client.establishTenant(command).futureValue
 
-      println(s"$id ----------------------- id")
       val tenant = client
-        .getTenantById(ApiGetTenantById(id.tenantId))
+        .getTenantById(ApiGetTenantById(testTenantId))
         .futureValue
 
       tenant.name shouldBe apiInfo.name
@@ -55,14 +49,68 @@ class TenantServiceIntegrationSpec
       client.activateTenant(apiActivateTenant).futureValue
 
       val activatedTenant = client
-        .getTenantById(ApiGetTenantById(id.tenantId))
+        .getTenantById(ApiGetTenantById(testTenantId))
         .futureValue
 
       activatedTenant.status shouldBe ApiTenantStatus.ACTIVE
     }
 
+    "deactivate tenant correctly" in {
+
+      val apiSuspendTenant = ApiSuspendTenant(
+        testTenantId,
+        testTenantId2
+      )
+      client.suspendTenant(apiSuspendTenant).futureValue
+
+      val suspendedTenant = client
+        .getTenantById(ApiGetTenantById(testTenantId))
+        .futureValue
+
+      suspendedTenant.status shouldBe ApiTenantStatus.SUSPENDED
+    }
+
+    "updatePrimaryContact correctly" in {
+
+      val apiUpdatePrimaryContact = ApiUpdatePrimaryContact(
+        testTenantId,
+        Some(newApiContact),
+        testTenantId2
+      )
+      client.updatePrimaryContact(apiUpdatePrimaryContact).futureValue
+
+      val updatePrimaryContactTenant = client
+        .getTenantById(ApiGetTenantById(testTenantId))
+        .futureValue
+
+      updatePrimaryContactTenant.primaryContact shouldBe Some(newApiContact)
+    }
+
+    "changeTenantName correctly" in {
+      val apiChangeTenantName = ApiChangeTenantName(
+        testTenantId,
+        testNewName,
+        testTenantId2
+      )
+
+      client.changeTenantName(apiChangeTenantName).futureValue
+
+      val changedNewNameTenant = client
+        .getTenantById(ApiGetTenantById(testTenantId))
+        .futureValue
+
+      changedNewNameTenant.name shouldBe testNewName
+    }
   }
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    val command = ApiEstablishTenant(
+      testTenantId,
+      Some(apiInfo)
+    )
+    client.establishTenant(command).futureValue
+  }
   override def afterAll(): Unit = {
     testKit.stop()
     super.afterAll()

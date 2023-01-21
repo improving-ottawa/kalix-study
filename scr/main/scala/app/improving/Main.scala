@@ -3,7 +3,7 @@ package app.improving
 import app.improving.eventcontext.event.EventAPI
 import app.improving.membercontext.member.MemberActionServiceImpl
 import app.improving.membercontext.{
-  MemberByEventQueryView,
+//  MemberByEventQueryView,
   MemberByMetaInfoViewImpl
 }
 import app.improving.membercontext.member.MemberAPI
@@ -43,7 +43,7 @@ object Main {
       new StoreAPI(_),
       new TenantAPI(_),
       new MemberActionServiceImpl(_),
-      new MemberByEventQueryView(_),
+//      new MemberByEventQueryView(_),
       new MemberByMetaInfoViewImpl(_),
       new OrderActionImpl(_),
       new OrganizationByMemberViewImpl(_),

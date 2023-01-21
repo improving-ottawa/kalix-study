@@ -29,7 +29,7 @@ class ProductAPI(context: EventSourcedEntityContext)
       currentState: ProductState,
       apiCreateProduct: ApiCreateProduct
   ): EventSourcedEntity.Effect[ApiProductId] = {
-    val productId = java.util.UUID.randomUUID().toString
+    val productId = apiCreateProduct.sku
     currentState.product match {
       case Some(product) if product != Product.defaultInstance =>
         effects.reply(ApiProductId.defaultInstance)
