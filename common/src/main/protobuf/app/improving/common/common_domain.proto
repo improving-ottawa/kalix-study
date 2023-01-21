@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package app.improving;
 
+import "kalix/annotations.proto";
+
 /**
  * Pattern of: \d{5}(-\d{4})?
  */
@@ -94,3 +96,19 @@ message GeoLocation {
     double longitude = 2;
     double elevation = 3;
 }
+
+/*
+message EmptyState {}
+
+service HereOnlyToForceKalixCodeGen {
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.HereOnlyToForceKalixCodeGenService"
+            entity_type: "ignore"
+            state: "app.improving.EmptyState"
+            events: []
+        }
+    };
+}
+*/
+

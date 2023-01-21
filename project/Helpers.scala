@@ -103,12 +103,6 @@ object Packaging {
       }
     )
   }
-
-  def versioningConfiguration(project: Project): Project = {
-      project.settings(
-        ThisBuild / dynverSeparator := "-",
-      )
-  }
 }
 
 object Kalix {
@@ -123,11 +117,8 @@ object Kalix {
         run / fork := true,
         libraryDependencies ++= utilityDependencies ++ loggingDependencies,
         Compile / managedSourceDirectories ++= Seq(
-          file(componentName) / "target" / "scala-2.13" / "akka-grpc",
-          file(componentName) / "target" / "scala-2.13" / " src_managed"
-        ),
-        Compile / unmanagedSourceDirectories ++= Seq(
-          file(componentName) / "target" / "scala-2.13" / " kalix-unmanaged",
+          target.value / "scala-2.13" / "akka-grpc",
+          target.value / "scala-2.13" / "src_managed"
         )
       )
   }
@@ -141,11 +132,8 @@ object Kalix {
         run / fork := true,
         libraryDependencies ++= loggingDependencies,
         Compile / managedSourceDirectories ++= Seq(
-          file(componentName) / "target" / "scala-2.13" / "akka-grpc",
-          file(componentName) / "target" / "scala-2.13" / " src_managed"
-        ),
-        Compile /unmanagedSourceDirectories ++= Seq(
-          file(componentName) / "target" / "scala-2.13" / " kalix-unmanaged",
+          target.value / "scala-2.13" / "akka-grpc",
+          target.value / "scala-2.13" / "src_managed"
         )
       )
   }
