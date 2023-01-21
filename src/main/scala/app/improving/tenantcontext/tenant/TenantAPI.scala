@@ -34,7 +34,7 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
       case _ => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val tenandId = java.util.UUID.randomUUID().toString
+        val tenandId = apiEstablishTenant.tenantId
         val event = TenantEstablished(
           Some(TenantId(tenandId)),
           apiEstablishTenant.info.map(convertApiInfoToInfo),
@@ -172,8 +172,6 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
       currentState: TenantState,
       apiGetTenantById: ApiGetTenantById
   ): EventSourcedEntity.Effect[ApiTenant] = {
-    println(currentState.tenant + " ---------------tenant")
-    println(apiGetTenantById + " ---------------apiGetTenantById")
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == Some(TenantId(apiGetTenantById.tenantId)) => {
@@ -195,9 +193,6 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(_) => currentState
       case _ => {
-        println(
-          s"tenantEstablished!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ${tenantEstablished.tenantId}"
-        )
         currentState.withTenant(
           Tenant(
             tenantEstablished.tenantId,

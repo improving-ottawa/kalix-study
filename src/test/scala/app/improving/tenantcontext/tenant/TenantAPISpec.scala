@@ -2,8 +2,11 @@ package app.improving.tenantcontext.tenant
 
 import app.improving.common.infrastructure.util.convertApiAddressToAddress
 import TestData._
+import app.improving.ApiTenantId
 import app.improving.tenantcontext.TenantStatus
 import app.improving.tenantcontext.infrastructure.util.convertApiContactToContact
+import kalix.scalasdk.testkit.EventSourcedResult
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -12,16 +15,14 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class TenantAPISpec extends AnyWordSpec with Matchers {
+class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
+
+  var result: EventSourcedResult[ApiTenantId] = null
+  val testKit = TenantAPITestKit(new TenantAPI(_))
+
   "The TenantAPI" should {
 
     "correctly process commands of type EstablishTenant" in {
-      val testKit = TenantAPITestKit(new TenantAPI(_))
-      val command = ApiEstablishTenant(
-        testTenantId,
-        Some(apiInfo)
-      )
-      val result = testKit.establishTenant(command)
 
       result.events should have size 1
 
@@ -51,12 +52,6 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
     }
 
     "correctly process commands of type ActivateTenant" in {
-      val testKit = TenantAPITestKit(new TenantAPI(_))
-      val command = ApiEstablishTenant(
-        testTenantId,
-        Some(apiInfo)
-      )
-      val result = testKit.establishTenant(command)
 
       result.events should have size 1
 
@@ -83,12 +78,6 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
     }
 
     "correctly process commands of type SuspendTenant" in {
-      val testKit = TenantAPITestKit(new TenantAPI(_))
-      val command = ApiEstablishTenant(
-        testTenantId,
-        Some(apiInfo)
-      )
-      val result = testKit.establishTenant(command)
 
       result.events should have size 1
       val tenantId = testKit.currentState.tenant
@@ -114,12 +103,6 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
     }
 
     "correctly process commands of type UpdatePrimaryContact" in {
-      val testKit = TenantAPITestKit(new TenantAPI(_))
-      val command = ApiEstablishTenant(
-        testTenantId,
-        Some(apiInfo)
-      )
-      val result = testKit.establishTenant(command)
 
       result.events should have size 1
       val tenantId = testKit.currentState.tenant
@@ -144,12 +127,6 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
     }
 
     "correctly process commands of type ChangeTenantName" in {
-      val testKit = TenantAPITestKit(new TenantAPI(_))
-      val command = ApiEstablishTenant(
-        testTenantId,
-        Some(apiInfo)
-      )
-      val result = testKit.establishTenant(command)
 
       result.events should have size 1
       val tenantId = testKit.currentState.tenant
@@ -158,7 +135,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
         .getOrElse("TenantId is not found.")
       val changeTenantNameEvent = ApiChangeTenantName(
         tenantId,
-        newName,
+        testNewName,
         testTenantId2
       )
 
@@ -168,8 +145,17 @@ class TenantAPISpec extends AnyWordSpec with Matchers {
       changeTenantNameResult.events should have size 1
 
       testKit.currentState.tenant.map(_.name) shouldBe Some(
-        newName
+        testNewName
       )
     }
+  }
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    val command = ApiEstablishTenant(
+      testTenantId,
+      Some(apiInfo)
+    )
+    result = testKit.establishTenant(command)
   }
 }

@@ -6,7 +6,7 @@ object TestData {
 
   val testTenantId = "test-tenant-id"
   val testTenantId2 = "test-tenant-id2"
-  val newName = "new-name"
+  val testNewName = "new-name"
   val apiContact = ApiContact(
     "firtname",
     "lastname",

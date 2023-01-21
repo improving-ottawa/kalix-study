@@ -79,7 +79,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         effects.reply(ApiEventId.defaultInstance)
       }
       case _ => {
-        val eventId = java.util.UUID.randomUUID().toString
+        val eventId = apiScheduleEvent.eventId
         val event = EventScheduled(
           Some(EventId(eventId)),
           apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),

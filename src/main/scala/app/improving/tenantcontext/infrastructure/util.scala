@@ -91,7 +91,8 @@ object util {
       tenant.name,
       tenant.primaryContact.map(convertContactToApiContact),
       tenant.info.map(convertInfoToApiInfo),
-      tenant.meta.map(convertMetaInfoToApiMetaInfo)
+      tenant.meta.map(convertMetaInfoToApiMetaInfo),
+      convertTenantStatusToApiTenantStatus(tenant.status)
     )
   }
 
@@ -101,7 +102,8 @@ object util {
       apiTenant.name,
       apiTenant.primaryContact.map(convertApiContactToContact),
       apiTenant.info.map(convertApiInfoToInfo),
-      apiTenant.meta.map(convertApiMetaInfoToMetaInfo)
+      apiTenant.meta.map(convertApiMetaInfoToMetaInfo),
+      convertApiTenantStatusToTenantStatus(apiTenant.status)
     )
   }
 }
