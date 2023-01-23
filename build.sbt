@@ -12,27 +12,27 @@ lazy val common: Project = project
 lazy val gateway = project
   .in(file("gateway"))
   .configure(Kalix.service("gateway"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val org = project
   .in(file("organization"))
   .configure(Kalix.service("organization"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val event = project
   .in(file("event"))
   .configure(Kalix.service("event"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val member = project
   .in(file("member"))
   .configure(Kalix.service("member"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val order = project
   .in(file("order"))
   .configure(Kalix.service("order"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
   .configure(Kalix.dependsOn(product, "product"))
   .configure(Kalix.dependsOn(member, "member"))
   .configure(Kalix.dependsOn(event, "event"))
@@ -41,12 +41,12 @@ lazy val order = project
 lazy val product = project
   .in(file("product"))
   .configure(Kalix.service("product"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val store = project
   .in(file("store"))
   .configure(Kalix.service("store"))
-//  .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(common, "common"))
 
 lazy val tenant = project
   .in(file("tenant"))

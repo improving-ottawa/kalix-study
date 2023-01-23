@@ -1,13 +1,9 @@
 import Dependencies._
-import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.packager.archetypes.{
-  JavaAppPackaging,
-  JavaServerAppPackaging
-}
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import kalix.sbt.KalixPlugin
-import sbt.Keys.{libraryDependencies, _}
+import sbt.Keys._
 import sbt._
 import sbtdynver.DynVerPlugin.autoImport.dynverSeparator
 import sbtprotoc.ProtocPlugin.autoImport.PB
@@ -16,11 +12,6 @@ import scalapb.GeneratorOption.{
   RetainSourceCodeInfo,
   SingleLineToProtoString
 }
-import sbtdynver.DynVerPlugin.autoImport._
-
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import scala.util.matching.Regex
 
 object Compilation {
 
@@ -50,6 +41,19 @@ object Compilation {
     )
   }
 
+  def scalapbCodeGen(project: Project): Project = {
+    project.settings(
+      libraryDependencies ++= scalaPbDependencies,
+      Compile / PB.targets := Seq(
+        scalapb.gen(
+          FlatPackage,
+          SingleLineToProtoString,
+          RetainSourceCodeInfo
+        ) -> (Compile / sourceManaged).value / "scalapb"
+      ),
+      libraryDependencies += scalaPbCompilerPlugin
+    )
+  }
 }
 
 object Testing {
@@ -133,6 +137,7 @@ object Kalix {
     project
 //      .enablePlugins(KalixPlugin)
       .configure(Compilation.scala)
+      .configure(Compilation.scalapbCodeGen)
       .configure(Testing.scalaTest)
       .settings(
         name := componentName,
@@ -149,13 +154,13 @@ object Kalix {
       project: Project
   ): Project = {
     project
-      .settings(
-        libraryDependencies ++= {
-          Seq(
-            "app.improving" %% name % version.value % "protobuf"
-          )
-        }
-      )
+//      .settings(
+//        libraryDependencies ++= {
+//          Seq(
+//            "app.improving" %% name % version.value % "protobuf"
+//          )
+//        }
+//      )
       .dependsOn(dependency)
   }
 }
