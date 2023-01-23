@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package app.improving.membercontext.membermap;
+
+import "app/improving/common/common_domain.proto";
+import "app/improving/member/domain/member_context_domain.proto";
+
+message MapMemberId {
+    string id = 1;
+}
+
+message MapMemberInfo {
+    Contact contact = 1;
+    string handle = 2;
+    string avatar = 3; // URL type?
+    string firstName = 4;
+    string lastName = 5;
+    MobileNumber mobileNumber = 6;
+    EmailAddress emailAddress = 7;
+    NotificationPreference notificationPreference = 8;
+    repeated OrganizationId organizationMembership = 9;
+    TenantId tenant = 10;
+}

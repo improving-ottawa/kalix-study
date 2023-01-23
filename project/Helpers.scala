@@ -1,14 +1,21 @@
 import Dependencies._
 import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.packager.archetypes.{JavaAppPackaging, JavaServerAppPackaging}
+import com.typesafe.sbt.packager.archetypes.{
+  JavaAppPackaging,
+  JavaServerAppPackaging
+}
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import kalix.sbt.KalixPlugin
 import sbt.Keys.{libraryDependencies, _}
 import sbt._
 import sbtdynver.DynVerPlugin.autoImport.dynverSeparator
 import sbtprotoc.ProtocPlugin.autoImport.PB
-import scalapb.GeneratorOption.{FlatPackage, RetainSourceCodeInfo, SingleLineToProtoString}
+import scalapb.GeneratorOption.{
+  FlatPackage,
+  RetainSourceCodeInfo,
+  SingleLineToProtoString
+}
 import sbtdynver.DynVerPlugin.autoImport._
 
 import java.nio.charset.StandardCharsets
@@ -35,7 +42,6 @@ object Compilation {
         "-Xlog-reflective-calls",
         "-Xlint"
       ),
-
       Compile / javacOptions ++= Seq(
         "-Xlint:unchecked",
         "-Xlint:deprecation",
@@ -43,7 +49,6 @@ object Compilation {
       )
     )
   }
-
 
 }
 
@@ -108,7 +113,8 @@ object Packaging {
 object Kalix {
 
   def service(componentName: String)(project: Project): Project = {
-    project.enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
+    project
+      .enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
       .configure(Compilation.scala)
       .configure(Testing.scalaTest)
       .configure(Packaging.docker)
@@ -124,7 +130,8 @@ object Kalix {
   }
 
   def library(componentName: String)(project: Project): Project = {
-    project.enablePlugins(KalixPlugin)
+    project
+//      .enablePlugins(KalixPlugin)
       .configure(Compilation.scala)
       .configure(Testing.scalaTest)
       .settings(
@@ -138,13 +145,17 @@ object Kalix {
       )
   }
 
-  def dependsOn(dependency: Project, name: String)(project: Project): Project = {
-    project.settings(
-      libraryDependencies ++= {
-        Seq(
-          "app.improving" %% name % version.value % "protobuf"
-        )
-      }
-    ).dependsOn(dependency)
+  def dependsOn(dependency: Project, name: String)(
+      project: Project
+  ): Project = {
+    project
+      .settings(
+        libraryDependencies ++= {
+          Seq(
+            "app.improving" %% name % version.value % "protobuf"
+          )
+        }
+      )
+      .dependsOn(dependency)
   }
 }

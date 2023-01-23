@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+
+package app.improving.membercontext.member;
+
+
+import "app/improving/common/common_api.proto";
+import "app/improving/member/api/member_api.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+
+service MemberService {
+
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.membercontext.member.MemberAPI"
+            entity_type: "members"
+            state: "app.improving.membercontext.member.MemberState"
+            events: [
+                "app.improving.membercontext.MemberInfoUpdated",
+                "app.improving.membercontext.MemberRegistered",
+                "app.improving.membercontext.MemberStatusUpdated"]
+        }
+    };
+
+
+    rpc RegisterMember(ApiRegisterMember) returns (ApiMemberId) {
+        option (google.api.http) = {
+            post: "/member/register"
+            body: "*"
+        };
+    }
+
+    rpc UpdateMemberStatus(ApiUpdateMemberStatus) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/update-status"
+            body: "*"
+        };
+    }
+
+    rpc UpdateMemberInfo(ApiUpdateMemberInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/update-info"
+            body: "*"
+        };
+    }
+
+    rpc GetMemberData(ApiGetMemberData) returns (ApiMemberData) {
+        option (google.api.http) = {
+            get: "/member/{member_id}/member-data"
+        };
+    }
+}

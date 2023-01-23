@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+
+package app.improving.membercontext.member;
+
+
+import "app/improving/common/common_api.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+enum ApiNotificationPreference {
+    EMAIL = 0;
+    SMS = 1;
+    APPLICATION = 2;
+}
+
+enum ApiMemberStatus {
+    ACTIVE = 0;
+    INACTIVE = 2;
+    SUSPENDED = 3;
+    TERMINATED = 4;
+    UNKNOWN = 5;
+}
+
+message ApiInfo {
+    ApiContact contact = 1;
+    string handle = 2;
+    string avatar = 3; // URL type?
+    string firstName = 4;
+    string lastName = 5;
+    ApiMobileNumber mobileNumber = 6;
+    ApiEmailAddress emailAddress = 7;
+    ApiNotificationPreference notificationPreference = 8;
+    repeated ApiOrganizationId organizationMembership = 9;
+    ApiTenantId tenant = 10;
+}
+
+message ApiRegisterMember {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiInfo info = 2;
+    ApiMemberId registeringMember = 3;
+}
+
+message ApiMemberMap {
+    map<string, ApiInfo> map = 1;
+}
+
+message ApiRegisterMemberList {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberMap memberList = 2;
+    ApiMemberId registeringMember = 3;
+}
+
+message ApiUpdateMemberInfo {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiUpdateInfo info = 2;
+    ApiMemberId actingMember = 3;
+}
+
+message ApiUpdateMemberStatus {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId actingMember = 2;
+    ApiMemberStatus newStatus = 3;
+}
+
+message ApiUpdateInfo {
+    string handle = 1;
+    string avatar = 2; // URL type?
+    string firstName = 3;
+    string lastName = 4;
+    ApiMobileNumber mobileNumber = 5;
+    ApiEmailAddress emailAddress = 6;
+    ApiNotificationPreference notificationPreference = 7;
+    repeated ApiOrganizationId organizationMembership = 8;
+    ApiTenantId tenantId = 9;
+}
+
+message ApiGetMemberData {
+    string member_id = 1 [(kalix.field).entity_key = true];
+}
+
+message ApiMetaInfo {
+    google.protobuf.Timestamp createdOn = 1;
+    ApiMemberId createdBy = 2;
+    google.protobuf.Timestamp lastModifiedOn = 3;
+    ApiMemberId lastModifiedBy = 4;
+    ApiMemberStatus memberStatus = 5;
+}
+
+message ApiMemberData  {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiUpdateInfo info = 2;
+    ApiMetaInfo meta = 3;
+}

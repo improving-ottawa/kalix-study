@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+
+package app.improving.organizationcontext;
+
+import "app/improving/organization/api/organization_api.proto";
+import "app/improving/organization/domain/organization_context_domain.proto";
+import "google/api/annotations.proto";
+import "kalix/annotations.proto";
+
+message ByOwnerRequest {
+    string owner_id = 1;
+}
+
+
+service OrganizationByOwnerView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessOrganizationEstablished(OrganizationEstablished) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessMembersAddedToOrganization(MembersAddedToOrganization) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessMembersRemovedFromOrganization(MembersRemovedFromOrganization) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrganizationAccountsUpdated(OrganizationAccountsUpdated) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrganizationContactsUpdated(OrganizationContactsUpdated) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrganizationInfoUpdated(OrganizationInfoUpdated) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrganizationStatusUpdated(OrganizationStatusUpdated) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOwnersAddedToOrganization(OwnersAddedToOrganization) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOwnersRemovedFromOrganization(OwnersRemovedFromOrganization) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
+    rpc FindOrganizationByOwner(ByOwnerRequest) returns (stream organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).view.query = {
+            query: "SELECT * FROM organizations_by_owner WHERE :owner_id = ANY(owner_ids)"
+        };
+        option (google.api.http) = {
+            get: "/organizations/by_owner/{owner_id}"
+        };
+    }
+}

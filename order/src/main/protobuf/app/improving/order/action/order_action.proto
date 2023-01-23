@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package app.improving.ordercontext.order;
+
+import "app/improving/common/common_api.proto";
+import "app/improving/order/api/order_api.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+
+
+service OrderAction {
+    option (kalix.codegen) = {
+        action: {}
+    };
+
+    rpc PurchaseTicket(ApiCreateOrder) returns (ApiOrderId);
+}

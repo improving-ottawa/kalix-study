@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/store/api/store_api.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package app.improving.storecontext.store;
+
+service StoreService {
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.storecontext.store.StoreAPI"
+            entity_type: "stores"
+            state: "app.improving.storecontext.store.StoreState"
+            events: [
+                "app.improving.storecontext.StoreCreated",
+                "app.improving.storecontext.StoreDeleted",
+                "app.improving.storecontext.StoreOpened",
+                "app.improving.storecontext.StoreUpdated",
+                "app.improving.storecontext.StoreClosed",
+                "app.improving.storecontext.ProductsAddedToStore",
+                "app.improving.storecontext.ProductsRemovedFromStore"]
+        }
+    };
+
+    rpc CreateStore(ApiCreateStore) returns (ApiStoreId) {
+        option (google.api.http) = {
+            post: "/store/create"
+            body: "*"
+        };
+    }
+
+    rpc UpdateStore(ApiUpdateStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/store/{store_id}"
+            body: "*"
+        };
+    }
+
+    rpc DeleteStore(ApiDeleteStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/store/{store_id}"
+        };
+    }
+
+    rpc OpenStore(ApiOpenStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/open-store"
+        };
+    }
+
+    rpc CloseStore(ApiCloseStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/close-store"
+        };
+    }
+
+    rpc AddProductsToStore(ApiAddProductsToStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/add-product"
+        };
+    }
+    rpc RemoveProductsFromStore(ApiRemoveProductsFromStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/remove-product"
+        };
+    }
+    rpc GetProductsInStore(ApiGetProductsInStore) returns (ApiProductsInStore) {
+        option (google.api.http) = {
+            get: "/store/{store_id}/products-in-store"
+        };
+    }
+
+}

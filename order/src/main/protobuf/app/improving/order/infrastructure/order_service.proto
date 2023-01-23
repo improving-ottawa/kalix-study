@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+import "app/improving/common/common_api.proto";
+import "app/improving/order/api/order_api.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+package app.improving.ordercontext.order;
+
+service OrderService {
+    option (kalix.codegen) = {
+        event_sourced_entity: {
+            name: "app.improving.ordercontext.order.OrderAPI"
+            entity_type: "orders"
+            state: "app.improving.ordercontext.order.OrderState"
+            events: [
+                "app.improving.ordercontext.OrderCreated",
+                "app.improving.ordercontext.OrderStatusUpdated",
+                "app.improving.ordercontext.OrderInfoUpdated",
+                "app.improving.ordercontext.OrderCanceled"
+            ]
+        }
+    };
+
+    rpc CreateOrder(ApiCreateOrder) returns (ApiOrderId) {
+        option (google.api.http) = {
+            post: "/order/create"
+            body: "*"
+        };
+    }
+
+    rpc UpdateOrderStatus(ApiUpdateOrderStatus) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/update-order-status"
+            body: "*"
+        };
+    }
+
+    rpc UpdateOrderInfo(ApiUpdateOrderInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/update-order-info"
+            body: "*"
+        };
+    }
+
+    rpc CancelOrder(ApiCancelOrder) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/cancel-order"
+            body: "*"
+        };
+    }
+
+    rpc GetOrderInfo(ApiGetOrderInfo) returns (ApiOrderInfoResult) {
+        option (google.api.http) = {
+            get: "/order/{order_id}/order-info"
+        };
+    }
+}
