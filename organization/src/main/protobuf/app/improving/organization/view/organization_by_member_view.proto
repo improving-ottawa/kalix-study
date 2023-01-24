@@ -6,7 +6,6 @@ package app.improving.organizationcontext;
 
 import "app/improving/organization/api/organization_api.proto";
 import "app/improving/organization/domain/organization_context_domain.proto";
-import "google/api/annotations.proto";
 import "kalix/annotations.proto";
 
 message ByMemberRequest {

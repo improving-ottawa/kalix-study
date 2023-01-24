@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package app.improving.productcontext;
 
-import "app/improving/common/common_api.proto";
-import "app/improving/common/common_domain.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/domain/product_context_domain.proto";
 import "kalix/annotations.proto";

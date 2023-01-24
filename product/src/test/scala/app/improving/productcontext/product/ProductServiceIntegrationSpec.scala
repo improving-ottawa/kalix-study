@@ -1,5 +1,6 @@
 package app.improving.productcontext.product
 
+import app.improving.ApiMemberId
 import app.improving.productcontext.Main
 import app.improving.productcontext.product.TestData._
 import kalix.scalasdk.testkit.KalixTestKit
@@ -42,19 +43,48 @@ class ProductServiceIntegrationSpec
       createdProductInfo.info shouldBe Some(apiProductInfo)
     }
 
+    "activate product correctly" in {
+      val apiActivateProduct = ApiActivateProduct(
+        testSku,
+        Some(ApiMemberId(testMemberId1))
+      )
+
+      client.activateProduct(apiActivateProduct).futureValue
+
+      val apiGetProductInfo = ApiGetProductInfo(
+        testSku
+      )
+      val createdProductInfo =
+        client.getProductInfo(apiGetProductInfo).futureValue
+
+      createdProductInfo.info shouldBe Some(apiProductInfo)
+    }
+
+    "delete product correctly" in {
+      val apiDeleteProduct = ApiDeleteProduct(
+        testSku,
+        Some(ApiMemberId(testMemberId1))
+      )
+
+      client.deleteProduct(apiDeleteProduct).futureValue
+
+      val apiGetProductInfo = ApiGetProductInfo(
+        testSku
+      )
+
+      intercept[Exception] {
+        client.getProductInfo(apiGetProductInfo).futureValue
+      }
+    }
+
   }
 
   override def beforeAll(): Unit = {
     super.beforeAll()
 
-    val apiCreateProduct = ApiCreateProduct(
-      testSku,
-      Some(apiProductInfo),
-      Some(apiProductMetaInfo)
-    )
-
     client.createProduct(apiCreateProduct).futureValue
   }
+
   override def afterAll(): Unit = {
     testKit.stop()
     super.afterAll()

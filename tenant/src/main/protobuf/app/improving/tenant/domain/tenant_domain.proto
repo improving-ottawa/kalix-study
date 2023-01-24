@@ -1,7 +1,8 @@
 syntax = "proto3";
 
-import "app/improving/common/common_domain.proto";
+
 import "app/improving/tenant/domain/tenant_context_domain.proto";
+import "common_domain.proto";
 
 
 package app.improving.tenantcontext.tenant;

@@ -1,7 +1,7 @@
 package app.improving.storecontext.store
 
-import akka.actor.ActorSystem
-import com.google.protobuf.empty.Empty
+import app.improving.ApiMemberId
+import app.improving.storecontext.store.TestData._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -31,11 +31,65 @@ class StoreServiceIntegrationSpec
 
   "StoreService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "create store correctly" in {
+      val apiGetProductsInStore = ApiGetProductsInStore(
+        testStoreId
+      )
+
+      val productsInStore =
+        client.getProductsInStore(apiGetProductsInStore).futureValue
+
+      productsInStore.products shouldBe testProducts
     }
+
+    "update store correctly" in {
+      val apiUpdateStore = ApiUpdateStore(
+        testStoreId,
+        Some(apiStoreInfoUpdate),
+        Some(apiStoreMetaInfo)
+      )
+
+      client.updateStore(apiUpdateStore).futureValue
+
+      val apiGetProductsInStore = ApiGetProductsInStore(
+        testStoreId
+      )
+
+      val updatedProductsInStore =
+        client.getProductsInStore(apiGetProductsInStore).futureValue
+
+      updatedProductsInStore.products shouldBe testProductsUpdate
+    }
+
+    "delete correctly" in {
+      val apiDeleteStore = ApiDeleteStore(
+        testStoreId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      client.deleteStore(apiDeleteStore).futureValue
+
+      val apiGetProductsInStore = ApiGetProductsInStore(
+        testStoreId
+      )
+
+      val deletedStore =
+        client.getProductsInStore(apiGetProductsInStore).futureValue
+
+      deletedStore.products shouldBe Seq.empty
+    }
+  }
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    val command = ApiCreateStore(
+      testStoreId,
+      Some(apiStoreInfo),
+      Some(ApiMemberId(testMember2))
+    )
+
+    client.createStore(command).futureValue
 
   }
 

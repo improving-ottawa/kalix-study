@@ -28,13 +28,15 @@ lazy val member = project
   .in(file("member"))
   .configure(Kalix.service("member"))
   .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(order, "order"))
+  .configure(Kalix.dependsOn(product, "product"))
+  .configure(Kalix.dependsOn(event, "event"))
 
 lazy val order = project
   .in(file("order"))
   .configure(Kalix.service("order"))
   .configure(Kalix.dependsOn(common, "common"))
   .configure(Kalix.dependsOn(product, "product"))
-  .configure(Kalix.dependsOn(member, "member"))
   .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(org, "organization"))
 
@@ -60,4 +62,4 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(common, tenant, store, product, org, order, member, event)
+  .aggregate(common, tenant, store, product, org, member, order, event)

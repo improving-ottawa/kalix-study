@@ -1,7 +1,11 @@
 package app.improving.membercontext
 
+import app.improving.membercontext.infrastructure.util.{
+  convertInfoToApiUpdateInfo,
+  convertMemberRegisteredToApiMemberData,
+  convertMetaInfoToApiMetaInfo
+}
 import app.improving.membercontext.member.ApiMemberData
-import app.improving.membercontext.infrastructure.util._
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 
@@ -47,6 +51,7 @@ class MemberByMetaInfoViewImpl(context: ViewContext)
       state.copy(info = updatedInfoOpt)
     )
   }
+
   override def processRegisterMemberList(
       state: ApiMemberData,
       memberListRegistered: MemberListRegistered

@@ -8,10 +8,26 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
-import TestData._
+import TestData.{
+  apiCreateOrderPrivateEvent,
+  apiCreateOrderPrivateFailedEvent,
+  _
+}
 import app.improving.eventcontext.event.EventService
-import app.improving.membercontext.member.MemberService
+import app.improving.eventcontext.event.TestData.{
+  apiScheduleEvent,
+  apiSchedulePrivateEvent,
+  apiSchedulePrivateFailedEvent
+}
+import app.improving.organizationcontext.organization.OrganizationService
+import app.improving.organizationcontext.organization.TestData.apiEstablishOrganization
 import app.improving.productcontext.product.ProductService
+import app.improving.productcontext.product.TestData.{
+  apiCreateProduct,
+  apiCreateProductPrivateEvent,
+  apiCreateProductPrivateFailedEvent
+}
+import org.scalatest.exceptions.TestFailedException
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -29,24 +45,60 @@ class OrderServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val order = testKit.getGrpcClient(classOf[OrderService])
   private val event = testKit.getGrpcClient(classOf[EventService])
   private val product = testKit.getGrpcClient(classOf[ProductService])
-  private val member = testKit.getGrpcClient(classOf[MemberService])
+  private val organization = testKit.getGrpcClient(classOf[OrganizationService])
 
   private val action = testKit.getGrpcClient(classOf[OrderAction])
 
   "OrderService" must {
 
-    "purchase order correctly" in {
-      val orderId = order.createOrder(apiCreateOrder)
-      println(orderId.value)
+    "purchase public order correctly" in {
+      val eventId = event.scheduleEvent(apiScheduleEvent).futureValue
 
-      val failedOrder = action.purchaseTicket(apiCreateOrder)
+      val productId = product.createProduct(apiCreateProduct).futureValue
 
-      true shouldBe true
+      println(productId + " productId")
+
+      val purchased = action.purchaseTicket(apiCreateOrder).futureValue
+
+      println(purchased + " purchased")
+      purchased.orderId shouldBe "test-order-id"
     }
 
+    "purchase public order fails as expected" in {
+
+      action.purchaseTicket(apiCreateOrder).futureValue.orderId shouldBe ""
+
+    }
+
+    "purchase private order correctly" in {
+      val eventId = event.scheduleEvent(apiSchedulePrivateEvent).futureValue
+
+      val productId =
+        product.createProduct(apiCreateProductPrivateEvent).futureValue
+
+      val organizationId =
+        organization.establishOrganization(apiEstablishOrganization).futureValue
+
+      val purchased =
+        action.purchaseTicket(apiCreateOrderPrivateEvent).futureValue
+
+      println(purchased + " purchased")
+      purchased.orderId shouldBe "test-order-id2"
+    }
+
+    "purchase private order fails as expected" in {
+      val eventId =
+        event.scheduleEvent(apiSchedulePrivateFailedEvent).futureValue
+
+      val productId =
+        product.createProduct(apiCreateProductPrivateFailedEvent).futureValue
+
+      intercept[TestFailedException](
+        action.purchaseTicket(apiCreateOrderPrivateFailedEvent).futureValue
+      )
+    }
   }
 
   override def afterAll(): Unit = {

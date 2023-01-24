@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package app.improving.ordercontext.order;
 
-import "app/improving/common/common_api.proto";
 import "app/improving/order/api/order_api.proto";
-import "google/protobuf/empty.proto";
+import "common_api.proto";
 import "kalix/annotations.proto";
 
 

@@ -135,7 +135,6 @@ object Kalix {
 
   def library(componentName: String)(project: Project): Project = {
     project
-//      .enablePlugins(KalixPlugin)
       .configure(Compilation.scala)
       .configure(Compilation.scalapbCodeGen)
       .configure(Testing.scalaTest)
@@ -154,13 +153,6 @@ object Kalix {
       project: Project
   ): Project = {
     project
-//      .settings(
-//        libraryDependencies ++= {
-//          Seq(
-//            "app.improving" %% name % version.value % "protobuf"
-//          )
-//        }
-//      )
-      .dependsOn(dependency)
+      .dependsOn(dependency % "compile->compile;test->test")
   }
 }

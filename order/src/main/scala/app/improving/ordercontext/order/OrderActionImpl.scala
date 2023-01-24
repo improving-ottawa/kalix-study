@@ -1,9 +1,12 @@
 package app.improving.ordercontext.order
 
 import app.improving.ApiOrderId
-import app.improving.eventcontext.event.ApiGetEventById
-import app.improving.organizationcontext.organization.ApiGetOrganizationById
-import app.improving.productcontext.product.ApiGetProductInfo
+import app.improving.eventcontext.event.{ApiGetEventById, EventService}
+import app.improving.organizationcontext.organization.{
+  ApiGetOrganizationById,
+  OrganizationService
+}
+import app.improving.productcontext.product.{ApiGetProductInfo, ProductService}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 
@@ -31,6 +34,13 @@ class OrderActionImpl(creationContext: ActionCreationContext)
   override def purchaseTicket(
       order: ApiCreateOrder
   ): Action.Effect[ApiOrderId] = {
+    val event = creationContext.getGrpcClient(classOf[EventService], "event")
+    val product =
+      creationContext.getGrpcClient(classOf[ProductService], "product")
+    val organization = creationContext.getGrpcClient(
+      classOf[OrganizationService],
+      "organization"
+    )
     val orderInfo = order.info.getOrElse(ApiOrderInfo())
     val productIds = orderInfo.lineItems.map(
       _.product.map(_.productId).getOrElse("ProductId is not found.")
@@ -42,9 +52,8 @@ class OrderActionImpl(creationContext: ActionCreationContext)
     val productInfoResults = Future.sequence(productIds.map(sku => {
       val eventIdFut =
         for {
-          apiProductInfo <- components.productAPI
+          apiProductInfo <- product
             .getProductInfo(ApiGetProductInfo(sku))
-            .execute()
         } yield apiProductInfo.info
           .flatMap(_.event)
           .map(_.eventId)
@@ -52,9 +61,8 @@ class OrderActionImpl(creationContext: ActionCreationContext)
 
       val tupleFut = (for {
         eventId <- eventIdFut
-        event <- components.eventAPI
+        event <- event
           .getEventById(ApiGetEventById(eventId))
-          .execute()
       } yield {
         (
           event.info.map(_.isPrivate) == Some(false),
@@ -69,11 +77,10 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           case (true, _) => Future.successful(true)
           case (false, Some(orgId)) => {
             for {
-              organization <- components.organizationAPI
+              organization <- organization
                 .getOrganization(
                   ApiGetOrganizationById(orgId.organizationId)
                 )
-                .execute()
             } yield {
               if (organization.memberIds.contains(memberId)) {
                 true

@@ -31,7 +31,7 @@ class EventServiceIntegrationSpec
   "EventService" must {
 
     "schedule event correctly" in {
-      client.scheduleEvent(event).futureValue
+      client.scheduleEvent(apiScheduleEvent).futureValue
 
       val scheduled =
         client.getEventById(ApiGetEventById(testEventId)).futureValue
