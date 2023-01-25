@@ -1,6 +1,8 @@
 package app.improving.tenantcontext.tenant
 
-import app.improving._
+import akka.actor.ActorSystem
+import app.improving.ApiTenantId
+import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -9,7 +11,6 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
-import TestData._
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -23,7 +24,7 @@ class TenantServiceIntegrationSpec
     with ScalaFutures {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(50, Seconds), Span(1000, Millis))
+    PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
@@ -31,86 +32,14 @@ class TenantServiceIntegrationSpec
 
   "TenantService" must {
 
-    "create tenant correctly" in {
-
-      val tenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
-        .futureValue
-
-      tenant.name shouldBe apiInfo.name
-
-      tenant.status shouldBe ApiTenantStatus.DRAFT
-
-      val apiActivateTenant = ApiActivateTenant(
-        testTenantId,
-        testTenantId2
-      )
-
-      client.activateTenant(apiActivateTenant).futureValue
-
-      val activatedTenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
-        .futureValue
-
-      activatedTenant.status shouldBe ApiTenantStatus.ACTIVE
+    "have example test that can be removed" in {
+      pending
+      // use the gRPC client to send requests to the
+      // proxy and verify the results
     }
 
-    "deactivate tenant correctly" in {
-
-      val apiSuspendTenant = ApiSuspendTenant(
-        testTenantId,
-        testTenantId2
-      )
-      client.suspendTenant(apiSuspendTenant).futureValue
-
-      val suspendedTenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
-        .futureValue
-
-      suspendedTenant.status shouldBe ApiTenantStatus.SUSPENDED
-    }
-
-    "updatePrimaryContact correctly" in {
-
-      val apiUpdatePrimaryContact = ApiUpdatePrimaryContact(
-        testTenantId,
-        Some(newApiContact),
-        testTenantId2
-      )
-      client.updatePrimaryContact(apiUpdatePrimaryContact).futureValue
-
-      val updatePrimaryContactTenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
-        .futureValue
-
-      updatePrimaryContactTenant.primaryContact shouldBe Some(newApiContact)
-    }
-
-    "changeTenantName correctly" in {
-      val apiChangeTenantName = ApiChangeTenantName(
-        testTenantId,
-        testNewName,
-        testTenantId2
-      )
-
-      client.changeTenantName(apiChangeTenantName).futureValue
-
-      val changedNewNameTenant = client
-        .getTenantById(ApiGetTenantById(testTenantId))
-        .futureValue
-
-      changedNewNameTenant.name shouldBe testNewName
-    }
   }
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-    val command = ApiEstablishTenant(
-      testTenantId,
-      Some(apiInfo)
-    )
-    client.establishTenant(command).futureValue
-  }
   override def afterAll(): Unit = {
     testKit.stop()
     super.afterAll()

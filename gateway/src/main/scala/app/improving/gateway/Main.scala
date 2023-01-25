@@ -1,5 +1,6 @@
 package app.improving.gateway
 
+import app.improving.gateway.KalixFactory
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -17,8 +18,7 @@ object Main {
     // and is kept up-to-date with any changes in your protobuf definitions.
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
-    KalixFactory.withComponents(
-      new GatewayAPIActionImpl(_))
+    KalixFactory.withComponents(new GatewayApiActionImpl(_))
   }
 
   def main(args: Array[String]): Unit = {

@@ -1,15 +1,4 @@
-package app.improving.membercontext.membermap
-
-import kalix.scalasdk.testkit.KalixTestKit
-import app.improving.membercontext.{Main, NotificationPreference}
-import app.improving.{Contact, EmailAddress, MobileNumber, OrganizationId, TenantId}
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.Millis
-import org.scalatest.time.Seconds
-import org.scalatest.time.Span
-import org.scalatest.wordspec.AnyWordSpec
+package app.improving
 
 class MemberMapIntegrationSpec
     extends AnyWordSpec
@@ -21,7 +10,6 @@ class MemberMapIntegrationSpec
     PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
-  import testKit.executionContext
 
   private val memberMapService =
     testKit.getGrpcClient(classOf[MemberMapService])

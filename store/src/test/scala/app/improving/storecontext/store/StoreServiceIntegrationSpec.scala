@@ -1,6 +1,7 @@
 package app.improving.storecontext.store
 
 import akka.actor.ActorSystem
+import app.improving.ApiStoreId
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll

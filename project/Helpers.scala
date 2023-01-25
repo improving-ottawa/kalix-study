@@ -110,6 +110,66 @@ object Packaging {
   }
 }
 
+object KalixPb {
+  lazy val copyProtobuf = taskKey[Unit]("copyProtobuf")
+
+  lazy val serviceProtobufProjectDependencies =
+    settingKey[Seq[File]]("serviceProtobufProjectDependencies")
+
+  private val protobufKalixAnnotationRegex: Regex =
+    """(?s)(\n?\s*)option\s*(\(\s*kalix.*?)\s*=.*?}\s*;\s*(\n)""".r
+  private val protobufKalixImportRegex: Regex =
+    """([\n^]\s*)import\s+"?kalix/annotations\.proto"?\s*;""".r
+  private val protobufKalixSingleFieldRegex: Regex =
+    """\s*\[\s*\(kalix\.field\)[^,\]]*?]""".r
+  private val protobufKalixStartFieldRegex: Regex =
+    """(\s*\[)\s*\(kalix\.field\)[^,\]]*?,\s*""".r
+  private val protobufKalixEndFieldRegex: Regex =
+    """\s*,\s*\(kalix\.field\)[^,\]]*?(])""".r
+  private val protobufKalixMiddleFieldRegex: Regex =
+    """(,)\s*\(kalix\.field\)[^,\]]*?,(\s*)""".r
+  def copyKalixFreeProtobufFiles(
+      srcDirectory: File,
+      dstDirectory: File
+  ): Unit = {
+    if (!dstDirectory.exists()) dstDirectory.mkdirs()
+
+    val (srcDirs, srcFiles) = srcDirectory.listFiles.partition(_.isDirectory)
+
+    srcFiles.filter(_.getName.endsWith("_api.proto")).foreach { srcFile =>
+      val destFile = new File(dstDirectory, srcFile.getName)
+      if (
+        !destFile.exists() || srcFile.lastModified() > destFile.lastModified()
+      ) {
+        val content = Files.readString(srcFile.toPath, StandardCharsets.UTF_8)
+        val kalixFreeContent =
+          Seq(
+            protobufKalixAnnotationRegex -> "$1// Kalix annotation $2 removed$3",
+            protobufKalixImportRegex -> "$1// Kalix import removed",
+            protobufKalixSingleFieldRegex -> "",
+            protobufKalixStartFieldRegex -> "$1",
+            protobufKalixEndFieldRegex -> "$1",
+            protobufKalixMiddleFieldRegex -> "$1$2"
+          )
+            .foldRight(content) { case ((regex, replacement), input) =>
+              regex.replaceAllIn(input, replacement)
+            }
+        Files.writeString(
+          destFile.toPath,
+          kalixFreeContent,
+          StandardCharsets.UTF_8
+        )
+        destFile.setLastModified(srcFile.lastModified())
+      }
+    }
+
+    srcDirs.foreach { srcDir =>
+      val dstDir = new File(dstDirectory, srcDir.getName)
+      copyKalixFreeProtobufFiles(srcDir, dstDir)
+    }
+  }
+}
+
 object Kalix {
 
   def service(componentName: String)(project: Project): Project = {
@@ -158,4 +218,51 @@ object Kalix {
       )
       .dependsOn(dependency)
   }
+
+  def componentBaseConfiguration(project: Project): Project =
+    project
+      .settings(
+        Compile / packageDoc / publishArtifact := false,
+        Compile / doc / sources := Seq.empty
+      )
+
+  def nonKalixComponentBaseConfiguration(project: Project): Project =
+    project
+      .configure(componentBaseConfiguration)
+      .configure(Testing.scalaTest)
+      // .configure(scalapbConfiguration)
+      // .configure(scalapbCodeGenConfiguration)
+      // .configure(scalapbValidationConfiguration)
+      .settings(
+        libraryDependencies ++= utilityDependencies ++ loggingDependencies ++ Seq(
+          kalixScalaSdk
+        )
+      )
+
+  def generalComponent(componentName: String)(project: Project): Project =
+    project
+      .configure(nonKalixComponentBaseConfiguration)
+      .settings(
+        name := s"$componentName"
+      )
+
+  def multiProjectProtobufConfiguration(project: Project): Project =
+    project.settings(
+      Compile / PB.protoSources += target.value / "protobuf_epbs",
+      //        Compile / PB.includePaths ++= serviceProtobufProjectDependencies.value.map { dir =>
+      //          dir / "src/main/protobuf"
+      //        },
+      Test / PB.protoSources += baseDirectory.value / "src/test/protobuf",
+      (Compile / PB.generate) := (Compile / PB.generate)
+        .dependsOn(KalixPb.copyProtobuf)
+        .value,
+      KalixPb.serviceProtobufProjectDependencies := Seq.empty,
+      KalixPb.copyProtobuf := KalixPb.serviceProtobufProjectDependencies.value
+        .map { depProjectBaseDir =>
+          KalixPb.copyKalixFreeProtobufFiles(
+            depProjectBaseDir / "src/main/protobuf",
+            target.value / "protobuf_epbs"
+          )
+        }
+    )
 }

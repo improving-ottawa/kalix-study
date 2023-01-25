@@ -1,6 +1,8 @@
 package app.improving.eventcontext.event
 
-import TestData._
+import akka.actor.ActorSystem
+import app.improving.ApiEventId
+import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -30,14 +32,10 @@ class EventServiceIntegrationSpec
 
   "EventService" must {
 
-    "schedule event correctly" in {
-      client.scheduleEvent(event).futureValue
-
-      val scheduled =
-        client.getEventById(ApiGetEventById(testEventId)).futureValue
-
-      scheduled.status shouldBe ApiEventStatus.SCHEDULED
-
+    "have example test that can be removed" in {
+      pending
+      // use the gRPC client to send requests to the
+      // proxy and verify the results
     }
 
   }

@@ -29,7 +29,7 @@ import scala.language.postfixOps
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class GatewayAPIActionImplSpec
+class GatewayApiActionImplSpec
     extends AnyWordSpec
     with Matchers
     with MockFactory {
@@ -75,7 +75,7 @@ class GatewayAPIActionImplSpec
 
       val mockRegistry: MockRegistry = MockRegistry.withMock(tenantServiceStub)
       val service: GatewayAPIActionImplTestKit =
-        GatewayAPIActionImplTestKit(new GatewayAPIActionImpl(_), mockRegistry)
+        GatewayAPIActionImplTestKit(new GatewayApiActionImpl(_), mockRegistry)
 
       val command: EstablishTenant = EstablishTenant(Some(tenantInfo))
       val reply: ActionResult[ApiTenantId] =

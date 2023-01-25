@@ -1,7 +1,9 @@
 package app.improving.productcontext.product
 
+import akka.actor.ActorSystem
+import app.improving.ApiProductId
 import app.improving.productcontext.Main
-import app.improving.productcontext.product.TestData._
+import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -31,30 +33,14 @@ class ProductServiceIntegrationSpec
 
   "ProductService" must {
 
-    "create product correctly" in {
-
-      val apiGetProductInfo = ApiGetProductInfo(
-        testSku
-      )
-      val createdProductInfo =
-        client.getProductInfo(apiGetProductInfo).futureValue
-
-      createdProductInfo.info shouldBe Some(apiProductInfo)
+    "have example test that can be removed" in {
+      pending
+      // use the gRPC client to send requests to the
+      // proxy and verify the results
     }
 
   }
 
-  override def beforeAll(): Unit = {
-    super.beforeAll()
-
-    val apiCreateProduct = ApiCreateProduct(
-      testSku,
-      Some(apiProductInfo),
-      Some(apiProductMetaInfo)
-    )
-
-    client.createProduct(apiCreateProduct).futureValue
-  }
   override def afterAll(): Unit = {
     testKit.stop()
     super.afterAll()

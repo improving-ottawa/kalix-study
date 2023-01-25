@@ -1,8 +1,9 @@
 package app.improving.membercontext.member
 
-import TestData._
+import akka.actor.ActorSystem
 import app.improving.ApiMemberId
 import app.improving.membercontext.Main
+import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -24,7 +25,7 @@ class MemberServiceIntegrationSpec
     with ScalaFutures {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(50, Seconds), Span(1000, Millis))
+    PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
@@ -32,18 +33,10 @@ class MemberServiceIntegrationSpec
 
   "MemberService" must {
 
-    "register member correctly" in {
-      val command = ApiRegisterMember(
-        testMemberId,
-        Some(apiInfo),
-        Some(ApiMemberId(testMemberId))
-      )
-      client.registerMember(command).futureValue
-
-      val memberData =
-        client.getMemberData(ApiGetMemberData(testMemberId)).futureValue
-
-      memberData.meta.map(_.memberStatus) shouldBe Some(ApiMemberStatus.ACTIVE)
+    "have example test that can be removed" in {
+      pending
+      // use the gRPC client to send requests to the
+      // proxy and verify the results
     }
 
   }

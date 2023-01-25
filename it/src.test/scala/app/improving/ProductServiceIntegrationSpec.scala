@@ -1,9 +1,7 @@
-package app.improving.organizationcontext.organization
+package app.improving.productcontext.product
 
-import akka.actor.ActorSystem
-import app.improving.ApiOrganizationId
-import app.improving.organizationcontext.Main
-import com.google.protobuf.empty.Empty
+import app.improving.productcontext.Main
+import app.improving.productcontext.product.TestData._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -18,7 +16,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class OrganizationServiceIntegrationSpec
+class ProductServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -29,18 +27,34 @@ class OrganizationServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[OrganizationService])
+  private val client = testKit.getGrpcClient(classOf[ProductService])
 
-  "OrganizationService" must {
+  "ProductService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "create product correctly" in {
+
+      val apiGetProductInfo = ApiGetProductInfo(
+        testSku
+      )
+      val createdProductInfo =
+        client.getProductInfo(apiGetProductInfo).futureValue
+
+      createdProductInfo.info shouldBe Some(apiProductInfo)
     }
 
   }
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+
+    val apiCreateProduct = ApiCreateProduct(
+      testSku,
+      Some(apiProductInfo),
+      Some(apiProductMetaInfo)
+    )
+
+    client.createProduct(apiCreateProduct).futureValue
+  }
   override def afterAll(): Unit = {
     testKit.stop()
     super.afterAll()

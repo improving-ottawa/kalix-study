@@ -1,9 +1,6 @@
-package app.improving.organizationcontext.organization
+package app.improving.eventcontext.event
 
-import akka.actor.ActorSystem
-import app.improving.ApiOrganizationId
-import app.improving.organizationcontext.Main
-import com.google.protobuf.empty.Empty
+import TestData._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -18,7 +15,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class OrganizationServiceIntegrationSpec
+class EventServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -29,14 +26,18 @@ class OrganizationServiceIntegrationSpec
 
   private val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val client = testKit.getGrpcClient(classOf[OrganizationService])
+  private val client = testKit.getGrpcClient(classOf[EventService])
 
-  "OrganizationService" must {
+  "EventService" must {
 
-    "have example test that can be removed" in {
-      pending
-      // use the gRPC client to send requests to the
-      // proxy and verify the results
+    "schedule event correctly" in {
+      client.scheduleEvent(event).futureValue
+
+      val scheduled =
+        client.getEventById(ApiGetEventById(testEventId)).futureValue
+
+      scheduled.status shouldBe ApiEventStatus.SCHEDULED
+
     }
 
   }

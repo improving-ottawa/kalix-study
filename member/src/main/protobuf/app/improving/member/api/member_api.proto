@@ -3,7 +3,6 @@ syntax = "proto3";
 
 package app.improving.membercontext.member;
 
-
 import "common_api.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
