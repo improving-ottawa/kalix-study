@@ -3,11 +3,9 @@ syntax = "proto3";
 
 package app.improving.membercontext;
 
-import "app/improving/common/common_api.proto";
 import "app/improving/member/api/member_api.proto";
 import "app/improving/member/domain/member_context_domain.proto";
-import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
+import "common_api.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 

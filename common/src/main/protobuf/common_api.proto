@@ -4,6 +4,10 @@ package app.improving;
 
 import "kalix/annotations.proto";
 
+service NoApiService {
+    option (kalix.codegen) = {  };
+}
+
 message ApiMemberId {
     string member_id = 1 [(kalix.field).entity_key = true];
 }

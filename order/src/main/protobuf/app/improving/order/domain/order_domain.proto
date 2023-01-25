@@ -1,8 +1,7 @@
 syntax = "proto3";
 
-import "app/improving/common/common_domain.proto";
 import "app/improving/order/domain/order_context_domain.proto";
-
+import "common_domain.proto";
 
 package app.improving.ordercontext.order;
 

@@ -3,8 +3,8 @@ syntax = "proto3";
 
 package app.improving.eventcontext.event;
 
-import "app/improving/common/common_api.proto";
 import "app/improving/event/api/event_api.proto";
+import "common_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";

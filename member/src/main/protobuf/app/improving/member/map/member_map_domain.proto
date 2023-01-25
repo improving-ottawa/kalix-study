@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package app.improving.membercontext.membermap;
 
-import "app/improving/common/common_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "common_domain.proto";
 
 message MapMemberId {
     string id = 1;
