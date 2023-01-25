@@ -11,7 +11,7 @@ lazy val common: Project = project
 
 lazy val gateway = project
   .in(file("gateway"))
-  .configure(Kalix.service("gateway"))
+  .configure(Kalix.service("gateway", 8080))
   .configure(Kalix.dependsOn(common, "common"))
 
 lazy val org = project
@@ -62,4 +62,4 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(common, tenant, store, product, org, member, order, event)
+  .aggregate(tenant, store, product, org, member, order, event)

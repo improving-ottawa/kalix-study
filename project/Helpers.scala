@@ -75,28 +75,6 @@ object Packaging {
       dockerUsername := sys.props.get("docker.username"),
       dockerRepository := sys.props.get("docker.registry"),
       dockerUpdateLatest := true,
-      dockerBuildCommand := {
-        if (sys.props("os.arch") != "amd64") {
-          // use buildx with platform to build supported amd64 images on other CPU architectures
-          // this may require that you have first run 'docker buildx create' to set docker buildx up
-          dockerExecCommand.value ++ Seq(
-            "buildx",
-            "build",
-            "--platform=linux/amd64",
-            "--load"
-          ) ++ dockerBuildOptions.value :+ "."
-        } else dockerBuildCommand.value
-      }
-    )
-  }
-
-  def dockerConfiguration(project: Project): Project = {
-    project.settings(
-      dockerBaseImage := "docker.io/library/eclipse-temurin:17",
-      dockerUsername := sys.props.get("docker.username"),
-      dockerRepository := sys.props.get("docker.registry"),
-      dockerUpdateLatest := true,
-      // dockerAlias := dockerAlias.value.withTag(Some("latest"))
       dockerExposedPorts ++= Seq(8080),
       dockerBuildCommand := {
         if (sys.props("os.arch") != "amd64") {
@@ -112,11 +90,36 @@ object Packaging {
       }
     )
   }
+
+//  def dockerConfiguration(project: Project): Project = {
+//    project.settings(
+//      dockerBaseImage := "docker.io/library/eclipse-temurin:17",
+//      dockerUsername := sys.props.get("docker.username"),
+//      dockerRepository := sys.props.get("docker.registry"),
+//      dockerUpdateLatest := true,
+//      // dockerAlias := dockerAlias.value.withTag(Some("latest"))
+//      dockerExposedPorts ++= Seq(8080),
+//      dockerBuildCommand := {
+//        if (sys.props("os.arch") != "amd64") {
+//          // use buildx with platform to build supported amd64 images on other CPU architectures
+//          // this may require that you have first run 'docker buildx create' to set docker buildx up
+//          dockerExecCommand.value ++ Seq(
+//            "buildx",
+//            "build",
+//            "--platform=linux/amd64",
+//            "--load"
+//          ) ++ dockerBuildOptions.value :+ "."
+//        } else dockerBuildCommand.value
+//      }
+//    )
+//  }
 }
 
 object Kalix {
 
-  def service(componentName: String)(project: Project): Project = {
+  def service(componentName: String, port: Int = 8080)(
+      project: Project
+  ): Project = {
     project
       .enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
       .configure(Compilation.scala)
@@ -125,6 +128,7 @@ object Kalix {
       .settings(
         name := componentName,
         run / fork := true,
+        run / javaOptions += s"-Dkalix.user-function-port=${port}",
         libraryDependencies ++= utilityDependencies ++ loggingDependencies,
         Compile / managedSourceDirectories ++= Seq(
           target.value / "scala-2.13" / "akka-grpc",
