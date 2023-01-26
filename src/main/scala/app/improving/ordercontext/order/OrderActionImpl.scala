@@ -31,6 +31,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
   override def purchaseTicket(
       order: ApiCreateOrder
   ): Action.Effect[ApiOrderId] = {
+    println(s"----------- in purchaseTicket")
     val orderInfo = order.info.getOrElse(ApiOrderInfo())
     val productIds = orderInfo.lineItems.map(
       _.product.map(_.productId).getOrElse("ProductId is not found.")
@@ -56,6 +57,8 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           .getEventById(ApiGetEventById(eventId))
           .execute()
       } yield {
+        println(event + " -------------")
+        println(eventId + " ------------- eventId")
         (
           event.info.map(_.isPrivate) == Some(false),
           event.info
@@ -64,7 +67,8 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       })
 
       // true -> event is not private (private is false)
-      tupleFut.flatMap(tuple =>
+      tupleFut.flatMap(tuple => {
+        println(tuple + " =================tuple")
         tuple match {
           case (true, _) => Future.successful(true)
           case (false, Some(orgId)) => {
@@ -75,6 +79,10 @@ class OrderActionImpl(creationContext: ActionCreationContext)
                 )
                 .execute()
             } yield {
+              println(
+                organization.memberIds + " organization.memberIds ------------"
+              )
+              println(memberId + " memberId 0000000000000")
               if (organization.memberIds.contains(memberId)) {
                 true
               } else {
@@ -84,17 +92,20 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           }
           case (false, None) => Future.successful(false)
         }
-      )
+      })
     }))
 
     val orderValidFut = productInfoResults.map(seq => seq.forall(x => x))
     val call = components.orderAPI.createOrder(order)
 
-    println(s"----------- ${orderValidFut.value}")
+    println(s"----------- ${orderValidFut}")
     effects.asyncEffect(
       orderValidFut.map(valid =>
         valid match {
-          case true => effects.forward(call)
+          case true => {
+            println("in true branch")
+            effects.forward(call)
+          }
           case false =>
             effects.error(
               "The purchase is not allowed - The event is private and the buyer is not a member of the organizer."

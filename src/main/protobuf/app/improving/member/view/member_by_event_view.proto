@@ -238,14 +238,14 @@
 //    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (stream member.ApiMemberData) {
 //        option (kalix.method).view.query = {
 //            query: "SELECT "
-//                    "member_by_event_member.member_id AS member_id, "
-//                    "member_by_event_member.info AS info, "
-//                    "member_by_event_member.meta AS meta "
-//                    "FROM  member_by_event_member "
-//                    "JOIN member_by_event_order ON member_by_event_order.meta.memberId.member_id = member_by_event_member.member_id "
-//                    "JOIN member_by_event_product ON member_by_event_product.sku = member_by_event_order.order_id  "
-//                    "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
-//                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+//                        "member_by_event_member.member_id AS member_id, "
+//                        "member_by_event_member.info AS info, "
+//                        "member_by_event_member.meta AS meta "
+//                        "FROM  member_by_event_member "
+//                        "JOIN member_by_event_order ON member_by_event_order.meta.memberId.member_id = member_by_event_member.member_id "
+//                        "JOIN member_by_event_product ON member_by_event_product.sku = member_by_event_order.order_id "
+//                        "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
+//                        "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
 //
 //        };
 //    }

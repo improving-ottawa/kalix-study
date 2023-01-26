@@ -5,7 +5,11 @@ import app.improving.{ApiMemberId, ApiProductId}
 object TestData {
 
   val testOrderId = "test-order-id"
+  val testOrderId2 = "test-order-id2"
+  val testOrderId3 = "test-order-id3"
   val testProductId = "test-product-id"
+  val testProductId2 = "test-product-id2"
+  val testProductId3 = "test-product-id3"
   val testQuantity = 10
   val testLineTotal = 20
   val testQuantity2 = 13
@@ -20,20 +24,56 @@ object TestData {
     testQuantity2,
     testLineTotal2
   )
+  val testLineItem3 = ApiLineItem(
+    Some(ApiProductId(testProductId2)),
+    testQuantity2,
+    testLineTotal2
+  )
+  val testLineItem4 = ApiLineItem(
+    Some(ApiProductId(testProductId3)),
+    testQuantity2,
+    testLineTotal2
+  )
   val testSpecialInstruction = "test-special-instruction"
   val testOrderTotal = 100.0
   val testLineItems = Seq[ApiLineItem](testLineItem1, testLineItem2)
+  val testLineItemsPrivateEvent = Seq[ApiLineItem](testLineItem3)
+  val testLineItemsPrivateFailedEvent =
+    Seq[ApiLineItem](testLineItem3, testLineItem4)
   val testOrderInfo = ApiOrderInfo(
     testOrderId,
     testLineItems,
     testSpecialInstruction,
     testOrderTotal
   )
-  val testCreatingMemberId = "test-creating-member-id"
+  val testOrderInfoPrivateEvent = ApiOrderInfo(
+    testOrderId,
+    testLineItemsPrivateEvent,
+    testSpecialInstruction,
+    testOrderTotal
+  )
+  val testOrderInfoPrivateFailedEvent = ApiOrderInfo(
+    testOrderId3,
+    testLineItemsPrivateFailedEvent,
+    testSpecialInstruction,
+    testOrderTotal
+  )
+  val testCreatingMemberId = "test-member-id"
+  val testCreatingMemberId1 = "test-member-id1"
   val apiCreateOrder = ApiCreateOrder(
     testOrderId,
     Some(testOrderInfo),
     Some(ApiMemberId(testCreatingMemberId))
+  )
+  val apiCreateOrderPrivateEvent = ApiCreateOrder(
+    testOrderId2,
+    Some(testOrderInfoPrivateEvent),
+    Some(ApiMemberId(testCreatingMemberId))
+  )
+  val apiCreateOrderPrivateFailedEvent = ApiCreateOrder(
+    testOrderId3,
+    Some(testOrderInfoPrivateFailedEvent),
+    Some(ApiMemberId(testCreatingMemberId1))
   )
   val testNewOrderStatus = ApiOrderStatus.READY
   val testUpdatingMemberId = "updating-member-id"

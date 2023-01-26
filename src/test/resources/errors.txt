@@ -9,3 +9,9 @@ service OrganizationByMemberView {
     };
 
     rpc ProcessOrganizationEstablished(OrganizationEstablished) returns (organizationcontext.organization.ApiOrganization) {
+
+    }
+}
+
+Unimplemented (12)
+unexpected HTTP status code received from server: 404 (Not Found); malformed header: missing HTTP content-type

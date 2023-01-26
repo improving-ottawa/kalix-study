@@ -1,14 +1,13 @@
 package app.improving
 
 import app.improving.eventcontext.event.EventAPI
-import app.improving.membercontext.member.MemberActionServiceImpl
-import app.improving.membercontext.{
-//  MemberByEventQueryView,
-  MemberByMetaInfoViewImpl
-}
+//import app.improving.membercontext.MemberByEventQueryView
+import app.improving.membercontext.MemberByMetaInfoViewImpl
 import app.improving.membercontext.member.MemberAPI
+import app.improving.membercontext.member.MemberActionServiceImpl
 import app.improving.membercontext.membermap.MemberMap
-import app.improving.ordercontext.order.{OrderAPI, OrderAction, OrderActionImpl}
+import app.improving.ordercontext.order.OrderAPI
+import app.improving.ordercontext.order.OrderActionImpl
 import app.improving.organizationcontext.OrganizationByMemberViewImpl
 import app.improving.organizationcontext.OrganizationByOwnerViewImpl
 import app.improving.organizationcontext.organization.OrganizationAPI

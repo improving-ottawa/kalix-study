@@ -25,7 +25,7 @@ object TestData {
     Some(ApiMobileNumber("987-878-0987")),
     Some(ApiEmailAddress("member@memberapi.com")),
     ApiNotificationPreference.SMS,
-    Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
+    Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId)),
     Some(ApiTenantId(testTenantId))
   )
   val apiUpdateInfo = ApiUpdateInfo(
@@ -55,7 +55,13 @@ object TestData {
     Some(MobileNumber("987-878-0987")),
     Some(EmailAddress("member@memberapi.com")),
     NotificationPreference.SMS,
-    Seq[OrganizationId](OrganizationId(testMemberId)),
+    Seq[OrganizationId](OrganizationId(testOrganizationId)),
     Some(TenantId(testTenantId))
+  )
+
+  val apiRegisterMember = ApiRegisterMember(
+    testMemberId,
+    Some(apiInfo),
+    Some(ApiMemberId(testMemberId))
   )
 }

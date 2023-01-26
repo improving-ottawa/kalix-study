@@ -32,12 +32,8 @@ class MemberServiceIntegrationSpec
   "MemberService" must {
 
     "register member correctly" in {
-      val command = ApiRegisterMember(
-        testMemberId,
-        Some(apiInfo),
-        Some(ApiMemberId(testMemberId))
-      )
-      client.registerMember(command).futureValue
+
+      client.registerMember(apiRegisterMember).futureValue
 
       val memberData =
         client.getMemberData(ApiGetMemberData(testMemberId)).futureValue
