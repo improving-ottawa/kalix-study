@@ -15,7 +15,7 @@ lazy val testkit = project
 
 lazy val common: Project = project
   .in(file("common"))
-  .configure(Kalix.service("common"))
+  .configure(Kalix.generalComponent("common"))
 
 lazy val org = project
   .in(file("organization"))
@@ -70,8 +70,10 @@ lazy val gateway = project
   .configure(Kalix.dependsOn(testkit, "improving-app-testkit"))
 
 lazy val integration_tests: Project = project
-  .in(file("kalix-study/it"))
+  .in(file("it"))
   .enablePlugins(AkkaGrpcPlugin)
+  .configure(Compilation.scala)
+  .configure(Testing.scalaTest)
   .configure(Kalix.componentBaseConfiguration)
   .configure(Kalix.multiProjectProtobufConfiguration)
   .settings(
@@ -98,33 +100,32 @@ lazy val integration_tests: Project = project
       if (!sys.env.contains("NO_PUBLISH"))
         (Test / test)
           .dependsOn(
-            gateway / Docker / publishLocal,
             tenant / Docker / publishLocal,
             event / Docker / publishLocal,
             member / Docker / publishLocal,
             order / Docker / publishLocal,
             org / Docker / publishLocal,
             product / Docker / publishLocal,
-            store / Docker / publishLocal
+            store / Docker / publishLocal,
+            gateway / Docker / publishLocal
           )
       else Test / test
     }.value,
     KalixPb.serviceProtobufProjectDependencies := Seq(
-      (gateway / baseDirectory).value,
       (tenant / baseDirectory).value,
       (event / baseDirectory).value,
       (member / baseDirectory).value,
       (order / baseDirectory).value,
       (org / baseDirectory).value,
       (product / baseDirectory).value,
-      (store / baseDirectory).value
+      (store / baseDirectory).value,
+      (gateway / baseDirectory).value
     ),
     akkaGrpcGeneratedSources := Seq(AkkaGrpc.Client),
     publish / skip := true,
     publishLocal / skip := true
   )
   .dependsOn(
-    gateway,
     tenant,
     event,
     member,
@@ -132,6 +133,7 @@ lazy val integration_tests: Project = project
     org,
     product,
     store,
+    gateway,
     testkit % Test
   )
 
@@ -143,12 +145,13 @@ lazy val root = project
     publishTo := Some(Resolver.defaultLocal)
   )
   .aggregate(
-    gateway,
+    common,
     tenant,
     store,
     product,
     org,
     order,
     member,
-    event
+    event,
+    gateway
   )

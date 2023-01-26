@@ -1,6 +1,8 @@
 package app.improving
 
 import akka.actor.ActorSystem
+import app.improving.ImprovingAppIntegrationTest.Services
+import app.improving.ImprovingAppIntegrationTest.Services.SERVICE
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.scalatest.concurrent.Eventually
@@ -37,7 +39,7 @@ abstract class AbstractImprovingAppIntegrationSpecSuite
     case Services.Event        => config.getString("app.event.base-url")
     case Services.Member       => config.getString("app.member.base-url")
     case Services.Order        => config.getString("app.order.base-url")
-    case Services.Prganization => config.getString("app.organization.base-url")
+    case Services.Organization => config.getString("app.organization.base-url")
     case Services.Product      => config.getString("app.product.base-url")
     case Services.Store        => config.getString("app.store.base-url")
     case Services.Tenant       => config.getString("app.tenant.base-url")
@@ -89,69 +91,23 @@ abstract class AbstractImprovingAppIntegrationSpecSuite
 }
 class ImprovingAppIntegrationSpecSuite
     extends AbstractImprovingAppIntegrationSpecSuite {
-  override def dockerComposeProfile: String = "epbs-it"
+  override def dockerComposeProfile: String = "improvingapp-it"
 
   override lazy val blockUntilReadyUrls: Seq[String] =
     (9001 to 9008).map(port => s"http://localhost:$port")
 }
 
-//@DoNotDiscover
-class ZelleIntegrationSpecSuite
-    extends AbstractEbpsPovIntegrationSpecSuite
-    with ZelleServiceIntegrationSpec {
-  override def dockerComposeProfile: String = "zelle-it"
+object ImprovingAppIntegrationSpecSuite {
 
-  override lazy val blockUntilReadyUrls: Seq[String] =
-    (9009 to 9012).map(port => s"http://localhost:$port")
-}
-
-@DoNotDiscover
-class LqmsResilienceIntegrationSpecSuite
-    extends AbstractEbpsPovIntegrationSpecSuite
-    with LqmsResilienceIntegrationSpec {
-  override def dockerComposeProfile: String = "lqms-it"
-
-  override lazy val blockUntilReadyUrls: Seq[String] = Seq(
-    "http://localhost:9008"
-  )
-}
-
-@DoNotDiscover
-class OutboundPaymentIntegrationSpecSuite
-    extends AbstractEbpsPovIntegrationSpecSuite
-    with OutboundPaymentIntegrationSpec {
-  override def dockerComposeProfile: String = "outbound-it"
-
-  override lazy val blockUntilReadyUrls: Seq[String] =
-    Seq(9002, 9003, 9004, 9006, 9007, 9008).map(port =>
-      s"http://localhost:$port"
-    )
-}
-
-@DoNotDiscover
-class InboundPaymentIntegrationSpecSuite
-    extends AbstractEbpsPovIntegrationSpecSuite
-    with InboundPaymentIntegrationSpec
-    with InboundPaymentViewsIntegrationSpec {
-  override def dockerComposeProfile: String = "inbound-it"
-
-  override lazy val blockUntilReadyUrls: Seq[String] =
-    Seq(9001, 9003, 9004, 9005, 9006, 9007, 9008).map(port =>
-      s"http://localhost:$port"
-    )
-}
-
-object EbpsPovIntegrationSpecSuite {
-
-  trait EpbsRuntimeEnv {
+  trait ImprovingAppRuntimeEnv {
     def start(): Unit
 
     def stop(): Unit
   }
 
   // Both EPBS and the Kalix proxy (incl. pub/sub) are run via `docker compose`.
-  class DockerComposeEpbsRuntimeEnvironment(profile: String = "all")
-      extends EpbsRuntimeEnv
+  class DockerComposeImprovingAppRuntimeEnvironment(profile: String = "all")
+      extends ImprovingAppRuntimeEnv
       with LazyLogging {
     private val dockerComposeFile =
       Seq("../../docker-compose.yml", "docker-compose.yml")
@@ -162,55 +118,10 @@ object EbpsPovIntegrationSpecSuite {
       dockerComposeFile
     )
     dockerComposeContainer.withOptions(s"--profile $profile")
-    dockerComposeContainer.withLogConsumer(
-      "epbs-concierge",
-      (t: OutputFrame) => logger.info("<EPBS-CONCIERGE> " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-inbound-payments",
-      (t: OutputFrame) => logger.info("<EPBS-INBOUND>   " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-outbound-payments",
-      (t: OutputFrame) => logger.info("<EPBS-OUTBOUND>  " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-psh",
-      (t: OutputFrame) => logger.info("<EPBS-PSH>       " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-smartcore",
-      (t: OutputFrame) => logger.info("<EPBS-SMARTCORE> " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-stp",
-      (t: OutputFrame) => logger.info("<EPBS-STP>       " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-wrap",
-      (t: OutputFrame) => logger.info("<EPBS-WRAP>      " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-lqms",
-      (t: OutputFrame) => logger.info("<EPBS-LQMS>      " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-zelle",
-      (t: OutputFrame) => logger.info("<EPBS-ZELLE>      " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-emft",
-      (t: OutputFrame) => logger.info("<EPBS-EMFT>      " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-zelle-payment",
-      (t: OutputFrame) =>
-        logger.info("<EPBS-ZELLE-PAYMENT>      " + t.getUtf8String)
-    )
-    dockerComposeContainer.withLogConsumer(
-      "epbs-xim",
-      (t: OutputFrame) => logger.info("<EPBS-XIM>      " + t.getUtf8String)
-    )
+    // dockerComposeContainer.withLogConsumer(
+    //  "ia-event",
+    //  (t: OutputFrame) => logger.info("<IA-EVENT> " + t.getUtf8String)
+    // )
 
     override def start(): Unit = {
       logger.info(s"Starting Docker Compose ...")
@@ -227,7 +138,7 @@ object EbpsPovIntegrationSpecSuite {
 
   // Both EPBS and the Kalix proxy (incl. pub/sub) are being run externally,
   // e.g. via a manual `docker compose --profile all -f docker-compose-all.yml up`.
-  class ExternalEpbsRuntimeEnvironment extends EpbsRuntimeEnv {
+  class ExternalImprovingAppRuntimeEnvironment extends ImprovingAppRuntimeEnv {
     override def start(): Unit = {}
 
     override def stop(): Unit = {}
@@ -297,21 +208,19 @@ object EbpsPovIntegrationSpecSuite {
   //    }
   //  }
 
-  trait EpbsRuntimeEnvSwitcher extends BeforeAndAfterAll {
+  trait ImprovingAppRuntimeEnvSwitcher extends BeforeAndAfterAll {
     this: Suite =>
 
     def dockerComposeProfile: String
 
     // noinspection SpellCheckingInspection
-    val env: EpbsRuntimeEnv = sys.env
-      .get("EPBS_RUNTIME_ENV")
+    val env: ImprovingAppRuntimeEnv = sys.env
+      .get("IMPROVINGAPP_RUNTIME_ENV")
       .map(_.toLowerCase)
       .getOrElse("docker") match {
       case "docker" =>
-        new DockerComposeEpbsRuntimeEnvironment(dockerComposeProfile)
-      case "external" => new ExternalEpbsRuntimeEnvironment()
-      //      case "epbsonly" => new EpbsOnlyRuntimeEnvironment()
-      //      case "direct"   => new DirectEpbsRuntimeEnvironment()
+        new DockerComposeImprovingAppRuntimeEnvironment(dockerComposeProfile)
+      case "external" => new ExternalImprovingAppRuntimeEnvironment()
     }
 
     override protected def beforeAll(): Unit = {

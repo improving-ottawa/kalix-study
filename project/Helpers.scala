@@ -226,13 +226,44 @@ object Kalix {
         Compile / doc / sources := Seq.empty
       )
 
+  def scalapbConfiguration(project: Project): Project =
+    project
+      .settings(
+        libraryDependencies ++= scalaPbDependencies
+      )
+
+  def scalapbCodeGenConfiguration(project: Project): Project =
+    project
+      .settings(
+        Compile / PB.targets := Seq(
+          scalapb.gen(
+            FlatPackage,
+            SingleLineToProtoString,
+            RetainSourceCodeInfo
+          ) -> (Compile / sourceManaged).value / "scalapb"
+        ),
+        libraryDependencies += scalaPbCompilerPlugin,
+        Compile / PB.recompile := sys.env
+          .get("SCALAPB_RECOMPILE")
+          .exists(_.toLowerCase.startsWith("t"))
+      )
+
+  def scalapbValidationConfiguration(project: Project): Project =
+    project.settings(
+      Compile / PB.targets ++= Seq(
+        scalapb.gen() -> (Compile / sourceManaged).value / "scalapb",
+        scalapb.validate.gen() -> (Compile / sourceManaged).value / "scalapb"
+      ),
+      libraryDependencies ++= scalaPbValidationDependencies
+    )
+
   def nonKalixComponentBaseConfiguration(project: Project): Project =
     project
       .configure(componentBaseConfiguration)
       .configure(Testing.scalaTest)
-      // .configure(scalapbConfiguration)
-      // .configure(scalapbCodeGenConfiguration)
-      // .configure(scalapbValidationConfiguration)
+      .configure(scalapbConfiguration)
+      .configure(scalapbCodeGenConfiguration)
+      .configure(scalapbValidationConfiguration)
       .settings(
         libraryDependencies ++= utilityDependencies ++ loggingDependencies ++ Seq(
           kalixScalaSdk
@@ -248,7 +279,7 @@ object Kalix {
 
   def multiProjectProtobufConfiguration(project: Project): Project =
     project.settings(
-      Compile / PB.protoSources += target.value / "protobuf_epbs",
+      Compile / PB.protoSources += target.value / "protobuf_improvingapp",
       //        Compile / PB.includePaths ++= serviceProtobufProjectDependencies.value.map { dir =>
       //          dir / "src/main/protobuf"
       //        },
@@ -261,7 +292,7 @@ object Kalix {
         .map { depProjectBaseDir =>
           KalixPb.copyKalixFreeProtobufFiles(
             depProjectBaseDir / "src/main/protobuf",
-            target.value / "protobuf_epbs"
+            target.value / "protobuf_improvingapp"
           )
         }
     )
