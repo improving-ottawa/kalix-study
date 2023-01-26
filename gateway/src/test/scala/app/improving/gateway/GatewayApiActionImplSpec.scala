@@ -15,7 +15,7 @@ import app.improving.tenantcontext.tenant.{
   TenantService
 }
 import kalix.scalasdk.testkit.{ActionResult, MockRegistry}
-import org.scalamock.scalatest.proxy.MockFactory
+import org.scalamock.scalatest.proxy.{AsyncMockFactory, MockFactory}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -29,10 +29,10 @@ import scala.language.postfixOps
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class GatewayAPIActionImplSpec
+class GatewayApiActionImplSpec
     extends AnyWordSpec
     with Matchers
-    with MockFactory {
+    with AsyncMockFactory {
 
   trait Fixture {
     val tenantInfo: ApiInfo = ApiInfo(
@@ -59,7 +59,7 @@ class GatewayAPIActionImplSpec
       )
     )
 
-    val tenantServiceStub: TenantService = stub[TenantService]
+    val tenantServiceStub: TenantService = mock[TenantService]
   }
 
   "GatewayAPIActionImpl" must {
@@ -74,8 +74,8 @@ class GatewayAPIActionImplSpec
         }
 
       val mockRegistry: MockRegistry = MockRegistry.withMock(tenantServiceStub)
-      val service: GatewayAPIActionImplTestKit =
-        GatewayAPIActionImplTestKit(new GatewayAPIActionImpl(_), mockRegistry)
+      val service: GatewayApiActionImplTestKit =
+        GatewayApiActionImplTestKit(new GatewayApiActionImpl(_), mockRegistry)
 
       val command: EstablishTenant = EstablishTenant(Some(tenantInfo))
       val reply: ActionResult[ApiTenantId] =
