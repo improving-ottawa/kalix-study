@@ -28,7 +28,8 @@ class OrganizationServiceIntegrationSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
-  private val testKit = KalixTestKit(Main.createKalix()).start()
+  private val testKit =
+    KalixTestKit(organizationcontext.Main.createKalix()).start()
 
   private val client =
     testKit.getGrpcClient(classOf[OrganizationService])
