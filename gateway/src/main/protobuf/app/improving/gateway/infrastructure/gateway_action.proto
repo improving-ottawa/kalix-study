@@ -3,7 +3,6 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/gateway/domain/gateway_domain.proto";
-import "common_api.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -12,10 +11,10 @@ service GatewayApiAction {
         action: { }
     };
 
-    rpc HandleEstablishTenant(EstablishTenant) returns (ApiTenantId) {
+    rpc HandleEstablishTenant(CreateTenants) returns (TenantsCreated) {
         option (google.api.http) = {
             post: "/tenant/establish-tenant"
-            body: "info"
+            body: "tenant_infos"
         };
     }
 }

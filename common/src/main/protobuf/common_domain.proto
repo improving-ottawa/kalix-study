@@ -2,12 +2,6 @@ syntax = "proto3";
 
 package app.improving;
 
-import "kalix/annotations.proto";
-
-service NoDomainService {
-    option (kalix.codegen) = { action: { } };
-}
-
 /**
  * Pattern of: \d{5}(-\d{4})?
  */

@@ -3,7 +3,12 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/tenant/api/tenant_api.proto";
+import "common_api.proto";
 
-message EstablishTenant {
-    tenantcontext.tenant.ApiInfo info = 1;
+message CreateTenants {
+    repeated tenantcontext.tenant.ApiInfo tenant_infos = 1;
+}
+
+message TenantsCreated {
+    repeated ApiTenantId tenants_established = 1;
 }

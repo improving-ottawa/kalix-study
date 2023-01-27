@@ -6,6 +6,7 @@ import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 
 import java.util.UUID
+import scala.concurrent.Future
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -15,18 +16,24 @@ import java.util.UUID
 class GatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractGatewayApiAction {
   override def handleEstablishTenant(
-      establishTenant: EstablishTenant
-  ): Action.Effect[ApiTenantId] = {
+      establishTenants: CreateTenants
+  ): Action.Effect[TenantsCreated] = {
     val tenantService =
       actionContext.getGrpcClient(classOf[TenantService], "tenant")
 
     effects.asyncReply(
-      tenantService.establishTenant(
-        ApiEstablishTenant(
-          UUID.randomUUID().toString,
-          establishTenant.info
+      Future
+        .sequence(
+          establishTenants.tenantInfos.map(info =>
+            tenantService.establishTenant(
+              ApiEstablishTenant(
+                UUID.randomUUID().toString,
+                Some(info)
+              )
+            )
+          )
         )
-      )
+        .map(TenantsCreated(_))
     )
   }
 
