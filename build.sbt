@@ -7,7 +7,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 lazy val common: Project = project
   .disablePlugins(KalixPlugin)
   .in(file("common"))
-  .configure(Kalix.service("common"))
+  .configure(Kalix.library("common"))
 
 lazy val org = project
   .in(file("organization"))
@@ -23,13 +23,15 @@ lazy val member = project
   .in(file("member"))
   .configure(Kalix.service("member"))
   .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(event, "event"))
+  .configure(Kalix.dependsOn(product, "product"))
+  .configure(Kalix.dependsOn(order, "order"))
 
 lazy val order = project
   .in(file("order"))
   .configure(Kalix.service("order"))
   .configure(Kalix.dependsOn(common, "common"))
   .configure(Kalix.dependsOn(product, "product"))
-  .configure(Kalix.dependsOn(member, "member"))
   .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(org, "organization"))
 
@@ -60,4 +62,4 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(common, gateway, tenant, store, product, org, order, member, event)
+  .aggregate(tenant, gateway, store, product, org, order, member, event)
