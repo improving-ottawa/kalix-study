@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package app.improving.gateway;
+
+import "app/improving/tenant/api/tenant_api.proto";
+
+message EstablishTenant {
+    tenantcontext.tenant.ApiInfo info = 1;
+}

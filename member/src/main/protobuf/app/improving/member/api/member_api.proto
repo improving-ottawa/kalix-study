@@ -4,7 +4,7 @@ syntax = "proto3";
 package app.improving.membercontext.member;
 
 
-import "app/improving/common/common_api.proto";
+import "common_api.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 

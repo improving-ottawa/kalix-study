@@ -8,7 +8,6 @@ import app.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
   EventEnded,
-  EventInfo,
   EventInfoChanged,
   EventMetaInfo,
   EventRescheduled,
@@ -19,8 +18,6 @@ import app.improving.eventcontext.{
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
-
-import java.util.UUID
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
