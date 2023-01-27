@@ -11,6 +11,7 @@ import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // This class was initially generated based on the .proto definition by Kalix tooling.
@@ -34,30 +35,46 @@ class OrderActionImpl(creationContext: ActionCreationContext)
   override def purchaseTicket(
       order: ApiCreateOrder
   ): Action.Effect[ApiOrderId] = {
-    val event = creationContext.getGrpcClient(classOf[EventService], "event")
+    val event =
+      creationContext.getGrpcClient(classOf[EventService], "kalix-study-event")
     val product =
-      creationContext.getGrpcClient(classOf[ProductService], "product")
+      creationContext.getGrpcClient(
+        classOf[ProductService],
+        "kalix-study-product"
+      )
     val organization = creationContext.getGrpcClient(
       classOf[OrganizationService],
-      "organization"
+      "kalix-study-org"
     )
     val orderInfo = order.info.getOrElse(ApiOrderInfo())
     val productIds = orderInfo.lineItems.map(
       _.product.map(_.productId).getOrElse("ProductId is not found.")
     )
+    println(productIds + " productIds")
     val memberId = order.creatingMember
       .map(_.memberId)
       .getOrElse("MemberId is not found.")
 
     val productInfoResults = Future.sequence(productIds.map(sku => {
+      val productFut = product
+        .getProductInfo(ApiGetProductInfo(sku))
+
       val eventIdFut =
-        for {
+        (for {
           apiProductInfo <- product
             .getProductInfo(ApiGetProductInfo(sku))
         } yield apiProductInfo.info
           .flatMap(_.event)
           .map(_.eventId)
-          .getOrElse("EventId is not found.")
+          .getOrElse("EventId is not found.")).transformWith {
+          case Success(id) => Future.successful(id)
+          case Failure(exception) =>
+            Future.failed(
+              new IllegalStateException(
+                exception.getMessage + s" product.getProductInfo for ${sku} failed"
+              )
+            )
+        }
 
       val tupleFut = (for {
         eventId <- eventIdFut
@@ -69,10 +86,18 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           event.info
             .flatMap(_.sponsoringOrg)
         )
-      })
+      }).transformWith {
+        case Success(result) => Future.successful(result)
+        case Failure(exception) =>
+          Future.failed(
+            new IllegalStateException(
+              exception.getMessage + s" and event.getEventById failed"
+            )
+          )
+      }
 
       // true -> event is not private (private is false)
-      tupleFut.flatMap(tuple =>
+      tupleFut.flatMap(tuple => {
         tuple match {
           case (true, _) => Future.successful(true)
           case (false, Some(orgId)) => {
@@ -91,23 +116,34 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           }
           case (false, None) => Future.successful(false)
         }
-      )
+      })
     }))
 
-    val orderValidFut = productInfoResults.map(seq => seq.forall(x => x))
+    val orderValidFut = productInfoResults.map(seq =>
+      if (seq.isEmpty) false else seq.forall(x => x)
+    )
     val call = components.orderAPI.createOrder(order)
 
-    println(s"----------- ${orderValidFut.value}")
     effects.asyncEffect(
-      orderValidFut.map(valid =>
-        valid match {
+      orderValidFut.transform(
+        {
           case true => effects.forward(call)
           case false =>
             effects.error(
-              "The purchase is not allowed - The event is private and the buyer is not a member of the organizer."
+              "The purchase is not allowed - The event is private and the buyer is not a member of the organizer. " +
+                s"Please make sure you provide the correct record for the order - ${order}"
             )
+        },
+        error => {
+          throw new IllegalStateException(error.getMessage)
         }
-      )
+      ) recoverWith ({ case e: Exception =>
+        Future.successful(
+          effects.error(
+            s"The purchase is not allowed - Errors: ${e.getMessage}"
+          )
+        )
+      })
     )
   }
 }

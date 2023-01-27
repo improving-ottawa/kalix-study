@@ -24,8 +24,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
     currentState.order match {
       case Some(_) => effects.reply(ApiOrderId.defaultInstance)
       case _ => {
-        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        val orderId = java.util.UUID.randomUUID().toString
+        val orderId = apiCreateOrder.orderId
         val orderIdOpt = Some(OrderId(orderId))
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
