@@ -9,6 +9,7 @@ import app.improving.organizationcontext.organization.{
 import app.improving.productcontext.product.{ApiGetProductInfo, ProductService}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -32,9 +33,14 @@ import scala.util.{Failure, Success}
 class OrderActionImpl(creationContext: ActionCreationContext)
     extends AbstractOrderAction {
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def purchaseTicket(
       order: ApiCreateOrder
   ): Action.Effect[ApiOrderId] = {
+
+    log.info(s"in purchaseTicket - ${order} : ApiCreateOrder")
+
     val event =
       creationContext.getGrpcClient(classOf[EventService], "kalix-study-event")
     val product =
@@ -50,15 +56,12 @@ class OrderActionImpl(creationContext: ActionCreationContext)
     val productIds = orderInfo.lineItems.map(
       _.product.map(_.productId).getOrElse("ProductId is not found.")
     )
-    println(productIds + " productIds")
+
     val memberId = order.creatingMember
       .map(_.memberId)
       .getOrElse("MemberId is not found.")
 
     val productInfoResults = Future.sequence(productIds.map(sku => {
-      val productFut = product
-        .getProductInfo(ApiGetProductInfo(sku))
-
       val eventIdFut =
         (for {
           apiProductInfo <- product
@@ -88,12 +91,16 @@ class OrderActionImpl(creationContext: ActionCreationContext)
         )
       }).transformWith {
         case Success(result) => Future.successful(result)
-        case Failure(exception) =>
+        case Failure(exception) => {
+          log.error(
+            s"Error in OrderActionImpl - event.getEventById - Error: ${exception.getMessage}"
+          )
           Future.failed(
             new IllegalStateException(
               exception.getMessage + s" and event.getEventById failed"
             )
           )
+        }
       }
 
       // true -> event is not private (private is false)
@@ -137,12 +144,17 @@ class OrderActionImpl(creationContext: ActionCreationContext)
         error => {
           throw new IllegalStateException(error.getMessage)
         }
-      ) recoverWith ({ case e: Exception =>
-        Future.successful(
-          effects.error(
-            s"The purchase is not allowed - Errors: ${e.getMessage}"
+      ) recoverWith ({
+        case exception: Exception => {
+          log.error(
+            s"Error in OrderActionImpl - orderValidFut.transform - Error: ${exception.getMessage}"
           )
-        )
+          Future.successful(
+            effects.error(
+              s"The purchase is not allowed - Errors: ${exception.getMessage}"
+            )
+          )
+        }
       })
     )
   }
