@@ -10,5 +10,5 @@ message CreateTenants {
 }
 
 message TenantsCreated {
-    repeated ApiTenantId tenants_established = 1;
+    repeated ApiTenantId tenants_created = 1;
 }
