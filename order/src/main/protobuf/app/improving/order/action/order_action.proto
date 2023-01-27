@@ -6,7 +6,6 @@ import "app/improving/order/api/order_api.proto";
 import "common_api.proto";
 import "kalix/annotations.proto";
 
-
 service OrderAction {
     option (kalix.codegen) = {
         action: {}

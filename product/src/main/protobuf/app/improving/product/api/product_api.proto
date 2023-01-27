@@ -1,7 +1,6 @@
 // This is the public API offered by your entity.
 syntax = "proto3";
 
-
 import "common_api.proto";
 import "common_domain.proto";
 import "google/protobuf/timestamp.proto";

@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 import "app/improving/event/domain/event_context_domain.proto";
 import "common_domain.proto";
 

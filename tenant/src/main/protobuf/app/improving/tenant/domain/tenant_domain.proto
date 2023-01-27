@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 import "app/improving/tenant/domain/tenant_context_domain.proto";
 import "common_domain.proto";
 

@@ -3,7 +3,6 @@ syntax = "proto3";
 import "app/improving/product/domain/product_context_domain.proto";
 import "common_domain.proto";
 
-
 package app.improving.productcontext.product;
 
 message Product {

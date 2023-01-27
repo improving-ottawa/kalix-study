@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 import "common_domain.proto";
 import "google/protobuf/timestamp.proto";
 

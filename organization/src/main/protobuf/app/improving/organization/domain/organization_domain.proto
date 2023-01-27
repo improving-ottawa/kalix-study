@@ -3,7 +3,6 @@ syntax = "proto3";
 import "app/improving/organization/domain/organization_context_domain.proto";
 import "common_domain.proto";
 
-
 package app.improving.organizationcontext.organization;
 
 message Organization {

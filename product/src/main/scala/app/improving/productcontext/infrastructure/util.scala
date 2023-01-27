@@ -3,7 +3,6 @@ package app.improving.productcontext.infrastructure
 import app.improving.{
   ApiEventId,
   ApiMemberId,
-  ApiProductId,
   ApiStoreId,
   EventId,
   MemberId,
@@ -14,7 +13,6 @@ import app.improving.productcontext.{
   ProductCreated,
   ProductInfo,
   ProductMetaInfo,
-  ProductStatus
 }
 import app.improving.productcontext.product.{
   ApiProduct,

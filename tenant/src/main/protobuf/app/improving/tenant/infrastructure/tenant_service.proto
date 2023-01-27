@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "google/protobuf/empty.proto";
