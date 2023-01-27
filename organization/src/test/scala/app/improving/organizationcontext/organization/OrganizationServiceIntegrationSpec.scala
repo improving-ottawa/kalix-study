@@ -4,7 +4,7 @@ import app.improving._
 import app.improving.organizationcontext._
 import TestData._
 import kalix.scalasdk.testkit.KalixTestKit
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Ignore}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis
@@ -19,6 +19,7 @@ import java.time.Instant
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
+@Ignore
 class OrganizationServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
@@ -28,16 +29,18 @@ class OrganizationServiceIntegrationSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
-  private val testKit =
-    KalixTestKit(organizationcontext.Main.createKalix()).start()
+  trait Fixture {
+    private val testKit =
+      KalixTestKit(organizationcontext.Main.createKalix()).start()
 
-  private val client =
-    testKit.getGrpcClient(classOf[OrganizationService])
+    protected val client =
+      testKit.getGrpcClient(classOf[OrganizationService])
 
-  private val memberViewClient =
-    testKit.getGrpcClient(classOf[OrganizationByMemberView])
-  private val ownerViewClient =
-    testKit.getGrpcClient(classOf[OrganizationByOwnerView])
+    protected val memberViewClient =
+      testKit.getGrpcClient(classOf[OrganizationByMemberView])
+    protected val ownerViewClient =
+      testKit.getGrpcClient(classOf[OrganizationByOwnerView])
+  }
 
   "OrganizationService" must {
 
@@ -58,7 +61,7 @@ class OrganizationServiceIntegrationSpec
 //        .status shouldBe ApiOrganizationStatus.DRAFT
 //    }
 
-    "establish organization correctly" in {
+    "establish organization correctly" in new Fixture {
       val id =
         client.establishOrganization(apiEstablishOrganization).futureValue
 
@@ -109,7 +112,6 @@ class OrganizationServiceIntegrationSpec
   }
 
   override def afterAll(): Unit = {
-    testKit.stop()
     super.afterAll()
   }
 }

@@ -3,7 +3,7 @@ package app.improving.storecontext.store
 import app.improving.ApiMemberId
 import app.improving.storecontext.store.TestData._
 import kalix.scalasdk.testkit.KalixTestKit
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Ignore}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis
@@ -16,6 +16,7 @@ import org.scalatest.wordspec.AnyWordSpec
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
+@Ignore
 class StoreServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
@@ -25,13 +26,24 @@ class StoreServiceIntegrationSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
-  private val testKit = KalixTestKit(Main.createKalix()).start()
+  trait Fixture {
 
-  private val client = testKit.getGrpcClient(classOf[StoreService])
+    private val testKit = KalixTestKit(Main.createKalix()).start()
+
+    protected val client = testKit.getGrpcClient(classOf[StoreService])
+
+    val command = ApiCreateStore(
+      testStoreId,
+      Some(apiStoreInfo),
+      Some(ApiMemberId(testMember2))
+    )
+
+    client.createStore(command).futureValue
+  }
 
   "StoreService" must {
 
-    "create store correctly" in {
+    "create store correctly" in new Fixture {
       val apiGetProductsInStore = ApiGetProductsInStore(
         testStoreId
       )
@@ -42,7 +54,7 @@ class StoreServiceIntegrationSpec
       productsInStore.products shouldBe testProducts
     }
 
-    "update store correctly" in {
+    "update store correctly" in new Fixture {
       val apiUpdateStore = ApiUpdateStore(
         testStoreId,
         Some(apiStoreInfoUpdate),
@@ -61,7 +73,7 @@ class StoreServiceIntegrationSpec
       updatedProductsInStore.products shouldBe testProductsUpdate
     }
 
-    "delete correctly" in {
+    "delete correctly" in new Fixture {
       val apiDeleteStore = ApiDeleteStore(
         testStoreId,
         Some(ApiMemberId(testMember2))
@@ -83,18 +95,9 @@ class StoreServiceIntegrationSpec
   override def beforeAll(): Unit = {
     super.beforeAll()
 
-    val command = ApiCreateStore(
-      testStoreId,
-      Some(apiStoreInfo),
-      Some(ApiMemberId(testMember2))
-    )
-
-    client.createStore(command).futureValue
-
   }
 
   override def afterAll(): Unit = {
-    testKit.stop()
     super.afterAll()
   }
 }

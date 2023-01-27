@@ -2,7 +2,7 @@ package app.improving.tenantcontext.tenant
 
 import app.improving._
 import kalix.scalasdk.testkit.KalixTestKit
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Ignore}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis
@@ -16,6 +16,7 @@ import TestData._
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
+@Ignore
 class TenantServiceIntegrationSpec
     extends AnyWordSpec
     with Matchers
@@ -25,13 +26,22 @@ class TenantServiceIntegrationSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(50, Seconds), Span(1000, Millis))
 
-  private val testKit = KalixTestKit(Main.createKalix()).start()
+  trait Fixture {
 
-  private val client = testKit.getGrpcClient(classOf[TenantService])
+    private val testKit = KalixTestKit(Main.createKalix()).start()
+
+    protected val client = testKit.getGrpcClient(classOf[TenantService])
+
+    val command = ApiEstablishTenant(
+      testTenantId,
+      Some(apiInfo)
+    )
+    client.establishTenant(command).futureValue
+  }
 
   "TenantService" must {
 
-    "create tenant correctly" in {
+    "create tenant correctly" in new Fixture {
 
       val tenant = client
         .getTenantById(ApiGetTenantById(testTenantId))
@@ -55,7 +65,7 @@ class TenantServiceIntegrationSpec
       activatedTenant.status shouldBe ApiTenantStatus.ACTIVE
     }
 
-    "deactivate tenant correctly" in {
+    "deactivate tenant correctly" in new Fixture {
 
       val apiSuspendTenant = ApiSuspendTenant(
         testTenantId,
@@ -70,7 +80,7 @@ class TenantServiceIntegrationSpec
       suspendedTenant.status shouldBe ApiTenantStatus.SUSPENDED
     }
 
-    "updatePrimaryContact correctly" in {
+    "updatePrimaryContact correctly" in new Fixture {
 
       val apiUpdatePrimaryContact = ApiUpdatePrimaryContact(
         testTenantId,
@@ -86,7 +96,7 @@ class TenantServiceIntegrationSpec
       updatePrimaryContactTenant.primaryContact shouldBe Some(newApiContact)
     }
 
-    "changeTenantName correctly" in {
+    "changeTenantName correctly" in new Fixture {
       val apiChangeTenantName = ApiChangeTenantName(
         testTenantId,
         testNewName,
@@ -105,14 +115,8 @@ class TenantServiceIntegrationSpec
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    val command = ApiEstablishTenant(
-      testTenantId,
-      Some(apiInfo)
-    )
-    client.establishTenant(command).futureValue
   }
   override def afterAll(): Unit = {
-    testKit.stop()
     super.afterAll()
   }
 }

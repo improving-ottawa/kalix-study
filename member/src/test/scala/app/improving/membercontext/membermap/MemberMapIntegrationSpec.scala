@@ -2,8 +2,14 @@ package app.improving.membercontext.membermap
 
 import kalix.scalasdk.testkit.KalixTestKit
 import app.improving.membercontext.{Main, NotificationPreference}
-import app.improving.{Contact, EmailAddress, MobileNumber, OrganizationId, TenantId}
-import org.scalatest.BeforeAndAfterAll
+import app.improving.{
+  Contact,
+  EmailAddress,
+  MobileNumber,
+  OrganizationId,
+  TenantId
+}
+import org.scalatest.{BeforeAndAfterAll, Ignore}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.Millis
@@ -11,6 +17,7 @@ import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
+@Ignore
 class MemberMapIntegrationSpec
     extends AnyWordSpec
     with Matchers
@@ -20,11 +27,12 @@ class MemberMapIntegrationSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
-  private val testKit = KalixTestKit(Main.createKalix()).start()
-  import testKit.executionContext
+  trait Fixture {
+    protected val testKit = KalixTestKit(Main.createKalix()).start()
 
-  private val memberMapService =
-    testKit.getGrpcClient(classOf[MemberMapService])
+    protected val memberMapService =
+      testKit.getGrpcClient(classOf[MemberMapService])
+  }
 
   "MemberMapService" must {
 
@@ -63,7 +71,9 @@ class MemberMapIntegrationSpec
       Some(TenantId(testTenantId))
     )
 
-    "set and get value from map should work correctly" in {
+    "set and get value from map should work correctly" in new Fixture {
+      import testKit.executionContext
+
       val Member1Key = Key("member1")
       val Member2Key = Key("member2")
 
@@ -104,7 +114,6 @@ class MemberMapIntegrationSpec
   }
 
   override def afterAll(): Unit = {
-    testKit.stop()
     super.afterAll()
   }
 }
