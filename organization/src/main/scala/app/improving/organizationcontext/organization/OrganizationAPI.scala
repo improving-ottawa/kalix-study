@@ -259,6 +259,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         )
       case _ => {
         val orgId = apiEstablishOrganization.orgId
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = OrganizationEstablished(
           Some(OrganizationId(orgId)),
           apiEstablishOrganization.info.map(convertApiInfoToInfo(_)),
@@ -294,7 +296,17 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               )
             )
           ),
-          apiEstablishOrganization.meta.map(convertApiMetaInfoToMetaInfo(_))
+          apiEstablishOrganization.meta.map(meta => {
+            convertApiMetaInfoToMetaInfo(
+              meta.copy(
+                createdOn = Some(timestamp),
+                createdBy = apiEstablishOrganization.establishingMember,
+                lastUpdated = Some(timestamp),
+                lastUpdatedBy = apiEstablishOrganization.establishingMember,
+                currentStatus = ApiOrganizationStatus.DRAFT
+              )
+            )
+          })
         )
 
         effects.emitEvent(event).thenReply(_ => ApiOrganizationId(orgId))
@@ -519,8 +531,18 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = currentState.organization match {
     case Some(org)
         if org.status != OrganizationStatus.TERMINATED && org.oid == organizationStatusUpdated.orgId => {
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       currentState.withOrganization(
-        org.copy(status = organizationStatusUpdated.newStatus)
+        org.copy(
+          orgMeta = org.orgMeta.map(
+            _.copy(
+              currentStatus = organizationStatusUpdated.newStatus,
+              lastUpdated = Some(timestamp)
+            )
+          ),
+          status = organizationStatusUpdated.newStatus
+        )
       )
     }
     case _ => currentState
