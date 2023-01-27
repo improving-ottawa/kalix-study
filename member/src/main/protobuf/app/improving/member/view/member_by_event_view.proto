@@ -1,51 +1,79 @@
-//syntax = "proto3";
-//
-//
-//package app.improving.membercontext;
-//
-//import "app/improving/common/common_api.proto";
-//import "app/improving/common/common_domain.proto";
-//import "app/improving/event/api/event_api.proto";
-//import "app/improving/event/domain/event_context_domain.proto";
-//import "app/improving/member/api/member_api.proto";
-//import "app/improving/member/domain/member_context_domain.proto";
-//import "app/improving/order/api/order_api.proto";
-//import "app/improving/order/domain/order_context_domain.proto";
-//import "app/improving/product/api/product_api.proto";
-//import "app/improving/product/domain/product_context_domain.proto";
-//import "google/protobuf/empty.proto";
-//import "google/protobuf/timestamp.proto";
-//import "kalix/annotations.proto";
-//
-///**
-// * "SELECT"
-// *            "members.memberId AS memberId "
-// *            "members.info AS info "
-// *            "members.meta AS meta "
-// *            "members.meta.memberStatus AS status "
-// *            "FROM members "
-// *            "JOIN orders ON orders.meta.memberId = members.member_id "
-// *            "JOIN products ON products.product_id = ANY(orders.lineItems.product.id) "
-// *            "JOIN events ON products.info.event.id = events.event_id "
-// *            "WHERE :given_time >= events.info.expectedStart AND :given_time < events.info.expectedEnd "
-// */
-//
-//message MemberByEventTimeRequest {
-//    google.protobuf.Timestamp eventTime = 1;
-//}
-//
-//message MemberByEventTimeResponse {
-//    ApiMemberId memberId = 1;
-//    member.ApiInfo info = 2;
-//    member.ApiMetaInfo meta = 3;
-//}
-//
-//service MemberByEventQuery {
-//    option (kalix.codegen) = {
-//        view: {}
-//    };
-//
-//    rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
+syntax = "proto3";
+
+
+package app.improving.membercontext;
+
+import "app/improving/event/api/event_api.proto";
+import "app/improving/event/domain/event_context_domain.proto";
+import "app/improving/member/api/member_api.proto";
+import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/order/api/order_api.proto";
+import "app/improving/order/domain/order_context_domain.proto";
+import "app/improving/product/api/product_api.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+import "common_api.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+/**
+ * "SELECT"
+ *            "members.memberId AS memberId "
+ *            "members.info AS info "
+ *            "members.meta AS meta "
+ *            "members.meta.memberStatus AS status "
+ *            "FROM members "
+ *            "JOIN orders ON orders.meta.memberId = members.member_id "
+ *            "JOIN products ON products.product_id = ANY(orders.lineItems.product.id) "
+ *            "JOIN events ON products.info.event.id = events.event_id "
+ *            "WHERE :given_time >= events.info.expectedStart AND :given_time < events.info.expectedEnd "
+ */
+
+message MemberByEventTimeRequest {
+    google.protobuf.Timestamp eventTime = 1;
+}
+
+message MemberByEventTimeResponse {
+    ApiMemberId memberId = 1;
+    member.ApiInfo info = 2;
+    member.ApiMetaInfo meta = 3;
+}
+
+service MemberByEventQuery {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_member"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_member"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_member"
+            transform_updates: true
+        };
+    }
+
+//    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
 //        option (kalix.method).eventing.in = {
 //            event_sourced_entity: "members"
 //        };
@@ -54,199 +82,169 @@
 //            transform_updates: true
 //        };
 //    }
-//
-//    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "members"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_member"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "members"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_member"
-//            transform_updates: true
-//        };
-//    }
-//
-////    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
-////        option (kalix.method).eventing.in = {
-////            event_sourced_entity: "members"
-////        };
-////        option (kalix.method).view.update = {
-////            table: "member_by_event_member"
-////            transform_updates: true
-////        };
-////    }
-//
-//    rpc ProcessOrderCreated(ordercontext.OrderCreated) returns (ordercontext.order.ApiOrder) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "orders"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_order"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessOrderStatusUpdated(ordercontext.OrderStatusUpdated) returns (ordercontext.order.ApiOrder) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "orders"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_order"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessOrderInfoUpdated(ordercontext.OrderInfoUpdated) returns (ordercontext.order.ApiOrder) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "orders"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_order"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessOrderCanceled(ordercontext.OrderCanceled) returns (ordercontext.order.ApiOrder) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "orders"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_order"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "products"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_product"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "products"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_product"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "products"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_product"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "products"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_product"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "products"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_product"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessEventScheduled(eventcontext.EventScheduled) returns (eventcontext.event.ApiEvent) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "events"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_event"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessEventRescheduled(eventcontext.EventRescheduled) returns (eventcontext.event.ApiEvent) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "events"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_event"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessEventStarted(eventcontext.EventStarted) returns (eventcontext.event.ApiEvent) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "events"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_event"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessEventEnded(eventcontext.EventEnded) returns (eventcontext.event.ApiEvent) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "events"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_event"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessEventDelayed(eventcontext.EventDelayed) returns (eventcontext.event.ApiEvent) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "events"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_event"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc ProcessEventCancelled(eventcontext.EventCancelled) returns (eventcontext.event.ApiEvent) {
-//        option (kalix.method).eventing.in = {
-//            event_sourced_entity: "events"
-//        };
-//        option (kalix.method).view.update = {
-//            table: "member_by_event_event"
-//            transform_updates: true
-//        };
-//    }
-//
-//    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (stream member.ApiMemberData) {
-//        option (kalix.method).view.query = {
-//            query: "SELECT "
-//                    "member_by_event_member.member_id AS member_id, "
-//                    "member_by_event_member.info AS info, "
-//                    "member_by_event_member.meta AS meta "
-//                    "FROM  member_by_event_member "
-//                    "JOIN member_by_event_order ON member_by_event_order.meta.memberId.member_id = member_by_event_member.member_id "
-//                    "JOIN member_by_event_product ON member_by_event_product.sku = member_by_event_order.order_id  "
-//                    "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
-//                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
-//
-//        };
-//    }
-//}
+
+    rpc ProcessOrderCreated(ordercontext.OrderCreated) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderStatusUpdated(ordercontext.OrderStatusUpdated) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderInfoUpdated(ordercontext.OrderInfoUpdated) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderCanceled(ordercontext.OrderCanceled) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventScheduled(eventcontext.EventScheduled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventRescheduled(eventcontext.EventRescheduled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventStarted(eventcontext.EventStarted) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventEnded(eventcontext.EventEnded) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventDelayed(eventcontext.EventDelayed) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventCancelled(eventcontext.EventCancelled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_event_event"
+            transform_updates: true
+        };
+    }
+
+    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (stream member.ApiMemberData) {
+        option (kalix.method).view.query = {
+            query: "SELECT "
+                    "member_by_event_member.member_id AS member_id, "
+                    "member_by_event_member.info AS info, "
+                    "member_by_event_member.meta AS meta "
+                    "FROM  member_by_event_member "
+                    "JOIN member_by_event_order ON member_by_event_order.meta.memberId.member_id = member_by_event_member.member_id "
+                    "JOIN member_by_event_product ON member_by_event_product.sku = ANY(member_by_event_order.lineItems.product.product_id) "
+                    "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
+                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+
+        };
+    }
+}

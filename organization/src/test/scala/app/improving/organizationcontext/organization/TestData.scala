@@ -7,7 +7,7 @@ import java.time.Instant
 
 object TestData {
 
-  val testOrgId = "test-org-id"
+  val testOrgId = "test-organization-id"
   val parentIdTest = "parent-id-test"
   val newParentId = "new-parent-id"
   val testTenantId = "test-tenant-id"
@@ -41,7 +41,7 @@ object TestData {
     ),
     Some(ApiParent(parentIdTest)),
     Seq[ApiMemberId](
-      ApiMemberId("member1"),
+      ApiMemberId("test-member-id"),
       ApiMemberId("member2"),
       ApiMemberId("member3")
     ),

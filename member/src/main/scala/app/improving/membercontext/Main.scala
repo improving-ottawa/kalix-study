@@ -24,7 +24,9 @@ object Main {
       new MemberAPI(_),
       new MemberMap(_),
       new MemberActionServiceImpl(_),
-      new MemberByMetaInfoViewImpl(_))
+      new MemberByEventQueryView(_),
+      new MemberByMetaInfoViewImpl(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

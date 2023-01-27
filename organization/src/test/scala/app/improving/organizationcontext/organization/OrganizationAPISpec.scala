@@ -263,14 +263,15 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val members = testKit.currentState.organization
         .map(_.members)
         .getOrElse(Seq.empty[MemberId])
-      members should have size 4
+      members should have size 5
 
-      members shouldEqual Seq(
-        MemberId("member1"),
+      members.toSet shouldEqual Seq(
+        MemberId("test-member-id"),
         MemberId("member2"),
         MemberId("member3"),
+        MemberId("member1"),
         MemberId("member4")
-      )
+      ).toSet
 
       val meta = testKit.currentState.organization
         .flatMap(_.orgMeta)
@@ -285,7 +286,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
         testOrgId,
         Seq[ApiMemberId](
-          ApiMemberId("member1"),
+          ApiMemberId("test-member-id"),
           ApiMemberId("member2"),
           ApiMemberId("member4")
         ),
@@ -329,9 +330,10 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val members = testKit.currentState.organization
         .map(_.members)
         .getOrElse(Seq.empty[MemberId])
-      members should have size 1
+      members should have size 2
 
       members shouldEqual Seq(
+        MemberId("test-member-id"),
         MemberId("member3")
       )
 

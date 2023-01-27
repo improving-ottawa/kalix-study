@@ -1,13 +1,9 @@
 import Dependencies._
-import com.typesafe.sbt.SbtNativePackager
 import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.packager.archetypes.{
-  JavaAppPackaging,
-  JavaServerAppPackaging
-}
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import kalix.sbt.KalixPlugin
-import sbt.Keys.{libraryDependencies, _}
+import sbt.Keys._
 import sbt._
 import sbtdynver.DynVerPlugin.autoImport.dynverSeparator
 import sbtprotoc.ProtocPlugin.autoImport.PB
@@ -16,11 +12,6 @@ import scalapb.GeneratorOption.{
   RetainSourceCodeInfo,
   SingleLineToProtoString
 }
-import sbtdynver.DynVerPlugin.autoImport._
-
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import scala.util.matching.Regex
 
 object Compilation {
 
@@ -50,6 +41,19 @@ object Compilation {
     )
   }
 
+  def scalapbCodeGen(project: Project): Project = {
+    project.settings(
+      libraryDependencies ++= scalaPbDependencies,
+      Compile / PB.targets := Seq(
+        scalapb.gen(
+          FlatPackage,
+          SingleLineToProtoString,
+          RetainSourceCodeInfo
+        ) -> (Compile / sourceManaged).value / "scalapb"
+      ),
+      libraryDependencies += scalaPbCompilerPlugin
+    )
+  }
 }
 
 object Testing {
@@ -71,28 +75,6 @@ object Packaging {
       dockerUsername := sys.props.get("docker.username"),
       dockerRepository := sys.props.get("docker.registry"),
       dockerUpdateLatest := true,
-      dockerBuildCommand := {
-        if (sys.props("os.arch") != "amd64") {
-          // use buildx with platform to build supported amd64 images on other CPU architectures
-          // this may require that you have first run 'docker buildx create' to set docker buildx up
-          dockerExecCommand.value ++ Seq(
-            "buildx",
-            "build",
-            "--platform=linux/amd64",
-            "--load"
-          ) ++ dockerBuildOptions.value :+ "."
-        } else dockerBuildCommand.value
-      }
-    )
-  }
-
-  def dockerConfiguration(project: Project): Project = {
-    project.settings(
-      dockerBaseImage := "docker.io/library/eclipse-temurin:17",
-      dockerUsername := sys.props.get("docker.username"),
-      dockerRepository := sys.props.get("docker.registry"),
-      dockerUpdateLatest := true,
-      // dockerAlias := dockerAlias.value.withTag(Some("latest"))
       dockerExposedPorts ++= Seq(8080),
       dockerBuildCommand := {
         if (sys.props("os.arch") != "amd64") {
@@ -108,11 +90,36 @@ object Packaging {
       }
     )
   }
+
+//  def dockerConfiguration(project: Project): Project = {
+//    project.settings(
+//      dockerBaseImage := "docker.io/library/eclipse-temurin:17",
+//      dockerUsername := sys.props.get("docker.username"),
+//      dockerRepository := sys.props.get("docker.registry"),
+//      dockerUpdateLatest := true,
+//      // dockerAlias := dockerAlias.value.withTag(Some("latest"))
+//      dockerExposedPorts ++= Seq(8080),
+//      dockerBuildCommand := {
+//        if (sys.props("os.arch") != "amd64") {
+//          // use buildx with platform to build supported amd64 images on other CPU architectures
+//          // this may require that you have first run 'docker buildx create' to set docker buildx up
+//          dockerExecCommand.value ++ Seq(
+//            "buildx",
+//            "build",
+//            "--platform=linux/amd64",
+//            "--load"
+//          ) ++ dockerBuildOptions.value :+ "."
+//        } else dockerBuildCommand.value
+//      }
+//    )
+//  }
 }
 
 object Kalix {
 
-  def service(componentName: String)(project: Project): Project = {
+  def service(componentName: String, port: Int = 8080)(
+      project: Project
+  ): Project = {
     project
       .enablePlugins(KalixPlugin, JavaAppPackaging, DockerPlugin)
       .configure(Compilation.scala)
@@ -121,6 +128,7 @@ object Kalix {
       .settings(
         name := componentName,
         run / fork := true,
+        run / javaOptions += s"-Dkalix.user-function-port=${port}",
         libraryDependencies ++= utilityDependencies ++ loggingDependencies,
         Compile / managedSourceDirectories ++= Seq(
           target.value / "scala-2.13" / "akka-grpc",
@@ -131,8 +139,8 @@ object Kalix {
 
   def library(componentName: String)(project: Project): Project = {
     project
-//      .enablePlugins(KalixPlugin)
       .configure(Compilation.scala)
+      .configure(Compilation.scalapbCodeGen)
       .configure(Testing.scalaTest)
       .settings(
         name := componentName,
@@ -149,13 +157,6 @@ object Kalix {
       project: Project
   ): Project = {
     project
-      .settings(
-        libraryDependencies ++= {
-          Seq(
-            "app.improving" %% name % version.value % "protobuf"
-          )
-        }
-      )
-      .dependsOn(dependency)
+      .dependsOn(dependency % "compile->compile;test->test")
   }
 }

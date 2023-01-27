@@ -5,13 +5,17 @@ import com.google.protobuf.timestamp.Timestamp
 
 object TestData {
 
-  val testSku = "test-sku"
+  val testSku = "test-product-id"
+  val testSku2 = "test-product-id2"
+  val testSku3 = "test-product-id3"
   val testName = "test-name"
   val testDescription = "test-description"
   val testRow = "test-row"
   val testSeat = "test-seat"
   val testSection = "test-section"
   val testEventId = "test-event-id"
+  val testEventId2 = "test-event-id2"
+  val testEventId3 = "test-event-id3"
   val testImages = Seq[String]("test-image")
   val testPrice = 10.0
   val testCost = 3.0
@@ -33,7 +37,32 @@ object TestData {
     testCost,
     Some(ApiStoreId(testStoreId))
   )
-
+  val apiProductInfoPrivateEvent = ApiProductInfo(
+    testSku2,
+    testName,
+    testDescription,
+    testSection,
+    testRow,
+    testSeat,
+    Some(ApiEventId(testEventId2)),
+    testImages,
+    testPrice,
+    testCost,
+    Some(ApiStoreId(testStoreId))
+  )
+  val apiProductInfoPrivateFailedEvent = ApiProductInfo(
+    testSku3,
+    testName,
+    testDescription,
+    testSection,
+    testRow,
+    testSeat,
+    Some(ApiEventId(testEventId3)),
+    testImages,
+    testPrice,
+    testCost,
+    Some(ApiStoreId(testStoreId))
+  )
   val testNameUpdate = "test-name-update"
   val testDescriptionUpdate = "test-description-update"
   val testRowUpdate = "test-row-update"
@@ -89,5 +118,23 @@ object TestData {
   val apiDeleteProduct = ApiDeleteProduct(
     testSku,
     Some(ApiMemberId(testMemberId1))
+  )
+
+  val apiCreateProduct = ApiCreateProduct(
+    testSku,
+    Some(apiProductInfo),
+    Some(apiProductMetaInfo)
+  )
+
+  val apiCreateProductPrivateEvent = ApiCreateProduct(
+    testSku2,
+    Some(apiProductInfoPrivateEvent),
+    Some(apiProductMetaInfo)
+  )
+
+  val apiCreateProductPrivateFailedEvent = ApiCreateProduct(
+    testSku3,
+    Some(apiProductInfoPrivateFailedEvent),
+    Some(apiProductMetaInfo)
   )
 }
