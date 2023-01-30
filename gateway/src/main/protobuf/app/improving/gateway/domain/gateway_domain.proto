@@ -14,6 +14,14 @@ message TenantCreated {
     ApiTenantId tenant_created = 1;
 }
 
+message CreateTenants {
+    repeated tenantcontext.tenant.ApiInfo tenant_info = 1;
+}
+
+message TenantsCreated {
+    repeated ApiTenantId tenants_created = 1;
+}
+
 message EstablishOrganization {
     organizationcontext.organization.ApiInfo info = 2;
     organizationcontext.organization.ApiParent parent = 3;
@@ -30,4 +38,12 @@ message CreateOrganization {
 
 message OrganizationCreated {
     ApiOrganizationId organization_created = 1;
+}
+
+message CreateOrganizations {
+    repeated EstablishOrganization establish_organizations = 1;
+}
+
+message OrganizationsCreated {
+    repeated ApiOrganizationId organizations_created = 1;
 }

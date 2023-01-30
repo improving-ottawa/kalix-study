@@ -63,4 +63,4 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(gateway, tenant, store, product, order, org, member, event)
+  .aggregate(gateway)

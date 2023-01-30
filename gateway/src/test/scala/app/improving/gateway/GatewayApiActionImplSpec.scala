@@ -60,18 +60,42 @@ class GatewayApiActionImplSpec
       tenantCreated.tenantCreated shouldBe defined
     }
 
+    "handle command EstablishTenants" in {
+      val tenantsCreated: TenantsCreated = gateWayAction
+        .handleEstablishTenants(CreateTenants(Seq(tenantInfo)))
+        .futureValue
+
+      log.info(tenantsCreated + " tenantsCreated")
+      tenantsCreated.tenantsCreated.isEmpty shouldBe false
+    }
+
     "handle command EstablishOrganization" in {
 
       val command: CreateOrganization = CreateOrganization(
         Some(establishOrganization)
       )
 
-      val organizationsCreated = gateWayAction
+      val organizationCreated = gateWayAction
         .handleEstablishOrganization(command)
         .futureValue
 
+      log.info(organizationCreated + " organizationCreated")
+      organizationCreated.organizationCreated shouldBe defined
+
+    }
+
+    "handle command EstablishOrganizations" in {
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(establishOrganization)
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
       log.info(organizationsCreated + " organizationCreated")
-      organizationsCreated.organizationCreated shouldBe defined
+      organizationsCreated.organizationsCreated.isEmpty shouldBe false
 
     }
   }
