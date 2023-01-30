@@ -18,10 +18,24 @@ service GatewayApiAction {
         };
     }
 
+    rpc HandleEstablishTenants(CreateTenants) returns (TenantsCreated) {
+        option (google.api.http) = {
+            post: "/tenant/establish-tenants"
+            body: "*"
+        };
+    }
+
     rpc HandleEstablishOrganization(CreateOrganization) returns (OrganizationCreated) {
         option (google.api.http) = {
             post: "/organization/establish-organization"
             body: "establish_organization"
+        };
+    }
+
+    rpc HandleEstablishOrganizations(CreateOrganizations) returns (OrganizationsCreated) {
+        option (google.api.http) = {
+            post: "/organization/establish-organizations"
+            body: "*"
         };
     }
 

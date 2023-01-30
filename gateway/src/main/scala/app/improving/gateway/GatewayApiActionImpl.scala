@@ -88,9 +88,39 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   }
 
+  override def handleEstablishOrganizations(
+      createOrganizations: CreateOrganizations
+  ): Action.Effect[OrganizationsCreated] = {
+    log.info("in handleEstablishOrganizations")
+
+    effects.asyncReply(
+      Future
+        .sequence(
+          createOrganizations.establishOrganizations
+            .map(establishOrganization => {
+              organizationService
+                .establishOrganization(
+                  ApiEstablishOrganization(
+                    UUID.randomUUID().toString,
+                    establishOrganization.info,
+                    establishOrganization.parent,
+                    establishOrganization.members,
+                    establishOrganization.owners,
+                    establishOrganization.contacts,
+                    establishOrganization.establishingMember,
+                    establishOrganization.meta
+                  )
+                )
+            })
+        )
+        .map(OrganizationsCreated(_))
+    )
+  }
+
+
   override def handleScheduleEvent(
-      createEvent: CreateEvent
-  ): Action.Effect[EventCreated] = {
+                                    createEvent: CreateEvent
+                                  ): Action.Effect[EventCreated] = {
 
     log.info("in handleScheduleEvent")
 
