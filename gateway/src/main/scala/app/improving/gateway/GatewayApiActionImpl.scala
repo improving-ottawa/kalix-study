@@ -6,6 +6,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationService
 }
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
+import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
@@ -23,16 +24,24 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractGatewayApiAction {
 
   private val log = LoggerFactory.getLogger(this.getClass)
+
+  lazy val config: Config = ConfigFactory.load()
+
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
 
     log.info("in handleEstablishTenant")
 
+    log.info(
+      config.getString(
+        "app.improving.gateway.tenant.grpc-client-name"
+      ) + " config.getString(\"app.improving.gateway.tenant.grpc-client-name\")"
+    )
     val tenantService =
       actionContext.getGrpcClient(
         classOf[TenantService],
-        "kalix-study-tenant"
+        config.getString("app.improving.gateway.tenant.grpc-client-name")
       )
 
     effects.asyncReply(
@@ -52,10 +61,16 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Action.Effect[OrganizationCreated] = {
 
     log.info("in handleEstablishOrganization")
-
+    log.info(
+      config.getString(
+        "app.improving.gateway.organization.grpc-client-name"
+      ) + " config.getString(\"app.improving.gateway.organization.grpc-client-name\")"
+    )
     val organizationService = actionContext.getGrpcClient(
       classOf[OrganizationService],
-      "kalix-study-org"
+      config.getString(
+        "app.improving.gateway.organization.grpc-client-name"
+      )
     )
 
     effects.asyncReply(
