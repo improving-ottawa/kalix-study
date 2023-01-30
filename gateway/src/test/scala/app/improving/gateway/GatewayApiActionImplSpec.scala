@@ -1,71 +1,76 @@
-//package app.improving.gateway
+package app.improving.gateway
+
+import TestData._
+import akka.actor.ActorSystem
+import akka.grpc.GrpcClientSettings
+import app.improving.organizationcontext.organization.{
+  OrganizationService,
+  OrganizationServiceClient
+}
+import com.typesafe.config.{Config, ConfigFactory}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.wordspec.AnyWordSpec
+
+import scala.concurrent.Future
+
+// This class was initially generated based on the .proto definition by Kalix tooling.
 //
-//import app.improving.{
-//  ApiAddress,
-//  ApiCAPostalCode,
-//  ApiContact,
-//  ApiEmailAddress,
-//  ApiMobileNumber,
-//  ApiTenantId
-//}
-//import app.improving.tenantcontext.tenant.{
-//  ApiEstablishTenant,
-//  ApiInfo,
-//  TenantService
-//}
-//import kalix.scalasdk.testkit.{ActionResult, MockRegistry}
-//import org.scalamock.matchers.ArgCapture.CaptureAll
-//import org.scalamock.scalatest.MockFactory
-//import org.scalatest.matchers.should.Matchers
-//import org.scalatest.wordspec.AnyWordSpec
-//
-//import scala.concurrent.Future
-//
-//// This class was initially generated based on the .proto definition by Kalix tooling.
-////
-//// As long as this file exists it will not be overwritten: you can maintain it yourself,
-//// or delete it so it is regenerated as needed.
-//
-//class GatewayApiActionImplSpec
-//    extends AnyWordSpec
-//    with Matchers
-//    with MockFactory {
-//
-//  trait Fixture {
-//    val tenantInfo: ApiInfo = ApiInfo(
-//      "tenantName",
-//      Some(
-//        ApiContact(
-//          firstName = "Some",
-//          lastName = "One",
-//          emailAddress = Some(ApiEmailAddress("someone@gmail.com")),
-//          phone = Some(ApiMobileNumber("1234567")),
-//          userName = "Someone"
-//        )
-//      ),
-//      Some(
-//        ApiAddress(
-//          line1 = "Line 1 St",
-//          line2 = "Line 2 Ave",
-//          city = "Sometown",
-//          stateProvince = "Ontario",
-//          country = "Canada",
-//          postalCode =
-//            ApiAddress.PostalCode.CaPostalCode(ApiCAPostalCode("A1B2C3"))
-//        )
-//      )
-//    )
-//
-//    val tenantServiceStub: TenantService = mock[TenantService]
-//    val mockRegistry: MockRegistry = MockRegistry.withMock(tenantServiceStub)
-//    val service: GatewayApiActionImplTestKit =
-//      GatewayApiActionImplTestKit(new GatewayApiActionImpl(_), mockRegistry)
-//  }
-//
-//  "GatewayApiActionImpl" should {
-//    "handle command EstablishTenant" in new Fixture {
+// As long as this file exists it will not be overwritten: you can maintain it yourself,
+// or delete it so it is regenerated as needed.
+
+class GatewayApiActionImplSpec
+    extends AnyWordSpec
+    with Matchers
+    with BeforeAndAfterAll
+    with ScalaFutures
+    with Fixture {
+
+  implicit private val patience: PatienceConfig =
+    PatienceConfig(Span(5, Seconds), Span(500, Millis))
+
+  implicit val sys = ActorSystem("OrderActionImpl")
+  implicit val ec = sys.dispatcher
+
+  lazy val config: Config = ConfigFactory.load()
+
+  val gateWatyClientSettings = GrpcClientSettings.connectToServiceAt(
+    config.getString(
+      "app.improving.akka.grpc.gateway-client-url"
+    ),
+    config.getInt("app.improving.akka.grpc.client-url-port")
+  )
+
+  val gateWayAction: GatewayApiAction = GatewayApiActionClient(
+    gateWatyClientSettings
+  )
+
+  val organizationClientSettings = GrpcClientSettings.connectToServiceAt(
+    config.getString(
+      "app.improving.akka.grpc.organization-client-url"
+    ),
+    config.getInt("app.improving.akka.grpc.client-url-port")
+  )
+
+  val organization: OrganizationService = OrganizationServiceClient(
+    organizationClientSettings
+  )
+
+  "GatewayApiActionImpl" should {
+    "handle command EstablishTenant" in {
+      val tenantCreated: TenantCreated = gateWayAction
+        .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
+        .futureValue
+
+      println(tenantCreated + " tenantCreated")
+      tenantCreated.tenantCreated shouldBe defined
+    }
+
+    "handle command EstablishOrganization" in {
 //      val establishTenantCommand = CaptureAll[ApiEstablishTenant]()
-//
+
 //      tenantServiceStub.establishTenant _ expects capture(
 //        establishTenantCommand
 //      ) onCall { msg: ApiEstablishTenant =>
@@ -74,12 +79,22 @@
 //        )
 //      }
 //
-//      val command: EstablishTenant = EstablishTenant(Some(tenantInfo))
-//      val reply: ActionResult[ApiTenantId] =
-//        service.handleEstablishTenant(command)
-//      println(reply.asyncResult.value)
-//      assert(reply.isReply)
-//      establishTenantCommand.value.tenantId shouldEqual reply.reply.tenantId
-//    }
-//  }
-//}
+//      val organizationId =
+//        organization.establishOrganization(apiEstablishOrganization).futureValue
+//
+//      println(organizationId + " org id")
+
+      val command: CreateOrganization = CreateOrganization(
+        Some(establishOrganization)
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganization(command)
+        .futureValue
+
+      println(organizationsCreated + " organizationCreated")
+      organizationsCreated.organizationCreated shouldBe defined
+
+    }
+  }
+}

@@ -16,6 +16,7 @@ import com.google.protobuf.timestamp.Timestamp
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -25,13 +26,19 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
   override def emptyState: TenantState = TenantState.defaultInstance
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def establishTenant(
       currentState: TenantState,
       apiEstablishTenant: ApiEstablishTenant
   ): EventSourcedEntity.Effect[ApiTenantId] = {
     currentState.tenant match {
-      case Some(_) => effects.reply(ApiTenantId.defaultInstance)
+      case Some(tenant) => {
+        log.info(s"in establishTenant - tenant already existed - ${tenant}")
+        effects.reply(ApiTenantId.defaultInstance)
+      }
       case _ => {
+        log.info("in establishTenant")
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val tenandId = apiEstablishTenant.tenantId

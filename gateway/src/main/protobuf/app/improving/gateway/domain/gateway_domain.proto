@@ -4,11 +4,30 @@ package app.improving.gateway;
 
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
+import "app/improving/organization/api/organization_api.proto";
 
-message CreateTenants {
-    repeated tenantcontext.tenant.ApiInfo tenant_infos = 1;
+message CreateTenant {
+    tenantcontext.tenant.ApiInfo tenant_info = 1;
 }
 
-message TenantsCreated {
-    repeated ApiTenantId tenants_created = 1;
+message TenantCreated {
+    ApiTenantId tenant_created = 1;
+}
+
+message EstablishOrganization {
+    organizationcontext.organization.ApiInfo info = 2;
+    organizationcontext.organization.ApiParent parent = 3;
+    repeated ApiMemberId members = 4;
+    repeated ApiMemberId owners = 5;
+    repeated organizationcontext.organization.ApiContacts contacts = 6;
+    ApiMemberId establishingMember = 7;
+    organizationcontext.organization.ApiMetaInfo meta = 8;
+}
+
+message CreateOrganization {
+    EstablishOrganization establish_organization = 1;
+}
+
+message OrganizationCreated {
+    ApiOrganizationId organization_created = 1;
 }
