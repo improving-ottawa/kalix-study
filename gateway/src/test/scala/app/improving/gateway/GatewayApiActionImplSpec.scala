@@ -69,31 +69,32 @@ class GatewayApiActionImplSpec
     }
 
     "handle command EstablishOrganization" in {
-//      val establishTenantCommand = CaptureAll[ApiEstablishTenant]()
-
-//      tenantServiceStub.establishTenant _ expects capture(
-//        establishTenantCommand
-//      ) onCall { msg: ApiEstablishTenant =>
-//        Future.successful(
-//          ApiTenantId(msg.tenantId)
-//        )
-//      }
-//
-//      val organizationId =
-//        organization.establishOrganization(apiEstablishOrganization).futureValue
-//
-//      println(organizationId + " org id")
 
       val command: CreateOrganization = CreateOrganization(
         Some(establishOrganization)
       )
 
-      val organizationsCreated = gateWayAction
+      val organizationCreated = gateWayAction
         .handleEstablishOrganization(command)
         .futureValue
 
-      println(organizationsCreated + " organizationCreated")
-      organizationsCreated.organizationCreated shouldBe defined
+      println(organizationCreated + " organizationCreated")
+      organizationCreated.organizationCreated shouldBe defined
+
+    }
+
+    "handle command ScheduleEvent" in {
+
+      val command: CreateEvent = CreateEvent(
+        Some(scheduleEvent)
+      )
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(command)
+        .futureValue
+
+      println(eventCreated + " eventCreated")
+      eventCreated.eventCreated shouldBe defined
 
     }
   }

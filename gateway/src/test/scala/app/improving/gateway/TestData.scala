@@ -1,6 +1,7 @@
 package app.improving.gateway
 
 import app.improving._
+import app.improving.eventcontext.event.{ApiEventInfo, ApiReservationId}
 import app.improving.organizationcontext.organization.{
   ApiOrganizationStatus,
   ApiParent,
@@ -146,6 +147,25 @@ object TestData {
           Seq.empty[ApiOrganizationId]
         )
       )
+    )
+
+    val start = Timestamp.of(now.getEpochSecond, now.getNano)
+    val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
+    val testMember = "test-member-id"
+    val apiEventInfo = ApiEventInfo(
+      "try-out-event",
+      "School footbal try out",
+      "www.nowhere.com",
+      Some(ApiOrganizationId("test-organization-id")),
+      Some(ApiGeoLocation(0.12, 0.438, 4.322)),
+      Some(ApiReservationId("reserve-1")),
+      Some(start),
+      Some(end),
+      false
+    )
+    val scheduleEvent = ScheduleEvent(
+      Some(apiEventInfo),
+      Some(ApiMemberId(testMember))
     )
   }
 }

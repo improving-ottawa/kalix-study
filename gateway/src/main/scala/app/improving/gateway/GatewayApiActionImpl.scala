@@ -1,6 +1,7 @@
 package app.improving.gateway
 
 import app.improving.ApiTenantId
+import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -84,6 +85,30 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => OrganizationCreated(Some(id)))
+    )
+  }
+
+  override def handleScheduleEvent(
+      createEvent: CreateEvent
+  ): Action.Effect[EventCreated] = {
+
+    log.info("in handleScheduleEvent")
+
+    val eventService = actionContext.getGrpcClient(
+      classOf[EventService],
+      "kalix-study-event"
+    )
+
+    effects.asyncReply(
+      eventService
+        .scheduleEvent(
+          ApiScheduleEvent(
+            UUID.randomUUID().toString,
+            createEvent.scheduleEvent.flatMap(_.info),
+            createEvent.scheduleEvent.flatMap(_.schedulingMember)
+          )
+        )
+        .map(id => EventCreated(Some(id)))
     )
   }
 }

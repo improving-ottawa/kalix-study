@@ -24,4 +24,11 @@ service GatewayApiAction {
             body: "establish_organization"
         };
     }
+
+    rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-event"
+            body: "schedule_event"
+        };
+    }
 }
