@@ -7,6 +7,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationService
 }
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
+import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
@@ -24,17 +25,44 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractGatewayApiAction {
 
   private val log = LoggerFactory.getLogger(this.getClass)
+
+  lazy val config: Config = ConfigFactory.load()
+
+  log.info(
+    config.getString(
+      "app.improving.gateway.tenant.grpc-client-name"
+    ) + " config.getString(\"app.improving.gateway.tenant.grpc-client-name\")"
+  )
+  val tenantService =
+    actionContext.getGrpcClient(
+      classOf[TenantService],
+      config.getString("app.improving.gateway.tenant.grpc-client-name")
+    )
+
+  log.info(
+    config.getString(
+      "app.improving.gateway.organization.grpc-client-name"
+    ) + " config.getString(\"app.improving.gateway.organization.grpc-client-name\")"
+  )
+  val organizationService = actionContext.getGrpcClient(
+    classOf[OrganizationService],
+    config.getString(
+      "app.improving.gateway.organization.grpc-client-name"
+    )
+  )
+
+  val eventService = actionContext.getGrpcClient(
+    classOf[EventService],
+    config.getString(
+      "app.improving.gateway.event.grpc-client-name"
+    )
+  )
+
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
 
     log.info("in handleEstablishTenant")
-
-    val tenantService =
-      actionContext.getGrpcClient(
-        classOf[TenantService],
-        "kalix-study-tenant"
-      )
 
     effects.asyncReply(
       tenantService
@@ -45,6 +73,28 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => TenantCreated(Some(id)))
+    )
+  }
+
+  override def handleEstablishTenants(
+      createTenants: CreateTenants
+  ): Action.Effect[TenantsCreated] = {
+
+    log.info("in handleEstablishTenants")
+
+    effects.asyncReply(
+      Future
+        .sequence(
+          createTenants.tenantInfo.map(info =>
+            tenantService.establishTenant(
+              ApiEstablishTenant(
+                UUID.randomUUID().toString,
+                Some(info)
+              )
+            )
+          )
+        )
+        .map(TenantsCreated(_))
     )
   }
 
@@ -117,17 +167,11 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   }
 
-
   override def handleScheduleEvent(
-                                    createEvent: CreateEvent
-                                  ): Action.Effect[EventCreated] = {
+      createEvent: CreateEvent
+  ): Action.Effect[EventCreated] = {
 
     log.info("in handleScheduleEvent")
-
-    val eventService = actionContext.getGrpcClient(
-      classOf[EventService],
-      "kalix-study-event"
-    )
 
     effects.asyncReply(
       eventService
@@ -139,6 +183,30 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => EventCreated(Some(id)))
+    )
+  }
+
+  override def handleScheduleEvents(
+      createEvents: CreateEvents
+  ): Action.Effect[EventsCreated] = {
+
+    log.info("in handleScheduleEvents")
+
+    effects.asyncReply(
+      Future
+        .sequence(
+          createEvents.scheduleEvents
+            .map(scheduleEvent => {
+              eventService.scheduleEvent(
+                ApiScheduleEvent(
+                  UUID.randomUUID().toString,
+                  scheduleEvent.info,
+                  scheduleEvent.schedulingMember
+                )
+              )
+            })
+        )
+        .map(EventsCreated(_))
     )
   }
 }
