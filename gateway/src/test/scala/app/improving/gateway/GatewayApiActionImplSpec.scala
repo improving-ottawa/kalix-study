@@ -3,6 +3,7 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.ApiMemberId
 import app.improving.organizationcontext.organization.{
   OrganizationService,
   OrganizationServiceClient
@@ -95,6 +96,20 @@ class GatewayApiActionImplSpec
       println(organizationsCreated + " organizationCreated")
       organizationsCreated.organizationCreated shouldBe defined
 
+    }
+
+    "handle command RegisterMember" in {
+      val memberRegistered: MemberRegistered = gateWayAction
+        .handleRegisterMember(
+          RegisterMember(
+            Some(memberApiInfo),
+            Some(ApiMemberId(testMemberId))
+          )
+        )
+        .futureValue
+
+      println(memberRegistered + " memberRegistered")
+      memberRegistered.memberRegistered shouldBe defined
     }
   }
 }

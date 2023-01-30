@@ -1,6 +1,7 @@
 package app.improving.gateway
 
 import app.improving.ApiTenantId
+import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -84,6 +85,30 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => OrganizationCreated(Some(id)))
+    )
+  }
+
+  override def handleRegisterMember(
+      registerMember: RegisterMember
+  ): Action.Effect[MemberRegistered] = {
+    log.info("in handleRegisterMember")
+
+    val memberService = actionContext.getGrpcClient(
+      classOf[MemberService],
+      "kalix-study-member"
+    )
+
+    val memberId = UUID.randomUUID().toString
+    effects.asyncReply(
+      memberService
+        .registerMember(
+          ApiRegisterMember(
+            memberId,
+            registerMember.info,
+            registerMember.registeringMember
+          )
+        )
+        .map(id => MemberRegistered(Some(id)))
     )
   }
 }

@@ -3,6 +3,7 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/gateway/domain/gateway_domain.proto";
+import "app/improving/member/domain/member_context_domain.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -22,6 +23,13 @@ service GatewayApiAction {
         option (google.api.http) = {
             post: "/organization/establish-organization"
             body: "establish_organization"
+        };
+    }
+
+    rpc HandleRegisterMember(RegisterMember) returns (MemberRegistered) {
+        option (google.api.http) = {
+            post: "/member/register-member"
+            body: "*"
         };
     }
 }
