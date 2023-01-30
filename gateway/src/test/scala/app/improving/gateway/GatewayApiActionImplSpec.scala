@@ -13,6 +13,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 
@@ -34,6 +35,8 @@ class GatewayApiActionImplSpec
   implicit val sys = ActorSystem("OrderActionImpl")
   implicit val ec = sys.dispatcher
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   lazy val config: Config = ConfigFactory.load()
 
   val gateWatyClientSettings = GrpcClientSettings.connectToServiceAt(
@@ -47,53 +50,52 @@ class GatewayApiActionImplSpec
     gateWatyClientSettings
   )
 
-  val organizationClientSettings = GrpcClientSettings.connectToServiceAt(
-    config.getString(
-      "app.improving.akka.grpc.organization-client-url"
-    ),
-    config.getInt("app.improving.akka.grpc.client-url-port")
-  )
-
-  val organization: OrganizationService = OrganizationServiceClient(
-    organizationClientSettings
-  )
-
   "GatewayApiActionImpl" should {
     "handle command EstablishTenant" in {
       val tenantCreated: TenantCreated = gateWayAction
         .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
         .futureValue
 
-      println(tenantCreated + " tenantCreated")
+      log.info(tenantCreated + " tenantCreated")
       tenantCreated.tenantCreated shouldBe defined
     }
 
-    "handle command EstablishOrganization" in {
-//      val establishTenantCommand = CaptureAll[ApiEstablishTenant]()
+    "handle command EstablishTenants" in {
+      val tenantsCreated: TenantsCreated = gateWayAction
+        .handleEstablishTenants(CreateTenants(Seq(tenantInfo)))
+        .futureValue
 
-//      tenantServiceStub.establishTenant _ expects capture(
-//        establishTenantCommand
-//      ) onCall { msg: ApiEstablishTenant =>
-//        Future.successful(
-//          ApiTenantId(msg.tenantId)
-//        )
-//      }
-//
-//      val organizationId =
-//        organization.establishOrganization(apiEstablishOrganization).futureValue
-//
-//      println(organizationId + " org id")
+      log.info(tenantsCreated + " tenantsCreated")
+      tenantsCreated.tenantsCreated.isEmpty shouldBe false
+    }
+
+    "handle command EstablishOrganization" in {
 
       val command: CreateOrganization = CreateOrganization(
         Some(establishOrganization)
       )
 
-      val organizationsCreated = gateWayAction
+      val organizationCreated = gateWayAction
         .handleEstablishOrganization(command)
         .futureValue
 
-      println(organizationsCreated + " organizationCreated")
-      organizationsCreated.organizationCreated shouldBe defined
+      log.info(organizationCreated + " organizationCreated")
+      organizationCreated.organizationCreated shouldBe defined
+
+    }
+
+    "handle command EstablishOrganizations" in {
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(establishOrganization)
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
+      log.info(organizationsCreated + " organizationCreated")
+      organizationsCreated.organizationsCreated.isEmpty shouldBe false
 
     }
   }
