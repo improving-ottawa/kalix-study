@@ -1,6 +1,5 @@
 package app.improving.gateway
 
-import app.improving.ApiTenantId
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory
 
 import java.util.UUID
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -32,7 +30,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.tenant.grpc-client-name"
     ) + " config.getString(\"app.improving.gateway.tenant.grpc-client-name\")"
   )
-  val tenantService =
+  private val tenantService =
     actionContext.getGrpcClient(
       classOf[TenantService],
       config.getString("app.improving.gateway.tenant.grpc-client-name")
@@ -43,7 +41,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.organization.grpc-client-name"
     ) + " config.getString(\"app.improving.gateway.organization.grpc-client-name\")"
   )
-  val organizationService = actionContext.getGrpcClient(
+  private val organizationService = actionContext.getGrpcClient(
     classOf[OrganizationService],
     config.getString(
       "app.improving.gateway.organization.grpc-client-name"

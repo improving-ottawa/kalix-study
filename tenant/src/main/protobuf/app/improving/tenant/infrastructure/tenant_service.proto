@@ -27,7 +27,7 @@ service TenantService {
     rpc EstablishTenant(ApiEstablishTenant) returns (ApiTenantId) {
         option (google.api.http) = {
             post: "/tenant/establish-tenant"
-            body: "info"
+            body: "*"
         };
     }
 

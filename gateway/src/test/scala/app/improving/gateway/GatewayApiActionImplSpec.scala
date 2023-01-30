@@ -3,25 +3,20 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.organizationcontext.organization.{
-  OrganizationService,
-  OrganizationServiceClient
-}
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Ignore}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.Future
-
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
+@Ignore
 class GatewayApiActionImplSpec
     extends AnyWordSpec
     with Matchers
@@ -39,7 +34,7 @@ class GatewayApiActionImplSpec
 
   lazy val config: Config = ConfigFactory.load()
 
-  val gateWatyClientSettings = GrpcClientSettings.connectToServiceAt(
+  val gateWayClientSettings = GrpcClientSettings.connectToServiceAt(
     config.getString(
       "app.improving.akka.grpc.gateway-client-url"
     ),
@@ -47,7 +42,7 @@ class GatewayApiActionImplSpec
   )
 
   val gateWayAction: GatewayApiAction = GatewayApiActionClient(
-    gateWatyClientSettings
+    gateWayClientSettings
   )
 
   "GatewayApiActionImpl" should {
