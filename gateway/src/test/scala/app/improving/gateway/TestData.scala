@@ -8,6 +8,7 @@ import app.improving.organizationcontext.organization.{
   ApiMetaInfo => OrgMetaInfo,
   _
 }
+import app.improving.storecontext.store.ApiStoreInfo
 import app.improving.tenantcontext.tenant.{
   ApiInfo => TenantInfo,
   ApiMetaInfo => TenantMetaInfo,
@@ -146,6 +147,36 @@ object TestData {
           Seq.empty[ApiOrganizationId]
         )
       )
+    )
+
+    val testStoreId = "test-store-id"
+    val testName = "test-name"
+    val testDescription = "test-description"
+    val testProductId1 = "test-product-id1"
+    val testProductId2 = "test-product-id2"
+    val testEventId = "test-event-id"
+    val testEvent = ApiEventId(testEventId)
+    val testVenueId = "test-venue-id"
+    val testVenue = ApiVenueId(testVenueId)
+    val testLocationId = "test-location-id"
+    val testLocaltion = ApiLocationId(testLocationId)
+    val testProducts = Seq[ApiProductId](
+      ApiProductId(testProductId1),
+      ApiProductId(testProductId2)
+    )
+    val testOrg = ApiOrganizationId(testOrgId)
+    val testMember1 = "test-member1"
+    val testMember2 = "test-member2"
+    val testMember3 = "test-member3"
+    val apiStoreInfo = ApiStoreInfo(
+      testStoreId,
+      testName,
+      testDescription,
+      testProducts,
+      Some(testEvent),
+      Some(testVenue),
+      Some(testLocaltion),
+      Some(testOrg)
     )
   }
 }

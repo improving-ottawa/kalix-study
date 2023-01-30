@@ -5,6 +5,7 @@ import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
 }
+import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -84,6 +85,35 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => OrganizationCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateStore(
+      createStore: CreateStore
+  ): Action.Effect[StoreCreated] = {
+
+    log.info("in handleCreateStore")
+
+    val storeService = actionContext.getGrpcClient(
+      classOf[StoreService],
+      "kalix-study-store"
+    )
+
+    val storeId = UUID.randomUUID().toString
+    effects.asyncReply(
+      storeService
+        .createStore(
+          ApiCreateStore(
+            storeId,
+            createStore.info.map(
+              _.copy(
+                storeId = storeId
+              )
+            ),
+            createStore.creatingMember
+          )
+        )
+        .map(id => StoreCreated(Some(id)))
     )
   }
 }

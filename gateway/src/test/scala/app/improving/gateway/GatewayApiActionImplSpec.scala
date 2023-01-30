@@ -3,6 +3,7 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.ApiMemberId
 import app.improving.organizationcontext.organization.{
   OrganizationService,
   OrganizationServiceClient
@@ -69,20 +70,6 @@ class GatewayApiActionImplSpec
     }
 
     "handle command EstablishOrganization" in {
-//      val establishTenantCommand = CaptureAll[ApiEstablishTenant]()
-
-//      tenantServiceStub.establishTenant _ expects capture(
-//        establishTenantCommand
-//      ) onCall { msg: ApiEstablishTenant =>
-//        Future.successful(
-//          ApiTenantId(msg.tenantId)
-//        )
-//      }
-//
-//      val organizationId =
-//        organization.establishOrganization(apiEstablishOrganization).futureValue
-//
-//      println(organizationId + " org id")
 
       val command: CreateOrganization = CreateOrganization(
         Some(establishOrganization)
@@ -94,6 +81,22 @@ class GatewayApiActionImplSpec
 
       println(organizationsCreated + " organizationCreated")
       organizationsCreated.organizationCreated shouldBe defined
+
+    }
+
+    "handle command CreateStore" in {
+
+      val command: CreateStore = CreateStore(
+        Some(apiStoreInfo),
+        Some(ApiMemberId(testMember1))
+      )
+
+      val storeCreated = gateWayAction
+        .handleCreateStore(command)
+        .futureValue
+
+      println(storeCreated + " storeCreated")
+      storeCreated.storeCreated shouldBe defined
 
     }
   }
