@@ -96,5 +96,14 @@ class GatewayApiActionImplSpec
       organizationsCreated.organizationCreated shouldBe defined
 
     }
+
+    "handle command CreateProduct" in {
+      val productCreated: ProductCreated = gateWayAction
+        .handleCreateProduct(createProduct)
+        .futureValue
+
+      println(productCreated + " productCreated")
+      productCreated.productCreated shouldBe defined
+    }
   }
 }

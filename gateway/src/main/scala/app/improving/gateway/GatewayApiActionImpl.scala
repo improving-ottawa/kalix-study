@@ -5,6 +5,7 @@ import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
 }
+import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -84,6 +85,31 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => OrganizationCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateProduct(
+      createProduct: CreateProduct
+  ): Action.Effect[ProductCreated] = {
+
+    log.info("in handleCreateProduct")
+
+    val productService = actionContext.getGrpcClient(
+      classOf[ProductService],
+      "kalix-study-product"
+    )
+
+    val sku = UUID.randomUUID().toString
+    effects.asyncReply(
+      productService
+        .createProduct(
+          ApiCreateProduct(
+            sku,
+            createProduct.info.map(_.copy(sku = sku)),
+            createProduct.meta
+          )
+        )
+        .map(id => ProductCreated(Some(id)))
     )
   }
 }

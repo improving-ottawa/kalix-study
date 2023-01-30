@@ -24,4 +24,11 @@ service GatewayApiAction {
             body: "establish_organization"
         };
     }
+
+    rpc HandleCreateProduct(CreateProduct) returns (ProductCreated) {
+        option (google.api.http) = {
+            post: "/product/create-product"
+            body: "*"
+        };
+    }
 }

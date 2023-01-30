@@ -8,6 +8,8 @@ import app.improving.organizationcontext.organization.{
   ApiMetaInfo => OrgMetaInfo,
   _
 }
+import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
+import app.improving.productcontext.product.TestData.testMemberId
 import app.improving.tenantcontext.tenant.{
   ApiInfo => TenantInfo,
   ApiMetaInfo => TenantMetaInfo,
@@ -146,6 +148,48 @@ object TestData {
           Seq.empty[ApiOrganizationId]
         )
       )
+    )
+
+    val testSku = "test-product-id"
+    val testSku2 = "test-product-id2"
+    val testSku3 = "test-product-id3"
+    val testName = "test-name"
+    val testDescription = "test-description"
+    val testRow = "test-row"
+    val testSeat = "test-seat"
+    val testSection = "test-section"
+    val testEventId = "test-event-id"
+    val testEventId2 = "test-event-id2"
+    val testEventId3 = "test-event-id3"
+    val testImages = Seq[String]("test-image")
+    val testPrice = 10.0
+    val testCost = 3.0
+    val testStoreId = "test-store-id"
+    val testMemberId = "test-member-id"
+    val testMemberId1 = "test-member-id1"
+    val testTimestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    val apiProductInfo = ApiProductInfo(
+      testSku,
+      testName,
+      testDescription,
+      testSection,
+      testRow,
+      testSeat,
+      Some(ApiEventId(testEventId)),
+      testImages,
+      testPrice,
+      testCost,
+      Some(ApiStoreId(testStoreId))
+    )
+    val apiProductMetaInfo = ApiProductMetaInfo(
+      Some(ApiMemberId(testMemberId)),
+      Some(testTimestamp),
+      Some(ApiMemberId(testMemberId1)),
+      Some(testTimestamp)
+    )
+    val createProduct = CreateProduct(
+      Some(apiProductInfo),
+      Some(apiProductMetaInfo)
     )
   }
 }
