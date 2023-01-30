@@ -1,6 +1,7 @@
 package app.improving.gateway
 
 import app.improving.ApiTenantId
+import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -84,6 +85,30 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           )
         )
         .map(id => OrganizationCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateOrder(
+      createOrder: CreateOrder
+  ): Action.Effect[OrderCreated] = {
+    log.info("in handleCreateOrder")
+
+    val orderAction = actionContext.getGrpcClient(
+      classOf[OrderAction],
+      "kalix-study-order"
+    )
+
+    val orderId = UUID.randomUUID().toString
+    effects.asyncReply(
+      orderAction
+        .purchaseTicket(
+          ApiCreateOrder(
+            orderId,
+            createOrder.info.map(_.copy(orderId = orderId)),
+            createOrder.creatingMember
+          )
+        )
+        .map(id => OrderCreated(Some(id)))
     )
   }
 }

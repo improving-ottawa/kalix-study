@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
+import "app/improving/order/api/order_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
@@ -30,4 +31,14 @@ message CreateOrganization {
 
 message OrganizationCreated {
     ApiOrganizationId organization_created = 1;
+}
+
+message CreateOrder {
+    ordercontext.order.ApiOrderInfo info = 1;
+    ApiMemberId creatingMember = 2;
+    ApiStoreId storeId = 3;
+}
+
+message OrderCreated {
+    ApiOrderId order_created = 1;
 }
