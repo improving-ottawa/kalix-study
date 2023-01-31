@@ -84,6 +84,13 @@ service GatewayApiAction {
     rpc HandleCreateOrder(CreateOrder) returns (OrderCreated) {
         option (google.api.http) = {
             post: "/order/create-order"
+            body: "establish_order"
+        };
+    }
+
+    rpc HandleCreateOrders(CreateOrders) returns (OrdersCreated) {
+        option (google.api.http) = {
+            post: "/order/create-orders"
             body: "*"
         };
     }

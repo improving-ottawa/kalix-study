@@ -115,12 +115,25 @@ message ProductsCreated {
     repeated ApiProductId products_created = 1;
 }
 
-message CreateOrder {
+message EstablishOrder {
     ordercontext.order.ApiOrderInfo info = 1;
     ApiMemberId creatingMember = 2;
     ApiStoreId storeId = 3;
 }
 
+message CreateOrder {
+    EstablishOrder establish_order = 1;
+}
+
 message OrderCreated {
     ApiOrderId order_created = 1;
+}
+
+message CreateOrders {
+    repeated EstablishOrder establish_orders = 1;
+
+}
+
+message OrdersCreated {
+    repeated ApiOrderId orders_created = 1;
 }

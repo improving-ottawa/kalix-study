@@ -335,11 +335,41 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .purchaseTicket(
           ApiCreateOrder(
             orderId,
-            createOrder.info.map(_.copy(orderId = orderId)),
-            createOrder.creatingMember
+            createOrder.establishOrder
+              .flatMap(_.info.map(_.copy(orderId = orderId))),
+            createOrder.establishOrder.flatMap(_.creatingMember)
           )
         )
         .map(id => OrderCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateOrders(
+      createOrders: CreateOrders
+  ): Action.Effect[OrdersCreated] = {
+    log.info("in handleCreateOrders")
+
+    val orderAction = actionContext.getGrpcClient(
+      classOf[OrderAction],
+      "kalix-study-order"
+    )
+
+    val orderId = UUID.randomUUID().toString
+    effects.asyncReply(
+      Future
+        .sequence(
+          createOrders.establishOrders.map(establishOrder => {
+            orderAction
+              .purchaseTicket(
+                ApiCreateOrder(
+                  orderId,
+                  establishOrder.info.map(_.copy(orderId = orderId)),
+                  establishOrder.creatingMember
+                )
+              )
+          })
+        )
+        .map(OrdersCreated(_))
     )
   }
 }

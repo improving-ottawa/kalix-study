@@ -3,7 +3,7 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.ApiMemberId
+import app.improving.{ApiEventId, ApiMemberId}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -182,6 +182,28 @@ class GatewayApiActionImplSpec
 
       println(productsCreated + " productsCreated")
       productsCreated.productsCreated.isEmpty shouldBe false
+    }
+
+    "handle command CreateOrder" in {
+      val createEvent: CreateEvent = CreateEvent(
+        Some(scheduleEvent)
+      )
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(createEvent)
+        .futureValue
+
+      val eventId = eventCreated.eventCreated
+
+      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductMetaInfoForEvent = apiProductMetaInfo
+      val establisProductForEvent = EstablishProduct(
+        Some(apiProductInfoForEvent),
+        Some(apiProductMetaInfo)
+      )
+      val productCreated =
+        gateWayAction.handleCreateProduct(CreateProduct(Some(establisProductForEvent)))
+
     }
   }
 }
