@@ -114,8 +114,12 @@ class GatewayApiActionImplSpec
     "handle command CreateStore" in {
 
       val command: CreateStore = CreateStore(
-        Some(apiStoreInfo),
-        Some(ApiMemberId(testMember1))
+        Some(
+          EstablishStore(
+            Some(apiStoreInfo),
+            Some(ApiMemberId(testMember1))
+          )
+        )
       )
 
       val storeCreated = gateWayAction
@@ -124,6 +128,26 @@ class GatewayApiActionImplSpec
 
       println(storeCreated + " storeCreated")
       storeCreated.storeCreated shouldBe defined
+
+    }
+
+    "handle command CreateStores" in {
+
+      val command: CreateStores = CreateStores(
+        Seq(
+          EstablishStore(
+            Some(apiStoreInfo),
+            Some(ApiMemberId(testMember1))
+          )
+        )
+      )
+
+      val storesCreated = gateWayAction
+        .handleCreateStores(command)
+        .futureValue
+
+      println(storesCreated + " storesCreated")
+      storesCreated.storesCreated.isEmpty shouldBe false
 
     }
   }

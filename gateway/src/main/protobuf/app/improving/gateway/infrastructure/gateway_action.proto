@@ -42,8 +42,14 @@ service GatewayApiAction {
     rpc HandleCreateStore(CreateStore) returns (StoreCreated) {
         option (google.api.http) = {
             post: "/store/create-store"
-            body: "*"
+            body: "establish_store"
         };
     }
 
+    rpc HandleCreateStores(CreateStores) returns (StoresCreated) {
+        option (google.api.http) = {
+            post: "/store/create-stores"
+            body: "*"
+        };
+    }
 }

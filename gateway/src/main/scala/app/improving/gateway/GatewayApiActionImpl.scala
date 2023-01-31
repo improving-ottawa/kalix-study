@@ -50,6 +50,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.organization.grpc-client-name"
     )
   )
+  val storeService = actionContext.getGrpcClient(
+    classOf[StoreService],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -165,26 +171,48 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info("in handleCreateStore")
 
-    val storeService = actionContext.getGrpcClient(
-      classOf[StoreService],
-      "kalix-study-store"
-    )
-
     val storeId = UUID.randomUUID().toString
     effects.asyncReply(
       storeService
         .createStore(
           ApiCreateStore(
             storeId,
-            createStore.info.map(
-              _.copy(
-                storeId = storeId
+            createStore.establishStore.flatMap(
+              _.info.map(
+                _.copy(
+                  storeId = storeId
+                )
               )
             ),
-            createStore.creatingMember
+            createStore.establishStore.flatMap(_.creatingMember)
           )
         )
         .map(id => StoreCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateStores(
+      createStores: CreateStores
+  ): Action.Effect[StoresCreated] = {
+    log.info("in handleCreateStores")
+
+    val storeId = UUID.randomUUID().toString
+    effects.asyncReply(
+      Future
+        .sequence(createStores.establishStores.map(establishStore => {
+          storeService.createStore(
+            ApiCreateStore(
+              storeId,
+              establishStore.info.map(
+                _.copy(
+                  storeId = storeId
+                )
+              ),
+              establishStore.creatingMember
+            )
+          )
+        }))
+        .map(StoresCreated(_))
     )
   }
 }

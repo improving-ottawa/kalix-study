@@ -49,12 +49,23 @@ message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
 
-
-message CreateStore {
+message EstablishStore {
     storecontext.store.ApiStoreInfo info = 1;
     ApiMemberId creatingMember = 2;
 }
 
+message CreateStore {
+    EstablishStore establish_store = 1;
+}
+
 message StoreCreated {
     ApiStoreId store_created = 1;
+}
+
+message CreateStores {
+    repeated EstablishStore establish_stores = 1;
+}
+
+message StoresCreated {
+    repeated ApiStoreId stores_created = 1;
 }
