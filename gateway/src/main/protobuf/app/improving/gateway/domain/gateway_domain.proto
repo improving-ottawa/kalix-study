@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
+import "app/improving/member/api/member_api.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/store/api/store_api.proto";
 import "app/improving/event/api/event_api.proto";
@@ -26,13 +27,13 @@ message TenantsCreated {
 }
 
 message EstablishOrganization {
-    organizationcontext.organization.ApiInfo info = 1;
-    organizationcontext.organization.ApiParent parent = 2;
-    repeated ApiMemberId members = 3;
-    repeated ApiMemberId owners = 4;
-    repeated organizationcontext.organization.ApiContacts contacts = 5;
-    ApiMemberId establishingMember = 6;
-    organizationcontext.organization.ApiMetaInfo meta = 7;
+    organizationcontext.organization.ApiInfo info = 2;
+    organizationcontext.organization.ApiParent parent = 3;
+    repeated ApiMemberId members = 4;
+    repeated ApiMemberId owners = 5;
+    repeated organizationcontext.organization.ApiContacts contacts = 6;
+    ApiMemberId establishingMember = 7;
+    organizationcontext.organization.ApiMetaInfo meta = 8;
 }
 
 message CreateOrganization {
@@ -112,4 +113,26 @@ message CreateProducts {
 
 message ProductsCreated {
     repeated ApiProductId products_created = 1;
+}
+
+message EstablishMember {
+    membercontext.member.ApiInfo info = 1;
+    ApiMemberId registeringMember = 2;
+}
+
+message RegisterMember {
+    EstablishMember establish_member = 1;
+}
+
+message MemberRegistered {
+    ApiMemberId member_registered  =1;
+}
+
+message RegisterMembers {
+    repeated EstablishMember establish_members = 1;
+
+}
+
+message MembersRegistered {
+    repeated ApiMemberId members_registered  =1;
 }

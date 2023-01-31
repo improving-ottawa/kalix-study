@@ -1,6 +1,6 @@
 package app.improving.gateway
 
-import app.improving.ApiTenantId
+import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
@@ -74,6 +74,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val memberService = creationContext.getGrpcClient(
+    classOf[MemberService],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -119,6 +125,11 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Action.Effect[OrganizationCreated] = {
 
     log.info("in handleEstablishOrganization")
+
+    val organizationService = creationContext.getGrpcClient(
+      classOf[OrganizationService],
+      "kalix-study-org"
+    )
 
     effects.asyncReply(
       organizationService
@@ -315,6 +326,52 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             })
         )
         .map(ProductsCreated(_))
+    )
+  }
+
+  override def handleRegisterMember(
+      registerMember: RegisterMember
+  ): Action.Effect[MemberRegistered] = {
+
+    log.info("in handleRegisterMember")
+
+    val memberId = UUID.randomUUID().toString
+    effects.asyncReply(
+      memberService
+        .registerMember(
+          ApiRegisterMember(
+            memberId,
+            registerMember.establishMember.flatMap(_.info),
+            registerMember.establishMember.flatMap(_.registeringMember)
+          )
+        )
+        .map(id => MemberRegistered(Some(id)))
+    )
+  }
+
+  override def handleRegisterMembers(
+      registerMembers: RegisterMembers
+  ): Action.Effect[MembersRegistered] = {
+
+    log.info("in handleRegisterMembers")
+
+    val memberId = UUID.randomUUID().toString
+
+    effects.asyncReply(
+      Future
+        .sequence(
+          registerMembers.establishMembers.map(establishMember => {
+            memberService
+              .registerMember(
+                ApiRegisterMember(
+                  memberId,
+                  establishMember.info,
+                  establishMember.registeringMember
+                )
+              )
+          })
+        )
+        .map(MembersRegistered(_))
     )
   }
 }
