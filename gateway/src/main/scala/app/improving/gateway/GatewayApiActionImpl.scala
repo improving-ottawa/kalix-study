@@ -36,7 +36,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     ) + " config.getString(\"app.improving.gateway.tenant.grpc-client-name\")"
   )
   val tenantService =
-    actionContext.getGrpcClient(
+    creationContext.getGrpcClient(
       classOf[TenantService],
       config.getString("app.improving.gateway.tenant.grpc-client-name")
     )
@@ -46,28 +46,28 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.organization.grpc-client-name"
     ) + " config.getString(\"app.improving.gateway.organization.grpc-client-name\")"
   )
-  val organizationService = actionContext.getGrpcClient(
+  val organizationService = creationContext.getGrpcClient(
     classOf[OrganizationService],
     config.getString(
       "app.improving.gateway.organization.grpc-client-name"
     )
   )
 
-  val eventService = actionContext.getGrpcClient(
+  val eventService = creationContext.getGrpcClient(
     classOf[EventService],
     config.getString(
       "app.improving.gateway.event.grpc-client-name"
     )
   )
 
-  val storeService = actionContext.getGrpcClient(
+  val storeService = creationContext.getGrpcClient(
     classOf[StoreService],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
     )
   )
 
-  val productService = actionContext.getGrpcClient(
+  val productService = creationContext.getGrpcClient(
     classOf[ProductService],
     config.getString(
       "app.improving.gateway.product.grpc-client-name"
