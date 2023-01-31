@@ -3,6 +3,9 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/member/api/member_api.proto";
+import "app/improving/product/api/product_api.proto";
+import "app/improving/store/api/store_api.proto";
+import "app/improving/event/api/event_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
@@ -13,6 +16,14 @@ message CreateTenant {
 
 message TenantCreated {
     ApiTenantId tenant_created = 1;
+}
+
+message CreateTenants {
+    repeated tenantcontext.tenant.ApiInfo tenant_info = 1;
+}
+
+message TenantsCreated {
+    repeated ApiTenantId tenants_created = 1;
 }
 
 message EstablishOrganization {
@@ -31,6 +42,77 @@ message CreateOrganization {
 
 message OrganizationCreated {
     ApiOrganizationId organization_created = 1;
+}
+
+message CreateOrganizations {
+    repeated EstablishOrganization establish_organizations = 1;
+}
+
+message OrganizationsCreated {
+    repeated ApiOrganizationId organizations_created = 1;
+}
+
+message ScheduleEvent {
+    eventcontext.event.ApiEventInfo info = 1;
+    ApiMemberId schedulingMember = 2;
+}
+
+message CreateEvent {
+    ScheduleEvent schedule_event = 1;
+}
+
+message EventCreated {
+    ApiEventId event_created = 1;
+}
+
+message CreateEvents {
+    repeated ScheduleEvent schedule_events = 1;
+}
+
+message EventsCreated {
+    repeated ApiEventId events_created = 1;
+}
+
+message EstablishStore {
+    storecontext.store.ApiStoreInfo info = 1;
+    ApiMemberId creatingMember = 2;
+}
+
+message CreateStore {
+    EstablishStore establish_store = 1;
+}
+
+message StoreCreated {
+    ApiStoreId store_created = 1;
+}
+
+message CreateStores {
+    repeated EstablishStore establish_stores = 1;
+}
+
+message StoresCreated {
+    repeated ApiStoreId stores_created = 1;
+}
+
+message EstablishProduct {
+    productcontext.product.ApiProductInfo info = 1;
+    productcontext.product.ApiProductMetaInfo meta = 2;
+}
+
+message CreateProduct {
+    EstablishProduct establish_product = 1;;
+}
+
+message ProductCreated {
+    ApiProductId product_created = 1;
+}
+
+message CreateProducts {
+    repeated EstablishProduct establish_products = 1;
+}
+
+message ProductsCreated {
+    repeated ApiProductId products_created = 1;
 }
 
 message RegisterMember {

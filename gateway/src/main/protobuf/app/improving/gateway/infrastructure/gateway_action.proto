@@ -19,10 +19,66 @@ service GatewayApiAction {
         };
     }
 
+    rpc HandleEstablishTenants(CreateTenants) returns (TenantsCreated) {
+        option (google.api.http) = {
+            post: "/tenant/establish-tenants"
+            body: "*"
+        };
+    }
+
     rpc HandleEstablishOrganization(CreateOrganization) returns (OrganizationCreated) {
         option (google.api.http) = {
             post: "/organization/establish-organization"
             body: "establish_organization"
+        };
+    }
+
+    rpc HandleEstablishOrganizations(CreateOrganizations) returns (OrganizationsCreated) {
+        option (google.api.http) = {
+            post: "/organization/establish-organizations"
+            body: "*"
+        };
+    }
+
+    rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-event"
+            body: "schedule_event"
+        };
+    }
+
+    rpc HandleScheduleEvents(CreateEvents) returns (EventsCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-events"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateStore(CreateStore) returns (StoreCreated) {
+        option (google.api.http) = {
+            post: "/store/create-store"
+            body: "establish_store"
+        };
+    }
+
+    rpc HandleCreateStores(CreateStores) returns (StoresCreated) {
+        option (google.api.http) = {
+            post: "/store/create-stores"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateProduct(CreateProduct) returns (ProductCreated) {
+        option (google.api.http) = {
+            post: "/product/create-product"
+            body: "establish_product"
+        };
+    }
+
+    rpc HandleCreateProducts(CreateProducts) returns (ProductsCreated) {
+        option (google.api.http) = {
+            post: "/product/create-products"
+            body: "*"
         };
     }
 
