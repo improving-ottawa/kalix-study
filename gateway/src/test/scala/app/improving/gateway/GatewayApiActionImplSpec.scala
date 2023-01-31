@@ -3,6 +3,12 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.ApiMemberId
+import app.improving.organizationcontext.organization.{
+  OrganizationService,
+  OrganizationServiceClient
+}
+import app.improving.ApiMemberId
 import app.improving.{ApiEventId, ApiMemberId}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
@@ -182,6 +188,42 @@ class GatewayApiActionImplSpec
 
       println(productsCreated + " productsCreated")
       productsCreated.productsCreated.isEmpty shouldBe false
+    }
+
+    "handle command RegisterMember" in {
+      val memberRegistered: MemberRegistered = gateWayAction
+        .handleRegisterMember(
+          RegisterMember(
+            Some(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      println(memberRegistered + " memberRegistered")
+      memberRegistered.memberRegistered shouldBe defined
+    }
+
+    "handle command RegisterMembers" in {
+      val membersRegistered: MembersRegistered = gateWayAction
+        .handleRegisterMembers(
+          RegisterMembers(
+            Seq(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      println(membersRegistered + " membersRegistered")
+      membersRegistered.membersRegistered.isEmpty shouldBe false
     }
 
     "handle command CreateOrder" in {

@@ -1,6 +1,10 @@
 package app.improving.gateway
 
 import app.improving._
+import app.improving.membercontext.member.{
+  ApiNotificationPreference,
+  ApiInfo => MemberApiInfo
+}
 import app.improving.eventcontext.event.{ApiEventInfo, ApiReservationId}
 import app.improving.organizationcontext.organization.{
   ApiOrganizationStatus,
@@ -11,10 +15,8 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.ApiStoreInfo
 import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
-import app.improving.productcontext.product.TestData.testMemberId
 import app.improving.tenantcontext.tenant.{
   ApiInfo => TenantInfo,
-  ApiMetaInfo => TenantMetaInfo,
   _
 }
 import com.google.protobuf.timestamp.Timestamp
@@ -237,6 +239,29 @@ object TestData {
     val establishProduct = EstablishProduct(
       Some(apiProductInfo),
       Some(apiProductMetaInfo)
+    )
+
+    val testMemberId2 = "test-member-id2"
+    val testOrganizationId = "test-organization-id"
+    val testTenantId1 = "test-tenant-id1"
+    val apiContact = ApiContact(
+      "member-first-name",
+      "member-last-name",
+      Some(ApiEmailAddress("member@memberapi.com")),
+      Some(ApiMobileNumber("987-878-0987")),
+      "user-name"
+    )
+    val memberApiInfo = MemberApiInfo(
+      Some(apiContact),
+      "handle",
+      "avartar",
+      "member-name",
+      "short-name",
+      Some(ApiMobileNumber("987-878-0987")),
+      Some(ApiEmailAddress("member@memberapi.com")),
+      ApiNotificationPreference.SMS,
+      Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
+      Some(ApiTenantId(testTenantId))
     )
   }
 }
