@@ -1,6 +1,5 @@
 package app.improving.gateway
 
-import app.improving.ApiTenantId
 import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{
@@ -75,17 +74,17 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val memberService = creationContext.getGrpcClient(
+    classOf[MemberService],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
 
     log.info("in handleEstablishTenant")
-
-    val tenantService =
-      actionContext.getGrpcClient(
-        classOf[TenantService],
-        "kalix-study-tenant"
-      )
 
     effects.asyncReply(
       tenantService
@@ -127,7 +126,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info("in handleEstablishOrganization")
 
-    val organizationService = actionContext.getGrpcClient(
+    val organizationService = creationContext.getGrpcClient(
       classOf[OrganizationService],
       "kalix-study-org"
     )
@@ -333,12 +332,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleRegisterMember(
       registerMember: RegisterMember
   ): Action.Effect[MemberRegistered] = {
-    log.info("in handleRegisterMember")
 
-    val memberService = actionContext.getGrpcClient(
-      classOf[MemberService],
-      "kalix-study-member"
-    )
+    log.info("in handleRegisterMember")
 
     val memberId = UUID.randomUUID().toString
     effects.asyncReply(
@@ -346,11 +341,37 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .registerMember(
           ApiRegisterMember(
             memberId,
-            registerMember.info,
-            registerMember.registeringMember
+            registerMember.establishMember.flatMap(_.info),
+            registerMember.establishMember.flatMap(_.registeringMember)
           )
         )
         .map(id => MemberRegistered(Some(id)))
+    )
+  }
+
+  override def handleRegisterMembers(
+      registerMembers: RegisterMembers
+  ): Action.Effect[MembersRegistered] = {
+
+    log.info("in handleRegisterMembers")
+
+    val memberId = UUID.randomUUID().toString
+
+    effects.asyncReply(
+      Future
+        .sequence(
+          registerMembers.establishMembers.map(establishMember => {
+            memberService
+              .registerMember(
+                ApiRegisterMember(
+                  memberId,
+                  establishMember.info,
+                  establishMember.registeringMember
+                )
+              )
+          })
+        )
+        .map(MembersRegistered(_))
     )
   }
 }

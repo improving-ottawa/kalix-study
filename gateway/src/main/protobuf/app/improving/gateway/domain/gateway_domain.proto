@@ -115,11 +115,24 @@ message ProductsCreated {
     repeated ApiProductId products_created = 1;
 }
 
-message RegisterMember {
+message EstablishMember {
     membercontext.member.ApiInfo info = 1;
     ApiMemberId registeringMember = 2;
 }
 
+message RegisterMember {
+    EstablishMember establish_member = 1;
+}
+
 message MemberRegistered {
     ApiMemberId member_registered  =1;
+}
+
+message RegisterMembers {
+    repeated EstablishMember establish_members = 1;
+
+}
+
+message MembersRegistered {
+    repeated ApiMemberId members_registered  =1;
 }

@@ -85,6 +85,13 @@ service GatewayApiAction {
     rpc HandleRegisterMember(RegisterMember) returns (MemberRegistered) {
         option (google.api.http) = {
             post: "/member/register-member"
+            body: "establish_member"
+        };
+    }
+
+    rpc HandleRegisterMembers(RegisterMembers) returns (MembersRegistered) {
+        option (google.api.http) = {
+            post: "/member/register-members"
             body: "*"
         };
     }

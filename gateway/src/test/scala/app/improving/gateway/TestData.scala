@@ -15,10 +15,8 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.ApiStoreInfo
 import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
-import app.improving.productcontext.product.TestData.testMemberId
 import app.improving.tenantcontext.tenant.{
   ApiInfo => TenantInfo,
-  ApiMetaInfo => TenantMetaInfo,
   _
 }
 import com.google.protobuf.timestamp.Timestamp
@@ -243,7 +241,6 @@ object TestData {
       Some(apiProductMetaInfo)
     )
 
-    val testMemberId = "test-member-id"
     val testMemberId2 = "test-member-id2"
     val testOrganizationId = "test-organization-id"
     val testTenantId1 = "test-tenant-id1"

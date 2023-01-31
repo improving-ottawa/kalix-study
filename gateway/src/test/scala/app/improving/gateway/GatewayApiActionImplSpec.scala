@@ -193,14 +193,36 @@ class GatewayApiActionImplSpec
       val memberRegistered: MemberRegistered = gateWayAction
         .handleRegisterMember(
           RegisterMember(
-            Some(memberApiInfo),
-            Some(ApiMemberId(testMemberId))
+            Some(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
           )
         )
         .futureValue
 
       println(memberRegistered + " memberRegistered")
       memberRegistered.memberRegistered shouldBe defined
+    }
+
+    "handle command RegisterMembers" in {
+      val membersRegistered: MembersRegistered = gateWayAction
+        .handleRegisterMembers(
+          RegisterMembers(
+            Seq(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      println(membersRegistered + " membersRegistered")
+      membersRegistered.membersRegistered.isEmpty shouldBe false
     }
   }
 }
