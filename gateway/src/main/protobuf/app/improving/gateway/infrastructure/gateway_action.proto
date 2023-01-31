@@ -38,4 +38,18 @@ service GatewayApiAction {
             body: "*"
         };
     }
+
+    rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-event"
+            body: "schedule_event"
+        };
+    }
+
+    rpc HandleScheduleEvents(CreateEvents) returns (EventsCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-events"
+            body: "*"
+        };
+    }
 }
