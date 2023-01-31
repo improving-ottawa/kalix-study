@@ -14,6 +14,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 
@@ -34,6 +35,8 @@ class GatewayApiActionImplSpec
 
   implicit val sys = ActorSystem("OrderActionImpl")
   implicit val ec = sys.dispatcher
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   lazy val config: Config = ConfigFactory.load()
 
@@ -65,8 +68,17 @@ class GatewayApiActionImplSpec
         .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
         .futureValue
 
-      println(tenantCreated + " tenantCreated")
+      log.info(tenantCreated + " tenantCreated")
       tenantCreated.tenantCreated shouldBe defined
+    }
+
+    "handle command EstablishTenants" in {
+      val tenantsCreated: TenantsCreated = gateWayAction
+        .handleEstablishTenants(CreateTenants(Seq(tenantInfo)))
+        .futureValue
+
+      log.info(tenantsCreated + " tenantsCreated")
+      tenantsCreated.tenantsCreated.isEmpty shouldBe false
     }
 
     "handle command EstablishOrganization" in {
@@ -75,12 +87,27 @@ class GatewayApiActionImplSpec
         Some(establishOrganization)
       )
 
-      val organizationsCreated = gateWayAction
+      val organizationCreated = gateWayAction
         .handleEstablishOrganization(command)
         .futureValue
 
-      println(organizationsCreated + " organizationCreated")
-      organizationsCreated.organizationCreated shouldBe defined
+      log.info(organizationCreated + " organizationCreated")
+      organizationCreated.organizationCreated shouldBe defined
+
+    }
+
+    "handle command EstablishOrganizations" in {
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(establishOrganization)
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
+      log.info(organizationsCreated + " organizationCreated")
+      organizationsCreated.organizationsCreated.isEmpty shouldBe false
 
     }
 
