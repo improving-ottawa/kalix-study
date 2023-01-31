@@ -56,6 +56,7 @@ lazy val gateway = project
   .configure(Kalix.dependsOn(tenant, "tenant"))
   .configure(Kalix.dependsOn(org, "organization"))
   .configure(Kalix.dependsOn(store, "store"))
+  .configure(Kalix.dependsOn(event, "event"))
 
 lazy val root = project
   .in(file("."))

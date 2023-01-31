@@ -39,6 +39,20 @@ service GatewayApiAction {
         };
     }
 
+    rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-event"
+            body: "schedule_event"
+        };
+    }
+
+    rpc HandleScheduleEvents(CreateEvents) returns (EventsCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-events"
+            body: "*"
+        };
+    }
+
     rpc HandleCreateStore(CreateStore) returns (StoreCreated) {
         option (google.api.http) = {
             post: "/store/create-store"

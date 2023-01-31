@@ -3,6 +3,7 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/store/api/store_api.proto";
+import "app/improving/event/api/event_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
@@ -24,13 +25,13 @@ message TenantsCreated {
 }
 
 message EstablishOrganization {
-    organizationcontext.organization.ApiInfo info = 2;
-    organizationcontext.organization.ApiParent parent = 3;
-    repeated ApiMemberId members = 4;
-    repeated ApiMemberId owners = 5;
-    repeated organizationcontext.organization.ApiContacts contacts = 6;
-    ApiMemberId establishingMember = 7;
-    organizationcontext.organization.ApiMetaInfo meta = 8;
+    organizationcontext.organization.ApiInfo info = 1;
+    organizationcontext.organization.ApiParent parent = 2;
+    repeated ApiMemberId members = 3;
+    repeated ApiMemberId owners = 4;
+    repeated organizationcontext.organization.ApiContacts contacts = 5;
+    ApiMemberId establishingMember = 6;
+    organizationcontext.organization.ApiMetaInfo meta = 7;
 }
 
 message CreateOrganization {
@@ -47,6 +48,27 @@ message CreateOrganizations {
 
 message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
+}
+
+message ScheduleEvent {
+    eventcontext.event.ApiEventInfo info = 1;
+    ApiMemberId schedulingMember = 2;
+}
+
+message CreateEvent {
+    ScheduleEvent schedule_event = 1;
+}
+
+message EventCreated {
+    ApiEventId event_created = 1;
+}
+
+message CreateEvents {
+    repeated ScheduleEvent schedule_events = 1;
+}
+
+message EventsCreated {
+    repeated ApiEventId events_created = 1;
 }
 
 message EstablishStore {

@@ -1,6 +1,7 @@
 package app.improving.gateway
 
 import app.improving.ApiTenantId
+import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -50,6 +51,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.organization.grpc-client-name"
     )
   )
+
+  val eventService = actionContext.getGrpcClient(
+    classOf[EventService],
+    config.getString(
+      "app.improving.gateway.event.grpc-client-name"
+    )
+  )
+
   val storeService = actionContext.getGrpcClient(
     classOf[StoreService],
     config.getString(
@@ -61,12 +70,6 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Action.Effect[TenantCreated] = {
 
     log.info("in handleEstablishTenant")
-
-    val tenantService =
-      actionContext.getGrpcClient(
-        classOf[TenantService],
-        "kalix-study-tenant"
-      )
 
     effects.asyncReply(
       tenantService
@@ -101,6 +104,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .map(TenantsCreated(_))
     )
   }
+
   override def handleEstablishOrganization(
       createOrganization: CreateOrganization
   ): Action.Effect[OrganizationCreated] = {
@@ -162,6 +166,49 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             })
         )
         .map(OrganizationsCreated(_))
+    )
+  }
+
+  override def handleScheduleEvent(
+      createEvent: CreateEvent
+  ): Action.Effect[EventCreated] = {
+
+    log.info("in handleScheduleEvent")
+
+    effects.asyncReply(
+      eventService
+        .scheduleEvent(
+          ApiScheduleEvent(
+            UUID.randomUUID().toString,
+            createEvent.scheduleEvent.flatMap(_.info),
+            createEvent.scheduleEvent.flatMap(_.schedulingMember)
+          )
+        )
+        .map(id => EventCreated(Some(id)))
+    )
+  }
+
+  override def handleScheduleEvents(
+      createEvents: CreateEvents
+  ): Action.Effect[EventsCreated] = {
+
+    log.info("in handleScheduleEvents")
+
+    effects.asyncReply(
+      Future
+        .sequence(
+          createEvents.scheduleEvents
+            .map(scheduleEvent => {
+              eventService.scheduleEvent(
+                ApiScheduleEvent(
+                  UUID.randomUUID().toString,
+                  scheduleEvent.info,
+                  scheduleEvent.schedulingMember
+                )
+              )
+            })
+        )
+        .map(EventsCreated(_))
     )
   }
 

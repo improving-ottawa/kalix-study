@@ -51,17 +51,6 @@ class GatewayApiActionImplSpec
     gateWatyClientSettings
   )
 
-  val organizationClientSettings = GrpcClientSettings.connectToServiceAt(
-    config.getString(
-      "app.improving.akka.grpc.organization-client-url"
-    ),
-    config.getInt("app.improving.akka.grpc.client-url-port")
-  )
-
-  val organization: OrganizationService = OrganizationServiceClient(
-    organizationClientSettings
-  )
-
   "GatewayApiActionImpl" should {
     "handle command EstablishTenant" in {
       val tenantCreated: TenantCreated = gateWayAction
@@ -108,6 +97,36 @@ class GatewayApiActionImplSpec
 
       log.info(organizationsCreated + " organizationCreated")
       organizationsCreated.organizationsCreated.isEmpty shouldBe false
+
+    }
+
+    "handle command ScheduleEvent" in {
+
+      val command: CreateEvent = CreateEvent(
+        Some(scheduleEvent)
+      )
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(command)
+        .futureValue
+
+      log.info(eventCreated + " eventCreated")
+      eventCreated.eventCreated shouldBe defined
+
+    }
+
+    "handle command ScheduleEvents" in {
+
+      val command: CreateEvents = CreateEvents(
+        Seq(scheduleEvent)
+      )
+
+      val eventsCreated = gateWayAction
+        .handleScheduleEvents(command)
+        .futureValue
+
+      log.info(eventsCreated + " eventsCreated")
+      eventsCreated.eventsCreated.isEmpty shouldBe false
 
     }
 
