@@ -70,6 +70,13 @@ service GatewayApiAction {
     rpc HandleCreateProduct(CreateProduct) returns (ProductCreated) {
         option (google.api.http) = {
             post: "/product/create-product"
+            body: "establish_product"
+        };
+    }
+
+    rpc HandleCreateProducts(CreateProducts) returns (ProductsCreated) {
+        option (google.api.http) = {
+            post: "/product/create-products"
             body: "*"
         };
     }

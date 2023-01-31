@@ -66,6 +66,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.store.grpc-client-name"
     )
   )
+
+  val productService = actionContext.getGrpcClient(
+    classOf[ProductService],
+    config.getString(
+      "app.improving.gateway.product.grpc-client-name"
+    )
+  )
+
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -270,22 +278,43 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info("in handleCreateProduct")
 
-    val productService = actionContext.getGrpcClient(
-      classOf[ProductService],
-      "kalix-study-product"
-    )
-
     val sku = UUID.randomUUID().toString
     effects.asyncReply(
       productService
         .createProduct(
           ApiCreateProduct(
             sku,
-            createProduct.info.map(_.copy(sku = sku)),
-            createProduct.meta
+            createProduct.establishProduct
+              .flatMap(_.info.map(_.copy(sku = sku))),
+            createProduct.establishProduct.flatMap(_.meta)
           )
         )
         .map(id => ProductCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateProducts(
+      createProducts: CreateProducts
+  ): Action.Effect[ProductsCreated] = {
+    log.info("in handleCreateProducts")
+
+    val sku = UUID.randomUUID().toString
+    effects.asyncReply(
+      Future
+        .sequence(
+          createProducts.establishProducts
+            .map(establishProduct => {
+              productService
+                .createProduct(
+                  ApiCreateProduct(
+                    sku,
+                    establishProduct.info.map(_.copy(sku = sku)),
+                    establishProduct.meta
+                  )
+                )
+            })
+        )
+        .map(ProductsCreated(_))
     )
   }
 }
