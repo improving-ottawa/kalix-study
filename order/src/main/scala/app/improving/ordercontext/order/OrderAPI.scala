@@ -22,7 +22,11 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       apiCreateOrder: ApiCreateOrder
   ): EventSourcedEntity.Effect[ApiOrderId] = {
     currentState.order match {
-      case Some(_) => effects.reply(ApiOrderId.defaultInstance)
+      case Some(order)
+          if order.orderId == Some(OrderId(apiCreateOrder.orderId)) =>
+        effects.error(
+          s"OrderAPI createOrder Error: order with id ${apiCreateOrder.orderId} already existed"
+        )
       case _ => {
         val orderId = apiCreateOrder.orderId
         val orderIdOpt = Some(OrderId(orderId))

@@ -4,10 +4,6 @@ import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.ApiMemberId
-import app.improving.organizationcontext.organization.{
-  OrganizationService,
-  OrganizationServiceClient
-}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -168,6 +164,24 @@ class GatewayApiActionImplSpec
       println(storesCreated + " storesCreated")
       storesCreated.storesCreated.isEmpty shouldBe false
 
+    }
+
+    "handle command CreateProduct" in {
+      val productCreated: ProductCreated = gateWayAction
+        .handleCreateProduct(CreateProduct(Some(establishProduct)))
+        .futureValue
+
+      println(productCreated + " productCreated")
+      productCreated.productCreated shouldBe defined
+    }
+
+    "handle command CreateProducts" in {
+      val productsCreated: ProductsCreated = gateWayAction
+        .handleCreateProducts(CreateProducts(Seq(establishProduct)))
+        .futureValue
+
+      println(productsCreated + " productsCreated")
+      productsCreated.productsCreated.isEmpty shouldBe false
     }
   }
 }
