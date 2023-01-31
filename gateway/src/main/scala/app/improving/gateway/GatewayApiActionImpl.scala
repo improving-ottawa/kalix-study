@@ -6,6 +6,7 @@ import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
 }
+import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
@@ -58,6 +59,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val storeService = actionContext.getGrpcClient(
+    classOf[StoreService],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -103,11 +110,6 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Action.Effect[OrganizationCreated] = {
 
     log.info("in handleEstablishOrganization")
-
-    val organizationService = actionContext.getGrpcClient(
-      classOf[OrganizationService],
-      "kalix-study-org"
-    )
 
     effects.asyncReply(
       organizationService
@@ -207,6 +209,57 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             })
         )
         .map(EventsCreated(_))
+    )
+  }
+
+  override def handleCreateStore(
+      createStore: CreateStore
+  ): Action.Effect[StoreCreated] = {
+
+    log.info("in handleCreateStore")
+
+    val storeId = UUID.randomUUID().toString
+    effects.asyncReply(
+      storeService
+        .createStore(
+          ApiCreateStore(
+            storeId,
+            createStore.establishStore.flatMap(
+              _.info.map(
+                _.copy(
+                  storeId = storeId
+                )
+              )
+            ),
+            createStore.establishStore.flatMap(_.creatingMember)
+          )
+        )
+        .map(id => StoreCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateStores(
+      createStores: CreateStores
+  ): Action.Effect[StoresCreated] = {
+    log.info("in handleCreateStores")
+
+    val storeId = UUID.randomUUID().toString
+    effects.asyncReply(
+      Future
+        .sequence(createStores.establishStores.map(establishStore => {
+          storeService.createStore(
+            ApiCreateStore(
+              storeId,
+              establishStore.info.map(
+                _.copy(
+                  storeId = storeId
+                )
+              ),
+              establishStore.creatingMember
+            )
+          )
+        }))
+        .map(StoresCreated(_))
     )
   }
 }

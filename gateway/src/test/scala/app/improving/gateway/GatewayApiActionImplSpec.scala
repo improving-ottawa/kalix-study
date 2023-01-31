@@ -3,6 +3,11 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.ApiMemberId
+import app.improving.organizationcontext.organization.{
+  OrganizationService,
+  OrganizationServiceClient
+}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -122,6 +127,46 @@ class GatewayApiActionImplSpec
 
       log.info(eventsCreated + " eventsCreated")
       eventsCreated.eventsCreated.isEmpty shouldBe false
+
+    }
+
+    "handle command CreateStore" in {
+
+      val command: CreateStore = CreateStore(
+        Some(
+          EstablishStore(
+            Some(apiStoreInfo),
+            Some(ApiMemberId(testMember1))
+          )
+        )
+      )
+
+      val storeCreated = gateWayAction
+        .handleCreateStore(command)
+        .futureValue
+
+      println(storeCreated + " storeCreated")
+      storeCreated.storeCreated shouldBe defined
+
+    }
+
+    "handle command CreateStores" in {
+
+      val command: CreateStores = CreateStores(
+        Seq(
+          EstablishStore(
+            Some(apiStoreInfo),
+            Some(ApiMemberId(testMember1))
+          )
+        )
+      )
+
+      val storesCreated = gateWayAction
+        .handleCreateStores(command)
+        .futureValue
+
+      println(storesCreated + " storesCreated")
+      storesCreated.storesCreated.isEmpty shouldBe false
 
     }
   }
