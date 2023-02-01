@@ -75,6 +75,7 @@ lazy val gateway = project
       "projection"
     )
   )
+
 lazy val root = project
   .in(file("."))
   .settings(
