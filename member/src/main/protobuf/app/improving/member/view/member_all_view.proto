@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+
+package app.improving.membercontext;
+
+import "app/improving/member/api/member_api.proto";
+import "app/improving/member/domain/member_context_domain.proto";
+import "common_api.proto";
+import "google/protobuf/timestamp.proto";
+import "kalix/annotations.proto";
+
+
+message AllMemberRequest {}
+
+service AllMembersView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "all_members"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "all_members"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "all_members"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "all_members"
+            transform_updates: true
+        };
+    }
+
+    rpc GetAllMembers(AllMemberRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).view.query = {
+            query: "SELECT * FROM all_members "
+        };
+    }
+}

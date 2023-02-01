@@ -23,8 +23,9 @@ object Main {
     KalixFactory.withComponents(
       new MemberAPI(_),
       new MemberMap(_),
+      new AllMembersViewImpl(_),
       new MemberActionServiceImpl(_),
-//      new MemberByEventQueryView(_),
+      //      new MemberByEventQueryView(_),
       new MemberByMetaInfoViewImpl(_)
     )
   }
