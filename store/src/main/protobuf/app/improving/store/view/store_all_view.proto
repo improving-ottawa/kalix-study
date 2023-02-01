@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+
+package app.improving.storecontext;
+
+import "kalix/annotations.proto";
+
+service AllStoresView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+}
