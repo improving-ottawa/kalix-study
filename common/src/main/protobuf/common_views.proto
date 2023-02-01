@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package app.improving;
+
+message OrgMembers {
+    string org_name = 1;
+    repeated MemberInfo member_infos = 2;
+}
+
+message MemberInfo {
+    string member_id = 1;
+    string member_name = 2;
+}
+
+message MemberEvents {
+    repeated EventInfo event_infos = 2;
+}
+
+message EventInfo {
+    string event_id = 1;
+    string event_info = 2;
+}
