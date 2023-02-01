@@ -15,10 +15,8 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.ApiStoreInfo
 import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
-import app.improving.tenantcontext.tenant.{
-  ApiInfo => TenantInfo,
-  _
-}
+import app.improving.tenantcontext.tenant.{ApiInfo => TenantInfo, _}
+import app.improving.ordercontext.order._
 import com.google.protobuf.timestamp.Timestamp
 
 import java.time.Instant
@@ -168,11 +166,25 @@ object TestData {
       Some(end),
       false
     )
-    val scheduleEvent = ScheduleEvent(
+    val apiEventInfoPrivate = ApiEventInfo(
+      "another-try-out-event",
+      "School footbal try out",
+      "www.nowhere.com",
+      Some(ApiOrganizationId("test-organization-id")),
+      Some(ApiGeoLocation(0.12, 0.438, 4.322)),
+      Some(ApiReservationId("reserve-1")),
+      Some(start),
+      Some(end),
+      true
+    )
+    val scheduleEvent = CreateEvent(
       Some(apiEventInfo),
       Some(ApiMemberId(testMember))
     )
-
+    val scheduleEventPrivate = CreateEvent(
+      Some(apiEventInfoPrivate),
+      Some(ApiMemberId(testMember))
+    )
     val testStoreId = "test-store-id"
     val testName = "test-name"
     val testDescription = "test-description"
@@ -262,6 +274,60 @@ object TestData {
       ApiNotificationPreference.SMS,
       Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
       Some(ApiTenantId(testTenantId))
+    )
+
+    val testOrderId = "test-order-id"
+    val testOrderId2 = "test-order-id2"
+    val testOrderId3 = "test-order-id3"
+    val testProductId = "test-product-id"
+    val testProductId3 = "test-product-id3"
+    val testQuantity = 10
+    val testLineTotal = 20
+    val testQuantity2 = 13
+    val testLineTotal2 = 26
+    val testLineItem1 = ApiLineItem(
+      Some(ApiProductId(testProductId)),
+      testQuantity,
+      testLineTotal
+    )
+    val testLineItem2 = ApiLineItem(
+      Some(ApiProductId(testProductId)),
+      testQuantity2,
+      testLineTotal2
+    )
+    val testLineItem3 = ApiLineItem(
+      Some(ApiProductId(testProductId2)),
+      testQuantity2,
+      testLineTotal2
+    )
+    val testLineItem4 = ApiLineItem(
+      Some(ApiProductId(testProductId3)),
+      testQuantity2,
+      testLineTotal2
+    )
+    val testSpecialInstruction = "test-special-instruction"
+    val testOrderTotal = 100.0
+    val testLineItems = Seq[ApiLineItem](testLineItem1, testLineItem2)
+    val testLineItemsPrivateEvent = Seq[ApiLineItem](testLineItem3)
+    val testLineItemsPrivateFailedEvent =
+      Seq[ApiLineItem](testLineItem3, testLineItem4)
+    val testOrderInfo = ApiOrderInfo(
+      testOrderId,
+      testLineItems,
+      testSpecialInstruction,
+      testOrderTotal
+    )
+    val testOrderInfoPrivateEvent = ApiOrderInfo(
+      testOrderId,
+      testLineItemsPrivateEvent,
+      testSpecialInstruction,
+      testOrderTotal
+    )
+    val testOrderInfoPrivateFailedEvent = ApiOrderInfo(
+      testOrderId3,
+      testLineItemsPrivateFailedEvent,
+      testSpecialInstruction,
+      testOrderTotal
     )
   }
 }

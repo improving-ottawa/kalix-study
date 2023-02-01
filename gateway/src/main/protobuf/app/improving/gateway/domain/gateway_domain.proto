@@ -33,7 +33,7 @@ message EstablishOrganization {
     repeated ApiMemberId members = 3;
     repeated ApiMemberId owners = 4;
     repeated organizationcontext.organization.ApiContacts contacts = 5;
-    ApiMemberId establishingMember = 6;
+    ApiMemberId establishing_member = 6;
     organizationcontext.organization.ApiMetaInfo meta = 7;
 }
 
@@ -53,13 +53,9 @@ message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
 
-message ScheduleEvent {
-    eventcontext.event.ApiEventInfo info = 1;
-    ApiMemberId schedulingMember = 2;
-}
-
 message CreateEvent {
-    ScheduleEvent schedule_event = 1;
+    eventcontext.event.ApiEventInfo info = 1;
+    ApiMemberId scheduling_member = 2;
 }
 
 message EventCreated {
@@ -67,20 +63,17 @@ message EventCreated {
 }
 
 message CreateEvents {
-    repeated ScheduleEvent schedule_events = 1;
+    repeated eventcontext.event.ApiEventInfo infos = 1;
+    ApiMemberId scheduling_member = 2;
 }
 
 message EventsCreated {
     repeated ApiEventId events_created = 1;
 }
 
-message EstablishStore {
-    storecontext.store.ApiStoreInfo info = 1;
-    ApiMemberId creatingMember = 2;
-}
-
 message CreateStore {
-    EstablishStore establish_store = 1;
+    storecontext.store.ApiStoreInfo info = 1;
+    ApiMemberId creating_member = 2;
 }
 
 message StoreCreated {
@@ -88,7 +81,8 @@ message StoreCreated {
 }
 
 message CreateStores {
-    repeated EstablishStore establish_stores = 1;
+    repeated storecontext.store.ApiStoreInfo infos = 1;
+    ApiMemberId creating_member = 2;
 }
 
 message StoresCreated {
@@ -118,7 +112,7 @@ message ProductsCreated {
 
 message EstablishMember {
     membercontext.member.ApiInfo info = 1;
-    ApiMemberId registeringMember = 2;
+    ApiMemberId registering_member = 2;
 }
 
 message RegisterMember {
@@ -140,8 +134,8 @@ message MembersRegistered {
 
 message EstablishOrder {
     ordercontext.order.ApiOrderInfo info = 1;
-    ApiMemberId creatingMember = 2;
-    ApiStoreId storeId = 3;
+    ApiMemberId creating_member = 2;
+    ApiStoreId store_id = 3;
 }
 
 message CreateOrder {

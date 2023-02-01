@@ -72,6 +72,9 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           .getOrElse("EventId is not found.")).transformWith {
           case Success(id) => Future.successful(id)
           case Failure(exception) =>
+            log.error(
+              s"Error in OrderActionImpl - product.getProductInfo - Error: ${exception.getMessage}"
+            )
             Future.failed(
               new IllegalStateException(
                 exception.getMessage + s" product.getProductInfo for ${sku} failed"
@@ -135,13 +138,21 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       orderValidFut.transform(
         {
           case true => effects.forward(call)
-          case false =>
+          case false => {
+            log.error(
+              "The purchase is not allowed - The event is private and the buyer is not a member of the organizer. " +
+                s"Please make sure you provide the correct record for the order - ${order}"
+            )
             effects.error(
               "The purchase is not allowed - The event is private and the buyer is not a member of the organizer. " +
                 s"Please make sure you provide the correct record for the order - ${order}"
             )
+          }
         },
         error => {
+          log.error(
+            s"The purchase is not allowed - ${error.getMessage}"
+          )
           throw new IllegalStateException(error.getMessage)
         }
       ) recoverWith ({
