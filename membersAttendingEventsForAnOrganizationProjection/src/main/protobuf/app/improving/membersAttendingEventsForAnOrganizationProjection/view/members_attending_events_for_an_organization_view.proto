@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package app.improving.projections;
+
+import "app/improving/event/domain/event_context_domain.proto";
+import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/order/domain/order_context_domain.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+import "common_api.proto";
+import "date.proto";
+import "kalix/annotations.proto";
+import "common_views.proto";
+
+message FindMembersAtEventsOnDayForOrg {
+    string org_id = 1;
+    google.type.Date event_date = 2;
+}
+
+message NoEventsOnDayForOrg {
+    string ord_id = 1;
+}
+
+message MembersAtEventsOnDay {
+    map<string, MemberEvents> member_events = 1;
+}
+
+message MembersTableRow {
+    ApiMemberId attending_member_id = 1;
+    string attending_member_name = 2;
+}
+
+message EventsTableRow {
+    ApiEventId event_id = 1;
+    string event_name = 2;
+    google.type.Date event_date = 3;
+}
+
+message EventOrgCorrTableRow {
+    ApiEventId event_id = 1;
+    ApiOrganizationId event_org_id = 2;
+}
+
+message TicketEventCorrTableRow {
+    ApiProductId ticket_sku = 1;
+    ApiEventId event_id = 2;
+}
+
+message TicketMemberCorrTableRow {
+    ApiProductId ticket_sku = 1;
+    ApiMemberId member_id = 2;
+}
+
+service MembersAttendingEventsForAnOrganizationView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+    rpc ProcessMemberRegistered(membercontext.MemberRegistered) returns (MembersTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "member"
+        };
+        option (kalix.method).view.update = {
+            table: "members"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventScheduledForCorrTable(eventcontext.EventScheduled) returns (EventOrgCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "event"
+        };
+        option (kalix.method).view.update = {
+            table: "event_org_corr"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventScheduledForEventsTable(eventcontext.EventScheduled) returns (EventsTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "event"
+        };
+        option (kalix.method).view.update = {
+            table: "events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventCancelledForCorrTable(eventcontext.EventCancelled) returns (EventOrgCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "event"
+        };
+        option (kalix.method).view.update = {
+            table: "event_org_corr"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventCancelledForEventsTable(eventcontext.EventCancelled) returns (EventsTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "event"
+        };
+        option (kalix.method).view.update = {
+            table: "events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductCreated(productcontext.ProductCreated) returns (TicketEventCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "product"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_event_corr"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderCreated(ordercontext.OrderCreated) returns (TicketMemberCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "order"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_member_corr"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessFindMembersAtEventsOnDayForOrg(FindMembersAtEventsOnDayForOrg) returns (MembersAtEventsOnDay) {
+        option (kalix.method).view.query = {
+            query: "SELECT "
+                    "* "
+                    "FROM event_org_corr"
+                    "JOIN ticket_event_corr ON ticket_event_corr.event_id = event_org_corr.event_id"
+                    "JOIN ticket_member_corr ON ticket_event_corr.ticket_sku = ticket_member_corr.ticket_sku"
+                    "JOIN members ON ticket_member_corr.member_id = members.member_id"
+                    "JOIN events ON ticket_event_corr.event_org_id = events.event_id"
+                    "WHERE event_org_corr.event_org_id = :org_id"
+                    "AND events.event_date = :event_date"
+            transform_results: true
+        };
+    }
+
+
+}

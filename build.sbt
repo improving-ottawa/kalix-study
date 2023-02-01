@@ -50,6 +50,22 @@ lazy val tenant = project
   .configure(Kalix.service("tenant"))
   .configure(Kalix.dependsOn(common, "common"))
 
+lazy val organizationsForMembersAttendingEventsProjection = project
+  .in(file("organizationsForMembersAttendingEventsProjection"))
+  .configure(Kalix.service("organizationsForMembersAttendingEventsProjection"))
+  .configure(Kalix.dependsOn(org, "organization"))
+  .configure(Kalix.dependsOn(event, "event"))
+  .configure(Kalix.dependsOn(member, "member"))
+
+lazy val membersAttendingEventsForAnOrganizationProjection = project
+  .in(file("membersAttendingEventsForAnOrganizationProjection"))
+  .configure(
+    Kalix.service("membersAttendingEventsForAnOrganizationProjection")
+  )
+  .configure(Kalix.dependsOn(org, "organization"))
+  .configure(Kalix.dependsOn(event, "event"))
+  .configure(Kalix.dependsOn(member, "member"))
+
 lazy val gateway = project
   .in(file("gateway"))
   .configure(Kalix.service("gateway"))
@@ -60,6 +76,18 @@ lazy val gateway = project
   .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(product, "product"))
   .configure(Kalix.dependsOn(member, "member"))
+  .configure(
+    Kalix.dependsOn(
+      membersAttendingEventsForAnOrganizationProjection,
+      "membersAttendingEventsForAnOrganizationProjection"
+    )
+  )
+  .configure(
+    Kalix.dependsOn(
+      organizationsForMembersAttendingEventsProjection,
+      "organizationsForMembersAttendingEventsProjection"
+    )
+  )
 
 lazy val root = project
   .in(file("."))
