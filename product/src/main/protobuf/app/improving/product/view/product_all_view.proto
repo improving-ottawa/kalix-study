@@ -6,7 +6,7 @@ import "app/improving/product/api/product_api.proto";
 import "app/improving/product/domain/product_context_domain.proto";
 import "kalix/annotations.proto";
 
-message GetAllProducts {}
+message AllProductsRequest {}
 
 service AllProductsView {
     option (kalix.codegen) = {
@@ -62,7 +62,7 @@ service AllProductsView {
         };
     }
 
-    rpc GetAllSkus(GetAllProducts) returns (stream productcontext.product.ApiProduct) {
+    rpc GetAllSkus(AllProductsRequest) returns (stream productcontext.product.ApiProduct) {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "* "
