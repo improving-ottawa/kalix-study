@@ -9,6 +9,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.eventcontext.AllEventsViewClient
 import app.improving.ordercontext.order.ApiLineItem
 import app.improving.{ApiEventId, ApiMemberId}
 import com.typesafe.config.{Config, ConfigFactory}

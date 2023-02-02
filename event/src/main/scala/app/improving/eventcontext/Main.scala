@@ -1,6 +1,6 @@
-package app.improving.eventcontext.event
+package app.improving.eventcontext
 
-import app.improving.eventcontext._
+import app.improving.eventcontext.event.EventAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -11,8 +11,7 @@ import org.slf4j.LoggerFactory
 
 object Main {
 
-  private val log =
-    LoggerFactory.getLogger("app.improving.eventcontext.event.Main")
+  private val log = LoggerFactory.getLogger("app.improving.eventcontext.Main")
 
   def createKalix(): Kalix = {
     // The KalixFactory automatically registers any generated Actions, Views or Entities,
