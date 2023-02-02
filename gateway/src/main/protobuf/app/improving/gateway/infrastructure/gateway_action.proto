@@ -4,6 +4,7 @@ package app.improving.gateway;
 
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/tenant/view/tenant_all_view.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -107,6 +108,13 @@ service GatewayApiAction {
         option (google.api.http) = {
             post: "/order/create-orders"
             body: "*"
+        };
+    }
+
+    rpc HandleGetAllTenants(tenantcontext.GetAllTenantRequest) returns (tenantcontext.AllTenantResult) {
+        option (google.api.http) = {
+            post: "/tenant/get-all-tenants"
+            body: ""
         };
     }
 }

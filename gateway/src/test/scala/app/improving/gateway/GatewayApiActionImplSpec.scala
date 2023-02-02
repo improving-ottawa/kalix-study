@@ -4,13 +4,8 @@ import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.ApiMemberId
-import app.improving.organizationcontext.organization.{
-  OrganizationService,
-  OrganizationServiceClient
-}
-import app.improving.ApiMemberId
 import app.improving.ordercontext.order.ApiLineItem
-import app.improving.{ApiEventId, ApiMemberId}
+import app.improving.tenantcontext.GetAllTenantRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -18,8 +13,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
-
-import scala.concurrent.Future
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -425,6 +418,17 @@ class GatewayApiActionImplSpec
           )
           .futureValue
       )
+    }
+
+    "handle get all tenants correctly" in {
+      gateWayAction
+        .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
+        .futureValue
+
+      val result =
+        gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
+
+      result.tenants.size > 0 shouldBe true
     }
   }
 }

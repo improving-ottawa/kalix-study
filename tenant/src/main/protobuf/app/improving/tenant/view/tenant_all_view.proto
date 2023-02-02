@@ -6,11 +6,16 @@ package app.improving.tenantcontext;
 
 import "app/improving/tenant/api/tenant_api.proto";
 import "app/improving/tenant/domain/tenant_context_domain.proto";
+import "common_api.proto";
 import "kalix/annotations.proto";
 
 message GetAllTenantRequest {}
 
-service TenantsAllView {
+message AllTenantResult {
+    repeated tenant.ApiTenant tenants = 1;
+}
+
+service AllTenantsView {
     option (kalix.codegen) = {
         view: {}
     };
@@ -65,9 +70,9 @@ service TenantsAllView {
         };
     }
 
-    rpc GetAllTenants(GetAllTenantRequest) returns (tenantcontext.tenant.ApiTenant) {
+    rpc GetAllTenants(GetAllTenantRequest) returns (AllTenantResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM all_tenants "
+            query: "SELECT * AS tenants FROM all_tenants "
         };
     }
 }

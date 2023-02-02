@@ -9,16 +9,19 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
+import app.improving.tenantcontext.{
+  AllTenantResult,
+  AllTenantsView,
+  GetAllTenantRequest
+}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
-import io.grpc.StatusRuntimeException
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import java.util.UUID
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -90,6 +93,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val allTenantsView = creationContext.getGrpcClient(
+    classOf[AllTenantsView],
+    config.getString(
+      "app.improving.gateway.tenant.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -423,5 +432,11 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
         .map(OrdersCreated(_))
     )
+  }
+
+  override def handleGetAllTenants(
+      getAllTenantRequest: GetAllTenantRequest
+  ): Action.Effect[AllTenantResult] = {
+    effects.asyncReply(allTenantsView.getAllTenants(GetAllTenantRequest()))
   }
 }

@@ -4,12 +4,13 @@ import app.improving.tenantcontext.tenant.{ApiTenant, ApiTenantStatus}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 import app.improving.tenantcontext.infrastructure.util._
+
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class TenantsAllViewImpl(context: ViewContext) extends AbstractTenantsAllView {
+class AllTenantsViewImpl(context: ViewContext) extends AbstractAllTenantsView {
 
   override def emptyState: ApiTenant = ApiTenant.defaultInstance
 
