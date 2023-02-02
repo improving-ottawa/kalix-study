@@ -11,7 +11,8 @@ import org.slf4j.LoggerFactory
 
 object Main {
 
-  private val log = LoggerFactory.getLogger("app.improving.organizationcontext.Main")
+  private val log =
+    LoggerFactory.getLogger("app.improving.organizationcontext.Main")
 
   def createKalix(): Kalix = {
     // The KalixFactory automatically registers any generated Actions, Views or Entities,
@@ -20,8 +21,10 @@ object Main {
     // `Kalix()` instance.
     KalixFactory.withComponents(
       new OrganizationAPI(_),
+      new AllOrganizationsViewImpl(_),
       new OrganizationByMemberViewImpl(_),
-      new OrganizationByOwnerViewImpl(_))
+      new OrganizationByOwnerViewImpl(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {
