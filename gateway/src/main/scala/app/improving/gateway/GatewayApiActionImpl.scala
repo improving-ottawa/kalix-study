@@ -2,6 +2,11 @@ package app.improving.gateway
 
 import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
+import app.improving.membercontext.{
+  AllMembersRequest,
+  AllMembersResult,
+  AllMembersView
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -76,6 +81,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
   val memberService = creationContext.getGrpcClient(
     classOf[MemberService],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
+    )
+  )
+
+  val allMembersView = creationContext.getGrpcClient(
+    classOf[AllMembersView],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
     )
@@ -373,5 +385,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
         .map(MembersRegistered(_))
     )
+  }
+
+  override def handleGetAllMembers(
+      allMembersRequest: AllMembersRequest
+  ): Action.Effect[AllMembersResult] = {
+
+    log.info("in handleGetAllMembers")
+
+    effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
   }
 }

@@ -9,6 +9,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.membercontext.AllMembersRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -223,6 +224,26 @@ class GatewayApiActionImplSpec
 
       println(membersRegistered + " membersRegistered")
       membersRegistered.membersRegistered.isEmpty shouldBe false
+    }
+
+    "handle command get all members correctly" in {
+      val membersRegistered: MembersRegistered = gateWayAction
+        .handleRegisterMembers(
+          RegisterMembers(
+            Seq(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      val result =
+        gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
+
+      result.members.isEmpty shouldBe false
     }
   }
 }

@@ -4,6 +4,7 @@ package app.improving.gateway;
 
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/member/view/member_all_view.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -93,6 +94,13 @@ service GatewayApiAction {
         option (google.api.http) = {
             post: "/member/register-members"
             body: "*"
+        };
+    }
+
+    rpc HandleGetAllMembers(membercontext.AllMembersRequest) returns (membercontext.AllMembersResult) {
+        option (google.api.http) = {
+            post: "/member/get-all-members"
+            body: ""
         };
     }
 }
