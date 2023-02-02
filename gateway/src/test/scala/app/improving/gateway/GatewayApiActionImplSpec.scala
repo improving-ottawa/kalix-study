@@ -9,6 +9,8 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.ordercontext.order.ApiLineItem
+import app.improving.{ApiEventId, ApiMemberId}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -103,9 +105,7 @@ class GatewayApiActionImplSpec
 
     "handle command ScheduleEvent" in {
 
-      val command: CreateEvent = CreateEvent(
-        Some(scheduleEvent)
-      )
+      val command: CreateEvent = scheduleEvent
 
       val eventCreated = gateWayAction
         .handleScheduleEvent(command)
@@ -119,7 +119,8 @@ class GatewayApiActionImplSpec
     "handle command ScheduleEvents" in {
 
       val command: CreateEvents = CreateEvents(
-        Seq(scheduleEvent)
+        Seq(apiEventInfo),
+        Some(ApiMemberId(testMember))
       )
 
       val eventsCreated = gateWayAction
@@ -134,19 +135,15 @@ class GatewayApiActionImplSpec
     "handle command CreateStore" in {
 
       val command: CreateStore = CreateStore(
-        Some(
-          EstablishStore(
-            Some(apiStoreInfo),
-            Some(ApiMemberId(testMember1))
-          )
-        )
+        Some(apiStoreInfo),
+        Some(ApiMemberId(testMember1))
       )
 
       val storeCreated = gateWayAction
         .handleCreateStore(command)
         .futureValue
 
-      println(storeCreated + " storeCreated")
+      log.info(storeCreated + " storeCreated")
       storeCreated.storeCreated shouldBe defined
 
     }
@@ -154,19 +151,15 @@ class GatewayApiActionImplSpec
     "handle command CreateStores" in {
 
       val command: CreateStores = CreateStores(
-        Seq(
-          EstablishStore(
-            Some(apiStoreInfo),
-            Some(ApiMemberId(testMember1))
-          )
-        )
+        Seq(apiStoreInfo),
+        Some(ApiMemberId(testMember1))
       )
 
       val storesCreated = gateWayAction
         .handleCreateStores(command)
         .futureValue
 
-      println(storesCreated + " storesCreated")
+      log.info(storesCreated + " storesCreated")
       storesCreated.storesCreated.isEmpty shouldBe false
 
     }
@@ -176,7 +169,7 @@ class GatewayApiActionImplSpec
         .handleCreateProduct(CreateProduct(Some(establishProduct)))
         .futureValue
 
-      println(productCreated + " productCreated")
+      log.info(productCreated + " productCreated")
       productCreated.productCreated shouldBe defined
     }
 
@@ -185,7 +178,7 @@ class GatewayApiActionImplSpec
         .handleCreateProducts(CreateProducts(Seq(establishProduct)))
         .futureValue
 
-      println(productsCreated + " productsCreated")
+      log.info(productsCreated + " productsCreated")
       productsCreated.productsCreated.isEmpty shouldBe false
     }
 
@@ -203,7 +196,7 @@ class GatewayApiActionImplSpec
         )
         .futureValue
 
-      println(memberRegistered + " memberRegistered")
+      log.info(memberRegistered + " memberRegistered")
       memberRegistered.memberRegistered shouldBe defined
     }
 
@@ -221,8 +214,217 @@ class GatewayApiActionImplSpec
         )
         .futureValue
 
-      println(membersRegistered + " membersRegistered")
+      log.info(membersRegistered + " membersRegistered")
       membersRegistered.membersRegistered.isEmpty shouldBe false
+    }
+
+    "handle command CreateOrder" in {
+      val memberRegistered: MemberRegistered = gateWayAction
+        .handleRegisterMember(
+          RegisterMember(
+            Some(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      val memberId = memberRegistered.memberRegistered
+
+      val createEvent: CreateEvent = CreateEvent(
+        Some(apiEventInfo),
+        memberId
+      )
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(createEvent)
+        .futureValue
+
+      val eventId = eventCreated.eventCreated
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(
+          establishOrganization.copy(members =
+            establishOrganization.members ++ memberId.toSeq
+          )
+        )
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
+      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductMetaInfoForEvent =
+        apiProductMetaInfo.copy(createdBy = memberId)
+      val establisProductForEvent = EstablishProduct(
+        Some(apiProductInfoForEvent),
+        Some(apiProductMetaInfoForEvent)
+      )
+      val productCreated =
+        gateWayAction
+          .handleCreateProduct(
+            CreateProduct(Some(establisProductForEvent))
+          )
+          .futureValue
+
+      val orderCreated = gateWayAction
+        .handleCreateOrder(
+          CreateOrder(
+            Some(
+              EstablishOrder(
+                Some(
+                  testOrderInfo.copy(lineItems =
+                    Seq(
+                      ApiLineItem(
+                        productCreated.productCreated,
+                        1,
+                        10
+                      )
+                    )
+                  )
+                ),
+                memberId
+              )
+            )
+          )
+        )
+        .futureValue
+
+      log.info(orderCreated + " orderCreated")
+      orderCreated.orderCreated shouldBe defined
+    }
+
+    "handle command for CreateOrder private event" in {
+      val memberRegistered: MemberRegistered = gateWayAction
+        .handleRegisterMember(
+          RegisterMember(
+            Some(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      val memberId = memberRegistered.memberRegistered
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(
+          establishOrganization.copy(members =
+            establishOrganization.members ++ memberId.toSeq
+          )
+        )
+      )
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
+      val createEvent: CreateEvent = scheduleEventPrivate.copy(info =
+        scheduleEventPrivate.info.map(
+          _.copy(
+            sponsoringOrg = organizationsCreated.organizationsCreated.headOption
+          )
+        )
+      )
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(createEvent)
+        .futureValue
+
+      val eventId = eventCreated.eventCreated
+
+      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductMetaInfoForEvent =
+        apiProductMetaInfo.copy(createdBy = memberId)
+      val establisProductForEvent = EstablishProduct(
+        Some(apiProductInfoForEvent),
+        Some(apiProductMetaInfoForEvent)
+      )
+      val productCreated =
+        gateWayAction
+          .handleCreateProduct(
+            CreateProduct(Some(establisProductForEvent))
+          )
+          .futureValue
+
+      val orderCreated = gateWayAction
+        .handleCreateOrder(
+          CreateOrder(
+            Some(
+              EstablishOrder(
+                Some(
+                  testOrderInfo.copy(lineItems =
+                    Seq(
+                      ApiLineItem(
+                        productCreated.productCreated,
+                        1,
+                        10
+                      )
+                    )
+                  )
+                ),
+                memberId
+              )
+            )
+          )
+        )
+        .futureValue
+
+      log.info(orderCreated + " orderCreated private event")
+      orderCreated.orderCreated shouldBe defined
+    }
+
+    "handle failed command for CreateOrder private event" in {
+      val createEvent: CreateEvent = scheduleEventPrivate
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(createEvent)
+        .futureValue
+
+      val eventId = eventCreated.eventCreated
+
+      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val establisProductForEvent = EstablishProduct(
+        Some(apiProductInfoForEvent),
+        Some(apiProductMetaInfo)
+      )
+      val productCreated =
+        gateWayAction
+          .handleCreateProduct(
+            CreateProduct(Some(establisProductForEvent))
+          )
+          .futureValue
+
+      intercept[Exception](
+        gateWayAction
+          .handleCreateOrder(
+            CreateOrder(
+              Some(
+                EstablishOrder(
+                  Some(
+                    testOrderInfo.copy(lineItems =
+                      Seq(
+                        ApiLineItem(
+                          productCreated.productCreated,
+                          1,
+                          10
+                        )
+                      )
+                    )
+                  ),
+                  None
+                )
+              )
+            )
+          )
+          .futureValue
+      )
     }
   }
 }

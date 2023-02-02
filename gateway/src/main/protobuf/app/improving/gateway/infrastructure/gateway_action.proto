@@ -43,7 +43,7 @@ service GatewayApiAction {
     rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
         option (google.api.http) = {
             post: "/event/schedule-event"
-            body: "schedule_event"
+            body: "*"
         };
     }
 
@@ -57,7 +57,7 @@ service GatewayApiAction {
     rpc HandleCreateStore(CreateStore) returns (StoreCreated) {
         option (google.api.http) = {
             post: "/store/create-store"
-            body: "establish_store"
+            body: "*"
         };
     }
 
@@ -92,6 +92,20 @@ service GatewayApiAction {
     rpc HandleRegisterMembers(RegisterMembers) returns (MembersRegistered) {
         option (google.api.http) = {
             post: "/member/register-members"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateOrder(CreateOrder) returns (OrderCreated) {
+        option (google.api.http) = {
+            post: "/order/create-order"
+            body: "establish_order"
+        };
+    }
+
+    rpc HandleCreateOrders(CreateOrders) returns (OrdersCreated) {
+        option (google.api.http) = {
+            post: "/order/create-orders"
             body: "*"
         };
     }
