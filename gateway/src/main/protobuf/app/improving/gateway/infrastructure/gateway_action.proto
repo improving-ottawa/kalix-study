@@ -4,6 +4,7 @@ package app.improving.gateway;
 
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/product/view/product_all_view.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -93,6 +94,13 @@ service GatewayApiAction {
         option (google.api.http) = {
             post: "/member/register-members"
             body: "*"
+        };
+    }
+
+    rpc HandleGetAllProducts(productcontext.AllProductsRequest) returns (productcontext.AllProductsResult) {
+        option (google.api.http) = {
+            post: "/product/get-all-products"
+            body: ""
         };
     }
 }

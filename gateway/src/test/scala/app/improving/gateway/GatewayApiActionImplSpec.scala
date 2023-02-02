@@ -9,6 +9,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.productcontext.AllProductsRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -223,6 +224,17 @@ class GatewayApiActionImplSpec
 
       println(membersRegistered + " membersRegistered")
       membersRegistered.membersRegistered.isEmpty shouldBe false
+    }
+
+    "handle get all products correctly" in {
+      val productCreated: ProductCreated = gateWayAction
+        .handleCreateProduct(CreateProduct(Some(establishProduct)))
+        .futureValue
+
+      val result =
+        gateWayAction.handleGetAllProducts(AllProductsRequest()).futureValue
+
+      result.products.isEmpty shouldBe false
     }
   }
 }
