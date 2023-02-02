@@ -95,4 +95,11 @@ service GatewayApiAction {
             body: "*"
         };
     }
+
+    rpc HandleStartScenario(StartScenario) returns (ScenarioResults) {
+        option (google.api.http) = {
+            post: "/member/register-members"
+            body: "*"
+        };
+    }
 }

@@ -1,11 +1,9 @@
 package app.improving.gateway
 
+import app.improving.{ApiOrganizationId, ApiStoreId, ApiTenantId}
 import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
-import app.improving.organizationcontext.organization.{
-  ApiEstablishOrganization,
-  OrganizationService
-}
+import app.improving.organizationcontext.organization.{ApiEstablishOrganization, OrganizationService}
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
@@ -373,5 +371,17 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
         .map(MembersRegistered(_))
     )
+  }
+
+  override def handleStartScenario(
+      startScenario: StartScenario
+  ): Action.Effect[ScenarioResults] = {
+    val tenantIds = Set[ApiTenantId]
+    val orgsByTenant = Map[ApiTenantId, Set[ApiOrganizationId]]
+    val membersByOrg = Map[ApiTenantId, Set[ApiOrganizationId]]
+    val eventsByOrg = Map[ApiTenantId, Set[ApiOrganizationId]]
+    val ordersByMember = Map[ApiTenantId, Set[ApiOrganizationId]]
+    val storeIds = Set[ApiStoreId]
+    val product = Map[ApiTenantId, Set[ApiOrganizationId]]
   }
 }
