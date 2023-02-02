@@ -10,6 +10,7 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
+import "google/protobuf/wrappers.proto";
 
 message CreateTenant {
     tenantcontext.tenant.ApiInfo tenant_info = 1;
@@ -153,4 +154,52 @@ message CreateOrders {
 
 message OrdersCreated {
     repeated ApiOrderId orders_created = 1;
+}
+
+message ScenarioInfo {
+    uint32 num_tenants = 1;
+    uint32 num_orgs_per_tenant = 2;
+    uint32 num_members_per_org = 3;
+    uint32 num_events_per_org = 4;
+    uint32 num_stores = 5;
+    uint32 num_products_per_event = 6;
+    uint32 num_orders_per_member = 7;
+}
+
+message StartScenario {
+    ScenarioInfo scenario_info = 1;
+}
+
+message OrganizationIds {
+    repeated ApiOrganizationId org_ids = 1;
+}
+
+message MemberIds {
+    repeated ApiMemberId member_ids = 1;
+}
+
+message EventIds {
+    repeated ApiEventId event_ids = 1;
+}
+
+message OrderIds {
+    repeated ApiOrderId order_ids = 1;
+}
+
+message StoreIds {
+    repeated ApiStoreId store_ids = 1;
+}
+
+message Skus {
+    repeated ApiProductId skus = 1;
+}
+
+message ScenarioResults {
+        repeated ApiTenantId tenants = 1;
+         map<string, OrganizationIds> orgs_for_tenants = 2;
+         map<string, MemberIds> members_for_orgs = 3;
+         map<string, EventIds> events_for_orgs = 4;
+         map<string, OrderIds> orders_for_members = 5;
+        StoreIds store_ids = 6;
+        map<string, Skus> products_for_stores = 7;
 }
