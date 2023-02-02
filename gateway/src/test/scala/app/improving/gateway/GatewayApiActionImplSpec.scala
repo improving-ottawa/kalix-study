@@ -9,7 +9,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
-import app.improving.eventcontext.AllEventsViewClient
+import app.improving.eventcontext.{AllEventsRequest, AllEventsViewClient}
 import app.improving.ordercontext.order.ApiLineItem
 import app.improving.{ApiEventId, ApiMemberId}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -426,6 +426,16 @@ class GatewayApiActionImplSpec
           )
           .futureValue
       )
+    }
+
+    "handle get all events correctly" in {
+      val createEvent: CreateEvent = scheduleEventPrivate
+
+      val result =
+        gateWayAction.handleGetAllEvents(AllEventsRequest()).futureValue
+
+      result.events.size > 0 shouldBe true
+
     }
   }
 }

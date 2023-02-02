@@ -10,6 +10,10 @@ import "kalix/annotations.proto";
 
 message AllEventsRequest {}
 
+message AllEventsResult {
+    repeated event.ApiEvent events = 1;
+}
+
 service AllEventsView {
     option (kalix.codegen) = {
         view: {}
@@ -85,9 +89,9 @@ service AllEventsView {
         };
     }
 
-    rpc GetAllEvents(AllEventsRequest) returns (stream event.ApiEvent) {
+    rpc GetAllEvents(AllEventsRequest) returns (AllEventsResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM all_events "
+            query: "SELECT * AS events FROM all_events "
         };
     }
 }

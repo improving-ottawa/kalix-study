@@ -2,7 +2,7 @@ package app.improving.eventcontext.event
 
 import TestData._
 import akka.actor.ActorSystem
-import app.improving.eventcontext.{AllEventsRequest, AllEventsView}
+import app.improving.eventcontext.{AllEventsRequest, AllEventsView, Main}
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -45,12 +45,9 @@ class EventViewSpec
 
       val result = client
         .getAllEvents(AllEventsRequest())
-        .runFold(List.empty[ApiEvent])((accum, elem) => accum :+ elem)
+        .futureValue
 
-      result.onComplete {
-        case Success(list)      => println("success " + list)
-        case Failure(exception) => println("fail " + exception.getMessage)
-      }
+      result.events.size shouldBe 1
 
       true shouldBe true
     }
