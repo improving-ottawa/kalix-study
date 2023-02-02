@@ -10,6 +10,10 @@ import "kalix/annotations.proto";
 
 message AllOrganizationsRequest {}
 
+message AllOrganizationsresult {
+    repeated organization.ApiOrganization organizations = 1;
+}
+
 service AllOrganizationsView {
     option (kalix.codegen) = {
         view: {}
@@ -105,9 +109,9 @@ service AllOrganizationsView {
         };
     }
 
-    rpc GetAllOrganizations(AllOrganizationsRequest) returns (stream organizationcontext.organization.ApiOrganization) {
+    rpc GetAllOrganizations(AllOrganizationsRequest) returns (AllOrganizationsresult) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM all_organizations "
+            query: "SELECT * AS organizations FROM all_organizations "
         };
     }
 }

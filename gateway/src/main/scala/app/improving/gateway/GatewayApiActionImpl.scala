@@ -3,6 +3,11 @@ package app.improving.gateway
 import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
+import app.improving.organizationcontext.{
+  AllOrganizationsRequest,
+  AllOrganizationsView,
+  AllOrganizationsresult
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -89,6 +94,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val allOrganizationsView = creationContext.getGrpcClient(
+    classOf[AllOrganizationsView],
+    config.getString(
+      "app.improving.gateway.organization.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -421,6 +432,17 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           })
         )
         .map(OrdersCreated(_))
+    )
+  }
+
+  override def handleGetAllOrganizations(
+      allOrganizationsRequest: AllOrganizationsRequest
+  ): Action.Effect[AllOrganizationsresult] = {
+
+    log.info("in handleGetAllOrganizations")
+
+    effects.asyncReply(
+      allOrganizationsView.getAllOrganizations(AllOrganizationsRequest())
     )
   }
 }
