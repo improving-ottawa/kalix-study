@@ -8,6 +8,11 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
+import app.improving.storecontext.{
+  AllStoresRequest,
+  AllStoresResult,
+  AllStoresView
+}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
@@ -78,6 +83,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[MemberService],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
+    )
+  )
+
+  val allStoresView = creationContext.getGrpcClient(
+    classOf[AllStoresView],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
     )
   )
   override def handleEstablishTenant(
@@ -373,5 +385,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
         .map(MembersRegistered(_))
     )
+  }
+
+  override def handleGetAllStores(
+      allStoresRequest: AllStoresRequest
+  ): Action.Effect[AllStoresResult] = {
+
+    log.info("in handleRegisterMembers")
+
+    effects.asyncReply(allStoresView.getAllStores(AllStoresRequest()))
   }
 }

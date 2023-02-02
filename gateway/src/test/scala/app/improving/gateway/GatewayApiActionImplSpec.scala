@@ -9,6 +9,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.storecontext.AllStoresRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -223,6 +224,27 @@ class GatewayApiActionImplSpec
 
       println(membersRegistered + " membersRegistered")
       membersRegistered.membersRegistered.isEmpty shouldBe false
+    }
+
+    "handle get all stores correctly" in {
+
+      val command: CreateStore = CreateStore(
+        Some(
+          EstablishStore(
+            Some(apiStoreInfo),
+            Some(ApiMemberId(testMember1))
+          )
+        )
+      )
+
+      val storeCreated = gateWayAction
+        .handleCreateStore(command)
+        .futureValue
+
+      val result =
+        gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
+
+      result.stores.isEmpty shouldBe false
     }
   }
 }
