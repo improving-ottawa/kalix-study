@@ -11,6 +11,7 @@ import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
+import io.grpc.StatusRuntimeException
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
