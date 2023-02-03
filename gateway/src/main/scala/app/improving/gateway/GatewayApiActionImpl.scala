@@ -20,6 +20,11 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
+import app.improving.ordercontext.{
+  AllOrdersRequest,
+  AllOrdersView,
+  AllOrdersresult
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -137,6 +142,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
   val allStoresView = creationContext.getGrpcClient(
     classOf[AllStoresView],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
+    )
+  )
+
+  val allOrdersView = creationContext.getGrpcClient(
+    classOf[AllOrdersView],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
     )
@@ -506,5 +518,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleRegisterMembers")
 
     effects.asyncReply(allStoresView.getAllStores(AllStoresRequest()))
+  }
+
+  override def handleGetAllOrders(
+      allOrdersRequest: AllOrdersRequest
+  ): Action.Effect[AllOrdersresult] = {
+
+    log.info("in handleGetAllOrders")
+
+    effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))
   }
 }

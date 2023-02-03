@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+
+package app.improving.ordercontext;
+
+
+import "app/improving/order/api/order_api.proto";
+import "app/improving/order/domain/order_context_domain.proto";
+import "kalix/annotations.proto";
+
+message AllOrdersRequest {}
+
+message AllOrdersresult {
+    repeated order.ApiOrder orders = 1;
+}
+
+service AllOrdersView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessOrderCreated(OrderCreated) returns (order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "all_orders"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderStatusUpdated(OrderStatusUpdated) returns (order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "all_orders"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderInfoUpdated(OrderInfoUpdated) returns (order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "all_orders"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderCanceled(OrderCanceled) returns (order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "all_orders"
+            transform_updates: true
+        };
+    }
+
+    rpc GetAllOrders(AllOrdersRequest) returns (AllOrdersresult) {
+        option (kalix.method).view.query = {
+            query: "SELECT * AS orders FROM all_orders "
+        };
+    }
+}
