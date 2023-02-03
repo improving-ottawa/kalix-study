@@ -80,7 +80,6 @@ object TestData {
   val now = java.time.Instant.now()
   val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
   val apiStoreMetaInfo = ApiStoreMetaInfo(
-    testStoreId,
     Some(ApiMemberId(testMember1)),
     Some(timestamp),
     Some(ApiMemberId(testMember1)),

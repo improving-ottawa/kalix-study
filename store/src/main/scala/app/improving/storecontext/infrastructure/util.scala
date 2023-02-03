@@ -1,6 +1,12 @@
 package app.improving.storecontext.infrastructure
 
 import app.improving.{
+  ApiEventId,
+  ApiLocationId,
+  ApiMemberId,
+  ApiOrganizationId,
+  ApiProductId,
+  ApiVenueId,
   EventId,
   LocationId,
   MemberId,
@@ -31,6 +37,19 @@ object util {
     )
   }
 
+  def convertStoreInfoToApiStoreInfo(storeInfo: StoreInfo): ApiStoreInfo = {
+    ApiStoreInfo(
+      storeInfo.storeId.map(_.id).getOrElse("StoreId IS NOT FOUND."),
+      storeInfo.name,
+      storeInfo.description,
+      storeInfo.products.map(product => ApiProductId(product.id)),
+      storeInfo.event.map(event => ApiEventId(event.id)),
+      storeInfo.venue.map(venue => ApiVenueId(venue.id)),
+      storeInfo.location.map(location => ApiLocationId(location.id)),
+      storeInfo.sponsoringOrg.map(org => ApiOrganizationId(org.id))
+    )
+  }
+
   def convertApiStoreStatusToStoreStatus(
       status: ApiStoreStatus
   ): StoreStatus = {
@@ -46,6 +65,21 @@ object util {
     }
   }
 
+  def convertStoreStatusToApiStoreStatus(
+      status: StoreStatus
+  ): ApiStoreStatus = {
+    status match {
+      case StoreStatus.DRAFT   => ApiStoreStatus.DRAFT
+      case StoreStatus.READY   => ApiStoreStatus.READY
+      case StoreStatus.OPEN    => ApiStoreStatus.OPEN
+      case StoreStatus.CLOSED  => ApiStoreStatus.CLOSED
+      case StoreStatus.DELETED => ApiStoreStatus.DELETED
+      case StoreStatus.UNKNOWN => ApiStoreStatus.UNKNOWN
+      case StoreStatus.Unrecognized(unrecognizedValue) =>
+        ApiStoreStatus.Unrecognized(unrecognizedValue)
+    }
+  }
+
   def convertApiStoreMetaInfoToStoreMetaInfo(
       apiStoreMetaInfo: ApiStoreMetaInfo
   ): StoreMetaInfo = {
@@ -55,6 +89,18 @@ object util {
       apiStoreMetaInfo.lastModifiedBy.map(member => MemberId(member.memberId)),
       apiStoreMetaInfo.lastModifiedOn,
       convertApiStoreStatusToStoreStatus(apiStoreMetaInfo.status)
+    )
+  }
+
+  def convertStoreMetaInfoToApiStoreMetaInfo(
+      storeMetaInfo: StoreMetaInfo
+  ): ApiStoreMetaInfo = {
+    ApiStoreMetaInfo(
+      storeMetaInfo.createdBy.map(member => ApiMemberId(member.id)),
+      storeMetaInfo.createdOn,
+      storeMetaInfo.lastModifiedBy.map(member => ApiMemberId(member.id)),
+      storeMetaInfo.lastModifiedOn,
+      convertStoreStatusToApiStoreStatus(storeMetaInfo.status)
     )
   }
 }

@@ -1,6 +1,6 @@
-package app.improving.organizationcontext
+package app.improving.eventcontext
 
-import app.improving.organizationcontext.organization.OrganizationAPI
+import app.improving.eventcontext.event.EventAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -11,8 +11,7 @@ import org.slf4j.LoggerFactory
 
 object Main {
 
-  private val log =
-    LoggerFactory.getLogger("app.improving.organizationcontext.Main")
+  private val log = LoggerFactory.getLogger("app.improving.eventcontext.Main")
 
   def createKalix(): Kalix = {
     // The KalixFactory automatically registers any generated Actions, Views or Entities,
@@ -20,11 +19,8 @@ object Main {
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
     KalixFactory.withComponents(
-      new OrganizationAPI(_),
-      new AllOrganizationsViewImpl(_),
-      new OrganizationByMemberViewImpl(_),
-      new OrganizationByOwnerViewImpl(_)
-    )
+      new EventAPI(_),
+      new AllEventsViewImpl(_))
   }
 
   def main(args: Array[String]): Unit = {

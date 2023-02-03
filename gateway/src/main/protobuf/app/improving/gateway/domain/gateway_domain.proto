@@ -3,6 +3,7 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/member/api/member_api.proto";
+import "app/improving/order/api/order_api.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/store/api/store_api.proto";
 import "app/improving/event/api/event_api.proto";
@@ -27,13 +28,13 @@ message TenantsCreated {
 }
 
 message EstablishOrganization {
-    organizationcontext.organization.ApiInfo info = 2;
-    organizationcontext.organization.ApiParent parent = 3;
-    repeated ApiMemberId members = 4;
-    repeated ApiMemberId owners = 5;
-    repeated organizationcontext.organization.ApiContacts contacts = 6;
-    ApiMemberId establishingMember = 7;
-    organizationcontext.organization.ApiMetaInfo meta = 8;
+    organizationcontext.organization.ApiInfo info = 1;
+    organizationcontext.organization.ApiParent parent = 2;
+    repeated ApiMemberId members = 3;
+    repeated ApiMemberId owners = 4;
+    repeated organizationcontext.organization.ApiContacts contacts = 5;
+    ApiMemberId establishing_member = 6;
+    organizationcontext.organization.ApiMetaInfo meta = 7;
 }
 
 message CreateOrganization {
@@ -52,13 +53,9 @@ message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
 
-message ScheduleEvent {
-    eventcontext.event.ApiEventInfo info = 1;
-    ApiMemberId schedulingMember = 2;
-}
-
 message CreateEvent {
-    ScheduleEvent schedule_event = 1;
+    eventcontext.event.ApiEventInfo info = 1;
+    ApiMemberId scheduling_member = 2;
 }
 
 message EventCreated {
@@ -66,20 +63,17 @@ message EventCreated {
 }
 
 message CreateEvents {
-    repeated ScheduleEvent schedule_events = 1;
+    repeated eventcontext.event.ApiEventInfo infos = 1;
+    ApiMemberId scheduling_member = 2;
 }
 
 message EventsCreated {
     repeated ApiEventId events_created = 1;
 }
 
-message EstablishStore {
-    storecontext.store.ApiStoreInfo info = 1;
-    ApiMemberId creatingMember = 2;
-}
-
 message CreateStore {
-    EstablishStore establish_store = 1;
+    storecontext.store.ApiStoreInfo info = 1;
+    ApiMemberId creating_member = 2;
 }
 
 message StoreCreated {
@@ -87,7 +81,8 @@ message StoreCreated {
 }
 
 message CreateStores {
-    repeated EstablishStore establish_stores = 1;
+    repeated storecontext.store.ApiStoreInfo infos = 1;
+    ApiMemberId creating_member = 2;
 }
 
 message StoresCreated {
@@ -117,7 +112,7 @@ message ProductsCreated {
 
 message EstablishMember {
     membercontext.member.ApiInfo info = 1;
-    ApiMemberId registeringMember = 2;
+    ApiMemberId registering_member = 2;
 }
 
 message RegisterMember {
@@ -135,4 +130,27 @@ message RegisterMembers {
 
 message MembersRegistered {
     repeated ApiMemberId members_registered  =1;
+}
+
+message EstablishOrder {
+    ordercontext.order.ApiOrderInfo info = 1;
+    ApiMemberId creating_member = 2;
+    ApiStoreId store_id = 3;
+}
+
+message CreateOrder {
+    EstablishOrder establish_order = 1;
+}
+
+message OrderCreated {
+    ApiOrderId order_created = 1;
+}
+
+message CreateOrders {
+    repeated EstablishOrder establish_orders = 1;
+
+}
+
+message OrdersCreated {
+    repeated ApiOrderId orders_created = 1;
 }
