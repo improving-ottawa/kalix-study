@@ -6,7 +6,7 @@ import "app/improving/event/domain/event_context_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/order/domain/order_context_domain.proto";
 import "app/improving/product/domain/product_context_domain.proto";
-import "common_api.proto";
+import "common_domain.proto";
 import "date.proto";
 import "kalix/annotations.proto";
 import "common_views.proto";
@@ -25,29 +25,29 @@ message MembersAtEventsOnDay {
 }
 
 message MembersTableRow {
-    ApiMemberId attending_member_id = 1;
+    MemberId attending_member_id = 1;
     string attending_member_name = 2;
 }
 
 message EventsTableRow {
-    ApiEventId event_id = 1;
+    EventId event_id = 1;
     string event_name = 2;
     google.type.Date event_date = 3;
 }
 
 message EventOrgCorrTableRow {
-    ApiEventId event_id = 1;
-    ApiOrganizationId event_org_id = 2;
+    EventId event_id = 1;
+    OrganizationId event_org_id = 2;
 }
 
 message TicketEventCorrTableRow {
-    ApiProductId ticket_sku = 1;
-    ApiEventId event_id = 2;
+    ProductId ticket_sku = 1;
+    EventId event_id = 2;
 }
 
 message TicketMemberCorrTableRow {
-    ApiProductId ticket_sku = 1;
-    ApiMemberId member_id = 2;
+    ProductId ticket_sku = 1;
+    MemberId member_id = 2;
 }
 
 service MembersAttendingEventsForAnOrganizationView {
@@ -113,7 +113,7 @@ service MembersAttendingEventsForAnOrganizationView {
             transform_updates: true
         };
     }
-
+/*
     rpc ProcessOrderCreated(ordercontext.OrderCreated) returns (TicketMemberCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "order"
@@ -126,18 +126,18 @@ service MembersAttendingEventsForAnOrganizationView {
 
     rpc ProcessFindMembersAtEventsOnDayForOrg(FindMembersAtEventsOnDayForOrg) returns (MembersAtEventsOnDay) {
         option (kalix.method).view.query = {
-            query: "SELECT "
-                    "* "
-                    "FROM event_org_corr"
-                    "JOIN ticket_event_corr ON ticket_event_corr.event_id = event_org_corr.event_id"
-                    "JOIN ticket_member_corr ON ticket_event_corr.ticket_sku = ticket_member_corr.ticket_sku"
-                    "JOIN members ON ticket_member_corr.member_id = members.member_id"
-                    "JOIN events ON ticket_event_corr.event_org_id = events.event_id"
-                    "WHERE event_org_corr.event_org_id = :org_id"
-                    "AND events.event_date = :event_date"
+            query: "SELECT"
+                    "member_id, event_info as member_events"
+                    " (event_id, event_name) as event_info"
+                    " FROM event_org_corr"
+                    " JOIN ticket_event_corr ON ticket_event_corr.event_id = event_org_corr.event_id"
+                    " JOIN ticket_member_corr ON ticket_event_corr.ticket_sku = ticket_member_corr.ticket_sku"
+                    " JOIN members ON ticket_member_corr.member_id = members.member_id"
+                    " JOIN events ON ticket_event_corr.event_org_id = events.event_id"
+                    " WHERE event_org_corr.event_org_id = :org_id"
+                    " AND events.event_date = :event_date"
+                    " GROUP_BY member_id"
             transform_results: true
         };
-    }
-
-
+    }*/
 }
