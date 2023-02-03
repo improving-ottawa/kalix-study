@@ -498,26 +498,25 @@ class GatewayApiActionImplSpec
 
     result.products.isEmpty shouldBe false
 
-    }
+  }
 
-    "handle command get all members correctly" in {
-      val membersRegistered: MembersRegistered = gateWayAction
-        .handleRegisterMembers(
-          RegisterMembers(
-            Seq(
-              EstablishMember(
-                Some(memberApiInfo),
-                Some(ApiMemberId(testMemberId))
-              )
+  "handle command get all members correctly" in {
+    val membersRegistered: MembersRegistered = gateWayAction
+      .handleRegisterMembers(
+        RegisterMembers(
+          Seq(
+            EstablishMember(
+              Some(memberApiInfo),
+              Some(ApiMemberId(testMemberId))
             )
           )
         )
-        .futureValue
+      )
+      .futureValue
 
-      val result =
-        gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
+    val result =
+      gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
 
-      result.members.isEmpty shouldBe false
-    }
+    result.members.isEmpty shouldBe false
   }
 }
