@@ -9,20 +9,18 @@ import app.improving.eventcontext.{
 }
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.{
+  ApiAddress,
+  ApiContact,
+  ApiEmailAddress,
   ApiEventId,
   ApiMemberId,
+  ApiMobileNumber,
   ApiOrganizationId,
   ApiProductId,
   ApiStoreId,
   ApiTenantId
 }
-import app.improving.membercontext.member.{
-  ApiInfo,
-  ApiMemberMap,
-  ApiRegisterMember,
-  ApiRegisterMemberList,
-  MemberService
-}
+import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{ApiEstablishOrganization, OrganizationService}
 import app.improving.organizationcontext.{
@@ -44,6 +42,10 @@ import app.improving.ordercontext.{
   AllOrdersRequest,
   AllOrdersView,
   AllOrdersresult
+}
+import app.improving.gateway.util.util.{
+  genEmailAddressForTenantName,
+  genMobileNumber
 }
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
@@ -590,10 +592,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleStartScenario(
       startScenario: StartScenario
   ): Action.Effect[ScenarioResults] = {
-    val membersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]] = Map.empty
-    val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] = Map.empty
-    val storeIds: Set[ApiStoreId] = Set.empty
-    val productsByStore: Map[ApiStoreId, Set[ApiProductId]] = Map.empty
+    // val membersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]]
+    // val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]]
+    // val storeIds: Set[ApiStoreId]
+    // val productsByStore: Map[ApiStoreId, Set[ApiProductId]]
 
     val scenarioInfo: ScenarioInfo = startScenario.scenarioInfo match {
       case Some(info) => info
@@ -611,75 +613,87 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       case Some(Success(tenantIds: Seq[ApiTenantId])) => tenantIds
     }
 
-    val orgsByTenant: Map[ApiTenantId, Set[ApiOrganizationId]] =
-      genApiEstablishOrgs(
-        scenarioInfo.numOrgsPerTenant,
-        scenarioInfo.maxOrgsDepth,
-        scenarioInfo.maxOrgsWidth,
-        tenantIds
-      )
-        .map(msg =>
-          (
-            msg.info.get.tenant.get,
-            organizationService.establishOrganization(msg).value match {
-              case Some(Success(orgId: ApiOrganizationId)) => orgId
-            }
-          )
-        )
-        .groupBy(_._1)
-        .map(tup => tup._1 -> tup._2.map(_._2).toSet)
+//    val orgsByTenant: Map[String, OrganizationIds] =
+//      genApiEstablishOrgs(
+//        scenarioInfo.numOrgsPerTenant,
+//        scenarioInfo.maxOrgsDepth,
+//        scenarioInfo.maxOrgsWidth,
+//        tenantIds
+//      )
+//        .map(msg =>
+//          (
+//            msg.info.get.tenant.get,
+//            organizationService.establishOrganization(msg).value match {
+//              case Some(Success(orgId: ApiOrganizationId)) => orgId
+//            }
+//          )
+//        )
+//        .groupBy(_._1)
+//        .map(tup =>
+//          tup._1.tenantId -> OrganizationIds(tup._2.map(_._2).distinct)
+//        )
 
-    effects.reply(ScenarioResults(tenantIds, orgsByTenant))
+    effects.reply(ScenarioResults(tenantIds))
   }
-
-  private def replyWithFutureSeq[T](
-      futureSeq: Seq[Future[T]]
-  ): Action.Effect[Seq[T]] =
-    effects.asyncReply(Future.sequence(futureSeq))
 
   private def genApiEstablishTenants(
       numTenants: Integer
-  ): Seq[ApiEstablishTenant] = {}
+  ): Seq[ApiEstablishTenant] = {
+    val r = new scala.util.Random()
+    val tenantName =
+      r.nextString(10)
 
-  private def genApiEstablishOrgs(
-      numOrgs: Integer,
-      maxOrgDepth: Integer,
-      maxOrgWidth: Integer,
-      tenantIds: Set[ApiTenantId]
-  ): Seq[ApiEstablishOrganization] = {}
-
-  private def genApiRegisterMemberLists(
-      numMembersPerOrg: Integer,
-      orgIds: Set[ApiOrganizationId],
-      registeringMember: ApiMemberId
-  ): Seq[ApiRegisterMemberList] = orgIds.toSeq.map { orgId =>
-    ApiRegisterMemberList(
-      "",
-      Some(
-        ApiMemberMap(
-          genApiMemberInfos(numMembersPerOrg, orgId)
-            .map(info => UUID.randomUUID().toString -> info)
-            .toMap
+    (1 to numTenants).map(_ =>
+      ApiEstablishTenant(
+        UUID.randomUUID().toString,
+        Some(
+          app.improving.tenantcontext.tenant.ApiInfo(
+            tenantName,
+            Some(
+              ApiContact(
+                r.nextString(10),
+                r.nextString(10),
+                Some(
+                  ApiEmailAddress(genEmailAddressForTenantName(r, tenantName))
+                ),
+                Some(ApiMobileNumber(genMobileNumber(r))),
+                r.nextString(10)
+              )
+            ),
+            Some(ApiAddress())
+          )
         )
-      ),
-      Some(registeringMember)
+      )
     )
   }
 
-  private def genApiMemberInfos(
-      numMembers: Integer,
-      orgId: ApiOrganizationId
-  ): Seq[ApiInfo] = {}
+  // private def genApiEstablishOrgs(
+  //    numOrgs: Integer,
+  //    maxOrgDepth: Integer,
+  //    maxOrgWidth: Integer,
+  //    tenantIds: Set[ApiTenantId]
+  // ): Seq[ApiEstablishOrganization] = {}
 
-  private def genApiEstablishEvents(
-      numTenants: Integer
-  ): Seq[ApiEstablishTenant] = {}
-
-  private def genApiEstablishStores(
-      numTenants: Integer
-  ): Seq[ApiEstablishTenant] = {}
-
-  private def genApiEstablishProducts(
-      numTenants: Integer
-  ): Seq[ApiEstablishTenant] = {}
+//  private def genApiRegisterMemberLists(
+//      numMembersPerOrg: Integer,
+//      orgIds: Set[ApiOrganizationId],
+//      registeringMember: ApiMemberId
+//  ): Seq[ApiRegisterMemberList] = orgIds.toSeq.map { orgId =>
+//    ApiRegisterMemberList(
+//      "",
+//      Some(
+//        ApiMemberMap(
+//          genApiMemberInfos(numMembersPerOrg, orgId)
+//            .map(info => UUID.randomUUID().toString -> info)
+//            .toMap
+//        )
+//      ),
+//      Some(registeringMember)
+//    )
+//  }
+//
+//  private def genApiMemberInfos(
+//      numMembers: Integer,
+//      orgId: ApiOrganizationId
+//  ): Seq[ApiInfo] = {}
 }
