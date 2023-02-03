@@ -4,8 +4,11 @@ import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.ApiMemberId
+import app.improving.eventcontext.{AllEventsRequest, AllEventsViewClient}
 import app.improving.ordercontext.order.ApiLineItem
 import app.improving.tenantcontext.GetAllTenantRequest
+import app.improving.organizationcontext.AllOrganizationsRequest
+import app.improving.{ApiEventId, ApiMemberId}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -419,16 +422,42 @@ class GatewayApiActionImplSpec
           .futureValue
       )
     }
+  }
+  "handle get all organizations correctly" in {
+    val command: CreateOrganization = CreateOrganization(
+      Some(establishOrganization)
+    )
 
-    "handle get all tenants correctly" in {
+    val organizationCreated = gateWayAction
+      .handleEstablishOrganization(command)
+      .futureValue
+
+    val result =
       gateWayAction
-        .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
+        .handleGetAllOrganizations(AllOrganizationsRequest())
         .futureValue
+    println(result + " result")
+    result.organizations.size > 0 shouldBe true
+  }
 
-      val result =
-        gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
+  "handle get all events correctly" in {
+    val createEvent: CreateEvent = scheduleEventPrivate
 
-      result.tenants.size > 0 shouldBe true
-    }
+    val result =
+      gateWayAction.handleGetAllEvents(AllEventsRequest()).futureValue
+
+    result.events.size > 0 shouldBe true
+
+  }
+
+  "handle get all tenants correctly" in {
+    gateWayAction
+      .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
+      .futureValue
+
+    val result =
+      gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
+
+    result.tenants.size > 0 shouldBe true
   }
 }
