@@ -1,5 +1,6 @@
-package app.improving.eventcontext.event
+package app.improving.storecontext
 
+import app.improving.storecontext.store.StoreAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 object Main {
 
-  private val log = LoggerFactory.getLogger("app.improving.eventcontext.event.Main")
+  private val log = LoggerFactory.getLogger("app.improving.storecontext.Main")
 
   def createKalix(): Kalix = {
     // The KalixFactory automatically registers any generated Actions, Views or Entities,
@@ -18,7 +19,8 @@ object Main {
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
     KalixFactory.withComponents(
-      new EventAPI(_))
+      new StoreAPI(_),
+      new AllStoresViewImpl(_))
   }
 
   def main(args: Array[String]): Unit = {
