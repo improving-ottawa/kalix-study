@@ -1,6 +1,7 @@
 package app.improving.storecontext.store
 
 import app.improving.ApiMemberId
+import app.improving.storecontext.Main
 import app.improving.storecontext.store.TestData._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
