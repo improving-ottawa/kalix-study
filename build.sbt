@@ -52,9 +52,10 @@ lazy val tenant = project
 
 lazy val organizationsForMembersAttendingEventsProjection = project
   .in(file("organizationsForMembersAttendingEventsProjection"))
-  .configure(Kalix.service("organizationsForMembersAttendingEventsProjection"))
+  .configure(
+    Kalix.service("organizationsForMembersAttendingEventsProjection")
+  )
   .configure(Kalix.dependsOn(org, "organization"))
-  .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(member, "member"))
 
 lazy val membersAttendingEventsForAnOrganizationProjection = project
@@ -63,7 +64,6 @@ lazy val membersAttendingEventsForAnOrganizationProjection = project
     Kalix.service("membersAttendingEventsForAnOrganizationProjection")
   )
   .configure(Kalix.dependsOn(org, "organization"))
-  .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(member, "member"))
 
 lazy val gateway = project

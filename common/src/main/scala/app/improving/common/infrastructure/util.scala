@@ -3,7 +3,6 @@ package app.improving.common.infrastructure
 import app.improving.{Address, ApiAddress, ApiCAPostalCode, ApiUSPostalCode}
 
 object util {
-
   def convertApiAddressToAddress(
       apiAddress: ApiAddress
   ): Address = {

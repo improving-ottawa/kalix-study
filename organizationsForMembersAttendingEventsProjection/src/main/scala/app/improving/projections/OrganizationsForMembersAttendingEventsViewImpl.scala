@@ -16,87 +16,111 @@ import kalix.scalasdk.view.ViewContext
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class OrganizationsForMembersAttendingEventsViewImpl(context: ViewContext) extends AbstractOrganizationsForMembersAttendingEventsView {
+class OrganizationsForMembersAttendingEventsViewImpl(context: ViewContext)
+    extends AbstractOrganizationsForMembersAttendingEventsView {
 
   object OrganizationsViewTable extends AbstractOrganizationsViewTable {
 
-    override def emptyState: OrgsTableRow =
-      throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
-
+    override def emptyState: OrgsTableRow = OrgsTableRow.defaultInstance
     override def processOrganizationEstablished(
         state: OrgsTableRow,
-        organizationEstablished: OrganizationEstablished): UpdateEffect[OrgsTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessOrganizationEstablished' not implemented yet")
-
+        organizationEstablished: OrganizationEstablished
+    ): UpdateEffect[OrgsTableRow] =
+      if (state != emptyState)
+        effects.ignore()
+      else
+        effects.updateState(
+          OrgsTableRow(
+            organizationEstablished.orgId,
+            organizationEstablished.info.get.name
+          )
+        )
   }
 
   object MembersViewTable extends AbstractMembersViewTable {
 
-    override def emptyState: MembersTableRow =
-      throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
+    override def emptyState: MembersTableRow = MembersTableRow.defaultInstance
 
     override def processMemberRegistered(
         state: MembersTableRow,
-        memberRegistered: MemberRegistered): UpdateEffect[MembersTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessMemberRegistered' not implemented yet")
+        memberRegistered: MemberRegistered
+    ): UpdateEffect[MembersTableRow] = if (state != emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        MembersTableRow(
+          memberRegistered.memberId,
+          s"${memberRegistered.info.get.firstName} ${memberRegistered.info.get.lastName}"
+        )
+      )
 
   }
 
   object OrgMemberCorrViewTable extends AbstractOrgMemberCorrViewTable {
 
     override def emptyState: OrgMemberCorrTableRow =
-      throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
+      OrgMemberCorrTableRow.defaultInstance
 
-    override def processMembersAddedToOrganization(
+    override def processMemberRegisteredOrganization(
         state: OrgMemberCorrTableRow,
-        membersAddedToOrganization: MembersAddedToOrganization): UpdateEffect[OrgMemberCorrTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessMembersAddedToOrganization' not implemented yet")
-
-    override def processMembersRemovedFromOrganization(
-        state: OrgMemberCorrTableRow,
-        membersRemovedFromOrganization: MembersRemovedFromOrganization): UpdateEffect[OrgMemberCorrTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessMembersRemovedFromOrganization' not implemented yet")
-
+        memberRegistered: MemberRegistered
+    ): UpdateEffect[OrgMemberCorrTableRow] = if (state != emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        OrgMemberCorrTableRow(
+          Some(memberRegistered.info.get.organizationMembership.head),
+          memberRegistered.memberId
+        )
+      )
   }
 
   object EventsViewTable extends AbstractEventsViewTable {
 
-    override def emptyState: EventsTableRow =
-      throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
+    override def emptyState: EventsTableRow = EventsTableRow.defaultInstance
 
     override def processEventScheduled(
         state: EventsTableRow,
-        eventScheduled: EventScheduled): UpdateEffect[EventsTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessEventScheduled' not implemented yet")
+        eventScheduled: EventScheduled
+    ): UpdateEffect[EventsTableRow] = if (state != emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        EventsTableRow(
+          eventScheduled.eventId,
+          eventScheduled.info.get.eventName
+        )
+      )
 
     override def processEventCancelled(
         state: EventsTableRow,
-        eventCancelled: EventCancelled): UpdateEffect[EventsTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessEventCancelled' not implemented yet")
+        eventCancelled: EventCancelled
+    ): UpdateEffect[EventsTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.deleteState()
 
   }
 
   object TicketEventCorrViewTable extends AbstractTicketEventCorrViewTable {
 
     override def emptyState: TicketEventCorrTableRow =
-      throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
+      throw new UnsupportedOperationException(
+        "Not implemented yet, replace with your empty view state"
+      )
 
     override def processProductCreatedForCorrTable(
         state: TicketEventCorrTableRow,
-        productCreated: ProductCreated): UpdateEffect[TicketEventCorrTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessProductCreatedForCorrTable' not implemented yet")
-
-  }
-
-  object TicketMemberCorrViewTable extends AbstractTicketMemberCorrViewTable {
-
-    override def emptyState: TicketMemberCorrTableRow =
-      throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
-
-    override def processOrderCreatedForCorrTable(
-        state: TicketMemberCorrTableRow,
-        orderCreated: OrderCreated): UpdateEffect[TicketMemberCorrTableRow] =
-      throw new UnsupportedOperationException("Update handler for 'ProcessOrderCreatedForCorrTable' not implemented yet")
+        productCreated: ProductCreated
+    ): UpdateEffect[TicketEventCorrTableRow] = if (state != emptyState)
+      effects.ignore() // already created
+    else
+      effects.updateState(
+        TicketEventCorrTableRow(
+          productCreated.sku,
+          productCreated.info.get.event
+        )
+      )
 
   }
 
