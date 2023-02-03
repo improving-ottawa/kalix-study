@@ -18,5 +18,5 @@ message MemberEvents {
 
 message EventInfo {
     string event_id = 1;
-    string event_info = 2;
+    string event_name = 2;
 }
