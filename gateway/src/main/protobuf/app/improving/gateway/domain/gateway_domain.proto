@@ -10,7 +10,6 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
-import "google/protobuf/wrappers.proto";
 
 message CreateTenant {
     tenantcontext.tenant.ApiInfo tenant_info = 1;
@@ -54,6 +53,11 @@ message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
 
+message ScheduleEvent {
+    eventcontext.event.ApiEventInfo info = 1;
+    ApiMemberId scheduling_member = 2;
+}
+
 message CreateEvent {
     eventcontext.event.ApiEventInfo info = 1;
     ApiMemberId scheduling_member = 2;
@@ -70,6 +74,11 @@ message CreateEvents {
 
 message EventsCreated {
     repeated ApiEventId events_created = 1;
+}
+
+message EstablishStore {
+    storecontext.store.ApiStoreInfo info = 1;
+    ApiMemberId creating_member = 2;
 }
 
 message CreateStore {
@@ -159,11 +168,12 @@ message OrdersCreated {
 message ScenarioInfo {
     uint32 num_tenants = 1;
     uint32 num_orgs_per_tenant = 2;
-    uint32 num_members_per_org = 3;
-    uint32 num_events_per_org = 4;
-    uint32 num_stores = 5;
-    uint32 num_products_per_event = 6;
-    uint32 num_orders_per_member = 7;
+    uint32 max_orgs_depth = 3;
+    uint32 max_orgs_width = 4;
+    uint32 num_members_per_org = 5;
+    uint32 num_events_per_org = 6;
+    uint32 num_stores = 7;
+    uint32 num_tickets_per_event = 8;
 }
 
 message StartScenario {
@@ -195,11 +205,11 @@ message Skus {
 }
 
 message ScenarioResults {
-        repeated ApiTenantId tenants = 1;
-         map<string, OrganizationIds> orgs_for_tenants = 2;
-         map<string, MemberIds> members_for_orgs = 3;
-         map<string, EventIds> events_for_orgs = 4;
-         map<string, OrderIds> orders_for_members = 5;
-        StoreIds store_ids = 6;
-        map<string, Skus> products_for_stores = 7;
+    repeated ApiTenantId tenants = 1;
+    map<string, OrganizationIds> orgs_for_tenants = 2;
+    map<string, MemberIds> members_for_orgs = 3;
+    map<string, EventIds> events_for_orgs = 4;
+    map<string, OrderIds> orders_for_members = 5;
+    StoreIds store_ids = 6;
+    map<string, Skus> products_for_stores = 7;
 }
