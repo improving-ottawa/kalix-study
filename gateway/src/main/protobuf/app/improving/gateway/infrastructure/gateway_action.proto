@@ -6,6 +6,7 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/organization/view/organization_all_view.proto";
 import "common_api.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
@@ -116,6 +117,13 @@ service GatewayApiAction {
     rpc HandleGetAllEvents(eventcontext.AllEventsRequest) returns (eventcontext.AllEventsResult) {
         option (google.api.http) = {
             post: "/event/get-all-events"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsresult) {
+        option (google.api.http) = {
+            post: "/organization/get-all-organizations"
             body: ""
         };
     }
