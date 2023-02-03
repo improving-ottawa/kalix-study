@@ -7,9 +7,8 @@ import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/order/domain/order_context_domain.proto";
 import "app/improving/organization/domain/organization_context_domain.proto";
 import "app/improving/product/domain/product_context_domain.proto";
-import "common_api.proto";
+import "common_domain.proto";
 import "common_views.proto";
-import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
 
 message FindOrgsByMembersForEvents {
@@ -26,33 +25,33 @@ message OrgsByMembersForEvents {
 }
 
 message OrgsTableRow {
-    ApiOrganizationId attending_member_org_id = 1;
+    OrganizationId attending_member_org_id = 1;
     string attending_member_org_name = 2;
 }
 
 message MembersTableRow {
-    ApiMemberId attending_member_id = 1;
+    MemberId attending_member_id = 1;
     string attending_member_name = 2;
 }
 
 message OrgMemberCorrTableRow {
-    ApiOrganizationId attending_member_org_id = 1;
-    ApiMemberId attending_member_id = 2;
+    OrganizationId attending_member_org_id = 1;
+    MemberId attending_member_id = 2;
 }
 
 message EventsTableRow {
-    ApiEventId event_id = 1;
+    EventId event_id = 1;
     string event_name = 2;
 }
 
 message TicketEventCorrTableRow {
-    ApiProductId ticket_sku = 1;
-    ApiEventId event_id = 2;
+    ProductId ticket_sku = 1;
+    EventId event_id = 2;
 }
 
 message TicketMemberCorrTableRow {
-    ApiProductId ticket_sku = 1;
-    ApiMemberId attending_member_id = 2;
+    ProductId ticket_sku = 1;
+    MemberId attending_member_id = 2;
 }
 
 service OrganizationsForMembersAttendingEventsView {
@@ -79,19 +78,9 @@ service OrganizationsForMembersAttendingEventsView {
         };
     }
 
-    rpc ProcessMembersAddedToOrganization(organizationcontext.MembersAddedToOrganization) returns (OrgMemberCorrTableRow) {
+    rpc ProcessMemberRegisteredOrganization(membercontext.MemberRegistered) returns (OrgMemberCorrTableRow) {
         option (kalix.method).eventing.in = {
-            event_sourced_entity: "organization"
-        };
-        option (kalix.method).view.update = {
-            table: "org_member_corr"
-            transform_updates: true
-        };
-    }
-
-    rpc ProcessMembersRemovedFromOrganization(organizationcontext.MembersRemovedFromOrganization) returns (OrgMemberCorrTableRow) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "organization"
+            event_sourced_entity: "member"
         };
         option (kalix.method).view.update = {
             table: "org_member_corr"
@@ -126,26 +115,24 @@ service OrganizationsForMembersAttendingEventsView {
         };
     }
 
-    rpc ProcessOrderCreatedForCorrTable(ordercontext.OrderCreated) returns (TicketMemberCorrTableRow) {
-        option (kalix.method).view.update = {
-            table: "ticket_member_corr"
-            transform_updates: true
-        };
-    }
-
-    rpc ProcessFindOrgsByMembersForEvents(FindOrgsByMembersForEvents) returns (OrgsByMembersForEvents) {
-        option (kalix.method).view.query = {
-            query: "SELECT "
-                    "* "
-                    "FROM ticket_event_corr"
-                    "JOIN ticket_member_corr ON ticket_event_corr.ticketSKU = ticket_member_corr.ticketSKU"
-                    "JOIN org_member_corr ON ticket_member_corr.attendingMember = org_member_corr.attendingMember"
-                    "JOIN organizations ON org_member_corr.attendingMemberOrg = organizations.attendingMemberOrg"
-                    "JOIN members ON org_member_corr.attendingMember = members.attendingMember"
-                    "WHERE ticket_event_corr.event = :eventId"
-            transform_results: true
-        };
-    }
-
-
+//    rpc ProcessOrderCreatedForCorrTable(ordercontext.OrderCreated) returns (TicketMemberCorrTableRow) {
+//        option (kalix.method).view.update = {
+//            table: "ticket_member_corr"
+//            transform_updates: true
+//        };
+//    }
+//
+//    rpc ProcessFindOrgsByMembersForEvents(FindOrgsByMembersForEvents) returns (OrgsByMembersForEvents) {
+//        option (kalix.method).view.query = {
+//            query: "SELECT "
+//                    "* "
+//                    "FROM ticket_event_corr"
+//                    "JOIN ticket_member_corr ON ticket_event_corr.ticketSKU = ticket_member_corr.ticketSKU"
+//                    "JOIN org_member_corr ON ticket_member_corr.attendingMember = org_member_corr.attendingMember"
+//                    "JOIN organizations ON org_member_corr.attendingMemberOrg = organizations.attendingMemberOrg"
+//                    "JOIN members ON org_member_corr.attendingMember = members.attendingMember"
+//                    "WHERE ticket_event_corr.event = :eventId"
+//            transform_results: true
+//        };
+//    }
 }

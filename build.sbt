@@ -57,6 +57,7 @@ lazy val projection = project
     Kalix.service("projection")
   )
   .configure(Kalix.dependsOn(org, "organization"))
+  .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(member, "member"))
 
 lazy val gateway = project
