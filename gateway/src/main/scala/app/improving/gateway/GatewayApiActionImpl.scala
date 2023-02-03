@@ -26,6 +26,11 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
+import app.improving.tenantcontext.{
+  AllTenantResult,
+  AllTenantsView,
+  GetAllTenantRequest
+}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
@@ -116,6 +121,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[AllOrganizationsView],
     config.getString(
       "app.improving.gateway.organization.grpc-client-name"
+    )
+  )
+  val allTenantsView = creationContext.getGrpcClient(
+    classOf[AllTenantsView],
+    config.getString(
+      "app.improving.gateway.tenant.grpc-client-name"
     )
   )
   override def handleEstablishTenant(
@@ -468,5 +479,11 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     effects.asyncReply(
       allOrganizationsView.getAllOrganizations(AllOrganizationsRequest())
     )
+  }
+
+  override def handleGetAllTenants(
+      getAllTenantRequest: GetAllTenantRequest
+  ): Action.Effect[AllTenantResult] = {
+    effects.asyncReply(allTenantsView.getAllTenants(GetAllTenantRequest()))
   }
 }

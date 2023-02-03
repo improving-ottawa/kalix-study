@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+
+package app.improving.tenantcontext;
+
+
+import "app/improving/tenant/api/tenant_api.proto";
+import "app/improving/tenant/domain/tenant_context_domain.proto";
+import "common_api.proto";
+import "kalix/annotations.proto";
+
+message GetAllTenantRequest {}
+
+message AllTenantResult {
+    repeated tenant.ApiTenant tenants = 1;
+}
+
+service AllTenantsView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessTenantEstablished(tenantcontext.TenantEstablished) returns (tenantcontext.tenant.ApiTenant) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "tenants"
+        };
+        option (kalix.method).view.update = {
+            table: "all_tenants"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessTenantActivated(tenantcontext.TenantActivated) returns (tenantcontext.tenant.ApiTenant) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "tenants"
+        };
+        option (kalix.method).view.update = {
+            table: "all_tenants"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessTenantSuspended(tenantcontext.TenantSuspended) returns (tenantcontext.tenant.ApiTenant) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "tenants"
+        };
+        option (kalix.method).view.update = {
+            table: "all_tenants"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessPrimaryContactUpdated(tenantcontext.PrimaryContactUpdated) returns (tenantcontext.tenant.ApiTenant) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "tenants"
+        };
+        option (kalix.method).view.update = {
+            table: "all_tenants"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessTenantNameChanged(tenantcontext.TenantNameChanged) returns (tenantcontext.tenant.ApiTenant) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "tenants"
+        };
+        option (kalix.method).view.update = {
+            table: "all_tenants"
+            transform_updates: true
+        };
+    }
+
+    rpc GetAllTenants(GetAllTenantRequest) returns (AllTenantResult) {
+        option (kalix.method).view.query = {
+            query: "SELECT * AS tenants FROM all_tenants "
+        };
+    }
+}

@@ -155,15 +155,13 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           )
           throw new IllegalStateException(error.getMessage)
         }
-      ) recoverWith ({
-        case exception: Exception => {
+      ) recover ({
+        case throwable: Throwable => {
           log.error(
-            s"Error in OrderActionImpl - orderValidFut.transform - Error: ${exception.getMessage}"
+            s"Error in OrderActionImpl - orderValidFut.transform - Error: ${throwable.getMessage}"
           )
-          Future.successful(
-            effects.error(
-              s"The purchase is not allowed - Errors: ${exception.getMessage}"
-            )
+          effects.error(
+            s"The purchase is not allowed - Errors: ${throwable.getMessage}"
           )
         }
       })
