@@ -69,7 +69,7 @@ service AllProductsView {
     rpc GetAllSkus(AllProductsRequest) returns (AllProductsResult) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "* AS products"
+                    "* AS products "
                     "FROM all_products "
         };
     }

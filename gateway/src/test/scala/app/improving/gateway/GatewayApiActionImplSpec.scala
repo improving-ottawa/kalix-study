@@ -468,33 +468,34 @@ class GatewayApiActionImplSpec
       gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
 
     result.tenants.size > 0 shouldBe true
+  }
 
-    "handle get all stores correctly" in {
+  "handle get all stores correctly" in {
 
-      val command: CreateStore = CreateStore(
-        Some(apiStoreInfo),
-        Some(ApiMemberId(testMember1))
-      )
+    val command: CreateStore = CreateStore(
+      Some(apiStoreInfo),
+      Some(ApiMemberId(testMember1))
+    )
 
-      val storeCreated = gateWayAction
-        .handleCreateStore(command)
-        .futureValue
+    val storeCreated = gateWayAction
+      .handleCreateStore(command)
+      .futureValue
 
-      val result =
-        gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
+    val result =
+      gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
 
-      result.stores.isEmpty shouldBe false
-    }
+    result.stores.isEmpty shouldBe false
+  }
 
-    "handle get all products correctly" in {
-      val productCreated: ProductCreated = gateWayAction
-        .handleCreateProduct(CreateProduct(Some(establishProduct)))
-        .futureValue
+  "handle get all products correctly" in {
+    val productCreated: ProductCreated = gateWayAction
+      .handleCreateProduct(CreateProduct(Some(establishProduct)))
+      .futureValue
 
-      val result =
-        gateWayAction.handleGetAllProducts(AllProductsRequest()).futureValue
+    val result =
+      gateWayAction.handleGetAllProducts(AllProductsRequest()).futureValue
 
-      result.products.isEmpty shouldBe false
-    }
+    result.products.isEmpty shouldBe false
+
   }
 }
