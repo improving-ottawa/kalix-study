@@ -1,5 +1,12 @@
 package app.improving.gateway
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
+import app.improving.eventcontext.{
+  AllEventsRequest,
+  AllEventsResult,
+  AllEventsView
+}
 import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
@@ -7,6 +14,11 @@ import app.improving.organizationcontext.{
   AllOrganizationsRequest,
   AllOrganizationsView,
   AllOrganizationsresult
+}
+import app.improving.eventcontext.event.{
+  ApiEvent,
+  ApiScheduleEvent,
+  EventService
 }
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
@@ -94,6 +106,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val allEventsView = creationContext.getGrpcClient(
+    classOf[AllEventsView],
+    config.getString(
+      "app.improving.gateway.event.grpc-client-name"
+    )
+  )
   val allOrganizationsView = creationContext.getGrpcClient(
     classOf[AllOrganizationsView],
     config.getString(
@@ -433,6 +451,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
         .map(OrdersCreated(_))
     )
+  }
+
+  override def handleGetAllEvents(
+      allEventsRequest: AllEventsRequest
+  ): Action.Effect[AllEventsResult] = {
+    effects.asyncReply(allEventsView.getAllEvents(allEventsRequest))
   }
 
   override def handleGetAllOrganizations(

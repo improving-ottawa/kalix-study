@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+
+package app.improving.eventcontext;
+
+
+import "app/improving/event/api/event_api.proto";
+import "app/improving/event/domain/event_context_domain.proto";
+import "kalix/annotations.proto";
+
+message AllEventsRequest {}
+
+message AllEventsResult {
+    repeated event.ApiEvent events = 1;
+}
+
+service AllEventsView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessEventInfoChanged(EventInfoChanged) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventScheduled(EventScheduled) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventCancelled(EventCancelled) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventRescheduled(EventRescheduled) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventDelayed(EventDelayed) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventStarted(EventStarted) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventEnded(EventEnded) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
+    rpc GetAllEvents(AllEventsRequest) returns (AllEventsResult) {
+        option (kalix.method).view.query = {
+            query: "SELECT * AS events FROM all_events "
+        };
+    }
+}
