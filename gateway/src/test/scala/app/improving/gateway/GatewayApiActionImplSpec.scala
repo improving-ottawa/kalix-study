@@ -14,6 +14,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
@@ -483,6 +484,92 @@ class GatewayApiActionImplSpec
         gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
 
       result.stores.isEmpty shouldBe false
+    }
+
+    "handle get all orders correctly" in {
+
+      val memberRegistered: MemberRegistered = gateWayAction
+        .handleRegisterMember(
+          RegisterMember(
+            Some(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      val memberId = memberRegistered.memberRegistered
+
+      val createEvent: CreateEvent = CreateEvent(
+        Some(apiEventInfo),
+        memberId
+      )
+
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(createEvent)
+        .futureValue
+
+      val eventId = eventCreated.eventCreated
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(
+          establishOrganization.copy(members =
+            establishOrganization.members ++ memberId.toSeq
+          )
+        )
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
+      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductMetaInfoForEvent =
+        apiProductMetaInfo.copy(createdBy = memberId)
+      val establisProductForEvent = EstablishProduct(
+        Some(apiProductInfoForEvent),
+        Some(apiProductMetaInfoForEvent)
+      )
+      val productCreated =
+        gateWayAction
+          .handleCreateProduct(
+            CreateProduct(Some(establisProductForEvent))
+          )
+          .futureValue
+
+      val orderCreated = gateWayAction
+        .handleCreateOrder(
+          CreateOrder(
+            Some(
+              EstablishOrder(
+                Some(
+                  testOrderInfo.copy(lineItems =
+                    Seq(
+                      ApiLineItem(
+                        productCreated.productCreated,
+                        1,
+                        10
+                      )
+                    )
+                  )
+                ),
+                memberId
+              )
+            )
+          )
+        )
+        .futureValue
+
+      log.info(orderCreated + " orderCreated")
+
+      val result =
+        gateWayAction.handleGetAllOrders(AllOrdersRequest()).futureValue
+
+      result.orders.size > 0 shouldBe true
+
     }
   }
 }
