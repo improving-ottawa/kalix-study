@@ -1,7 +1,25 @@
 package app.improving.gateway
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
+import app.improving.eventcontext.{
+  AllEventsRequest,
+  AllEventsResult,
+  AllEventsView
+}
 import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
+import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
+import app.improving.organizationcontext.{
+  AllOrganizationsRequest,
+  AllOrganizationsView,
+  AllOrganizationsresult
+}
+import app.improving.eventcontext.event.{
+  ApiEvent,
+  ApiScheduleEvent,
+  EventService
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -12,6 +30,11 @@ import app.improving.storecontext.{
   AllStoresRequest,
   AllStoresResult,
   AllStoresView
+}
+import app.improving.tenantcontext.{
+  AllTenantResult,
+  AllTenantsView,
+  GetAllTenantRequest
 }
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -86,6 +109,32 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  val orderAction = creationContext.getGrpcClient(
+    classOf[OrderAction],
+    config.getString(
+      "app.improving.gateway.order.grpc-client-name"
+    )
+  )
+
+  val allEventsView = creationContext.getGrpcClient(
+    classOf[AllEventsView],
+    config.getString(
+      "app.improving.gateway.event.grpc-client-name"
+    )
+  )
+  val allOrganizationsView = creationContext.getGrpcClient(
+    classOf[AllOrganizationsView],
+    config.getString(
+      "app.improving.gateway.organization.grpc-client-name"
+    )
+  )
+  val allTenantsView = creationContext.getGrpcClient(
+    classOf[AllTenantsView],
+    config.getString(
+      "app.improving.gateway.tenant.grpc-client-name"
+    )
+  )
+
   val allStoresView = creationContext.getGrpcClient(
     classOf[AllStoresView],
     config.getString(
@@ -137,11 +186,6 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Action.Effect[OrganizationCreated] = {
 
     log.info("in handleEstablishOrganization")
-
-    val organizationService = creationContext.getGrpcClient(
-      classOf[OrganizationService],
-      "kalix-study-org"
-    )
 
     effects.asyncReply(
       organizationService
@@ -212,8 +256,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .scheduleEvent(
           ApiScheduleEvent(
             UUID.randomUUID().toString,
-            createEvent.scheduleEvent.flatMap(_.info),
-            createEvent.scheduleEvent.flatMap(_.schedulingMember)
+            createEvent.info,
+            createEvent.schedulingMember
           )
         )
         .map(id => EventCreated(Some(id)))
@@ -229,13 +273,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     effects.asyncReply(
       Future
         .sequence(
-          createEvents.scheduleEvents
-            .map(scheduleEvent => {
+          createEvents.infos
+            .map(info => {
               eventService.scheduleEvent(
                 ApiScheduleEvent(
                   UUID.randomUUID().toString,
-                  scheduleEvent.info,
-                  scheduleEvent.schedulingMember
+                  Some(info),
+                  createEvents.schedulingMember
                 )
               )
             })
@@ -256,14 +300,12 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .createStore(
           ApiCreateStore(
             storeId,
-            createStore.establishStore.flatMap(
-              _.info.map(
-                _.copy(
-                  storeId = storeId
-                )
+            createStore.info.map(
+              _.copy(
+                storeId = storeId
               )
             ),
-            createStore.establishStore.flatMap(_.creatingMember)
+            createStore.creatingMember
           )
         )
         .map(id => StoreCreated(Some(id)))
@@ -278,16 +320,16 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     val storeId = UUID.randomUUID().toString
     effects.asyncReply(
       Future
-        .sequence(createStores.establishStores.map(establishStore => {
+        .sequence(createStores.infos.map(info => {
           storeService.createStore(
             ApiCreateStore(
               storeId,
-              establishStore.info.map(
-                _.copy(
+              Some(
+                info.copy(
                   storeId = storeId
                 )
               ),
-              establishStore.creatingMember
+              createStores.creatingMember
             )
           )
         }))
@@ -385,6 +427,76 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
         .map(MembersRegistered(_))
     )
+  }
+
+  override def handleCreateOrder(
+      createOrder: CreateOrder
+  ): Action.Effect[OrderCreated] = {
+
+    log.info("in handleCreateOrder")
+
+    val orderId = UUID.randomUUID().toString
+
+    effects.asyncReply(
+      orderAction
+        .purchaseTicket(
+          ApiCreateOrder(
+            orderId,
+            createOrder.establishOrder
+              .flatMap(_.info.map(_.copy(orderId = orderId))),
+            createOrder.establishOrder.flatMap(_.creatingMember)
+          )
+        )
+        .map(id => OrderCreated(Some(id)))
+    )
+  }
+
+  override def handleCreateOrders(
+      createOrders: CreateOrders
+  ): Action.Effect[OrdersCreated] = {
+
+    log.info("in handleCreateOrders")
+
+    val orderId = UUID.randomUUID().toString
+    effects.asyncReply(
+      Future
+        .sequence(
+          createOrders.establishOrders.map(establishOrder => {
+            orderAction
+              .purchaseTicket(
+                ApiCreateOrder(
+                  orderId,
+                  establishOrder.info.map(_.copy(orderId = orderId)),
+                  establishOrder.creatingMember
+                )
+              )
+          })
+        )
+        .map(OrdersCreated(_))
+    )
+  }
+
+  override def handleGetAllEvents(
+      allEventsRequest: AllEventsRequest
+  ): Action.Effect[AllEventsResult] = {
+    effects.asyncReply(allEventsView.getAllEvents(allEventsRequest))
+  }
+
+  override def handleGetAllOrganizations(
+      allOrganizationsRequest: AllOrganizationsRequest
+  ): Action.Effect[AllOrganizationsresult] = {
+
+    log.info("in handleGetAllOrganizations")
+
+    effects.asyncReply(
+      allOrganizationsView.getAllOrganizations(AllOrganizationsRequest())
+    )
+  }
+
+  override def handleGetAllTenants(
+      getAllTenantRequest: GetAllTenantRequest
+  ): Action.Effect[AllTenantResult] = {
+    effects.asyncReply(allTenantsView.getAllTenants(GetAllTenantRequest()))
   }
 
   override def handleGetAllStores(

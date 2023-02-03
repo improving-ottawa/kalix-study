@@ -2,9 +2,14 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
+import "app/improving/event/api/event_api.proto";
+import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/store/view/store_all_view.proto";
+import "app/improving/tenant/view/tenant_all_view.proto";
+import "app/improving/organization/view/organization_all_view.proto";
+import "common_api.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -44,7 +49,7 @@ service GatewayApiAction {
     rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
         option (google.api.http) = {
             post: "/event/schedule-event"
-            body: "schedule_event"
+            body: "*"
         };
     }
 
@@ -58,7 +63,7 @@ service GatewayApiAction {
     rpc HandleCreateStore(CreateStore) returns (StoreCreated) {
         option (google.api.http) = {
             post: "/store/create-store"
-            body: "establish_store"
+            body: "*"
         };
     }
 
@@ -94,6 +99,41 @@ service GatewayApiAction {
         option (google.api.http) = {
             post: "/member/register-members"
             body: "*"
+        };
+    }
+
+    rpc HandleCreateOrder(CreateOrder) returns (OrderCreated) {
+        option (google.api.http) = {
+            post: "/order/create-order"
+            body: "establish_order"
+        };
+    }
+
+    rpc HandleCreateOrders(CreateOrders) returns (OrdersCreated) {
+        option (google.api.http) = {
+            post: "/order/create-orders"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllEvents(eventcontext.AllEventsRequest) returns (eventcontext.AllEventsResult) {
+        option (google.api.http) = {
+            post: "/event/get-all-events"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsresult) {
+        option (google.api.http) = {
+            post: "/organization/get-all-organizations"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllTenants(tenantcontext.GetAllTenantRequest) returns (tenantcontext.AllTenantResult) {
+        option (google.api.http) = {
+            post: "/tenant/get-all-tenants"
+            body: ""
         };
     }
 
