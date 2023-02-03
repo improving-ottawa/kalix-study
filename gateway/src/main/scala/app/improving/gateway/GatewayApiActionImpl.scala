@@ -26,6 +26,11 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
+import app.improving.storecontext.{
+  AllStoresRequest,
+  AllStoresResult,
+  AllStoresView
+}
 import app.improving.tenantcontext.{
   AllTenantResult,
   AllTenantsView,
@@ -127,6 +132,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[AllTenantsView],
     config.getString(
       "app.improving.gateway.tenant.grpc-client-name"
+    )
+  )
+
+  val allStoresView = creationContext.getGrpcClient(
+    classOf[AllStoresView],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
     )
   )
   override def handleEstablishTenant(
@@ -485,5 +497,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       getAllTenantRequest: GetAllTenantRequest
   ): Action.Effect[AllTenantResult] = {
     effects.asyncReply(allTenantsView.getAllTenants(GetAllTenantRequest()))
+  }
+
+  override def handleGetAllStores(
+      allStoresRequest: AllStoresRequest
+  ): Action.Effect[AllStoresResult] = {
+
+    log.info("in handleRegisterMembers")
+
+    effects.asyncReply(allStoresView.getAllStores(AllStoresRequest()))
   }
 }

@@ -6,6 +6,7 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
 import "common_api.proto";
@@ -132,6 +133,13 @@ service GatewayApiAction {
     rpc HandleGetAllTenants(tenantcontext.GetAllTenantRequest) returns (tenantcontext.AllTenantResult) {
         option (google.api.http) = {
             post: "/tenant/get-all-tenants"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllStores(storecontext.AllStoresRequest) returns (storecontext.AllStoresResult) {
+        option (google.api.http) = {
+            post: "/store/get-all-stores"
             body: ""
         };
     }
