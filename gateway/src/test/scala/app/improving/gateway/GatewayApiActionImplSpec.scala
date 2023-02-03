@@ -471,12 +471,8 @@ class GatewayApiActionImplSpec
     "handle get all stores correctly" in {
 
       val command: CreateStore = CreateStore(
-        Some(
-          EstablishStore(
-            Some(apiStoreInfo),
-            Some(ApiMemberId(testMember1))
-          )
-        )
+        Some(apiStoreInfo),
+        Some(ApiMemberId(testMember1))
       )
 
       val storeCreated = gateWayAction
