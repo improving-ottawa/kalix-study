@@ -9,7 +9,6 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
-import "google/protobuf/wrappers.proto";
 
 message CreateTenant {
     tenantcontext.tenant.ApiInfo tenant_info = 1;
@@ -33,7 +32,7 @@ message EstablishOrganization {
     repeated ApiMemberId members = 4;
     repeated ApiMemberId owners = 5;
     repeated organizationcontext.organization.ApiContacts contacts = 6;
-    ApiMemberId establishingMember = 7;
+    ApiMemberId establishing_member = 7;
     organizationcontext.organization.ApiMetaInfo meta = 8;
 }
 
@@ -55,7 +54,7 @@ message OrganizationsCreated {
 
 message ScheduleEvent {
     eventcontext.event.ApiEventInfo info = 1;
-    ApiMemberId schedulingMember = 2;
+    ApiMemberId scheduling_member = 2;
 }
 
 message CreateEvent {
@@ -76,7 +75,7 @@ message EventsCreated {
 
 message EstablishStore {
     storecontext.store.ApiStoreInfo info = 1;
-    ApiMemberId creatingMember = 2;
+    ApiMemberId creating_member = 2;
 }
 
 message CreateStore {
@@ -118,7 +117,7 @@ message ProductsCreated {
 
 message EstablishMember {
     membercontext.member.ApiInfo info = 1;
-    ApiMemberId registeringMember = 2;
+    ApiMemberId registering_member = 2;
 }
 
 message RegisterMember {
@@ -141,11 +140,12 @@ message MembersRegistered {
 message ScenarioInfo {
     uint32 num_tenants = 1;
     uint32 num_orgs_per_tenant = 2;
-    uint32 num_members_per_org = 3;
-    uint32 num_events_per_org = 4;
-    uint32 num_stores = 5;
-    uint32 num_products_per_event = 6;
-    uint32 num_orders_per_member = 7;
+    uint32 max_orgs_depth = 3;
+    uint32 max_orgs_width = 4;
+    uint32 num_members_per_org = 5;
+    uint32 num_events_per_org = 6;
+    uint32 num_stores = 7;
+    uint32 num_tickets_per_event = 8;
 }
 
 message StartScenario {
@@ -177,11 +177,11 @@ message Skus {
 }
 
 message ScenarioResults {
-        repeated ApiTenantId tenants = 1;
-         map<string, OrganizationIds> orgs_for_tenants = 2;
-         map<string, MemberIds> members_for_orgs = 3;
-         map<string, EventIds> events_for_orgs = 4;
-         map<string, OrderIds> orders_for_members = 5;
-        StoreIds store_ids = 6;
-        map<string, Skus> products_for_stores = 7;
+    repeated ApiTenantId tenants = 1;
+    map<string, OrganizationIds> orgs_for_tenants = 2;
+    map<string, MemberIds> members_for_orgs = 3;
+    map<string, EventIds> events_for_orgs = 4;
+    map<string, OrderIds> orders_for_members = 5;
+    StoreIds store_ids = 6;
+    map<string, Skus> products_for_stores = 7;
 }
