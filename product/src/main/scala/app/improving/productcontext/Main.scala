@@ -20,7 +20,9 @@ object Main {
     // `Kalix()` instance.
     KalixFactory.withComponents(
       new ProductAPI(_),
-      new TicketByEventViewImpl(_))
+      new AllProductsViewImpl(_),
+      new TicketByEventViewImpl(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

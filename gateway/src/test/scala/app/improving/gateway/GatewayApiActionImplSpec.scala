@@ -16,6 +16,8 @@ import app.improving.organizationcontext.organization.{
 import app.improving.ApiMemberId
 import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
+import app.improving.productcontext.AllProductsRequest
+import app.improving.membercontext.AllMembersRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -468,20 +470,34 @@ class GatewayApiActionImplSpec
       gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
 
     result.tenants.size > 0 shouldBe true
+  }
 
-    "handle get all stores correctly" in {
+  "handle get all stores correctly" in {
 
-      val command: CreateStore = CreateStore(
-        Some(apiStoreInfo),
-        Some(ApiMemberId(testMember1))
-      )
+    val command: CreateStore = CreateStore(
+      Some(apiStoreInfo),
+      Some(ApiMemberId(testMember1))
+    )
 
-      val storeCreated = gateWayAction
-        .handleCreateStore(command)
-        .futureValue
+    val storeCreated = gateWayAction
+      .handleCreateStore(command)
+      .futureValue
 
-      val result =
-        gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
+    val result =
+      gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
+
+    result.stores.isEmpty shouldBe false
+  }
+
+  "handle get all products correctly" in {
+    val productCreated: ProductCreated = gateWayAction
+      .handleCreateProduct(CreateProduct(Some(establishProduct)))
+      .futureValue
+
+    val result =
+      gateWayAction.handleGetAllProducts(AllProductsRequest()).futureValue
+
+    result.products.isEmpty shouldBe false
 
       result.stores.isEmpty shouldBe false
     }
@@ -571,5 +587,25 @@ class GatewayApiActionImplSpec
       result.orders.size > 0 shouldBe true
 
     }
+  }
+
+  "handle command get all members correctly" in {
+    val membersRegistered: MembersRegistered = gateWayAction
+      .handleRegisterMembers(
+        RegisterMembers(
+          Seq(
+            EstablishMember(
+              Some(memberApiInfo),
+              Some(ApiMemberId(testMemberId))
+            )
+          )
+        )
+      )
+      .futureValue
+
+    val result =
+      gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
+
+    result.members.isEmpty shouldBe false
   }
 }

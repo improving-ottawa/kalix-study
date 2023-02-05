@@ -20,6 +20,11 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
+import app.improving.membercontext.{
+  AllMembersRequest,
+  AllMembersResult,
+  AllMembersView
+}
 import app.improving.ordercontext.{
   AllOrdersRequest,
   AllOrdersView,
@@ -28,6 +33,11 @@ import app.improving.ordercontext.{
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
+}
+import app.improving.productcontext.{
+  AllProductsRequest,
+  AllProductsResult,
+  AllProductsView
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
@@ -144,6 +154,21 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[AllStoresView],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
+    )
+  )
+
+  val allProductsView = creationContext.getGrpcClient(
+    classOf[AllProductsView],
+    config.getString(
+      "app.improving.gateway.product.grpc-client-name"
+    )
+  )
+
+
+  val allMembersView = creationContext.getGrpcClient(
+    classOf[AllMembersView],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
     )
   )
 
@@ -518,6 +543,24 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleRegisterMembers")
 
     effects.asyncReply(allStoresView.getAllStores(AllStoresRequest()))
+  }
+
+  override def handleGetAllProducts(
+      allProductsRequest: AllProductsRequest
+  ): Action.Effect[AllProductsResult] = {
+
+    log.info("in handleRegisterMembers")
+
+    effects.asyncReply(allProductsView.getAllSkus(AllProductsRequest()))
+  }
+
+  override def handleGetAllMembers(
+      allMembersRequest: AllMembersRequest
+  ): Action.Effect[AllMembersResult] = {
+
+    log.info("in handleGetAllMembers")
+
+    effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
   }
 
   override def handleGetAllOrders(

@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package app.improving.productcontext;
+
+import "app/improving/product/api/product_api.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+import "kalix/annotations.proto";
+
+message AllProductsRequest {}
+
+message AllProductsResult {
+    repeated product.ApiProduct products = 1;
+}
+
+service AllProductsView {
+    option (kalix.codegen) = {
+        view: {}
+    };
+    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "all_products"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "all_products"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "all_products"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "all_products"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "all_products"
+            transform_updates: true
+        };
+    }
+
+    rpc GetAllSkus(AllProductsRequest) returns (AllProductsResult) {
+        option (kalix.method).view.query = {
+            query: "SELECT "
+                    "* AS products "
+                    "FROM all_products "
+        };
+    }
+
+
+}

@@ -6,11 +6,13 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
+import "app/improving/product/view/product_all_view.proto";
 import "app/improving/order/view/order_all_view.proto";
 import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
 import "common_api.proto";
+import "app/improving/member/view/member_all_view.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -141,6 +143,20 @@ service GatewayApiAction {
     rpc HandleGetAllStores(storecontext.AllStoresRequest) returns (storecontext.AllStoresResult) {
         option (google.api.http) = {
             post: "/store/get-all-stores"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllProducts(productcontext.AllProductsRequest) returns (productcontext.AllProductsResult) {
+        option (google.api.http) = {
+            post: "/product/get-all-products"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllMembers(membercontext.AllMembersRequest) returns (membercontext.AllMembersResult) {
+        option (google.api.http) = {
+            post: "/member/get-all-members"
             body: ""
         };
     }
