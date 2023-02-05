@@ -20,7 +20,13 @@ import app.improving.{
   ApiStoreId,
   ApiTenantId
 }
-import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
+import app.improving.membercontext.member.{
+  ApiInfo,
+  ApiMemberStatus,
+  ApiRegisterMember,
+  ApiUpdateMemberStatus,
+  MemberService
+}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{ApiEstablishOrganization, OrganizationService}
 import app.improving.organizationcontext.{
@@ -47,6 +53,7 @@ import app.improving.gateway.util.util.{
   genEmailAddressForTenantName,
   genMobileNumber
 }
+import app.improving.gateway.util.util.{genEmailAddressForName, genMobileNumber}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -58,6 +65,11 @@ import app.improving.productcontext.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
+import app.improving.tenantcontext.tenant.{
+  ApiActivateTenant,
+  ApiEstablishTenant,
+  TenantService
+}
 import app.improving.storecontext.{
   AllStoresRequest,
   AllStoresResult,
@@ -592,10 +604,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleStartScenario(
       startScenario: StartScenario
   ): Action.Effect[ScenarioResults] = {
-    // val membersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]]
-    // val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]]
-    // val storeIds: Set[ApiStoreId]
-    // val productsByStore: Map[ApiStoreId, Set[ApiProductId]]
+
+    val r = new scala.util.Random()
 
     val scenarioInfo: ScenarioInfo = startScenario.scenarioInfo match {
       case Some(info) => info
@@ -604,13 +614,57 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         ScenarioInfo.defaultInstance
     }
 
+    val totalNumOfMembers = startScenario.scenarioInfo
+      .map(_.numMembersPerOrg)
+      .getOrElse(0) * startScenario.scenarioInfo
+      .map(
+        _.numOrgsPerTenant
+      )
+      .getOrElse(0) * startScenario.scenarioInfo.map(_.numTenants).getOrElse(0)
+
+    val memberIds = Future
+      .sequence(
+        genApiRegisterMembers(totalNumOfMembers).map(registerMember => {
+          memberService
+            .registerMember(registerMember)
+            .map(memberId => {
+              memberService.updateMemberStatus(
+                ApiUpdateMemberStatus(
+                  memberId.memberId,
+                  Some(ApiMemberId(memberId.memberId)),
+                  ApiMemberStatus.ACTIVE
+                )
+              )
+              memberId
+            })
+        })
+      )
+      .value match {
+      case Some(Success(memberIds: Seq[ApiMemberId])) => memberIds
+      case _                                          => Seq.empty[ApiMemberId]
+    }
+
     val tenantIds: Seq[ApiTenantId] = Future
       .sequence(
         genApiEstablishTenants(scenarioInfo.numTenants)
-          .map(tenantService.establishTenant)
+          .map(establishTenant => {
+            tenantService
+              .establishTenant(establishTenant)
+              .map(tenantId => {
+                val i = r.nextInt(totalNumOfMembers)
+                tenantService.activateTenant(
+                  ApiActivateTenant(
+                    tenantId.tenantId,
+                    memberIds.toArray.apply(i).memberId
+                  )
+                )
+                tenantId
+              })
+          })
       )
       .value match {
       case Some(Success(tenantIds: Seq[ApiTenantId])) => tenantIds
+      case _                                          => Seq.empty[ApiTenantId]
     }
 
 //    val orgsByTenant: Map[String, OrganizationIds] =
@@ -632,7 +686,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 //        .map(tup =>
 //          tup._1.tenantId -> OrganizationIds(tup._2.map(_._2).distinct)
 //        )
-
+    // val membersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]]
+    // val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]]
+    // val storeIds: Set[ApiStoreId]
+    // val productsByStore: Map[ApiStoreId, Set[ApiProductId]]
     effects.reply(ScenarioResults(tenantIds))
   }
 
@@ -654,7 +711,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
                 r.nextString(10),
                 r.nextString(10),
                 Some(
-                  ApiEmailAddress(genEmailAddressForTenantName(r, tenantName))
+                  ApiEmailAddress(genEmailAddressForName(r, tenantName))
                 ),
                 Some(ApiMobileNumber(genMobileNumber(r))),
                 r.nextString(10)
@@ -665,6 +722,40 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         )
       )
     )
+  }
+
+  private def genApiRegisterMembers(
+      numOfMembers: Integer
+  ): Seq[ApiRegisterMember] = {
+    val r = new scala.util.Random()
+
+    (1 to numOfMembers).map(_ => {
+      val name = r.nextString(10)
+      ApiRegisterMember(
+        UUID.randomUUID().toString,
+        Some(
+          ApiInfo(
+            Some(
+              ApiContact(
+                name,
+                r.nextString(10),
+                Some(
+                  ApiEmailAddress(
+                    genEmailAddressForName(r, name)
+                  )
+                ),
+                Some(
+                  ApiMobileNumber(
+                    genMobileNumber(r)
+                  )
+                ),
+                r.nextString(10)
+              )
+            )
+          )
+        )
+      )
+    })
   }
 
   // private def genApiEstablishOrgs(
