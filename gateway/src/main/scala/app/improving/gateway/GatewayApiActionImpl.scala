@@ -25,6 +25,11 @@ import app.improving.membercontext.{
   AllMembersResult,
   AllMembersView
 }
+import app.improving.ordercontext.{
+  AllOrdersRequest,
+  AllOrdersView,
+  AllOrdersresult
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -164,6 +169,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[AllMembersView],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
+    )
+  )
+
+  val allOrdersView = creationContext.getGrpcClient(
+    classOf[AllOrdersView],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
     )
   )
   override def handleEstablishTenant(
@@ -549,5 +561,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetAllMembers")
 
     effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
+  }
+
+  override def handleGetAllOrders(
+      allOrdersRequest: AllOrdersRequest
+  ): Action.Effect[AllOrdersresult] = {
+
+    log.info("in handleGetAllOrders")
+
+    effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))
   }
 }

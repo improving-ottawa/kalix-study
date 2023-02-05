@@ -14,6 +14,7 @@ import app.improving.organizationcontext.organization.{
   OrganizationServiceClient
 }
 import app.improving.ApiMemberId
+import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
 import app.improving.productcontext.AllProductsRequest
 import app.improving.membercontext.AllMembersRequest
@@ -432,91 +433,178 @@ class GatewayApiActionImplSpec
           .futureValue
       )
     }
-  }
-  "handle get all organizations correctly" in {
-    val command: CreateOrganization = CreateOrganization(
-      Some(establishOrganization)
-    )
 
-    val organizationCreated = gateWayAction
-      .handleEstablishOrganization(command)
-      .futureValue
+    "handle get all organizations correctly" in {
+      val command: CreateOrganization = CreateOrganization(
+        Some(establishOrganization)
+      )
 
-    val result =
-      gateWayAction
-        .handleGetAllOrganizations(AllOrganizationsRequest())
+      val organizationCreated = gateWayAction
+        .handleEstablishOrganization(command)
         .futureValue
-    println(result + " result")
-    result.organizations.size > 0 shouldBe true
-  }
 
-  "handle get all events correctly" in {
-    val createEvent: CreateEvent = scheduleEventPrivate
+      val result =
+        gateWayAction
+          .handleGetAllOrganizations(AllOrganizationsRequest())
+          .futureValue
+      println(result + " result")
+      result.organizations.size > 0 shouldBe true
+    }
 
-    val result =
-      gateWayAction.handleGetAllEvents(AllEventsRequest()).futureValue
+    "handle get all events correctly" in {
+      val createEvent: CreateEvent = scheduleEventPrivate
 
-    result.events.size > 0 shouldBe true
+      val result =
+        gateWayAction.handleGetAllEvents(AllEventsRequest()).futureValue
 
-  }
+      result.events.size > 0 shouldBe true
 
-  "handle get all tenants correctly" in {
-    gateWayAction
-      .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
-      .futureValue
+    }
 
-    val result =
-      gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
+    "handle get all tenants correctly" in {
+      gateWayAction
+        .handleEstablishTenant(CreateTenant(Some(tenantInfo)))
+        .futureValue
 
-    result.tenants.size > 0 shouldBe true
-  }
+      val result =
+        gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
 
-  "handle get all stores correctly" in {
+      result.tenants.size > 0 shouldBe true
+    }
 
-    val command: CreateStore = CreateStore(
-      Some(apiStoreInfo),
-      Some(ApiMemberId(testMember1))
-    )
+    "handle get all stores correctly" in {
 
-    val storeCreated = gateWayAction
-      .handleCreateStore(command)
-      .futureValue
+      val command: CreateStore = CreateStore(
+        Some(apiStoreInfo),
+        Some(ApiMemberId(testMember1))
+      )
 
-    val result =
-      gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
+      val storeCreated = gateWayAction
+        .handleCreateStore(command)
+        .futureValue
 
-    result.stores.isEmpty shouldBe false
-  }
+      val result =
+        gateWayAction.handleGetAllStores(AllStoresRequest()).futureValue
 
-  "handle get all products correctly" in {
-    val productCreated: ProductCreated = gateWayAction
-      .handleCreateProduct(CreateProduct(Some(establishProduct)))
-      .futureValue
+      result.stores.isEmpty shouldBe false
+    }
 
-    val result =
-      gateWayAction.handleGetAllProducts(AllProductsRequest()).futureValue
+    "handle get all products correctly" in {
+      val productCreated: ProductCreated = gateWayAction
+        .handleCreateProduct(CreateProduct(Some(establishProduct)))
+        .futureValue
 
-    result.products.isEmpty shouldBe false
+      val result =
+        gateWayAction.handleGetAllProducts(AllProductsRequest()).futureValue
 
-  }
+      result.products.isEmpty shouldBe false
 
-  "handle command get all members correctly" in {
-    val membersRegistered: MembersRegistered = gateWayAction
-      .handleRegisterMembers(
-        RegisterMembers(
-          Seq(
-            EstablishMember(
-              Some(memberApiInfo),
-              Some(ApiMemberId(testMemberId))
+    }
+
+    "handle get all orders correctly" in {
+
+      val memberRegistered: MemberRegistered = gateWayAction
+        .handleRegisterMember(
+          RegisterMember(
+            Some(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
             )
           )
         )
+        .futureValue
+
+      val memberId = memberRegistered.memberRegistered
+
+      val createEvent: CreateEvent = CreateEvent(
+        Some(apiEventInfo),
+        memberId
       )
-      .futureValue
 
-    val result =
-      gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
+      val eventCreated = gateWayAction
+        .handleScheduleEvent(createEvent)
+        .futureValue
 
-    result.members.isEmpty shouldBe false
+      val eventId = eventCreated.eventCreated
+
+      val command: CreateOrganizations = CreateOrganizations(
+        Seq(
+          establishOrganization.copy(members =
+            establishOrganization.members ++ memberId.toSeq
+          )
+        )
+      )
+
+      val organizationsCreated = gateWayAction
+        .handleEstablishOrganizations(command)
+        .futureValue
+
+      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductMetaInfoForEvent =
+        apiProductMetaInfo.copy(createdBy = memberId)
+      val establisProductForEvent = EstablishProduct(
+        Some(apiProductInfoForEvent),
+        Some(apiProductMetaInfoForEvent)
+      )
+      val productCreated =
+        gateWayAction
+          .handleCreateProduct(
+            CreateProduct(Some(establisProductForEvent))
+          )
+          .futureValue
+
+      val orderCreated = gateWayAction
+        .handleCreateOrder(
+          CreateOrder(
+            Some(
+              EstablishOrder(
+                Some(
+                  testOrderInfo.copy(lineItems =
+                    Seq(
+                      ApiLineItem(
+                        productCreated.productCreated,
+                        1,
+                        10
+                      )
+                    )
+                  )
+                ),
+                memberId
+              )
+            )
+          )
+        )
+        .futureValue
+
+      log.info(orderCreated + " orderCreated")
+
+      val result =
+        gateWayAction.handleGetAllOrders(AllOrdersRequest()).futureValue
+
+      result.orders.size > 0 shouldBe true
+
+    }
+
+    "handle command get all members correctly" in {
+      val membersRegistered: MembersRegistered = gateWayAction
+        .handleRegisterMembers(
+          RegisterMembers(
+            Seq(
+              EstablishMember(
+                Some(memberApiInfo),
+                Some(ApiMemberId(testMemberId))
+              )
+            )
+          )
+        )
+        .futureValue
+
+      val result =
+        gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
+
+      result.members.isEmpty shouldBe false
+    }
   }
 }

@@ -1,6 +1,7 @@
-package app.improving.ordercontext.order
+package app.improving.ordercontext
 
-import app.improving.ordercontext.{AllOrdersViewImpl, KalixFactory}
+import app.improving.ordercontext.order.OrderAPI
+import app.improving.ordercontext.order.OrderActionImpl
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -11,8 +12,7 @@ import org.slf4j.LoggerFactory
 
 object Main {
 
-  private val log =
-    LoggerFactory.getLogger("app.improving.ordercontext.order.Main")
+  private val log = LoggerFactory.getLogger("app.improving.ordercontext.Main")
 
   def createKalix(): Kalix = {
     // The KalixFactory automatically registers any generated Actions, Views or Entities,
@@ -22,8 +22,7 @@ object Main {
     KalixFactory.withComponents(
       new OrderAPI(_),
       new AllOrdersViewImpl(_),
-      new OrderActionImpl(_)
-    )
+      new OrderActionImpl(_))
   }
 
   def main(args: Array[String]): Unit = {

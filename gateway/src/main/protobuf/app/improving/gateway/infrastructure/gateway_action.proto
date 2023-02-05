@@ -7,6 +7,7 @@ import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
 import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/product/view/product_all_view.proto";
+import "app/improving/order/view/order_all_view.proto";
 import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
@@ -156,6 +157,13 @@ service GatewayApiAction {
     rpc HandleGetAllMembers(membercontext.AllMembersRequest) returns (membercontext.AllMembersResult) {
         option (google.api.http) = {
             post: "/member/get-all-members"
+            body: ""
+        };
+    }
+
+    rpc HandleGetAllOrders(ordercontext.AllOrdersRequest) returns (ordercontext.AllOrdersresult) {
+        option (google.api.http) = {
+            post: "/orders/get-all-orders"
             body: ""
         };
     }
