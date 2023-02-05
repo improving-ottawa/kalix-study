@@ -20,6 +20,11 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
+import app.improving.membercontext.{
+  AllMembersRequest,
+  AllMembersResult,
+  AllMembersView
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   OrganizationService
@@ -154,6 +159,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+
+  val allMembersView = creationContext.getGrpcClient(
+    classOf[AllMembersView],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -528,5 +540,14 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleRegisterMembers")
 
     effects.asyncReply(allProductsView.getAllSkus(AllProductsRequest()))
+  }
+
+  override def handleGetAllMembers(
+      allMembersRequest: AllMembersRequest
+  ): Action.Effect[AllMembersResult] = {
+
+    log.info("in handleGetAllMembers")
+
+    effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
   }
 }

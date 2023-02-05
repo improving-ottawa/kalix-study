@@ -16,6 +16,7 @@ import app.improving.organizationcontext.organization.{
 import app.improving.ApiMemberId
 import app.improving.storecontext.AllStoresRequest
 import app.improving.productcontext.AllProductsRequest
+import app.improving.membercontext.AllMembersRequest
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -497,5 +498,25 @@ class GatewayApiActionImplSpec
 
     result.products.isEmpty shouldBe false
 
+  }
+
+  "handle command get all members correctly" in {
+    val membersRegistered: MembersRegistered = gateWayAction
+      .handleRegisterMembers(
+        RegisterMembers(
+          Seq(
+            EstablishMember(
+              Some(memberApiInfo),
+              Some(ApiMemberId(testMemberId))
+            )
+          )
+        )
+      )
+      .futureValue
+
+    val result =
+      gateWayAction.handleGetAllMembers(AllMembersRequest()).futureValue
+
+    result.members.isEmpty shouldBe false
   }
 }
