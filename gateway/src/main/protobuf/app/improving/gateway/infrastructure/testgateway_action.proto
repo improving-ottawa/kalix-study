@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
-import "app/improving/gateway/domain/gateway_domain.proto";
-import "app/improving/member/domain/member_context_domain.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 import "app/improving/gateway/domain/testgateway_domain.proto";

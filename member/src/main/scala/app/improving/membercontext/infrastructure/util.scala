@@ -33,12 +33,11 @@ object util {
 
   def convertInfoToApiUpdateInfo(info: Info): ApiUpdateInfo = {
     ApiUpdateInfo(
+      info.contact.map(convertContactToApiContact),
       info.handle,
       info.avatar,
       info.firstName,
       info.lastName,
-      info.mobileNumber.map(mobile => ApiMobileNumber(mobile.value)),
-      info.emailAddress.map(email => ApiEmailAddress(email.value)),
       convertNotificationPreference(info.notificationPreference),
       info.organizationMembership.map(org => ApiOrganizationId(org.id))
     )
@@ -58,11 +57,16 @@ object util {
       memberStatus: MemberStatus
   ): ApiMemberStatus = {
     memberStatus match {
-      case MemberStatus.ACTIVE     => ApiMemberStatus.ACTIVE
-      case MemberStatus.INACTIVE   => ApiMemberStatus.INACTIVE
-      case MemberStatus.SUSPENDED  => ApiMemberStatus.SUSPENDED
-      case MemberStatus.TERMINATED => ApiMemberStatus.TERMINATED
-      case MemberStatus.UNKNOWN    => ApiMemberStatus.UNKNOWN
+      case MemberStatus.MEMBER_STATUS_ACTIVE =>
+        ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+      case MemberStatus.MEMBER_STATUS_INACTIVE =>
+        ApiMemberStatus.API_MEMBER_STATUS_INACTIVE
+      case MemberStatus.MEMBER_STATUS_SUSPENDED =>
+        ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED
+      case MemberStatus.MEMBER_STATUS_TERMINATED =>
+        ApiMemberStatus.API_MEMBER_STATUS_TERMINATED
+      case MemberStatus.MEMBER_STATUS_UNKNOWN =>
+        ApiMemberStatus.API_MEMBER_STATUS_UNKNOWN
       case MemberStatus.Unrecognized(unrecognizedValue) =>
         ApiMemberStatus.Unrecognized(unrecognizedValue)
     }
@@ -82,8 +86,12 @@ object util {
         Contact(
           apiUpdateInfo.firstName,
           apiUpdateInfo.lastName,
-          apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
-          apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
+          apiUpdateInfo.contact.flatMap(
+            _.emailAddress.map(email => EmailAddress(email.value))
+          ),
+          apiUpdateInfo.contact.flatMap(
+            _.phone.map(mobile => MobileNumber(mobile.value))
+          ),
           apiUpdateInfo.handle
         )
       ),
@@ -91,8 +99,6 @@ object util {
       apiUpdateInfo.avatar,
       apiUpdateInfo.firstName,
       apiUpdateInfo.lastName,
-      apiUpdateInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
-      apiUpdateInfo.emailAddress.map(email => EmailAddress(email.value)),
       convertNotificationPreference(apiUpdateInfo.notificationPreference),
       apiUpdateInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
@@ -108,8 +114,6 @@ object util {
       apiInfo.avatar,
       apiInfo.firstName,
       apiInfo.lastName,
-      apiInfo.mobileNumber.map(mobile => MobileNumber(mobile.value)),
-      apiInfo.emailAddress.map(email => EmailAddress(email.value)),
       convertNotificationPreference(apiInfo.notificationPreference),
       apiInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
@@ -132,23 +136,37 @@ object util {
       apiNotificationPreference: ApiNotificationPreference
   ): NotificationPreference = {
     apiNotificationPreference match {
-      case ApiNotificationPreference.EMAIL => NotificationPreference.EMAIL
-      case ApiNotificationPreference.SMS   => NotificationPreference.SMS
-      case ApiNotificationPreference.APPLICATION =>
-        NotificationPreference.APPLICATION
+      case ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL =>
+        NotificationPreference.NOTIFICATION_PREFERENCE_EMAIL
+      case ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS =>
+        NotificationPreference.NOTIFICATION_PREFERENCE_SMS
+      case ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_APPLICATION =>
+        NotificationPreference.NOTIFICATION_PREFERENCE_APPLICATION
       case ApiNotificationPreference.Unrecognized(unrecognizedValue) =>
         NotificationPreference.Unrecognized(unrecognizedValue)
     }
+  }
+
+  def convertContactToApiContact(contact: Contact): ApiContact = {
+    ApiContact(
+      contact.firstName,
+      contact.lastName,
+      contact.emailAddress.map(email => ApiEmailAddress(email.value)),
+      contact.phone.map(mobile => ApiMobileNumber(mobile.value)),
+      contact.userName
+    )
   }
 
   def convertNotificationPreference(
       notificationPreference: NotificationPreference
   ): ApiNotificationPreference = {
     notificationPreference match {
-      case NotificationPreference.EMAIL => ApiNotificationPreference.EMAIL
-      case NotificationPreference.SMS   => ApiNotificationPreference.SMS
-      case NotificationPreference.APPLICATION =>
-        ApiNotificationPreference.APPLICATION
+      case NotificationPreference.NOTIFICATION_PREFERENCE_EMAIL =>
+        ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
+      case NotificationPreference.NOTIFICATION_PREFERENCE_SMS =>
+        ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS
+      case NotificationPreference.NOTIFICATION_PREFERENCE_APPLICATION =>
+        ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_APPLICATION
       case NotificationPreference.Unrecognized(unrecognizedValue) =>
         ApiNotificationPreference.Unrecognized(unrecognizedValue)
     }
@@ -158,11 +176,16 @@ object util {
       apiMemberStatus: ApiMemberStatus
   ): MemberStatus = {
     apiMemberStatus match {
-      case ApiMemberStatus.ACTIVE     => MemberStatus.ACTIVE
-      case ApiMemberStatus.INACTIVE   => MemberStatus.INACTIVE
-      case ApiMemberStatus.SUSPENDED  => MemberStatus.SUSPENDED
-      case ApiMemberStatus.TERMINATED => MemberStatus.TERMINATED
-      case ApiMemberStatus.UNKNOWN    => MemberStatus.UNKNOWN
+      case ApiMemberStatus.API_MEMBER_STATUS_ACTIVE =>
+        MemberStatus.MEMBER_STATUS_ACTIVE
+      case ApiMemberStatus.API_MEMBER_STATUS_INACTIVE =>
+        MemberStatus.MEMBER_STATUS_INACTIVE
+      case ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED =>
+        MemberStatus.MEMBER_STATUS_SUSPENDED
+      case ApiMemberStatus.API_MEMBER_STATUS_TERMINATED =>
+        MemberStatus.MEMBER_STATUS_TERMINATED
+      case ApiMemberStatus.API_MEMBER_STATUS_UNKNOWN =>
+        MemberStatus.MEMBER_STATUS_UNKNOWN
       case ApiMemberStatus.Unrecognized(unrecognizedValue) =>
         MemberStatus.Unrecognized(unrecognizedValue)
     }

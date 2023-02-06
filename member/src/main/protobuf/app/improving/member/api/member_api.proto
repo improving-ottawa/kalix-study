@@ -3,42 +3,39 @@ syntax = "proto3";
 
 package app.improving.membercontext.member;
 
-
 import "common_api.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
 enum ApiNotificationPreference {
-    EMAIL = 0;
-    SMS = 1;
-    APPLICATION = 2;
+    API_NOTIFICATION_PREFERENCE_EMAIL = 0;
+    API_NOTIFICATION_PREFERENCE_SMS = 1;
+    API_NOTIFICATION_PREFERENCE_APPLICATION = 2;
 }
 
 enum ApiMemberStatus {
-    ACTIVE = 0;
-    INACTIVE = 2;
-    SUSPENDED = 3;
-    TERMINATED = 4;
-    UNKNOWN = 5;
+    API_MEMBER_STATUS_ACTIVE = 0;
+    API_MEMBER_STATUS_INACTIVE = 2;
+    API_MEMBER_STATUS_SUSPENDED = 3;
+    API_MEMBER_STATUS_TERMINATED = 4;
+    API_MEMBER_STATUS_UNKNOWN = 5;
 }
 
 message ApiInfo {
     ApiContact contact = 1;
     string handle = 2;
     string avatar = 3; // URL type?
-    string firstName = 4;
-    string lastName = 5;
-    ApiMobileNumber mobileNumber = 6;
-    ApiEmailAddress emailAddress = 7;
-    ApiNotificationPreference notificationPreference = 8;
-    repeated ApiOrganizationId organizationMembership = 9;
-    ApiTenantId tenant = 10;
+    string first_name = 4;
+    string last_name = 5;
+    ApiNotificationPreference notification_preference = 6;
+    repeated ApiOrganizationId organization_membership = 7;
+    optional ApiTenantId tenant = 8;
 }
 
 message ApiRegisterMember {
     string member_id = 1 [(kalix.field).entity_key = true];
     ApiInfo info = 2;
-    ApiMemberId registeringMember = 3;
+    ApiMemberId registering_member = 3;
 }
 
 message ApiMemberMap {
@@ -46,33 +43,31 @@ message ApiMemberMap {
 }
 
 message ApiRegisterMemberList {
-    string member_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberMap memberList = 2;
-    ApiMemberId registeringMember = 3;
+    ApiMemberMap member_list = 1;
+    ApiMemberId registering_member = 2;
 }
 
 message ApiUpdateMemberInfo {
     string member_id = 1 [(kalix.field).entity_key = true];
     ApiUpdateInfo info = 2;
-    ApiMemberId actingMember = 3;
+    ApiMemberId acting_member = 3;
 }
 
 message ApiUpdateMemberStatus {
     string member_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId actingMember = 2;
-    ApiMemberStatus newStatus = 3;
+    ApiMemberId acting_member = 2;
+    ApiMemberStatus new_status = 3;
 }
 
 message ApiUpdateInfo {
-    string handle = 1;
-    string avatar = 2; // URL type?
-    string firstName = 3;
-    string lastName = 4;
-    ApiMobileNumber mobileNumber = 5;
-    ApiEmailAddress emailAddress = 6;
-    ApiNotificationPreference notificationPreference = 7;
-    repeated ApiOrganizationId organizationMembership = 8;
-    ApiTenantId tenantId = 9;
+    ApiContact contact = 1;
+    string handle = 2;
+    string avatar = 3; // URL type?
+    string first_name = 4;
+    string last_name = 5;
+    ApiNotificationPreference notification_preference = 6;
+    repeated ApiOrganizationId organization_membership = 7;
+    ApiTenantId tenant_id = 8;
 }
 
 message ApiGetMemberData {
@@ -80,11 +75,11 @@ message ApiGetMemberData {
 }
 
 message ApiMetaInfo {
-    google.protobuf.Timestamp createdOn = 1;
-    ApiMemberId createdBy = 2;
-    google.protobuf.Timestamp lastModifiedOn = 3;
-    ApiMemberId lastModifiedBy = 4;
-    ApiMemberStatus memberStatus = 5;
+    google.protobuf.Timestamp created_on = 1;
+    ApiMemberId created_by = 2;
+    google.protobuf.Timestamp last_modified_on = 3;
+    ApiMemberId last_modified_by = 4;
+    ApiMemberStatus member_status = 5;
 }
 
 message ApiMemberData  {

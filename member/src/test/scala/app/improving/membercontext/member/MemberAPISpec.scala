@@ -32,7 +32,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.map(_.status) shouldBe Some(MemberStatus.ACTIVE)
+      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_ACTIVE)
 
       memberOpt.flatMap(_.info) shouldBe Some(convertApiInfoToInfo(apiInfo))
     }
@@ -54,7 +54,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.map(_.status) shouldBe Some(MemberStatus.ACTIVE)
+      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_ACTIVE)
 
       val testMember = testKit.currentState.member
         .flatMap(_.memberId)
@@ -63,7 +63,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
       val updateCommand = ApiUpdateMemberStatus(
         testMember,
         Some(ApiMemberId(testMemberId2)),
-        ApiMemberStatus.INACTIVE
+        ApiMemberStatus.API_MEMBER_STATUS_INACTIVE
       )
 
       val updatedResult = testKit.updateMemberStatus(updateCommand)
@@ -74,7 +74,9 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt2 shouldBe defined
 
-      memberOpt2.map(_.status) shouldBe Some(MemberStatus.INACTIVE)
+      memberOpt2.map(_.status) shouldBe Some(
+        MemberStatus.MEMBER_STATUS_INACTIVE
+      )
     }
 
     "member info update should work correctly" in {
@@ -114,14 +116,6 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
       memberOpt2 shouldBe defined
 
       val infoOpt = memberOpt2.flatMap(_.info)
-
-      infoOpt.flatMap(_.emailAddress) shouldBe Some(
-        EmailAddress("newemail@member.com")
-      )
-
-      infoOpt.flatMap(_.mobileNumber) shouldBe Some(
-        MobileNumber("898-000-9876")
-      )
 
       val contactOpt = infoOpt.flatMap(_.contact)
 
@@ -163,18 +157,6 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       val getMemberDataResult = testKit.getMemberData(getMemberDataCommand)
 
-      getMemberDataResult.reply.getInfo.emailAddress
-        .map(_.value) shouldBe testKit.currentState.member
-        .flatMap(_.info)
-        .flatMap(_.emailAddress)
-        .map(_.value)
-
-      getMemberDataResult.reply.getInfo.mobileNumber
-        .map(_.value) shouldBe testKit.currentState.member
-        .flatMap(_.info)
-        .flatMap(_.mobileNumber)
-        .map(_.value)
-
       getMemberDataResult.reply.getMeta.lastModifiedBy
         .map(_.memberId) shouldBe testKit.currentState.member
         .flatMap(_.meta)
@@ -182,7 +164,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
     }
 
-//    "memberList registered should work correctly" in {
+//    "member_list registered should work correctly" in {
 //      val testKit = MemberAPITestKit(new MemberAPI(_))
 //
 //      val command = ApiRegisterMember(

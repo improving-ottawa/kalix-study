@@ -2,16 +2,13 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
-import "app/improving/event/api/event_api.proto";
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
-import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/product/view/product_all_view.proto";
 import "app/improving/order/view/order_all_view.proto";
 import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
-import "common_api.proto";
 import "app/improving/member/view/member_all_view.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
@@ -122,55 +119,48 @@ service GatewayApiAction {
     rpc HandleGetAllEvents(eventcontext.AllEventsRequest) returns (eventcontext.AllEventsResult) {
         option (google.api.http) = {
             post: "/event/get-all-events"
-            body: ""
+            body: "*"
         };
     }
 
     rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsresult) {
         option (google.api.http) = {
             post: "/organization/get-all-organizations"
-            body: ""
+            body: "*"
         };
     }
 
     rpc HandleGetAllTenants(tenantcontext.GetAllTenantRequest) returns (tenantcontext.AllTenantResult) {
         option (google.api.http) = {
             post: "/tenant/get-all-tenants"
-            body: ""
+            body: "*"
         };
     }
 
     rpc HandleGetAllStores(storecontext.AllStoresRequest) returns (storecontext.AllStoresResult) {
         option (google.api.http) = {
             post: "/store/get-all-stores"
-            body: ""
+            body: "*"
         };
     }
 
     rpc HandleGetAllProducts(productcontext.AllProductsRequest) returns (productcontext.AllProductsResult) {
         option (google.api.http) = {
             post: "/product/get-all-products"
-            body: ""
+            body: "*"
         };
     }
 
     rpc HandleGetAllMembers(membercontext.AllMembersRequest) returns (membercontext.AllMembersResult) {
         option (google.api.http) = {
             post: "/member/get-all-members"
-            body: ""
+            body: "*"
         };
     }
 
     rpc HandleGetAllOrders(ordercontext.AllOrdersRequest) returns (ordercontext.AllOrdersresult) {
         option (google.api.http) = {
             post: "/orders/get-all-orders"
-            body: ""
-        };
-    }
-
-    rpc HandleStartScenario(StartScenario) returns (ScenarioResults) {
-        option (google.api.http) = {
-            post: "/member/register-members"
             body: "*"
         };
     }

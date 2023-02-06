@@ -2,13 +2,7 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
-import "app/improving/member/api/member_api.proto";
-import "app/improving/product/api/product_api.proto";
-import "app/improving/store/api/store_api.proto";
-import "app/improving/event/api/event_api.proto";
-import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
-import "app/improving/organization/api/organization_api.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
 
 message ScenarioInfo {
@@ -31,7 +25,6 @@ message ScenarioResults {
     map<string, OrganizationIds> orgs_for_tenants = 2;
     map<string, MemberIds> members_for_orgs = 3;
     map<string, EventIds> events_for_orgs = 4;
-    map<string, OrderIds> orders_for_members = 5;
     StoreIds store_ids = 6;
     map<string, Skus> products_for_stores = 7;
 }

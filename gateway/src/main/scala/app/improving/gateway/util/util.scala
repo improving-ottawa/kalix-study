@@ -7,7 +7,6 @@ import app.improving.{
   ApiEmailAddress,
   ApiMobileNumber,
   ApiUSPostalCode,
-  MobileNumber
 }
 
 import scala.util.Random

@@ -1,43 +1,21 @@
 package app.improving.gateway
 
-import akka.NotUsed
-import akka.stream.scaladsl.Source
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
   AllEventsView
 }
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
-import app.improving.{
-  ApiAddress,
-  ApiContact,
-  ApiEmailAddress,
-  ApiEventId,
-  ApiMemberId,
-  ApiMobileNumber,
-  ApiOrganizationId,
-  ApiProductId,
-  ApiStoreId,
-  ApiTenantId
-}
-import app.improving.membercontext.member.{
-  ApiInfo,
-  ApiMemberStatus,
-  ApiRegisterMember,
-  ApiUpdateMemberStatus,
-  MemberService
-}
+import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
-import app.improving.organizationcontext.organization.{ApiEstablishOrganization, OrganizationService}
+import app.improving.organizationcontext.organization.{
+  ApiEstablishOrganization,
+  OrganizationService
+}
 import app.improving.organizationcontext.{
   AllOrganizationsRequest,
   AllOrganizationsView,
   AllOrganizationsresult
-}
-import app.improving.eventcontext.event.{
-  ApiEvent,
-  ApiScheduleEvent,
-  EventService
 }
 import app.improving.membercontext.{
   AllMembersRequest,
@@ -49,15 +27,6 @@ import app.improving.ordercontext.{
   AllOrdersView,
   AllOrdersresult
 }
-import app.improving.gateway.util.util.{
-  genEmailAddressForTenantName,
-  genMobileNumber
-}
-import app.improving.gateway.util.util.{genEmailAddressForName, genMobileNumber}
-import app.improving.organizationcontext.organization.{
-  ApiEstablishOrganization,
-  OrganizationService
-}
 import app.improving.productcontext.{
   AllProductsRequest,
   AllProductsResult,
@@ -65,11 +34,7 @@ import app.improving.productcontext.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
-import app.improving.tenantcontext.tenant.{
-  ApiActivateTenant,
-  ApiEstablishTenant,
-  TenantService
-}
+import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import app.improving.storecontext.{
   AllStoresRequest,
   AllStoresResult,
@@ -80,7 +45,6 @@ import app.improving.tenantcontext.{
   AllTenantsView,
   GetAllTenantRequest
 }
-import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -191,7 +155,6 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.product.grpc-client-name"
     )
   )
-
 
   val allMembersView = creationContext.getGrpcClient(
     classOf[AllMembersView],
@@ -599,191 +562,4 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
     effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))
   }
-
-  override def handleStartScenario(
-      startScenario: StartScenario
-  ): Action.Effect[ScenarioResults] = {
-
-    val r = new scala.util.Random()
-
-    val scenarioInfo: ScenarioInfo = startScenario.scenarioInfo match {
-      case Some(info) => info
-      case None =>
-        effects.error("no info has been provided for the scenario!")
-        ScenarioInfo.defaultInstance
-    }
-
-    val totalNumOfMembers = startScenario.scenarioInfo
-      .map(_.numMembersPerOrg)
-      .getOrElse(0) * startScenario.scenarioInfo
-      .map(
-        _.numOrgsPerTenant
-      )
-      .getOrElse(0) * startScenario.scenarioInfo.map(_.numTenants).getOrElse(0)
-
-    val memberIds = Future
-      .sequence(
-        genApiRegisterMembers(totalNumOfMembers).map(registerMember => {
-          memberService
-            .registerMember(registerMember)
-            .map(memberId => {
-              memberService.updateMemberStatus(
-                ApiUpdateMemberStatus(
-                  memberId.memberId,
-                  Some(ApiMemberId(memberId.memberId)),
-                  ApiMemberStatus.ACTIVE
-                )
-              )
-              memberId
-            })
-        })
-      )
-      .value match {
-      case Some(Success(memberIds: Seq[ApiMemberId])) => memberIds
-      case _                                          => Seq.empty[ApiMemberId]
-    }
-
-    val tenantIds: Seq[ApiTenantId] = Future
-      .sequence(
-        genApiEstablishTenants(scenarioInfo.numTenants)
-          .map(establishTenant => {
-            tenantService
-              .establishTenant(establishTenant)
-              .map(tenantId => {
-                val i = r.nextInt(totalNumOfMembers)
-                tenantService.activateTenant(
-                  ApiActivateTenant(
-                    tenantId.tenantId,
-                    memberIds.toArray.apply(i).memberId
-                  )
-                )
-                tenantId
-              })
-          })
-      )
-      .value match {
-      case Some(Success(tenantIds: Seq[ApiTenantId])) => tenantIds
-      case _                                          => Seq.empty[ApiTenantId]
-    }
-
-//    val orgsByTenant: Map[String, OrganizationIds] =
-//      genApiEstablishOrgs(
-//        scenarioInfo.numOrgsPerTenant,
-//        scenarioInfo.maxOrgsDepth,
-//        scenarioInfo.maxOrgsWidth,
-//        tenantIds
-//      )
-//        .map(msg =>
-//          (
-//            msg.info.get.tenant.get,
-//            organizationService.establishOrganization(msg).value match {
-//              case Some(Success(orgId: ApiOrganizationId)) => orgId
-//            }
-//          )
-//        )
-//        .groupBy(_._1)
-//        .map(tup =>
-//          tup._1.tenantId -> OrganizationIds(tup._2.map(_._2).distinct)
-//        )
-    // val membersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]]
-    // val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]]
-    // val storeIds: Set[ApiStoreId]
-    // val productsByStore: Map[ApiStoreId, Set[ApiProductId]]
-    effects.reply(ScenarioResults(tenantIds))
-  }
-
-  private def genApiEstablishTenants(
-      numTenants: Integer
-  ): Seq[ApiEstablishTenant] = {
-    val r = new scala.util.Random()
-    val tenantName =
-      r.nextString(10)
-
-    (1 to numTenants).map(_ =>
-      ApiEstablishTenant(
-        UUID.randomUUID().toString,
-        Some(
-          app.improving.tenantcontext.tenant.ApiInfo(
-            tenantName,
-            Some(
-              ApiContact(
-                r.nextString(10),
-                r.nextString(10),
-                Some(
-                  ApiEmailAddress(genEmailAddressForName(r, tenantName))
-                ),
-                Some(ApiMobileNumber(genMobileNumber(r))),
-                r.nextString(10)
-              )
-            ),
-            Some(ApiAddress())
-          )
-        )
-      )
-    )
-  }
-
-  private def genApiRegisterMembers(
-      numOfMembers: Integer
-  ): Seq[ApiRegisterMember] = {
-    val r = new scala.util.Random()
-
-    (1 to numOfMembers).map(_ => {
-      val name = r.nextString(10)
-      ApiRegisterMember(
-        UUID.randomUUID().toString,
-        Some(
-          ApiInfo(
-            Some(
-              ApiContact(
-                name,
-                r.nextString(10),
-                Some(
-                  ApiEmailAddress(
-                    genEmailAddressForName(r, name)
-                  )
-                ),
-                Some(
-                  ApiMobileNumber(
-                    genMobileNumber(r)
-                  )
-                ),
-                r.nextString(10)
-              )
-            )
-          )
-        )
-      )
-    })
-  }
-
-  // private def genApiEstablishOrgs(
-  //    numOrgs: Integer,
-  //    maxOrgDepth: Integer,
-  //    maxOrgWidth: Integer,
-  //    tenantIds: Set[ApiTenantId]
-  // ): Seq[ApiEstablishOrganization] = {}
-
-//  private def genApiRegisterMemberLists(
-//      numMembersPerOrg: Integer,
-//      orgIds: Set[ApiOrganizationId],
-//      registeringMember: ApiMemberId
-//  ): Seq[ApiRegisterMemberList] = orgIds.toSeq.map { orgId =>
-//    ApiRegisterMemberList(
-//      "",
-//      Some(
-//        ApiMemberMap(
-//          genApiMemberInfos(numMembersPerOrg, orgId)
-//            .map(info => UUID.randomUUID().toString -> info)
-//            .toMap
-//        )
-//      ),
-//      Some(registeringMember)
-//    )
-//  }
-//
-//  private def genApiMemberInfos(
-//      numMembers: Integer,
-//      orgId: ApiOrganizationId
-//  ): Seq[ApiInfo] = {}
 }

@@ -13,12 +13,12 @@ import kalix.scalasdk.action.ActionCreationContext
 class MemberActionServiceImpl(creationContext: ActionCreationContext)
     extends AbstractMemberActionServiceAction {
 
-  val memberService =
+  val memberService: MemberService =
     creationContext.getGrpcClient(classOf[MemberService], "member")
 
   override def registerMemberList(
       apiRegisterMemberList: ApiRegisterMemberList
-  ): Action.Effect[Empty] = {
+  ): Action.Effect[ApiMemberIds] = {
     val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
       ApiMemberId(member.memberId)
     )
@@ -27,17 +27,18 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
         .getOrElse(ApiMemberMap.defaultInstance)
         .map
 
-    apiMemberMap.foreach {
-      case (memberId, info) => {
-        val register = ApiRegisterMember(
-          memberId,
-          Some(info),
-          memberIdOpt
-        )
-        memberService.registerMember(register)
-      }
+    apiMemberMap.foreach { case (memberId, info) =>
+      val register = ApiRegisterMember(
+        memberId,
+        Some(info),
+        memberIdOpt
+      )
+      memberService.registerMember(register)
+
     }
 
-    effects.reply(Empty.defaultInstance)
+    effects.reply(
+      ApiMemberIds(apiMemberMap.keys.toSeq.map(ApiMemberId(_)))
+    )
   }
 }
