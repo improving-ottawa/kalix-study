@@ -47,6 +47,11 @@ message OrderCreated {
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
 }
+message LineItemOrdered {
+    OrderId order_id = 1;
+    ProductId product_id = 2;
+    MemberId for_member_id = 3;
+}
 message OrderStatusUpdated {
     OrderId order_id = 1;
     OrderStatus new_status = 2;
@@ -63,6 +68,11 @@ message OrderCanceled {
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
     MemberId cancelling_member = 4;
+}
+message LineItemCancelled {
+    OrderId order_id = 1;
+    ProductId product_id = 2;
+    MemberId for_member_id = 3;
 }
 message GetOrderInfo {
     OrderId order_id = 1;
