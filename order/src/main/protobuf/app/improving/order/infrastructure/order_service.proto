@@ -19,6 +19,8 @@ service OrderService {
                 "app.improving.ordercontext.OrderStatusUpdated",
                 "app.improving.ordercontext.OrderInfoUpdated",
                 "app.improving.ordercontext.OrderCanceled",
+                "app.improving.ordercontext.LineItemOrdered",
+                "app.improving.ordercontext.LineItemCancelled",
                 "app.improving.ordercontext.OrderReleased"
             ]
         }

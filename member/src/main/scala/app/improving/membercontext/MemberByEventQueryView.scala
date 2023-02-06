@@ -194,7 +194,7 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val metaOpt = state.meta.map(
 //        _.copy(
-//          last_modified_by = productActivated.activating_member.map(member =>
+//          last_modified_by = productActivated.activatingMember.map(member =>
 //            ApiMemberId(member.id)
 //          ),
 //          last_modified_on = Some(timestamp)
@@ -216,7 +216,7 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val metaOpt = state.meta.map(
 //        _.copy(
-//          last_modified_by = productInactivated.inactivating_member.map(member =>
+//          last_modified_by = productInactivated.inactivatingMember.map(member =>
 //            ApiMemberId(member.id)
 //          ),
 //          last_modified_on = Some(timestamp)

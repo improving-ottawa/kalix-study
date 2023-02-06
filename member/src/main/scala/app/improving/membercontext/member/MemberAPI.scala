@@ -192,7 +192,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 //      case Some(_) => {
 //        val now = java.time.Instant.now()
 //        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-//        val memberIdOpt = apiRegisterMemberList.registering_member.map(member =>
+//        val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
 //          MemberId(member.member_id)
 //        )
 //        val memberMap =

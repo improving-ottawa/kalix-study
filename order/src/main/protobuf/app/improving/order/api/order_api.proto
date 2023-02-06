@@ -15,7 +15,6 @@ enum ApiOrderStatus {
     API_ORDER_STATUS_DELIVERED = 4;
     API_ORDER_STATUS_CANCELLED = 5;
     API_ORDER_STATUS_UNKNOWN = 6;
-
 }
 
 message ApiOrder {
@@ -26,17 +25,20 @@ message ApiOrder {
 }
 
 message ApiLineItem {
-    ApiSku product = 1;
-    int32     quantity = 2;
-    double    line_total = 3;
+    ApiProductId product = 1;
+    int32  quantity = 2;
+    double line_total = 3;
 }
 
 message ApiOrderInfo {
+    string order_id = 1 [(kalix.field).entity_key = true];
     repeated ApiLineItem line_items = 2;
     string special_instructions = 3;
+    double order_total = 4;
 }
 
 message ApiOrderMetaInfo  {
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId member_id = 2;
     ApiStoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;
@@ -46,8 +48,10 @@ message ApiOrderMetaInfo  {
 }
 
 message ApiOrderInfoUpdate {
-    repeated ApiLineItem line_items = 2;
-    optional string special_instructions = 3;
+        string order_id = 1 [(kalix.field).entity_key = true];
+        repeated ApiLineItem line_items = 2;
+        string special_instructions = 3;
+        double order_total = 4;
 }
 message ApiCreateOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
@@ -77,35 +81,4 @@ message ApiGetOrderInfo {
 message ApiOrderInfoResult {
     ApiOrderId order_id = 1;
     ApiOrderInfo info = 2;
-    ApiOrderMetaInfo meta = 3;
-    ApiMemberId cancelling_member = 4;
-}
-
-message ApiReleaseOrder {
-    string order_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId releasing_member = 2;
-}
-// For direct_event_order events.
-
-message ApiOrderCreated {
-    ApiOrderId order_id = 1;
-    ApiOrderInfo info = 2;
-    ApiOrderMetaInfo meta = 3;
-}
-message ApiOrderStatusUpdated {
-    ApiOrderId order_id = 1;
-    ApiOrderStatus new_status = 2;
-    ApiMemberId updating_member = 3;
-}
-message ApiOrderInfoUpdated {
-    ApiOrderId order_id = 1;
-    ApiOrderInfo info = 2;
-    ApiOrderMetaInfo meta = 3;
-    ApiMemberId updating_member = 4;
-}
-message ApiOrderCanceled {
-    ApiOrderId order_id = 1;
-    ApiOrderInfo info = 2;
-    ApiOrderMetaInfo meta = 3;
-    ApiMemberId cancelling_member = 4;
 }
