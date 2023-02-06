@@ -132,7 +132,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 //        val now = java.time.Instant.now()
 //        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //        val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
-//          MemberId(member.memberId)
+//          MemberId(member.member_id)
 //        )
 //        val memberMap =
 //          apiRegisterMemberList.memberList
@@ -141,9 +141,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 //            .map
 //
 //        memberMap.foreach {
-//          case (memberId, info) => {
+//          case (member_id, info) => {
 //            val event = MemberRegistered(
-//              Some(MemberId(memberId)),
+//              Some(MemberId(member_id)),
 //              Some(info),
 //              Some(
 //                MetaInfo(
@@ -228,7 +228,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 //            )
 //            val setValue = SetValue(
 //              id,
-//              state.memberId.map(member => Key(member.id)),
+//              state.member_id.map(member => Key(member.id)),
 //              Some(value)
 //            )
 //

@@ -120,16 +120,16 @@
 //        orderStatusUpdated: OrderStatusUpdated
 //    ): UpdateEffect[ApiOrder] = {
 //      val updatedStatus = convertOrderStatusToApiOrderStatus(
-//        orderStatusUpdated.newStatus
+//        orderStatusUpdated.new_status
 //      )
 //      val now = java.time.Instant.now()
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val updatedMetaOpt = state.meta.map(
 //        _.copy(
-//          lastModifiedBy = orderStatusUpdated.updatingMember.map(member =>
+//          last_modified_by = orderStatusUpdated.updating_member.map(member =>
 //            ApiMemberId(member.id)
 //          ),
-//          lastModifiedOn = Some(timestamp),
+//          last_modified_on = Some(timestamp),
 //          status = updatedStatus
 //        )
 //      )
@@ -194,10 +194,10 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val metaOpt = state.meta.map(
 //        _.copy(
-//          lastModifiedBy = productActivated.activatingMember.map(member =>
+//          last_modified_by = productActivated.activatingMember.map(member =>
 //            ApiMemberId(member.id)
 //          ),
-//          lastModifiedOn = Some(timestamp)
+//          last_modified_on = Some(timestamp)
 //        )
 //      )
 //      effects.updateState(
@@ -216,10 +216,10 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val metaOpt = state.meta.map(
 //        _.copy(
-//          lastModifiedBy = productInactivated.inactivatingMember.map(member =>
+//          last_modified_by = productInactivated.inactivatingMember.map(member =>
 //            ApiMemberId(member.id)
 //          ),
-//          lastModifiedOn = Some(timestamp)
+//          last_modified_on = Some(timestamp)
 //        )
 //      )
 //      effects.updateState(
@@ -324,8 +324,8 @@
 //      val metaOpt = state.meta.map(meta =>
 //        meta.copy(
 //          status = ApiEventStatus.CANCELLED,
-//          lastModifiedOn = Some(timestamp),
-//          lastModifiedBy = eventCancelled.cancellingMember.map(member =>
+//          last_modified_on = Some(timestamp),
+//          last_modified_by = eventCancelled.cancelling_member.map(member =>
 //            ApiMemberId(member.id)
 //          )
 //        )

@@ -53,13 +53,20 @@ object util {
       apiOrderStatus: ApiOrderStatus
   ): OrderStatus = {
     apiOrderStatus match {
-      case ApiOrderStatus.DRAFT     => OrderStatus.DRAFT
-      case ApiOrderStatus.PENDING   => OrderStatus.PENDING
-      case ApiOrderStatus.INPROCESS => OrderStatus.INPROCESS
-      case ApiOrderStatus.READY     => OrderStatus.READY
-      case ApiOrderStatus.DELIVERED => OrderStatus.DELIVERED
-      case ApiOrderStatus.CANCELLED => OrderStatus.CANCELLED
-      case ApiOrderStatus.UNKNOWN   => OrderStatus.UNKNOWN
+      case ApiOrderStatus.API_ORDER_STATUS_DRAFT =>
+        OrderStatus.ORDER_STATUS_DRAFT
+      case ApiOrderStatus.API_ORDER_STATUS_PENDING =>
+        OrderStatus.ORDER_STATUS_PENDING
+      case ApiOrderStatus.API_ORDER_STATUS_INPROCESS =>
+        OrderStatus.ORDER_STATUS_INPROCESS
+      case ApiOrderStatus.API_ORDER_STATUS_READY =>
+        OrderStatus.ORDER_STATUS_READY
+      case ApiOrderStatus.API_ORDER_STATUS_DELIVERED =>
+        OrderStatus.ORDER_STATUS_DELIVERED
+      case ApiOrderStatus.API_ORDER_STATUS_CANCELLED =>
+        OrderStatus.ORDER_STATUS_CANCELLED
+      case ApiOrderStatus.API_ORDER_STATUS_UNKNOWN =>
+        OrderStatus.ORDER_STATUS_UNKNOWN
       case ApiOrderStatus.Unrecognized(unrecognizedValue) =>
         OrderStatus.Unrecognized(unrecognizedValue)
     }
@@ -69,13 +76,20 @@ object util {
       orderStatus: OrderStatus
   ): ApiOrderStatus = {
     orderStatus match {
-      case OrderStatus.DRAFT     => ApiOrderStatus.DRAFT
-      case OrderStatus.PENDING   => ApiOrderStatus.PENDING
-      case OrderStatus.INPROCESS => ApiOrderStatus.INPROCESS
-      case OrderStatus.READY     => ApiOrderStatus.READY
-      case OrderStatus.DELIVERED => ApiOrderStatus.DELIVERED
-      case OrderStatus.CANCELLED => ApiOrderStatus.CANCELLED
-      case OrderStatus.UNKNOWN   => ApiOrderStatus.UNKNOWN
+      case OrderStatus.ORDER_STATUS_DRAFT =>
+        ApiOrderStatus.API_ORDER_STATUS_DRAFT
+      case OrderStatus.ORDER_STATUS_PENDING =>
+        ApiOrderStatus.API_ORDER_STATUS_PENDING
+      case OrderStatus.ORDER_STATUS_INPROCESS =>
+        ApiOrderStatus.API_ORDER_STATUS_INPROCESS
+      case OrderStatus.ORDER_STATUS_READY =>
+        ApiOrderStatus.API_ORDER_STATUS_READY
+      case OrderStatus.ORDER_STATUS_DELIVERED =>
+        ApiOrderStatus.API_ORDER_STATUS_DELIVERED
+      case OrderStatus.ORDER_STATUS_CANCELLED =>
+        ApiOrderStatus.API_ORDER_STATUS_CANCELLED
+      case OrderStatus.ORDER_STATUS_UNKNOWN =>
+        ApiOrderStatus.API_ORDER_STATUS_UNKNOWN
       case OrderStatus.Unrecognized(unrecognizedValue) =>
         ApiOrderStatus.Unrecognized(unrecognizedValue)
     }
@@ -109,7 +123,7 @@ object util {
       orderCreated.orderId.map(_.id).getOrElse("OrderId is not found."),
       orderCreated.info.map(convertOrderInfoToApiOrderInfo),
       orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
-      ApiOrderStatus.DRAFT
+      ApiOrderStatus.API_ORDER_STATUS_DRAFT
     )
   }
 
@@ -122,7 +136,7 @@ object util {
       orderInfoUpdated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
       orderInfoUpdated.meta
         .map(meta => convertOrderStatusToApiOrderStatus(meta.status))
-        .getOrElse(ApiOrderStatus.UNKNOWN)
+        .getOrElse(ApiOrderStatus.API_ORDER_STATUS_UNKNOWN)
     )
   }
 
@@ -133,7 +147,7 @@ object util {
       orderCanceled.orderId.map(_.id).getOrElse("OrderId is not found."),
       orderCanceled.info.map(convertOrderInfoToApiOrderInfo),
       orderCanceled.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
-      ApiOrderStatus.CANCELLED
+      ApiOrderStatus.API_ORDER_STATUS_CANCELLED
     )
   }
 }

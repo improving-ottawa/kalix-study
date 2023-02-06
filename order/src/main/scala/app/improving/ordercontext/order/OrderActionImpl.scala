@@ -26,7 +26,7 @@ import scala.util.{Failure, Success}
 // Get Product with ProductId
 // Get EventId from Product
 // Get Event with EventId and get isPrivate flag.
-// If yes -> get OrganizationId to get Organization to check memberId is in members ->
+// If yes -> get OrganizationId to get Organization to check member_id is in members ->
 //           if yes -> allow else not allow
 // If no -> allow the purchase
 ////////////////////////////////////////////////////////////////////////////////////////

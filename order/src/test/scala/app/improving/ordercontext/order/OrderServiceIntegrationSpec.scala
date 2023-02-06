@@ -66,12 +66,12 @@
 //      val purchased = action.purchaseTicket(apiCreateOrder).futureValue
 //
 //      println(purchased + " purchased")
-//      purchased.orderId shouldBe "test-order-id"
+//      purchased.order_id shouldBe "test-order-id"
 //    }
 //
 //    "purchase public order fails as expected" in {
 //
-//      action.purchaseTicket(apiCreateOrder).futureValue.orderId shouldBe ""
+//      action.purchaseTicket(apiCreateOrder).futureValue.order_id shouldBe ""
 //
 //    }
 //
@@ -88,7 +88,7 @@
 //        action.purchaseTicket(apiCreateOrderPrivateEvent).futureValue
 //
 //      println(purchased + " purchased")
-//      purchased.orderId shouldBe "test-order-id2"
+//      purchased.order_id shouldBe "test-order-id2"
 //    }
 //
 //    "purchase private order fails as expected" in {
