@@ -3,7 +3,7 @@ package app.improving.projections
 import app.improving.eventcontext.EventCancelled
 import app.improving.eventcontext.EventScheduled
 import app.improving.membercontext.MemberRegistered
-import app.improving.ordercontext.OrderCreated
+import app.improving.ordercontext.{LineItemCancelled, LineItemOrdered}
 import app.improving.productcontext.ProductCreated
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -13,9 +13,8 @@ import kalix.scalasdk.view.ViewContext
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class MembersAttendingEventsForAnOrganizationViewImpl(context: ViewContext)
+class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     extends AbstractMembersAttendingEventsForAnOrganizationView {
-
   object MembersViewTable extends AbstractMembersViewTable {
 
     override def emptyState: MembersTableRow = MembersTableRow.defaultInstance
@@ -69,7 +68,7 @@ class MembersAttendingEventsForAnOrganizationViewImpl(context: ViewContext)
         state: EventsTableRow,
         eventScheduled: EventScheduled
     ): UpdateEffect[EventsTableRow] = if (state != emptyState)
-      effects.ignore() // already created
+      effects.ignore()
     else
       effects.updateState(
         EventsTableRow(
@@ -97,7 +96,7 @@ class MembersAttendingEventsForAnOrganizationViewImpl(context: ViewContext)
         state: TicketEventCorrTableRow,
         productCreated: ProductCreated
     ): UpdateEffect[TicketEventCorrTableRow] = if (state != emptyState)
-      effects.ignore() // already created
+      effects.ignore()
     else
       effects.updateState(
         TicketEventCorrTableRow(
@@ -107,24 +106,31 @@ class MembersAttendingEventsForAnOrganizationViewImpl(context: ViewContext)
       )
   }
 
-//  object TicketMemberCorrViewTable extends AbstractTicketMemberCorrViewTable {
-//
-//    override def emptyState: TicketMemberCorrTableRow =
-//      TicketEventCorrTableRow.defaultInstance
-//
-//     override def processOrderCreated(
-//         state: TicketMemberCorrTableRow,
-//         orderCreated: OrderCreated
-//     ): UpdateEffect[TicketMemberCorrTableRow] = if (state != emptyState)
-//       effects.ignore() // already created
-//     else
-//       effects.updateState(
-//         TicketMemberCorrTableRow(
-//           orderCreated.info.get.lineItems,
-//           eventScheduled.info.get.eventName
-//         )
-//       )
-//
-//  }
+  object TicketMemberCorrViewTable extends AbstractTicketMemberCorrViewTable {
+
+    override def emptyState: TicketMemberCorrTableRow =
+      TicketMemberCorrTableRow.defaultInstance
+
+    override def processLineItemCreated(
+        state: TicketMemberCorrTableRow,
+        lineItemOrdered: LineItemOrdered
+    ): UpdateEffect[TicketMemberCorrTableRow] = if (state != emptyState)
+      effects.ignore() // already created
+    else
+      effects.updateState(
+        TicketMemberCorrTableRow(
+          lineItemOrdered.productId,
+          lineItemOrdered.forMemberId
+        )
+      )
+
+    override def processLineItemCancelled(
+        state: TicketMemberCorrTableRow,
+        lineItemCancelled: LineItemCancelled
+    ): UpdateEffect[TicketMemberCorrTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.deleteState()
+  }
 
 }

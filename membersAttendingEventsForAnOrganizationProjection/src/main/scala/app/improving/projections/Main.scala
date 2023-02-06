@@ -18,7 +18,9 @@ object Main {
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
     KalixFactory.withComponents(
-      new MembersAttendingEventsForAnOrganizationViewImpl(_))
+      new MembersAttendingEventsForAnOrganizationView(_),
+      new QueryMembersAttendingEventsForAnOrganizationAction(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {
