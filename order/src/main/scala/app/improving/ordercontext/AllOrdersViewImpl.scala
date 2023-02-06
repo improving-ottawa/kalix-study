@@ -27,7 +27,7 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
           orderCreated.orderId.map(_.id).getOrElse("OrderId is NOT FOUND."),
           orderCreated.info.map(convertOrderInfoToApiOrderInfo),
           orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
-          ApiOrderStatus.DRAFT
+          ApiOrderStatus.API_ORDER_STATUS_DRAFT
         )
       )
   }
@@ -85,14 +85,14 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     effects.updateState(
       state.copy(
-        status = ApiOrderStatus.CANCELLED,
+        status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED,
         meta = state.meta.map(
           _.copy(
             lastModifiedBy = orderCanceled.cancellingMember.map(member =>
               ApiMemberId(member.id)
             ),
             lastModifiedOn = Some(timestamp),
-            status = ApiOrderStatus.CANCELLED
+            status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED
           )
         )
       )
