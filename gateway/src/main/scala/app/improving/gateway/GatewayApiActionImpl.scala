@@ -164,7 +164,6 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-
   val allMembersView = creationContext.getGrpcClient(
     classOf[AllMembersView],
     config.getString(

@@ -23,12 +23,12 @@ class QueryOrganizationsForMembersAttendingEventsAction(
           OrgsByMembersForEvents(
             reply.orgInfos
               .map(orgInfo =>
-                orgInfo.attendingMemberOrg
+                orgInfo.attendingMemberOrgId
                   .map(orgId =>
                     orgId.id -> OrgInfoMembers(
                       orgInfo.attendingMemberOrgName,
                       reply.orgMembers
-                        .filter(_.attendingMemberOrg.contains(orgId))
+                        .filter(_.attendingMemberOrgId.contains(orgId))
                         .flatMap(_.memberInfos)
                     )
                   )
@@ -39,12 +39,12 @@ class QueryOrganizationsForMembersAttendingEventsAction(
             reply.orgMembers
               .flatMap(_.memberInfos)
               .map(memberInfo =>
-                memberInfo.attendingMember
+                memberInfo.attendingMemberId
                   .map(memberId =>
                     memberId.id -> MemberInfoEvents(
                       memberInfo.attendingMemberName,
                       reply.memberEvents
-                        .filter(_.attendingMember.contains(memberId))
+                        .filter(_.attendingMemberId.contains(memberId))
                         .flatMap(_.eventInfos)
                     )
                   )
