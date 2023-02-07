@@ -22,7 +22,7 @@ object TestData {
     "avartar",
     "member-name",
     "short-name",
-    ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS,
+    Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS),
     Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
     Some(ApiTenantId(testTenantId))
   )
@@ -32,9 +32,19 @@ object TestData {
     "new-avatar",
     "new-firstname",
     "new-lastname",
-    ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL,
+    Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
     Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId)),
     Some(ApiTenantId(testTenantId1))
+  )
+  val apiPartialUpdateInfo = ApiUpdateInfo(
+    Some(apiContact),
+    "new-handle",
+    "new-avatar",
+    "",
+    "new-lastname",
+    Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
+    Seq.empty,
+    None
   )
   val contact = Contact(
     "member-first-name",
@@ -49,7 +59,7 @@ object TestData {
     "avartar",
     "member-name",
     "short-name",
-    NotificationPreference.NOTIFICATION_PREFERENCE_SMS,
+    Some(NotificationPreference.NOTIFICATION_PREFERENCE_SMS),
     Seq[OrganizationId](OrganizationId(testMemberId)),
     Some(TenantId(testTenantId))
   )

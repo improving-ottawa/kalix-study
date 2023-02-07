@@ -26,7 +26,7 @@ message Info {
     string avatar = 3; // URL type?
     string first_name = 4;
     string last_name = 5;
-    NotificationPreference notification_preference = 6;
+    optional NotificationPreference notification_preference = 6;
     repeated OrganizationId organization_membership = 7;
     optional TenantId tenant = 8;
 }

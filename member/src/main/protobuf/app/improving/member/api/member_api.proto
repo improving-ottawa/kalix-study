@@ -27,7 +27,7 @@ message ApiInfo {
     string avatar = 3; // URL type?
     string first_name = 4;
     string last_name = 5;
-    ApiNotificationPreference notification_preference = 6;
+    optional ApiNotificationPreference notification_preference = 6;
     repeated ApiOrganizationId organization_membership = 7;
     optional ApiTenantId tenant = 8;
 }
@@ -65,7 +65,7 @@ message ApiUpdateInfo {
     string avatar = 3; // URL type?
     string first_name = 4;
     string last_name = 5;
-    ApiNotificationPreference notification_preference = 6;
+    optional ApiNotificationPreference notification_preference = 6;
     repeated ApiOrganizationId organization_membership = 7;
     ApiTenantId tenant_id = 8;
 }
