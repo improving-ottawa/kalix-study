@@ -98,11 +98,27 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>
           MemberId(member.memberId)
         )
+
+        val updatedInfoOpt = apiUpdateMemberInfo.info.fold(state.info) { newApiInfo =>
+          val newInfo = convertApiUpdateInfoToInfo(newApiInfo)
+          state.info.fold(Some(newInfo)) { currentInfo =>
+            Some(
+              currentInfo.copy(
+                contact = newInfo.contact.orElse(currentInfo.contact),
+                handle = if (newInfo.handle.nonEmpty) newInfo.handle else currentInfo.handle,
+                avatar = if (newInfo.avatar.nonEmpty) newInfo.avatar else currentInfo.avatar,
+                firstName = if (newInfo.firstName.nonEmpty) newInfo.firstName else currentInfo.firstName,
+                lastName = if (newInfo.lastName.nonEmpty) newInfo.lastName else currentInfo.lastName,
+                notificationPreference = newInfo.notificationPreference.orElse(currentInfo.notificationPreference),
+                organizationMembership = if (newInfo.organizationMembership.nonEmpty) newInfo.organizationMembership else currentInfo.organizationMembership,
+                tenant = newInfo.tenant.orElse(currentInfo.tenant)
+              )
+            )
+          }
+        }
         val event = MemberInfoUpdated(
           Some(MemberId(apiUpdateMemberInfo.memberId)),
-          apiUpdateMemberInfo.info.map(info =>
-            convertApiUpdateInfoToInfo(info)
-          ),
+          updatedInfoOpt,
           Some(
             MetaInfo(
               Some(timestamp),

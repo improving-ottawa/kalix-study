@@ -269,7 +269,7 @@ object TestData {
       "avartar",
       "member-name",
       "short-name",
-      ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS,
+      Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS),
       Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
       Some(ApiTenantId(testTenantId))
     )

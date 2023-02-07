@@ -38,7 +38,7 @@ object util {
       info.avatar,
       info.firstName,
       info.lastName,
-      convertNotificationPreference(info.notificationPreference),
+      info.notificationPreference.map(convertNotificationPreference),
       info.organizationMembership.map(org => ApiOrganizationId(org.id))
     )
   }
@@ -99,7 +99,7 @@ object util {
       apiUpdateInfo.avatar,
       apiUpdateInfo.firstName,
       apiUpdateInfo.lastName,
-      convertNotificationPreference(apiUpdateInfo.notificationPreference),
+      apiUpdateInfo.notificationPreference.map(convertNotificationPreference),
       apiUpdateInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
       ),
@@ -114,7 +114,7 @@ object util {
       apiInfo.avatar,
       apiInfo.firstName,
       apiInfo.lastName,
-      convertNotificationPreference(apiInfo.notificationPreference),
+      apiInfo.notificationPreference.map(convertNotificationPreference),
       apiInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
       ),

@@ -101,6 +101,44 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("MemberId not found.")
 
+      val partialUpdateCommand = ApiUpdateMemberInfo(
+        testMember,
+        Some(apiPartialUpdateInfo),
+        Some(ApiMemberId(testMemberId2))
+      )
+
+      val partiallyUpdatedResult = testKit.updateMemberInfo(partialUpdateCommand)
+
+      partiallyUpdatedResult.events should have size 1
+
+      val memberOptPartial = testKit.currentState.member
+
+      memberOptPartial shouldBe defined
+
+      val partialUpdateInfoOpt = memberOptPartial.flatMap(_.info)
+
+      val contactPartialOpt = partialUpdateInfoOpt.flatMap(_.contact)
+
+      contactPartialOpt.map(_.firstName) shouldBe Some("firstname")
+
+      contactPartialOpt.map(_.lastName) shouldBe Some("new-lastname")
+
+      contactPartialOpt.flatMap(_.emailAddress) shouldBe Some(
+        EmailAddress("newemail@member.com")
+      )
+
+      contactPartialOpt.flatMap(_.phone) shouldBe Some(
+        MobileNumber("898-000-9876")
+      )
+
+      val apiOrganizationIdPartialOpt = partialUpdateInfoOpt.map(_.organizationMembership)
+
+      apiOrganizationIdPartialOpt.nonEmpty shouldBe true
+
+      val tenantIdPartialOpt = partialUpdateInfoOpt.flatMap(_.tenant)
+
+      tenantIdPartialOpt shouldBe defined
+
       val updateCommand = ApiUpdateMemberInfo(
         testMember,
         Some(apiUpdateInfo),
