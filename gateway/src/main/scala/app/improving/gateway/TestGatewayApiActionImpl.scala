@@ -8,7 +8,9 @@ import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreU
 import app.improving.productcontext.product.{ApiCreateProduct, ApiProductDetails, ApiProductInfo, ApiReservedTicket, ProductService}
 import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
 import app.improving.gateway.util.util.{genAddress, genEmailAddressForName, genMobileNumber}
-import app.improving.organizationcontext.{OrganizationInfo, organization}
+import app.improving.ordercontext.order.OrderService
+import app.improving.organizationcontext.organization
+import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID
@@ -79,6 +81,13 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[MemberActionService],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
+    )
+  )
+
+  val orderService: OrderService = creationContext.getGrpcClient(
+    classOf[OrderService],
+    config.getString(
+      "app.improving.gateway.order.grpc-client-name"
     )
   )
 
@@ -510,6 +519,16 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   }
 
+  override def handleEndScenario(
+      endScenario: EndScenario
+  ): Action.Effect[Empty] = {
+    endScenario.orders.map(
+      _.orderIds.map(id => orderService.deleteOrder(ApiDeleteOrder(Some(id))))
+    )
+
+    effects.reply(Empty.defaultInstance)
+  }
+
   private def genApiCreateProduct(
       numOfProductsPerEvent: Int,
       eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]],
@@ -917,4 +936,5 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     }
     establishOrgs
   }
+
 }

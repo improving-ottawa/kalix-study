@@ -24,7 +24,7 @@ import scala.util.{Failure, Success}
 // Get Product with ProductId
 // Get EventId from Product
 // Get Event with EventId and get isPrivate flag.
-// If yes -> get OrganizationId to get Organization to check memberId is in members ->
+// If yes -> get OrganizationId to get Organization to check member_id is in members ->
 //           if yes -> allow else not allow
 // If no -> allow the purchase
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           .getEventById(ApiGetEventById(eventId))
       } yield {
         (
-          event.info.map(_.isPrivate) == Some(false),
+          event.info.map(_.isPrivate).contains(false),
           event.info
             .flatMap(_.sponsoringOrg)
         )
@@ -114,26 +114,24 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       }
 
       // true -> event is not private (private is false)
-      tupleFut.flatMap(tuple => {
-        tuple match {
-          case (true, _) => Future.successful(true)
-          case (false, Some(orgId)) => {
-            for {
-              organization <- organization
-                .getOrganization(
-                  ApiGetOrganizationById(orgId.organizationId)
-                )
-            } yield {
-              if (organization.memberIds.contains(memberId)) {
-                true
-              } else {
-                false
-              }
+      tupleFut.flatMap {
+        case (true, _) => Future.successful(true)
+        case (false, Some(orgId)) => {
+          for {
+            organization <- organization
+              .getOrganization(
+                ApiGetOrganizationById(orgId.organizationId)
+              )
+          } yield {
+            if (organization.memberIds.contains(memberId)) {
+              true
+            } else {
+              false
             }
           }
-          case (false, None) => Future.successful(false)
         }
-      })
+        case (false, None) => Future.successful(false)
+      }
     }))
 
     val orderValidFut = productInfoResults.map(seq =>

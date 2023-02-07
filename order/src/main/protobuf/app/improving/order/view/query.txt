@@ -2,7 +2,7 @@
              " members.info AS member"
              "FROM members "
              "JOIN orders ON orders.meta.member_id = members.member_id "
-             "JOIN products ON products.product_id = ANY(orders.lineItems.product.id) "
+             "JOIN products ON products.product_id = ANY(orders.line_items.product.id) "
              "JOIN events ON products.info.event.id = events.event_id "
              "WHERE :given_time >= events.info.expectedStart AND :given_time < events.info.expectedEnd "
 
@@ -22,20 +22,20 @@ message ApiOrder {
 message ApiLineItem {
     ApiProductId product = 1;
     int32     quantity = 2;
-    double    lineTotal = 3;
+    double    line_total = 3;
 }
 
 message ApiOrderInfo {
     string order_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiLineItem lineItems = 2;
-    string specialInstructions = 3;
-    double orderTotal = 4;
+    repeated ApiLineItem line_items = 2;
+    string special_instructions = 3;
+    double order_total = 4;
 }
 
 message ApiOrderMetaInfo  {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId member_id = 2;
-    ApiStoreId storeId = 3;
+    ApiStoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;
     ApiMemberId last_modified_by = 5;
     google.protobuf.Timestamp last_modified_on = 6;
@@ -99,7 +99,7 @@ message ApiEventMetaInfo {
                     "members.meta.member_status AS status "
                     "FROM members "
                     "JOIN orders ON orders.meta.member_id.member_id = members.member_id.member_id "
-                    "JOIN products ON products.sku = ANY(orders.lineItems.product.product_id) "
+                    "JOIN products ON products.sku = ANY(orders.line_items.product.product_id) "
                     "JOIN events ON products.info.event.eventId = events.eventId "
                     "WHERE :eventTime = events.info.expectedEnd"
 
@@ -136,7 +136,7 @@ Error reported from Kalix system: KLX-00107 Incompatible types in View app.impro
 "SELECT * "
                     "FROM  member_by_event_member "
                     "JOIN member_by_event_order ON member_by_event_order.meta.member_id.member_id = member_by_event_member.member_id.member_id "
-                    "JOIN member_by_event_product ON member_by_event_product.sku = ANY(member_by_event_order.lineItems.product.product_id) "
+                    "JOIN member_by_event_product ON member_by_event_product.sku = ANY(member_by_event_order.line_items.product.product_id) "
                     "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
                     "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
 

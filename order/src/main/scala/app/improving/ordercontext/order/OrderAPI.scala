@@ -20,14 +20,13 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   override def createOrder(
       currentState: OrderState,
       apiCreateOrder: ApiCreateOrder
-  ): EventSourcedEntity.Effect[ApiOrderId] = {
+  ): EventSourcedEntity.Effect[ApiOrderId] =
     currentState.order match {
-      case Some(order)
-          if order.orderId == Some(OrderId(apiCreateOrder.orderId)) =>
+      case Some(_) =>
         effects.error(
           s"OrderAPI createOrder Error: order with id ${apiCreateOrder.orderId} already existed"
         )
-      case _ => {
+      case _ =>
         val orderId = apiCreateOrder.orderId
         val orderIdOpt = Some(OrderId(orderId))
         val now = java.time.Instant.now()
@@ -48,14 +47,12 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
               Some(timestamp),
               memberIdOpt,
               Some(timestamp),
-              OrderStatus.DRAFT
+              OrderStatus.ORDER_STATUS_DRAFT
             )
           )
         )
         effects.emitEvent(event).thenReply(_ => ApiOrderId(orderId))
-      }
     }
-  }
 
   override def updateOrderStatus(
       currentState: OrderState,
@@ -63,8 +60,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiUpdateOrderStatus.orderId)) &&
-          isValidStateChange(order.status, apiUpdateOrderStatus.newStatus) => {
+          if order.orderId.contains(OrderId(apiUpdateOrderStatus.orderId)) => {
         val event = OrderStatusUpdated(
           order.orderId,
           convertApiOrderStatusToOrderStatus(apiUpdateOrderStatus.newStatus),
@@ -98,12 +94,14 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   override def updateOrderInfo(
       currentState: OrderState,
       apiUpdateOrderInfo: ApiUpdateOrderInfo
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiUpdateOrderInfo.orderId)) &&
+          if
             order.info.isDefined &&
-            (order.status.isDraft || order.status.isPending) => {
+            (order.status.isDraft || order.status.isPending) &&
+            order.orderId.contains(OrderId(apiUpdateOrderInfo.orderId)) =>
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val orderInfoUpdateOpt = apiUpdateOrderInfo.update
@@ -132,25 +130,23 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             _.copy(
               lastModifiedBy = updatingMemberIdOpt,
               lastModifiedOn = Some(timestamp),
-              status =
-                currentState.order.map(_.status).getOrElse(OrderStatus.UNKNOWN)
+              status = currentState.order
+                .map(_.status)
+                .getOrElse(OrderStatus.ORDER_STATUS_UNKNOWN)
             )
           ),
           updatingMemberIdOpt
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   override def cancelOrder(
       currentState: OrderState,
       apiCancelOrder: ApiCancelOrder
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.order match {
-      case Some(order)
-          if order.orderId == Some(OrderId(apiCancelOrder.orderId)) => {
+      case Some(order) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val cancellingMemberIdOpt =
@@ -164,53 +160,48 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             _.copy(
               lastModifiedBy = cancellingMemberIdOpt,
               lastModifiedOn = Some(timestamp),
-              status = OrderStatus.CANCELLED
+              status = OrderStatus.ORDER_STATUS_CANCELLED
             )
           ),
           cancellingMemberIdOpt
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   override def getOrderInfo(
       currentState: OrderState,
       apiGetOrderInfo: ApiGetOrderInfo
-  ): EventSourcedEntity.Effect[ApiOrderInfoResult] = {
+  ): EventSourcedEntity.Effect[ApiOrderInfoResult] =
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiGetOrderInfo.orderId)) => {
+          if order.orderId.contains(OrderId(apiGetOrderInfo.orderId)) =>
         val result = ApiOrderInfoResult(
           Some(ApiOrderId(apiGetOrderInfo.orderId)),
           order.info.map(convertOrderInfoToApiOrderInfo)
         )
         effects.reply(result)
-      }
       case _ =>
         effects.error(
           s"OrderInfo ID ${apiGetOrderInfo.orderId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
         )
     }
-  }
   override def orderCreated(
       currentState: OrderState,
       orderCreated: OrderCreated
   ): OrderState = {
     currentState.order match {
       case Some(_) => currentState
-      case _ => {
+      case _ =>
         currentState.withOrder(
           Order(
             orderCreated.orderId,
             orderCreated.info,
             orderCreated.meta,
-            OrderStatus.DRAFT
+            OrderStatus.ORDER_STATUS_DRAFT
           )
         )
-      }
     }
   }
 
@@ -219,7 +210,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       orderStatusUpdated: OrderStatusUpdated
   ): OrderState = {
     currentState.order match {
-      case Some(order) if order.orderId == orderStatusUpdated.orderId => {
+      case Some(order) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val updatedMetaOpt = order.meta.map(
@@ -231,13 +222,14 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             status = orderStatusUpdated.newStatus
           )
         )
-        currentState.withOrder(
-          order.copy(
-            status = orderStatusUpdated.newStatus,
-            meta = updatedMetaOpt
+        currentState.copy(order =
+          currentState.order.map(
+            _.copy(
+              status = orderStatusUpdated.newStatus,
+              meta = updatedMetaOpt
+            )
           )
         )
-      }
       case _ => currentState
     }
   }
@@ -247,33 +239,56 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       orderInfoUpdated: OrderInfoUpdated
   ): OrderState = {
     currentState.order match {
-      case Some(order) if order.orderId == orderInfoUpdated.orderId => {
-        currentState.withOrder(
-          order.copy(
-            info = orderInfoUpdated.info,
-            meta = orderInfoUpdated.meta
+      case Some(_)=>
+        currentState.copy(order =
+          currentState.order.map(
+            _.copy(
+              info = orderInfoUpdated.info,
+              meta = orderInfoUpdated.meta
+            )
           )
         )
-      }
       case _ => currentState
     }
   }
   override def orderCanceled(
       currentState: OrderState,
       orderCanceled: OrderCanceled
-  ): OrderState = {
+  ): OrderState =
     currentState.order match {
-      case Some(order) if order.orderId == orderCanceled.orderId => {
-        currentState.withOrder(
-          order.copy(
-            info = orderCanceled.info,
-            meta = orderCanceled.meta,
-            status = OrderStatus.CANCELLED
+      case Some(_) =>
+        currentState.copy(order =
+          currentState.order.map(
+            _.copy(
+              info = orderCanceled.info,
+              meta = orderCanceled.meta,
+              status = OrderStatus.ORDER_STATUS_CANCELLED
+            )
           )
         )
-      }
       case _ => currentState
     }
-  }
 
+  override def deleteOrder(
+      currentState: OrderState,
+      apiDeleteOrder: ApiDeleteOrder
+  ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      OrderDeleted(apiDeleteOrder.orderId.map(apiId => OrderId(apiId.orderId)))
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def orderDeleted(
+      currentState: OrderState,
+      orderDeleted: OrderDeleted
+  ): OrderState = currentState.copy(order =
+    currentState.order.map(
+      _.copy(meta =
+        currentState.order.flatMap(
+          _.meta.map(_.copy(status = OrderStatus.ORDER_STATUS_DELETED))
+        )
+      )
+    )
+  )
 }

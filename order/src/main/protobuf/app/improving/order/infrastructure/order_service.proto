@@ -18,7 +18,8 @@ service OrderService {
                 "app.improving.ordercontext.OrderCreated",
                 "app.improving.ordercontext.OrderStatusUpdated",
                 "app.improving.ordercontext.OrderInfoUpdated",
-                "app.improving.ordercontext.OrderCanceled"
+                "app.improving.ordercontext.OrderCanceled",
+                "app.improving.ordercontext.OrderDeleted"
             ]
         }
     };
@@ -47,6 +48,13 @@ service OrderService {
     rpc CancelOrder(ApiCancelOrder) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/order/{order_id}/cancel-order"
+            body: "*"
+        };
+    }
+
+    rpc DeleteOrder(ApiDeleteOrder) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/delete-order"
             body: "*"
         };
     }
