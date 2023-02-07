@@ -45,7 +45,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == Some(
             OrganizationId(apiGetOrganizationById.orgId)
           ) => {
@@ -66,7 +66,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == Some(
             OrganizationId(apiGetOrganizationInfo.orgId)
           ) => {
@@ -95,7 +95,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == Some(
             OrganizationId(apiRemoveMembersFromOrganization.orgId)
           ) => {
@@ -121,7 +121,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == Some(
             OrganizationId(apiRemoveOwnersFromOrganization.orgId)
           ) =>
@@ -158,7 +158,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == Some(
             OrganizationId(apiAddMembersToOrganization.orgId)
           ) =>
@@ -195,7 +195,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == Some(
             OrganizationId(apiAddOwnersToOrganization.orgId)
           ) =>
@@ -232,7 +232,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status == OrganizationStatus.DRAFT || org.status == OrganizationStatus.ACTIVE => {
+          if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE => {
         org.copy(info =
           apiEditOrganizationInfo.newInfo.map(convertApiUpdateInfoToInfo(_))
         )
@@ -303,7 +303,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
                 createdBy = apiEstablishOrganization.establishingMember,
                 lastUpdated = Some(timestamp),
                 lastUpdatedBy = apiEstablishOrganization.establishingMember,
-                currentStatus = ApiOrganizationStatus.DRAFT
+                currentStatus =
+                  ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
               )
             )
           })
@@ -320,7 +321,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status != OrganizationStatus.TERMINATED && org.oid
+          if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid
             == Some(OrganizationId(apiUpdateParent.orgId)) => {
 
         val event = ParentUpdated(
@@ -394,7 +395,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == membersAddedToOrganization.orgId =>
         currentState.withOrganization(
           org.copy(
@@ -416,7 +417,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == membersRemovedFromOrganization.orgId => {
         val meta = org.orgMeta.map(meta => {
           meta.copy(
@@ -444,7 +445,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == organizationAccountsUpdated.orgId => {
         currentState.withOrganization(
           org.copy(
@@ -464,7 +465,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == organizationContactsUpdated.orgId => {
         currentState.withOrganization(
           org.copy(
@@ -503,7 +504,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           organizationEstablished.info
             .map(_.name)
             .getOrElse("Name is not available."),
-          OrganizationStatus.DRAFT
+          OrganizationStatus.ORGANIZATION_STATUS_DRAFT
         )
 
         currentState.withOrganization(organization)
@@ -517,7 +518,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = {
     currentState.organization match {
       case Some(org)
-          if org.status == OrganizationStatus.DRAFT || org.status == OrganizationStatus.ACTIVE => {
+          if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE => {
         org.copy(info = organizationInfoUpdated.info)
         currentState.withOrganization(org)
       }
@@ -530,7 +531,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       organizationStatusUpdated: OrganizationStatusUpdated
   ): OrganizationState = currentState.organization match {
     case Some(org)
-        if org.status != OrganizationStatus.TERMINATED && org.oid == organizationStatusUpdated.orgId => {
+        if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid == organizationStatusUpdated.orgId => {
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       currentState.withOrganization(
@@ -555,7 +556,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == ownersAddedToOrganization.orgId => {
         currentState.withOrganization(
           org.copy(
@@ -576,7 +577,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.TERMINATED
+            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
           ) && org.oid == ownersRemovedFromOrganization.orgId => {
         currentState.withOrganization(
           org.copy(
@@ -596,7 +597,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       parentUpdated: ParentUpdated
   ): OrganizationState = currentState.organization match {
     case Some(org)
-        if org.status != OrganizationStatus.TERMINATED && org.oid == parentUpdated.orgId => {
+        if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid == parentUpdated.orgId => {
       currentState.withOrganization(
         org.copy(parent = parentUpdated.newParent)
       )

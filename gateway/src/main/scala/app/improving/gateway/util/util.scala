@@ -6,7 +6,7 @@ import app.improving.{
   ApiContact,
   ApiEmailAddress,
   ApiMobileNumber,
-  ApiUSPostalCode,
+  ApiUSPostalCode
 }
 
 import scala.util.Random
@@ -26,7 +26,7 @@ object util {
       r.nextString(15),
       r.nextString(15),
       r.nextString(15),
-      if (r.nextInt % 2 == 0)
+      if (r.nextInt() % 2 == 0)
         ApiAddress.PostalCode.CaPostalCode(ApiCAPostalCode.defaultInstance)
       else ApiAddress.PostalCode.UsPostalCode(ApiUSPostalCode.defaultInstance)
     )

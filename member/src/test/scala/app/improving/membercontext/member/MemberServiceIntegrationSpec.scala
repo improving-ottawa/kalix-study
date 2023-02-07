@@ -43,7 +43,9 @@ class MemberServiceIntegrationSpec
       val memberData =
         client.getMemberData(ApiGetMemberData(testMemberId)).futureValue
 
-      memberData.meta.map(_.memberStatus) shouldBe Some(ApiMemberStatus.ACTIVE)
+      memberData.meta.map(_.memberStatus) shouldBe Some(
+        ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+      )
     }
 
   }

@@ -1,9 +1,12 @@
 package app.improving.membercontext.member
 
 import app.improving.ApiMemberId
-import com.google.protobuf.empty.Empty
+import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
+import org.slf4j.LoggerFactory
+
+import scala.concurrent.Future
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -13,12 +16,24 @@ import kalix.scalasdk.action.ActionCreationContext
 class MemberActionServiceImpl(creationContext: ActionCreationContext)
     extends AbstractMemberActionServiceAction {
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
+  lazy val config: Config = ConfigFactory.load()
+
   val memberService: MemberService =
-    creationContext.getGrpcClient(classOf[MemberService], "member")
+    creationContext.getGrpcClient(
+      classOf[MemberService],
+      config.getString(
+        "app.improving.member.member.grpc-client-name"
+      )
+    )
 
   override def registerMemberList(
       apiRegisterMemberList: ApiRegisterMemberList
   ): Action.Effect[ApiMemberIds] = {
+
+    log.info("MemberActionServiceImpl in registerMemberList")
+
     val memberIdOpt = apiRegisterMemberList.registeringMember.map(member =>
       ApiMemberId(member.memberId)
     )
@@ -27,18 +42,20 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
         .getOrElse(ApiMemberMap.defaultInstance)
         .map
 
-    apiMemberMap.foreach { case (memberId, info) =>
-      val register = ApiRegisterMember(
-        memberId,
-        Some(info),
-        memberIdOpt
+    val result = Future
+      .sequence(
+        apiMemberMap
+          .map { case (memberId, info) =>
+            ApiRegisterMember(
+              memberId,
+              Some(info),
+              memberIdOpt
+            )
+          }
+          .map(register => memberService.registerMember(register))
       )
-      memberService.registerMember(register)
+      .map(memberIds => ApiMemberIds(memberIds.toSeq))
 
-    }
-
-    effects.reply(
-      ApiMemberIds(apiMemberMap.keys.toSeq.map(ApiMemberId(_)))
-    )
+    effects.asyncReply(result)
   }
 }

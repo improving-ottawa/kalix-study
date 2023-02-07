@@ -20,10 +20,10 @@ message ApiOrganization {
 }
 
 enum ApiOrganizationStatus {
-    DRAFT = 0;
-    ACTIVE = 1;
-    SUSPENDED = 2;
-    TERMINATED = 3;
+    API_ORGANIZATION_STATUS_DRAFT = 0;
+    API_ORGANIZATION_STATUS_ACTIVE = 1;
+    API_ORGANIZATION_STATUS_SUSPENDED = 2;
+    API_ORGANIZATION_STATUS_TERMINATED = 3;
 }
 
 message ApiInfo {
