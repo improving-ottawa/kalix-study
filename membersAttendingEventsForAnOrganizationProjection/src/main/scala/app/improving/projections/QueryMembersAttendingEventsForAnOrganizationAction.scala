@@ -26,19 +26,21 @@ class QueryMembersAttendingEventsForAnOrganizationAction(
             result.memberInfos
               .map(memberInfo =>
                 MemberEventsResult(
-                  memberInfo.memberId
+                  memberInfo.attendingMemberId
                     .map(memberId =>
                       immutable.Map(
                         memberId.id -> EventInfos(
                           result.memberEvents
-                            .find(_.memberId == memberInfo.memberId)
+                            .find(
+                              _.attendingMemberId == memberInfo.attendingMemberId
+                            )
                             .head
                             .eventInfos
                         )
                       )
                     )
                     .getOrElse(Map.empty),
-                  memberInfo.memberName
+                  memberInfo.attendingMemberName
                 )
               )
           )

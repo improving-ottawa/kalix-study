@@ -1,11 +1,30 @@
 package app.improving.projections
 
-import app.improving.eventcontext.EventCancelled
-import app.improving.eventcontext.EventScheduled
-import app.improving.membercontext.MemberRegistered
-import app.improving.ordercontext.{LineItemCancelled, LineItemOrdered}
-import app.improving.organizationcontext.OrganizationEstablished
-import app.improving.productcontext.ProductCreated
+import app.improving.eventcontext.{EventCancelled, EventScheduled}
+import app.improving.membercontext.{
+  MemberRegistered,
+  MemberStatus,
+  MemberStatusUpdated
+}
+import app.improving.ordercontext.{
+  LineItemCancelled,
+  LineItemOrdered,
+  OrderCreated,
+  OrderStatus,
+  OrderStatusUpdated
+}
+import app.improving.organizationcontext.{
+  OrganizationEstablished,
+  OrganizationStatus,
+  OrganizationStatusUpdated
+}
+import app.improving.productcontext.{
+  ProductActivated,
+  ProductCreated,
+  ProductDeleted,
+  ProductInactivated,
+  ProductStatus
+}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 
@@ -31,9 +50,20 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
         effects.updateState(
           OrgsTableRow(
             organizationEstablished.orgId,
-            organizationEstablished.info.get.name
+            organizationEstablished.info.get.name,
+            OrganizationStatus.DRAFT
           )
         )
+
+    override def processOrganizationStatusUpdated(
+        state: OrgsTableRow,
+        organizationStatusUpdated: OrganizationStatusUpdated
+    ): UpdateEffect[OrgsTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        state.copy(status = organizationStatusUpdated.newStatus)
+      )
   }
 
   object MembersViewTable extends AbstractMembersViewTable {
@@ -53,6 +83,21 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
         )
       )
 
+    override def processMemberStatusUpdated(
+        state: MembersTableRow,
+        memberStatusUpdated: MemberStatusUpdated
+    ): UpdateEffect[MembersTableRow] = if (state == emptyState)
+      effects.ignore()
+    else if (state == emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        state.copy(status =
+          memberStatusUpdated.meta
+            .map(_.memberStatus)
+            .getOrElse(MemberStatus.UNKNOWN)
+        )
+      )
   }
 
   object OrgMemberCorrViewTable extends AbstractOrgMemberCorrViewTable {
@@ -60,7 +105,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
     override def emptyState: OrgMemberCorrTableRow =
       OrgMemberCorrTableRow.defaultInstance
 
-    override def processMemberRegisteredOrganization(
+    override def processMemberRegisteredCorrTable(
         state: OrgMemberCorrTableRow,
         memberRegistered: MemberRegistered
     ): UpdateEffect[OrgMemberCorrTableRow] = if (state != emptyState)
@@ -90,15 +135,6 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
           eventScheduled.info.get.eventName
         )
       )
-
-    override def processEventCancelled(
-        state: EventsTableRow,
-        eventCancelled: EventCancelled
-    ): UpdateEffect[EventsTableRow] = if (state == emptyState)
-      effects.ignore()
-    else
-      effects.deleteState()
-
   }
 
   object TicketEventCorrViewTable extends AbstractTicketEventCorrViewTable {
@@ -108,11 +144,11 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
         "Not implemented yet, replace with your empty view state"
       )
 
-    override def processProductCreatedForCorrTable(
+    def processProductCreated(
         state: TicketEventCorrTableRow,
         productCreated: ProductCreated
     ): UpdateEffect[TicketEventCorrTableRow] = if (state != emptyState)
-      effects.ignore() // already created
+      effects.ignore()
     else
       effects.updateState(
         TicketEventCorrTableRow(
@@ -120,7 +156,33 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
           productCreated.info.get.event
         )
       )
+    override def processProductActivated(
+        state: TicketEventCorrTableRow,
+        productActivated: ProductActivated
+    ): UpdateEffect[TicketEventCorrTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        state.copy(ticketStatus = ProductStatus.ACTIVE)
+      )
 
+    override def processProductInactivated(
+        state: TicketEventCorrTableRow,
+        productInactivated: ProductInactivated
+    ): UpdateEffect[TicketEventCorrTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        state.copy(ticketStatus = ProductStatus.INACTIVE)
+      )
+
+    override def processProductDeleted(
+        state: TicketEventCorrTableRow,
+        productDeleted: ProductDeleted
+    ): UpdateEffect[TicketEventCorrTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.deleteState()
   }
 
   object TicketMemberCorrViewTable extends AbstractTicketMemberCorrViewTable {
@@ -148,5 +210,29 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.ignore()
     else
       effects.deleteState()
+  }
+
+  object OrdersViewTable extends AbstractOrdersViewTable {
+    override def emptyState: OrderTableRow = OrderTableRow.defaultInstance
+
+    override def processOrderCreated(
+        state: OrderTableRow,
+        orderCreated: OrderCreated
+    ): UpdateEffect[OrderTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        state.copy(status = OrderStatus.ORDER_STATUS_DRAFT)
+      )
+
+    override def processOrderStatusUpdated(
+        state: OrderTableRow,
+        orderStatusUpdated: OrderStatusUpdated
+    ): UpdateEffect[OrderTableRow] = if (state == emptyState)
+      effects.ignore()
+    else
+      effects.updateState(
+        state.copy(status = orderStatusUpdated.newStatus)
+      )
   }
 }

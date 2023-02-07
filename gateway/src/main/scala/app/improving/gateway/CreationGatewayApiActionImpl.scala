@@ -132,7 +132,21 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-  private val allMembersView = creationContext.getGrpcClient(
+  val allStoresView = creationContext.getGrpcClient(
+    classOf[AllStoresView],
+    config.getString(
+      "app.improving.gateway.store.grpc-client-name"
+    )
+  )
+
+  val allProductsView = creationContext.getGrpcClient(
+    classOf[AllProductsView],
+    config.getString(
+      "app.improving.gateway.product.grpc-client-name"
+    )
+  )
+
+  val allMembersView = creationContext.getGrpcClient(
     classOf[AllMembersView],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
