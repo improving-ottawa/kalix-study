@@ -25,11 +25,11 @@ message ContactList {
 
 message Info {
     string name = 1;
-    string shortName = 2;
+    optional string shortName = 2;
     Address address = 3;
     bool isPrivate = 4;
-    string url = 5; // URL type?
-    string logo = 6; // URL type?
+    optional string url = 5; // URL type?
+    optional string logo = 6; // URL type?
     TenantId tenant = 7;
 }
 
@@ -59,13 +59,13 @@ message PublicOrganizationEvent {
 }
 
 message UpdateInfo {
-    string name = 1;
-    string shortName = 2;
+    optional string name = 1;
+    optional string shortName = 2;
     Address address = 3;
-    bool isPrivate = 4;
-    string url = 5; // URL type?
-    string logo = 6; // URL type?
-    TenantId tenant = 7;
+    optional bool isPrivate = 4;
+    optional string url = 5; // URL type?
+    optional string logo = 6; // URL type?
+    TenantId tenant = 7; //TODO should it have a tenant id? That's not in the riddl.
 }
 
 message FindOrganizationsByMember {

@@ -31,18 +31,28 @@ import app.improving.organizationcontext.{
 import app.improving.organizationcontext.organization._
 object util {
 
+  //private def
+
+  def convertApiMemberIdToMemberId(memberId: ApiMemberId) = MemberId(memberId.memberId)
+
+
   def convertApiUpdateInfoToInfo(
-      updateInfo: ApiUpdateInfo
-  ): Info = {
-    Info(
-      updateInfo.name,
-      updateInfo.shortName,
-      updateInfo.address.map(convertApiAddressToAddress(_)),
-      updateInfo.isPrivate,
-      updateInfo.url,
-      updateInfo.logo,
-      updateInfo.tenant.map(tenant => TenantId(tenant.tenantId))
-    )
+      updateInfo: ApiUpdateInfo,
+      currentInfo: Option[Info]
+  ): Option[Info] = {
+
+    currentInfo.map(info => {
+      Info(
+        name = updateInfo.name.getOrElse(info.name),
+        shortName = updateInfo.shortName.orElse(info.shortName),
+        address = updateInfo.address.map(convertApiAddressToAddress).orElse(currentInfo.flatMap(_.address)),
+        isPrivate = updateInfo.isPrivate.getOrElse(info.isPrivate),
+        url = updateInfo.url.orElse(info.url),
+        logo = updateInfo.logo.orElse(info.logo),
+        tenant = updateInfo.tenant.map(tenant => TenantId(tenant.tenantId)).orElse(info.tenant)
+      )
+    })
+
   }
 
   def convertApiInfoToInfo(apiInfo: ApiInfo): Info = {
@@ -50,7 +60,7 @@ object util {
       apiInfo.name,
       apiInfo.shortName,
       apiInfo.address.map(convertApiAddressToAddress(_)),
-      apiInfo.isPrivate,
+      apiInfo.isPrivate.getOrElse(true),
       apiInfo.url,
       apiInfo.logo,
       apiInfo.tenant.map(tenant => TenantId(tenant.tenantId))
@@ -64,7 +74,7 @@ object util {
       info.address.map(addr => {
         convertAddressToApiAddress(addr)
       }),
-      info.isPrivate,
+      Some(info.isPrivate),
       info.url,
       info.logo,
       info.tenant.map(tenant => ApiTenantId(tenant.id))
