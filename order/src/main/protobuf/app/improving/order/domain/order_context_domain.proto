@@ -12,7 +12,7 @@ enum OrderStatus {
     ORDER_STATUS_READY = 4;
     ORDER_STATUS_DELIVERED = 5;
     ORDER_STATUS_CANCELLED = 6;
-    ORDER_STATUS_DELETED = 7;
+    ORDER_STATUS_RELEASED = 7;
     ORDER_STATUS_UNKNOWN = 8;
 }
 
@@ -74,6 +74,7 @@ message OrderInfoResult {
     OrderId order_id = 1;
     OrderInfo info = 2;
 }
-message OrderDeleted {
+message OrderReleased {
     OrderId order_id = 1;
+    MemberId releasing_member = 2;
 }

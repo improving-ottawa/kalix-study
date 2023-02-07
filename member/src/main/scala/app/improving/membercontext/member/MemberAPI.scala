@@ -4,6 +4,7 @@ import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{ApiMemberId, Contact, MemberId}
 import app.improving.membercontext.{
+  MemberReleased,
   MemberInfoUpdated,
   MemberRegistered,
   MemberStatus,
@@ -127,10 +128,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       apiUpdateMemberInfo: ApiUpdateMemberInfo
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
-      case Some(state)
-          if state.memberId.contains(
-            MemberId(apiUpdateMemberInfo.memberId)
-          ) => {
+      case Some(state) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>
@@ -179,7 +177,6 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           )
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
@@ -307,7 +304,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): MemberState = {
     currentState.member match {
       case Some(_) => currentState // already registered so just return.
-      case _ => {
+      case _ =>
         val member = Member(
           memberRegistered.memberId,
           memberRegistered.info,
@@ -315,7 +312,6 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           MemberStatus.MEMBER_STATUS_DRAFT
         )
         currentState.withMember(member)
-      }
     }
   }
   override def memberStatusUpdated(
@@ -323,7 +319,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       memberStatusUpdated: MemberStatusUpdated
   ): MemberState = {
     currentState.member match {
-      case Some(state) if state.memberId == memberStatusUpdated.memberId => {
+      case Some(state) if state.memberId == memberStatusUpdated.memberId =>
         currentState.withMember(
           state.copy(
             status = memberStatusUpdated.meta
@@ -332,8 +328,44 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
             meta = memberStatusUpdated.meta
           )
         )
-      }
       case _ => currentState
     }
+  }
+
+  override def releaseMember(
+      currentState: MemberState,
+      apiReleaseMember: ApiReleaseMember
+  ): EventSourcedEntity.Effect[Empty] =
+    effects
+      .emitEvent(
+        MemberReleased(
+          apiReleaseMember.memberId.map(apiId => MemberId(apiId.memberId))
+        )
+      )
+      .deleteEntity()
+      .thenReply(_ => Empty.defaultInstance)
+
+  override def memberReleased(
+      currentState: MemberState,
+      memberReleased: MemberReleased
+  ): MemberState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(member =
+      currentState.member.map(
+        _.copy(
+          status = MemberStatus.MEMBER_STATUS_RELEASED,
+          meta = currentState.member.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = memberReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+          )
+        )
+      )
+    )
   }
 }

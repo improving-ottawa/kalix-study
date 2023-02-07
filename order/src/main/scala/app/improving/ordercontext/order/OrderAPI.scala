@@ -269,26 +269,39 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       case _ => currentState
     }
 
-  override def deleteOrder(
+  override def releaseOrder(
       currentState: OrderState,
-      apiDeleteOrder: ApiDeleteOrder
+      apiReleaseOrder: ApiReleaseOrder
   ): EventSourcedEntity.Effect[Empty] = effects
     .emitEvent(
-      OrderDeleted(apiDeleteOrder.orderId.map(apiId => OrderId(apiId.orderId)))
+      OrderReleased(
+        apiReleaseOrder.orderId.map(apiId => OrderId(apiId.orderId))
+      )
     )
     .deleteEntity()
     .thenReply(_ => Empty.defaultInstance)
 
-  override def orderDeleted(
+  override def orderReleased(
       currentState: OrderState,
-      orderDeleted: OrderDeleted
-  ): OrderState = currentState.copy(order =
-    currentState.order.map(
-      _.copy(meta =
-        currentState.order.flatMap(
-          _.meta.map(_.copy(status = OrderStatus.ORDER_STATUS_DELETED))
+      orderReleased: OrderReleased
+  ): OrderState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(order =
+      currentState.order.map(
+        _.copy(meta =
+          currentState.order.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = orderReleased.releasingMember,
+                lastModifiedOn = Some(timestamp),
+                status = OrderStatus.ORDER_STATUS_RELEASED
+              )
+            )
+          )
         )
       )
     )
-  )
+  }
 }

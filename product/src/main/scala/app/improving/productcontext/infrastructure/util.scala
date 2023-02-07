@@ -81,7 +81,7 @@ object util {
       productCreated.sku.map(_.id).getOrElse("ProductId is not found"),
       productCreated.info.map(convertProductInfoToApiProductInfo),
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
-      ApiProductStatus.ACTIVE
+      ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
     )
   }
 

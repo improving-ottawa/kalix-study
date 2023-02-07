@@ -15,7 +15,8 @@ enum ApiOrderStatus {
     API_ORDER_STATUS_READY = 3;
     API_ORDER_STATUS_DELIVERED = 4;
     API_ORDER_STATUS_CANCELLED = 5;
-    API_ORDER_STATUS_UNKNOWN = 6;
+    API_ORDER_STATUS_DELETED = 6;
+    API_ORDER_STATUS_UNKNOWN = 7;
 }
 
 message ApiOrder {
@@ -80,6 +81,7 @@ message ApiOrderInfoResult {
     ApiOrderId order_id = 1;
     ApiOrderInfo info = 2;
 }
-message ApiDeleteOrder {
+message ApiReleaseOrder {
     ApiOrderId order_id = 1;
+    ApiMemberId releasing_member = 2;
 }

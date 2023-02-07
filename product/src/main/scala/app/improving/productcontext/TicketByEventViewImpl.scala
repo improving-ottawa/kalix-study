@@ -51,7 +51,7 @@ class TicketByEventViewImpl(context: ViewContext)
   ): UpdateEffect[TicketEventCorrTableRow] = {
     effects.updateState(
       state.copy(
-        status = ProductStatus.ACTIVE.toString()
+        status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE.toString()
       )
     )
   }
@@ -62,7 +62,7 @@ class TicketByEventViewImpl(context: ViewContext)
   ): UpdateEffect[TicketEventCorrTableRow] = {
     effects.updateState(
       state.copy(
-        status = ProductStatus.INACTIVE.toString()
+        status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE.toString()
       )
     )
   }

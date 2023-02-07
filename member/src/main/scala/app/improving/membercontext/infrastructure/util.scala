@@ -68,6 +68,8 @@ object util {
         ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED
       case MemberStatus.MEMBER_STATUS_TERMINATED =>
         ApiMemberStatus.API_MEMBER_STATUS_TERMINATED
+      case MemberStatus.MEMBER_STATUS_RELEASED =>
+        ApiMemberStatus.API_MEMBER_STATUS_RELEASED
       case MemberStatus.MEMBER_STATUS_UNKNOWN =>
         ApiMemberStatus.API_MEMBER_STATUS_UNKNOWN
       case MemberStatus.Unrecognized(unrecognizedValue) =>
@@ -179,6 +181,8 @@ object util {
         MemberStatus.MEMBER_STATUS_SUSPENDED
       case ApiMemberStatus.API_MEMBER_STATUS_TERMINATED =>
         MemberStatus.MEMBER_STATUS_TERMINATED
+      case ApiMemberStatus.API_MEMBER_STATUS_RELEASED =>
+        MemberStatus.MEMBER_STATUS_RELEASED
       case ApiMemberStatus.API_MEMBER_STATUS_UNKNOWN =>
         MemberStatus.MEMBER_STATUS_UNKNOWN
       case ApiMemberStatus.Unrecognized(unrecognizedValue) =>

@@ -33,14 +33,14 @@ class ProductAPI(context: EventSourcedEntityContext)
     currentState.product match {
       case Some(product) if product != Product.defaultInstance =>
         effects.reply(ApiProductId.defaultInstance)
-      case _ => {
+      case _ =>
         val event = ProductCreated(
           Some(ProductId(productId)),
           apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
           apiCreateProduct.meta.map(convertApiProductMetaInfoToProductMetaInfo)
         )
         effects.emitEvent(event).thenReply(_ => ApiProductId(productId))
-      }
+
     }
   }
 
@@ -50,10 +50,8 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] =
     currentState.product match {
       case Some(product)
-          if product.sku == Some(
-            ProductId(apiUpdateProductInfo.sku)
-          ) && product.status != ProductStatus.DELETED
-            && product.info.isDefined => {
+          if product.status != ProductStatus.PRODUCT_STATUS_DELETED &&
+            product.info.isDefined =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val productInfoUpdateOpt = apiUpdateProductInfo.info.map(
@@ -90,7 +88,6 @@ class ProductAPI(context: EventSourcedEntityContext)
           )
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
       case _ => effects.reply(Empty.defaultInstance)
     }
 
@@ -100,9 +97,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.product match {
       case Some(product)
-          if product.sku == Some(
-            ProductId(apiDeleteProduct.sku)
-          ) && product.status != ProductStatus.DELETED => {
+          if product.status != ProductStatus.PRODUCT_STATUS_DELETED => {
         val event = ProductDeleted(
           product.sku,
           apiDeleteProduct.deletingMember.map(member =>
@@ -121,9 +116,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.product match {
       case Some(product)
-          if product.sku == Some(
-            ProductId(apiActivateProduct.sku)
-          ) && product.status != ProductStatus.DELETED => {
+          if product.status != ProductStatus.PRODUCT_STATUS_DELETED => {
         val event = ProductActivated(
           product.sku,
           apiActivateProduct.activatingMember.map(member =>
@@ -142,9 +135,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.product match {
       case Some(product)
-          if product.sku == Some(
-            ProductId(apiInactivateProduct.sku)
-          ) && product.status != ProductStatus.DELETED => {
+          if product.status != ProductStatus.PRODUCT_STATUS_DELETED => {
         val event = ProductInactivated(
           product.sku,
           apiInactivateProduct.inactivatingMember.map(member =>
@@ -163,9 +154,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[ApiProductInfoResult] = {
     currentState.product match {
       case Some(product)
-          if product.sku == Some(
-            ProductId(apiGetProductInfo.sku)
-          ) && product.status != ProductStatus.DELETED => {
+          if product.status != ProductStatus.PRODUCT_STATUS_ACTIVE => {
         val apiProductInfoResult = ApiProductInfoResult(
           apiGetProductInfo.sku,
           product.info.map(convertProductInfoToApiProductInfo)
@@ -186,14 +175,14 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): ProductState = {
     currentState.product match {
       case Some(product)
-          if product != Product.defaultInstance && product.status != ProductStatus.DELETED =>
+          if product != Product.defaultInstance && product.status != ProductStatus.PRODUCT_STATUS_DELETED =>
         currentState
       case _ => {
         val product = Product(
           productCreated.sku,
           productCreated.info,
           productCreated.meta,
-          ProductStatus.DRAFT
+          ProductStatus.PRODUCT_STATUS_DRAFT
         )
         currentState.withProduct(product)
       }
@@ -205,7 +194,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): ProductState = {
     currentState.product match {
       case Some(product)
-          if product.sku == productInfoUpdated.sku && product.status != ProductStatus.DELETED => {
+          if product.status != ProductStatus.PRODUCT_STATUS_DELETED => {
         currentState.withProduct(
           product.copy(
             info = productInfoUpdated.info,
@@ -222,7 +211,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): ProductState = {
     currentState.product match {
       case Some(product)
-          if product.sku == productDeleted.sku && product.status != ProductStatus.DELETED => {
+          if product.status != ProductStatus.PRODUCT_STATUS_DELETED => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         currentState.withProduct(
@@ -233,7 +222,7 @@ class ProductAPI(context: EventSourcedEntityContext)
                 lastModifiedOn = Some(timestamp)
               )
             ),
-            status = ProductStatus.DELETED
+            status = ProductStatus.PRODUCT_STATUS_DELETED
           )
         )
       }
@@ -256,7 +245,7 @@ class ProductAPI(context: EventSourcedEntityContext)
                 lastModifiedOn = Some(timestamp)
               )
             ),
-            status = ProductStatus.ACTIVE
+            status = ProductStatus.PRODUCT_STATUS_ACTIVE
           )
         )
       }
@@ -280,7 +269,7 @@ class ProductAPI(context: EventSourcedEntityContext)
                 lastModifiedOn = Some(timestamp)
               )
             ),
-            status = ProductStatus.INACTIVE
+            status = ProductStatus.PRODUCT_STATUS_INACTIVE
           )
         )
       }

@@ -20,7 +20,8 @@ service MemberService {
             events: [
                 "app.improving.membercontext.MemberInfoUpdated",
                 "app.improving.membercontext.MemberRegistered",
-                "app.improving.membercontext.MemberStatusUpdated"]
+                "app.improving.membercontext.MemberStatusUpdated",
+                "app.improving.membercontext.MemberReleased"]
         }
     };
 
@@ -42,6 +43,13 @@ service MemberService {
     rpc UpdateMemberInfo(ApiUpdateMemberInfo) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/member/{member_id}/update-info"
+            body: "*"
+        };
+    }
+
+    rpc ReleaseMember(ApiReleaseMember) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/delete"
             body: "*"
         };
     }
