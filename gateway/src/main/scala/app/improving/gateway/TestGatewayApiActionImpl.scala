@@ -446,7 +446,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             s"in handleStartScenario genApiCreateProduct - result ${result}"
           )
 
-          val eventIds = eventsByOrg.values.map(_.eventIds).flatten
+          val eventIds = eventsByOrg.values.flatMap(_.eventIds)
 
           Await.result(
             for {
@@ -525,7 +525,13 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       eventKeys
         .intersect(storeKeys)
         .toArray
-        .apply(r.nextInt(storeKeys.size + eventKeys.size))
+        .apply(
+          r.nextInt(
+            eventKeys
+              .intersect(storeKeys)
+              .size
+          )
+        )
     (
       eventsByOrg,
       storesByOrg,

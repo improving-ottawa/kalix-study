@@ -31,16 +31,17 @@ class TestGatewayApiActionImplSpec
 
   lazy val config: Config = ConfigFactory.load()
 
-  val testGateWatyClientSettings = GrpcClientSettings.connectToServiceAt(
-    config.getString(
-      "app.improving.akka.grpc.gateway-client-url"
-    ),
-    config.getInt("app.improving.akka.grpc.client-url-port")
-  )
+  val testGateWayClientSettings: GrpcClientSettings =
+    GrpcClientSettings.connectToServiceAt(
+      config.getString(
+        "app.improving.akka.grpc.gateway-client-url"
+      ),
+      config.getInt("app.improving.akka.grpc.client-url-port")
+    )
 
   val testGateWayAction: TestGatewayApiActionClient =
     TestGatewayApiActionClient(
-      testGateWatyClientSettings
+      testGateWayClientSettings
     )
 
   "TestGatewayApiActionImpl" must {
