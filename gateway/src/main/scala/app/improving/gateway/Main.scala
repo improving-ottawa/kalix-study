@@ -20,7 +20,6 @@ object Main {
     KalixFactory.withComponents(
       new GatewayApiActionImpl(_),
       new TestGatewayApiActionImpl(_)
-//      new UiGatewayApiActionImpl(_)
     )
   }
 

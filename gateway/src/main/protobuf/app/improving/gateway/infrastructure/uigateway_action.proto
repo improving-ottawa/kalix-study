@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package app.improving.gateway;
+
+import "app/improving/gateway/domain/uigateway_domain.proto";
+import "common_api.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+service UiGatewayApiAction {
+    option (kalix.codegen) = {
+        action: { }
+    };
+
+    rpc HandlePurchaseTicket(PurchaseTicketRequest) returns (ApiOrderId) {
+        option (google.api.http) = {
+            post: "/order/purchase-ticket"
+            body: "*"
+        };
+    }
+}
