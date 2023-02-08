@@ -6,7 +6,8 @@ import "google/protobuf/timestamp.proto";
 package app.improving.productcontext;
 
 enum ProductStatus {
-    ACTIVE = 0;
+    DRAFT = 0;
+    ACTIVE = 1;
     INACTIVE = 2;
     DELETED = 3;
     UNKNOWN = 4;

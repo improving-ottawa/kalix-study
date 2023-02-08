@@ -185,7 +185,7 @@ class ProductAPI(context: EventSourcedEntityContext)
           productCreated.sku,
           productCreated.info,
           productCreated.meta,
-          ProductStatus.ACTIVE
+          ProductStatus.DRAFT
         )
         currentState.withProduct(product)
       }

@@ -41,6 +41,10 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       productCreated.sku.isDefined shouldBe true
       productCreated.info.isDefined shouldBe true
       productCreated.meta.isDefined shouldBe true
+
+      testKit.currentState.product.map(_.status) shouldBe Some(
+        ProductStatus.DRAFT
+      )
     }
 
     "correctly process commands of type UpdateProductInfo" in {
@@ -140,7 +144,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       productCreated.sku.isDefined shouldBe true
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.ACTIVE
+        ProductStatus.DRAFT
       )
       val sku = testKit.currentState.product
         .flatMap(_.sku)
