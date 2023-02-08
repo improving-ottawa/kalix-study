@@ -48,7 +48,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               memberIdOpt,
               Some(timestamp),
               memberIdOpt,
-              MemberStatus.MEMBER_STATUS_ACTIVE
+              MemberStatus.MEMBER_STATUS_DRAFT
             )
           )
         )
@@ -62,9 +62,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
-          if state.memberId.contains(
+          if (state.memberId.contains(
             MemberId(apiUpdateMemberStatus.memberId)
-          ) =>
+          ) && isStateChangeValid(state, apiUpdateMemberStatus.newStatus)) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = MemberStatusUpdated(
@@ -83,6 +83,38 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
+  def isStateChangeValid(member: Member, status: ApiMemberStatus): Boolean = {
+    member.status match {
+      case MemberStatus.MEMBER_STATUS_DRAFT if (
+        member.getInfo.handle.nonEmpty &&
+        member.getInfo.avatar.nonEmpty &&
+        member.getInfo.firstName.nonEmpty &&
+        member.getInfo.lastName.nonEmpty &&
+        !status.isApiMemberStatusDraft
+      ) =>
+        true
+      case MemberStatus.MEMBER_STATUS_ACTIVE if (
+        !status.isApiMemberStatusDraft &&
+        !status.isApiMemberStatusActive
+      ) =>
+        true
+      case MemberStatus.MEMBER_STATUS_INACTIVE if (
+        !status.isApiMemberStatusDraft &&
+        !status.isApiMemberStatusInactive &&
+        !status.isApiMemberStatusSuspended
+      ) =>
+        true
+      case MemberStatus.MEMBER_STATUS_SUSPENDED if(
+        ! status.isApiMemberStatusDraft &&
+        ! status.isApiMemberStatusInactive &&
+        ! status.isApiMemberStatusSuspended
+      ) =>
+        true
+      case _ =>
+        false
     }
   }
 
@@ -263,7 +295,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           memberRegistered.memberId,
           memberRegistered.info,
           memberRegistered.meta,
-          MemberStatus.MEMBER_STATUS_ACTIVE
+          MemberStatus.MEMBER_STATUS_DRAFT
         )
         currentState.withMember(member)
       }
