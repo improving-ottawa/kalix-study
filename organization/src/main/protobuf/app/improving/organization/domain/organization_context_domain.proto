@@ -65,7 +65,6 @@ message UpdateInfo {
     optional bool isPrivate = 4;
     optional string url = 5; // URL type?
     optional string logo = 6; // URL type?
-    TenantId tenant = 7; //TODO should it have a tenant id? That's not in the riddl.
 }
 
 message FindOrganizationsByMember {
@@ -89,7 +88,7 @@ message MembersAddedToOrganization {
 message MembersRemovedFromOrganization {
     OrganizationId orgId = 1;
     repeated MemberId removedMembers = 2;
-    MemberId updatingMember = 3;
+    MetaInfo meta = 3;
 }
 
 message OrganizationAccountsUpdated {
