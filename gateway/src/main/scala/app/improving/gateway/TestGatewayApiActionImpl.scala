@@ -20,7 +20,7 @@ import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import scala.language.postfixOps
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.DurationInt
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //

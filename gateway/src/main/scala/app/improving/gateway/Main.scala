@@ -19,7 +19,8 @@ object Main {
     // `Kalix()` instance.
     KalixFactory.withComponents(
       new GatewayApiActionImpl(_),
-      new TestGatewayApiActionImpl(_)
+      new TestGatewayApiActionImpl(_),
+      new UiGatewayApiActionImpl(_)
     )
   }
 
