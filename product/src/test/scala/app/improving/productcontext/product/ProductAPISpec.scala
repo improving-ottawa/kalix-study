@@ -75,7 +75,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
 
       productInfoUpdate.info shouldBe Some(
         convertApiProductInfoToProductInfo(
-          apiProductInfoUpdate
+          apiProductInfoAfterUpdate
         )
       )
 

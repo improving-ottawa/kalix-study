@@ -75,18 +75,21 @@ object TestData {
   val testStoreIdUpdate = "test-store-id-update"
   val testMemberIdUpdate = "test-member-id-update"
   val testMemberId1Update = "test-member-id1-update"
-  val apiProductInfoUpdate = ApiProductInfo(
-    testSku,
-    testNameUpdate,
-    testDescriptionUpdate,
-    testSectionUpdate,
-    testRowUpdate,
-    testSeatUpdate,
-    Some(ApiEventId(testEventIdUpdate)),
+  val apiProductInfoUpdate = ApiProductInfoUpdate(
+    Option(testNameUpdate),
+    Option(testDescriptionUpdate),
     testImagesUpdate,
-    testPriceUpdate,
-    testCostUpdate,
+    None,
+    Option(testCostUpdate),
     Some(ApiStoreId(testStoreIdUpdate))
+  )
+
+  val apiProductInfoAfterUpdate = apiProductInfo.copy(
+    name = testNameUpdate,
+    description = testDescriptionUpdate,
+    image = testImagesUpdate,
+    cost = testCostUpdate,
+    store = Some(ApiStoreId(testStoreIdUpdate))
   )
 
   val apiProductMetaInfo = ApiProductMetaInfo(

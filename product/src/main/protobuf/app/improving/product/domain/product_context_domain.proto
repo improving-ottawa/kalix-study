@@ -27,17 +27,12 @@ message ProductInfo {
 }
 
 message ProductInfoUpdate {
-    ProductId sku = 1;
-    string  name = 2;
-    string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    EventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    StoreId store = 11;
+    optional string name = 1;
+    optional string description = 2;
+    repeated string image = 3;
+    optional double price = 4;
+    optional double cost = 5;
+    StoreId store = 6;
 }
 
 message ProductMetaInfo {
