@@ -462,7 +462,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         scenarioInfo.numTicketsPerEvent,
         eventsByOrg,
         storesByOrg
-      ).map { case (orgId, apiCreateProducts) =>
+      ).map { case (storeId, apiCreateProducts) =>
 
           log.info(
             s"in handleStartScenario genApiCreateProduct - apiCreateProducts ${apiCreateProducts}"
@@ -490,8 +490,8 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               10 seconds
             )
             .groupBy(_._1)
-            .map { case (orgId, seq) =>
-              orgId.storeId -> Skus(seq.map(_._2))
+            .map { case (orgId, set) =>
+              orgId.storeId -> Skus(set.map(_._2).toSeq)
             }
 
           log.info(
@@ -502,11 +502,6 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
           Await.result(
             for {
-              event <- eventService.getEventById(
-                ApiGetEventById(
-                  eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
-                )
-              )
               temp <- Future
                 .sequence(result.map { case (storeId, products) =>
                   storeService.openStore(
@@ -556,7 +551,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       numOfProductsPerEvent: Int,
       eventsByOrg: Map[String, EventIds],
       storesByOrg: Map[String, StoreIds]
-  ): Map[String, Set[ApiCreateProduct]] = {
+  ): Map[ApiStoreId, Set[ApiCreateProduct]] = {
 
     log.info(
       s"in handleStartScenario genApiCreateProduct - eventsByOrg ${eventsByOrg} storesByOrg ${storesByOrg}"
@@ -580,7 +575,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             (1 to numProducts)
               .map { _ =>
                 val sku = UUID.randomUUID().toString
-                orgAndStores._1 -> ApiCreateProduct(
+                orgAndStores._2 -> ApiCreateProduct(
                   sku,
                   Some(
                     ApiProductInfo(
