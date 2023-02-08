@@ -38,8 +38,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         orgId = "testOrgId",
         newInfo = Some(
           ApiUpdateInfo(
-            name = "sample-name",
-            shortName = "sample-shortname",
+            name = Some("sample-name"),
+            shortName = Some("sample-shortname"),
             address = Some(
               ApiAddress(
                 line1 = "line1",
@@ -52,12 +52,13 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
                 )
               )
             ),
-            isPrivate = true,
-            url = "www.test.com",
-            logo = "N/A",
+            isPrivate = Some(true),
+            url = Some("www.test.com"),
+            logo = Some("N/A"),
             tenant = Some(ApiTenantId(testTenantId))
           )
-        )
+        ),
+        editingMember = Some(ApiMemberId("member2"))
       )
 
       val updateInfoResult =
@@ -72,6 +73,24 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
     }
 
+    "reject EstablishOrganization command with missing info" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val missingInfoEstbalishOrganizationCommand = apiEstablishOrganization.copy(info = None)
+      val result = testKit.establishOrganization(missingInfoEstbalishOrganizationCommand)
+      result.isError shouldBe true
+      result.errorDescription shouldBe "Message is missing the following fields: Info"
+    }
+
+    "reject EstablishOrganization command with info missing necessary fields" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val missingInfoEstbalishOrganizationCommand = apiEstablishOrganization.copy(info = apiEstablishOrganization.info.map(_.copy(tenant = None, name = "")))
+      val result = testKit.establishOrganization(missingInfoEstbalishOrganizationCommand)
+      result.isError shouldBe true
+      result.errorDescription shouldBe "Message is missing the following fields: Info.Tenant, Info.Name"
+    }
+
     "return empty effect from edit and update info with terminated status" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
@@ -79,8 +98,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         orgId = "testOrgId",
         newInfo = Some(
           ApiUpdateInfo(
-            name = "sample-name",
-            shortName = "sample-shortname",
+            name = Some("sample-name"),
+            shortName = Some("sample-shortname"),
             address = Some(
               ApiAddress(
                 line1 = "line1",
@@ -93,9 +112,9 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
                 )
               )
             ),
-            isPrivate = true,
-            url = "www.test.com",
-            logo = "N/A",
+            isPrivate = Some(true),
+            url = Some("www.test.com"),
+            logo = Some("N/A"),
             tenant = Some(ApiTenantId(testTenantId))
           )
         )
@@ -161,7 +180,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
           orgId,
-          ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED,
+          Some(ApiMemberId("member1"))
         )
 
       val updateOrganizationStatusResult =

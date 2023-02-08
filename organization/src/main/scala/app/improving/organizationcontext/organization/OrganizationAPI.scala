@@ -88,7 +88,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             val event = MembersRemovedFromOrganization(
               orgId = Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
               removedMembers = membersToRemove.map(convertApiMemberIdToMemberId),
-              updatingMember = Some(updatingMember)
+              meta = org.orgMeta.map(_.copy(lastUpdated = Some(nowTs), lastUpdatedBy = Some(updatingMember)))
             )
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
@@ -389,18 +389,12 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if !currentState.organization.map(_.status).contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) && org.oid == membersRemovedFromOrganization.orgId => {
 
-        val meta = org.orgMeta.map(meta => {
-          meta.copy(
-            lastUpdated = Some(nowTs),
-            lastUpdatedBy = membersRemovedFromOrganization.updatingMember
-          )
-        })
         currentState.withOrganization(
           org.copy(
             members = org.members.filterNot(
               membersRemovedFromOrganization.removedMembers.contains(_)
             ),
-            orgMeta = meta
+            orgMeta = membersRemovedFromOrganization.meta
           )
         )
       }
@@ -573,7 +567,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   private def getMissingFieldsError(
       requiredFields: Map[String, Option[Any]]
   ): String = {
-    val missingFields = requiredFields.filter(_._2.isDefined)
+    val missingFields = requiredFields.filter(_._2.isEmpty)
     s"Message is missing the following fields: ${missingFields.keySet.mkString(", ")}"
   }
 

@@ -20,7 +20,7 @@ object TestData {
     Some(
       ApiInfo(
         "name-test",
-        "shortname-test",
+        Some("shortname-test"),
         Some(
           ApiAddress(
             "line1",
@@ -33,9 +33,9 @@ object TestData {
             )
           )
         ),
-        true,
-        "www.test.com",
-        "N/A",
+        Some(true),
+        Some("www.test.com"),
+        Some("N/A"),
         Some(ApiTenantId(testTenantId))
       )
     ),
