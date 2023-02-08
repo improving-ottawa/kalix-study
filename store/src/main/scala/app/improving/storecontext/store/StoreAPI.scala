@@ -62,9 +62,9 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.store match {
       case Some(store)
-          if store.storeId == Some(
+          if store.storeId.contains(
             StoreId(apiUpdateStore.storeId)
-          ) && store.meta.map(_.status) != Some(StoreStatus.DELETED) => {
+          ) && !store.meta.map(_.status).contains(StoreStatus.DELETED) => {
         val event = StoreUpdated(
           Some(StoreId(apiUpdateStore.storeId)),
           apiUpdateStore.info.map(convertApiStoreInfoToStoreInfo),
