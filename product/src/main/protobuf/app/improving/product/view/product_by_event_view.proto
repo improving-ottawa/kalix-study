@@ -7,14 +7,11 @@ import "app/improving/product/domain/product_context_domain.proto";
 import "kalix/annotations.proto";
 
 message TicketByEventRequest {
-    string eventId = 1;
+    string event_id = 1;
 }
 
 message TicketByEventResponse {
-    string sku = 1;
-    product.ApiProductInfo info = 2;
-    product.ApiProductMetaInfo meta = 3;
-    product.ApiProductStatus status = 4;
+    repeated productcontext.product.ApiProduct products = 1;
 }
 
 
@@ -72,12 +69,12 @@ service TicketByEventView {
         };
     }
 
-    rpc FindMembersByEventTime(TicketByEventRequest) returns (stream TicketByEventResponse) {
+    rpc FindMembersByEvent(TicketByEventRequest) returns (TicketByEventResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "* "
+                    "* AS products "
                     "FROM ticket_by_event_product "
-                    "WHERE ticket_by_event_product.info.event.event_id = :eventId "
+                    "WHERE ticket_by_event_product.info.event.event_id = :event_id "
         };
     }
 

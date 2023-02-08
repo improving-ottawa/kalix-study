@@ -51,7 +51,7 @@ class AllProductsViewImpl(context: ViewContext)
   ): UpdateEffect[ApiProduct] = {
     effects.updateState(
       state.copy(
-        status = ApiProductStatus.ACTIVE
+        status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
       )
     )
   }
@@ -62,7 +62,7 @@ class AllProductsViewImpl(context: ViewContext)
   ): UpdateEffect[ApiProduct] = {
     effects.updateState(
       state.copy(
-        status = ApiProductStatus.INACTIVE
+        status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE
       )
     )
   }

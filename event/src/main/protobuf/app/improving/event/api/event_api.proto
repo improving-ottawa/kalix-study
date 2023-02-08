@@ -9,12 +9,12 @@ import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
 enum ApiEventStatus {
-    SCHEDULED = 0;
-    INPROGRESS = 1;
-    PAST = 2;
-    CANCELLED = 3;
-    DELAYED = 4;
-    UNKNOWN = 5;
+    API_EVENT_STATUS_SCHEDULED = 0;
+    API_EVENT_STATUS_INPROGRESS = 1;
+    API_EVENT_STATUS_PAST = 2;
+    API_EVENT_STATUS_CANCELLED = 3;
+    API_EVENT_STATUS_DELAYED = 4;
+    API_EVENT_STATUS_UNKNOWN = 5;
 }
 message ApiReservationId {
     string reservation_id = 1 [(kalix.field).entity_key = true];
@@ -32,66 +32,66 @@ message ApiEvent {
 }
 
 message ApiEventInfo {
-    string eventName = 1;
+    string event_name = 1;
     string description = 2;
-    string eventURL = 3;
-    ApiOrganizationId sponsoringOrg = 4;
-    ApiGeoLocation geoLocation = 5;
+    string event_url = 3;
+    ApiOrganizationId sponsoring_org = 4;
+    ApiGeoLocation geo_location = 5;
     ApiReservationId reservation = 6;
-    google.protobuf.Timestamp expectedStart = 7;
-    google.protobuf.Timestamp expectedEnd = 8;
-    bool isPrivate = 9;
+    google.protobuf.Timestamp expected_start = 7;
+    google.protobuf.Timestamp expected_end = 8;
+    bool is_private = 9;
 }
 
 message ApiEventMetaInfo {
-    ApiMemberId scheduledBy = 1;
-    google.protobuf.Timestamp scheduledOn = 2;
-    ApiMemberId lastModifiedBy = 3;
-    google.protobuf.Timestamp lastModifiedOn = 4;
-    google.protobuf.Timestamp actualStart = 5;
-    google.protobuf.Timestamp actualEnd = 6;
+    ApiMemberId scheduled_by = 1;
+    google.protobuf.Timestamp scheduled_on = 2;
+    ApiMemberId last_modified_by = 3;
+    google.protobuf.Timestamp last_modified_on = 4;
+    google.protobuf.Timestamp actual_start = 5;
+    google.protobuf.Timestamp actual_end = 6;
     ApiEventStatus status = 7;
 }
 
 message ApiChangeEventInfo {
     string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
-    ApiMemberId changingMember = 3;
+    ApiMemberId changing_member = 3;
 }
 
 message ApiScheduleEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
-    ApiMemberId schedulingMember = 3;
+    ApiMemberId scheduling_member = 3;
 }
 
 message ApiCancelEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId cancellingMember = 2;
+    ApiMemberId cancelling_member = 2;
 }
 
 message ApiRescheduleEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     google.protobuf.Timestamp start = 2;
     google.protobuf.Timestamp end = 3;
-    ApiMemberId reschedulingMember = 4;
+    ApiMemberId rescheduling_member = 4;
 }
 
 message ApiDelayEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     string reason = 2;
-    google.protobuf.Duration expectedDuration = 3;
-    ApiMemberId delayingMember = 4;
+    google.protobuf.Duration expected_duration = 3;
+    ApiMemberId delaying_member = 4;
 }
 
 message ApiStartEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId startingMember = 2;
+    ApiMemberId starting_member = 2;
 }
 
 message ApiEndEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId endingMember = 2;
+    ApiMemberId ending_member = 2;
 }
 
 message ApiAddLiveUpdate {

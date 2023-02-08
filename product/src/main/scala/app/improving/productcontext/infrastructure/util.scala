@@ -12,7 +12,7 @@ import app.improving.{
 import app.improving.productcontext.{
   ProductCreated,
   ProductInfo,
-  ProductMetaInfo,
+  ProductMetaInfo
 }
 import app.improving.productcontext.product.{
   ApiProduct,
@@ -89,7 +89,7 @@ object util {
       productCreated.sku.map(_.id).getOrElse("ProductId is not found"),
       productCreated.info.map(convertProductInfoToApiProductInfo),
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
-      ApiProductStatus.ACTIVE
+      ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
     )
   }
 }

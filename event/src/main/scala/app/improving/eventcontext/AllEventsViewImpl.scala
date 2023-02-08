@@ -27,7 +27,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
           eventInfoChanged.eventId.map(_.id).getOrElse("EventId is NOT FOUND."),
           eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
           eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-          ApiEventStatus.SCHEDULED
+          ApiEventStatus.API_EVENT_STATUS_SCHEDULED
         )
       )
   }
@@ -39,7 +39,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state.copy(
         info = eventScheduled.info.map(convertEventInfoToApiEventInfo),
         meta = eventScheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-        status = ApiEventStatus.SCHEDULED
+        status = ApiEventStatus.API_EVENT_STATUS_SCHEDULED
       )
     )
   }
@@ -52,7 +52,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     val metaOpt = state.meta.map(meta =>
       meta.copy(
-        status = ApiEventStatus.CANCELLED,
+        status = ApiEventStatus.API_EVENT_STATUS_CANCELLED,
         lastModifiedOn = Some(timestamp),
         lastModifiedBy =
           eventCancelled.cancellingMember.map(member => ApiMemberId(member.id))
@@ -61,7 +61,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     effects.updateState(
       state.copy(
         meta = metaOpt,
-        status = ApiEventStatus.CANCELLED
+        status = ApiEventStatus.API_EVENT_STATUS_CANCELLED
       )
     )
   }
@@ -75,7 +75,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
         info = eventRescheduled.info.map(convertEventInfoToApiEventInfo),
         meta =
           eventRescheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-        status = ApiEventStatus.SCHEDULED
+        status = ApiEventStatus.API_EVENT_STATUS_SCHEDULED
       )
     )
   }
@@ -112,7 +112,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state.copy(
         info = infoOpt,
         meta = eventDelayed.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-        status = ApiEventStatus.DELAYED
+        status = ApiEventStatus.API_EVENT_STATUS_DELAYED
       )
     )
   }
@@ -125,7 +125,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state.copy(
         info = eventStarted.info.map(convertEventInfoToApiEventInfo),
         meta = eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-        status = ApiEventStatus.INPROGRESS
+        status = ApiEventStatus.API_EVENT_STATUS_INPROGRESS
       )
     )
   }
@@ -137,7 +137,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     effects.updateState(
       state.copy(
         meta = eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-        status = ApiEventStatus.PAST
+        status = ApiEventStatus.API_EVENT_STATUS_PAST
       )
     )
   }

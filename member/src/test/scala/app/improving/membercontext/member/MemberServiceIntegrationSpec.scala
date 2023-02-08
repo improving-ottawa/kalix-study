@@ -2,7 +2,6 @@ package app.improving.membercontext.member
 
 import TestData._
 import app.improving.ApiMemberId
-import app.improving.membercontext.Main
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures

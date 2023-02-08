@@ -21,8 +21,8 @@ object Main {
     KalixFactory.withComponents(
       new ProductAPI(_),
       new AllProductsViewImpl(_),
-      new TicketByEventViewImpl(_)
-    )
+      new TicketByEventTimeQueryView(_),
+      new TicketByEventViewImpl(_))
   }
 
   def main(args: Array[String]): Unit = {
