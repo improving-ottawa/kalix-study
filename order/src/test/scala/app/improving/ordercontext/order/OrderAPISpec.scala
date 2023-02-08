@@ -3,8 +3,7 @@ package app.improving.ordercontext.order
 import TestData._
 import app.improving.{ApiOrderId, MemberId}
 import app.improving.ordercontext.infrastructure.util.{
-  convertApiOrderStatusToOrderStatus,
-  convertLineItemToApiLineItem
+  convertApiOrderStatusToOrderStatus
 }
 import app.improving.ordercontext.{
   OrderCanceled,
