@@ -52,12 +52,26 @@ class ProductAPI(context: EventSourcedEntityContext)
       case Some(product)
           if product.sku == Some(
             ProductId(apiUpdateProductInfo.sku)
-          ) && product.status != ProductStatus.DELETED => {
+          ) && product.status != ProductStatus.DELETED
+          && product.info.isDefined => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val productInfoUpdateOpt = apiUpdateProductInfo.info.map(convertApiProductInfoUpdateToProductInfoUpdate)
+        val updatedProductInfo = product.info.map(productInfo => {
+          productInfoUpdateOpt.fold(productInfo) { productInfoUpdate =>
+            productInfo.copy(
+              name = productInfoUpdate.name.getOrElse(productInfo.name),
+              description = productInfoUpdate.description.getOrElse(productInfo.description),
+              image = if (productInfoUpdate.image.nonEmpty) productInfoUpdate.image else productInfo.image,
+              price = productInfoUpdate.price.getOrElse(productInfo.price),
+              cost = productInfoUpdate.cost.getOrElse(productInfo.cost),
+              store = productInfoUpdate.store.orElse(productInfo.store)
+            )
+          }
+        })
         val event = ProductInfoUpdated(
           Some(ProductId(apiUpdateProductInfo.sku)),
-          apiUpdateProductInfo.info.map(convertApiProductInfoToProductInfo),
+          updatedProductInfo,
           product.meta.map(
             _.copy(
               lastModifiedBy = apiUpdateProductInfo.updatingMember.map(member =>

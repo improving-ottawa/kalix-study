@@ -36,17 +36,12 @@ message ApiProductInfo {
 }
 
 message ApiProductInfoUpdate {
-    string sku = 1 [(kalix.field).entity_key = true];
-    string  name = 2;
-    string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    ApiEventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    ApiStoreId store = 11;
+    optional string name = 1;
+    optional string description = 2;
+    repeated string image = 3;
+    optional double price = 4;
+    optional double cost = 5;
+    ApiStoreId store = 6;
 }
 
 message ApiProductMetaInfo {
@@ -63,7 +58,7 @@ message ApiCreateProduct {
 }
 message ApiUpdateProductInfo {
     string sku = 1 [(kalix.field).entity_key = true];
-    ApiProductInfo info = 2;
+    ApiProductInfoUpdate info = 2;
     ApiMemberId updatingMember = 3;
 }
 message ApiDeleteProduct {
