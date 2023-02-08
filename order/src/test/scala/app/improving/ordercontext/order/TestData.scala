@@ -75,7 +75,7 @@ object TestData {
     Some(testOrderInfoPrivateFailedEvent),
     Some(ApiMemberId(testCreatingMemberId1))
   )
-  val testNewOrderStatus = ApiOrderStatus.READY
+  val testNewOrderStatus = ApiOrderStatus.API_ORDER_STATUS_READY
   val testUpdatingMemberId = "updating-member-id"
   val apiUpdateOrderStatus = ApiUpdateOrderStatus(
     testOrderId,

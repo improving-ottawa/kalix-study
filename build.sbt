@@ -50,18 +50,10 @@ lazy val tenant = project
   .configure(Kalix.service("tenant"))
   .configure(Kalix.dependsOn(common, "common"))
 
-lazy val organizationsForMembersAttendingEventsProjection = project
-  .in(file("organizationsForMembersAttendingEventsProjection"))
+lazy val projection = project
+  .in(file("projection"))
   .configure(
-    Kalix.service("organizationsForMembersAttendingEventsProjection")
-  )
-  .configure(Kalix.dependsOn(org, "organization"))
-  .configure(Kalix.dependsOn(member, "member"))
-
-lazy val membersAttendingEventsForAnOrganizationProjection = project
-  .in(file("membersAttendingEventsForAnOrganizationProjection"))
-  .configure(
-    Kalix.service("membersAttendingEventsForAnOrganizationProjection")
+    Kalix.service("projection")
   )
   .configure(Kalix.dependsOn(org, "organization"))
   .configure(Kalix.dependsOn(member, "member"))
@@ -78,17 +70,10 @@ lazy val gateway = project
   .configure(Kalix.dependsOn(member, "member"))
   .configure(
     Kalix.dependsOn(
-      membersAttendingEventsForAnOrganizationProjection,
-      "membersAttendingEventsForAnOrganizationProjection"
+      projection,
+      "projection"
     )
   )
-  .configure(
-    Kalix.dependsOn(
-      organizationsForMembersAttendingEventsProjection,
-      "organizationsForMembersAttendingEventsProjection"
-    )
-  )
-
 lazy val root = project
   .in(file("."))
   .settings(
@@ -96,4 +81,6 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(gateway)
+  .aggregate(
+    projection
+  )

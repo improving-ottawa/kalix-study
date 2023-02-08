@@ -3,7 +3,6 @@ package app.improving.ordercontext.order
 import TestData._
 import app.improving.MemberId
 import app.improving.ordercontext.infrastructure.util.{
-  convertApiOrderInfoToOrderInfo,
   convertApiOrderStatusToOrderStatus
 }
 import app.improving.ordercontext.{
@@ -156,7 +155,9 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCancelled.info shouldBe defined
       orderCancelled.meta shouldBe defined
 
-      orderCancelled.meta.map(_.status) shouldBe Some(OrderStatus.CANCELLED)
+      orderCancelled.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_CANCELLED
+      )
       orderCancelled.meta.flatMap(_.lastModifiedBy) shouldBe Some(
         MemberId(testCancellingMemberId)
       )
