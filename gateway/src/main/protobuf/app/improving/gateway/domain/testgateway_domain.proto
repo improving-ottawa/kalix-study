@@ -7,13 +7,12 @@ import "app/improving/gateway/domain/gateway_domain.proto";
 
 message ScenarioInfo {
     uint32 num_tenants = 1;
-    uint32 num_orgs_per_tenant = 2;
-    uint32 max_orgs_depth = 3;
-    uint32 max_orgs_width = 4;
-    uint32 num_members_per_org = 5;
-    uint32 num_events_per_org = 6;
-    uint32 num_stores = 7;
-    uint32 num_tickets_per_event = 8;
+    uint32 max_orgs_depth = 2;
+    uint32 max_orgs_width = 3;
+    uint32 num_members_per_org = 4;
+    uint32 num_events_per_org = 5;
+    uint32 num_stores = 6;
+    uint32 num_tickets_per_event = 7;
 }
 
 message StartScenario {
