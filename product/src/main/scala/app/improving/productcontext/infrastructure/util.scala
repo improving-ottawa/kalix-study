@@ -1,25 +1,8 @@
 package app.improving.productcontext.infrastructure
 
-import app.improving.{
-  ApiEventId,
-  ApiMemberId,
-  ApiStoreId,
-  EventId,
-  MemberId,
-  ProductId,
-  StoreId
-}
-import app.improving.productcontext.{
-  ProductCreated,
-  ProductInfo,
-  ProductMetaInfo,
-}
-import app.improving.productcontext.product.{
-  ApiProduct,
-  ApiProductInfo,
-  ApiProductMetaInfo,
-  ApiProductStatus
-}
+import app.improving.{ApiEventId, ApiMemberId, ApiStoreId, EventId, MemberId, ProductId, StoreId}
+import app.improving.productcontext.{ProductCreated, ProductInfo, ProductInfoUpdate, ProductMetaInfo}
+import app.improving.productcontext.product.{ApiProduct, ApiProductInfo, ApiProductInfoUpdate, ApiProductMetaInfo, ApiProductStatus}
 
 object util {
 
@@ -38,6 +21,19 @@ object util {
       apiProductInfo.price,
       apiProductInfo.cost,
       apiProductInfo.store.map(store => StoreId(store.storeId))
+    )
+  }
+
+  def convertApiProductInfoUpdateToProductInfoUpdate(
+    apiProductInfoUpdate: ApiProductInfoUpdate
+  ): ProductInfoUpdate = {
+    ProductInfoUpdate(
+      name = apiProductInfoUpdate.name,
+      description = apiProductInfoUpdate.description,
+      image = apiProductInfoUpdate.image,
+      price = apiProductInfoUpdate.price,
+      cost = apiProductInfoUpdate.cost,
+      store = apiProductInfoUpdate.store.map(store => StoreId(store.storeId))
     )
   }
 
