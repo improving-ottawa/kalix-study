@@ -61,10 +61,10 @@ message ApiUpdateMemberStatus {
 
 message ApiUpdateInfo {
     ApiContact contact = 1;
-    string handle = 2;
-    string avatar = 3; // URL type?
-    string first_name = 4;
-    string last_name = 5;
+    optional string handle = 2;
+    optional string avatar = 3; // URL type?
+    optional string first_name = 4;
+    optional string last_name = 5;
     optional ApiNotificationPreference notification_preference = 6;
     repeated ApiOrganizationId organization_membership = 7;
     ApiTenantId tenant_id = 8;

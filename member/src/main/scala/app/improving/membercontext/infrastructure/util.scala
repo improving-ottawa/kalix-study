@@ -34,10 +34,10 @@ object util {
   def convertInfoToApiUpdateInfo(info: Info): ApiUpdateInfo = {
     ApiUpdateInfo(
       info.contact.map(convertContactToApiContact),
-      info.handle,
-      info.avatar,
-      info.firstName,
-      info.lastName,
+      Option(info.handle),
+      Option(info.avatar),
+      Option(info.firstName),
+      Option(info.lastName),
       info.notificationPreference.map(convertNotificationPreference),
       info.organizationMembership.map(org => ApiOrganizationId(org.id))
     )
@@ -84,21 +84,21 @@ object util {
     Info(
       Some(
         Contact(
-          apiUpdateInfo.firstName,
-          apiUpdateInfo.lastName,
+          apiUpdateInfo.firstName.getOrElse(""),
+          apiUpdateInfo.lastName.getOrElse(""),
           apiUpdateInfo.contact.flatMap(
             _.emailAddress.map(email => EmailAddress(email.value))
           ),
           apiUpdateInfo.contact.flatMap(
             _.phone.map(mobile => MobileNumber(mobile.value))
           ),
-          apiUpdateInfo.handle
+          apiUpdateInfo.handle.getOrElse("")
         )
       ),
-      apiUpdateInfo.handle,
-      apiUpdateInfo.avatar,
-      apiUpdateInfo.firstName,
-      apiUpdateInfo.lastName,
+      apiUpdateInfo.handle.getOrElse(""),
+      apiUpdateInfo.avatar.getOrElse(""),
+      apiUpdateInfo.firstName.getOrElse(""),
+      apiUpdateInfo.lastName.getOrElse(""),
       apiUpdateInfo.notificationPreference.map(convertNotificationPreference),
       apiUpdateInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
