@@ -44,7 +44,7 @@ class MemberServiceIntegrationSpec
         client.getMemberData(ApiGetMemberData(testMemberId)).futureValue
 
       memberData.meta.map(_.memberStatus) shouldBe Some(
-        ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+        ApiMemberStatus.API_MEMBER_STATUS_DRAFT
       )
     }
 

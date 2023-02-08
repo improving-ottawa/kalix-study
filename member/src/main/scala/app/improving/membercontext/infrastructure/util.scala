@@ -57,6 +57,8 @@ object util {
       memberStatus: MemberStatus
   ): ApiMemberStatus = {
     memberStatus match {
+      case MemberStatus.MEMBER_STATUS_DRAFT =>
+        ApiMemberStatus.API_MEMBER_STATUS_DRAFT
       case MemberStatus.MEMBER_STATUS_ACTIVE =>
         ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
       case MemberStatus.MEMBER_STATUS_INACTIVE =>
@@ -164,6 +166,8 @@ object util {
       apiMemberStatus: ApiMemberStatus
   ): MemberStatus = {
     apiMemberStatus match {
+      case ApiMemberStatus.API_MEMBER_STATUS_DRAFT =>
+        MemberStatus.MEMBER_STATUS_DRAFT
       case ApiMemberStatus.API_MEMBER_STATUS_ACTIVE =>
         MemberStatus.MEMBER_STATUS_ACTIVE
       case ApiMemberStatus.API_MEMBER_STATUS_INACTIVE =>

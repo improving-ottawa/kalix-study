@@ -13,7 +13,8 @@ enum NotificationPreference {
 }
 
 enum MemberStatus {
-    MEMBER_STATUS_ACTIVE = 0;
+    MEMBER_STATUS_DRAFT = 0;
+    MEMBER_STATUS_ACTIVE = 1;
     MEMBER_STATUS_INACTIVE = 2;
     MEMBER_STATUS_SUSPENDED = 3;
     MEMBER_STATUS_TERMINATED = 4;

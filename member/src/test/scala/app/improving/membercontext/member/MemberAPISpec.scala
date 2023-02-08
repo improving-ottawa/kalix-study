@@ -32,7 +32,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_ACTIVE)
+      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_DRAFT)
 
       memberOpt.flatMap(_.info) shouldBe Some(convertApiInfoToInfo(apiInfo))
     }
@@ -54,7 +54,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_ACTIVE)
+      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_DRAFT)
 
       val testMember = testKit.currentState.member
         .flatMap(_.memberId)
@@ -75,6 +75,24 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
       memberOpt2 shouldBe defined
 
       memberOpt2.map(_.status) shouldBe Some(
+        MemberStatus.MEMBER_STATUS_INACTIVE
+      )
+
+      val updateCommandSuspendedStatus = ApiUpdateMemberStatus(
+        testMember,
+        Some(ApiMemberId(testMemberId2)),
+        ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED
+      )
+
+      val updatedSuspendedStatusResult = testKit.updateMemberStatus(updateCommandSuspendedStatus)
+
+      updatedSuspendedStatusResult.events should have size 0
+
+      val memberOpt3 = testKit.currentState.member
+
+      memberOpt3 shouldBe defined
+
+      memberOpt3.map(_.status) shouldBe Some(
         MemberStatus.MEMBER_STATUS_INACTIVE
       )
     }
