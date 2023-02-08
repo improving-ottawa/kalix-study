@@ -13,7 +13,8 @@ enum NotificationPreference {
 }
 
 enum MemberStatus {
-    MEMBER_STATUS_ACTIVE = 0;
+    MEMBER_STATUS_DRAFT = 0;
+    MEMBER_STATUS_ACTIVE = 1;
     MEMBER_STATUS_INACTIVE = 2;
     MEMBER_STATUS_SUSPENDED = 3;
     MEMBER_STATUS_TERMINATED = 4;
@@ -26,7 +27,7 @@ message Info {
     string avatar = 3; // URL type?
     string first_name = 4;
     string last_name = 5;
-    NotificationPreference notification_preference = 6;
+    optional NotificationPreference notification_preference = 6;
     repeated OrganizationId organization_membership = 7;
     optional TenantId tenant = 8;
 }

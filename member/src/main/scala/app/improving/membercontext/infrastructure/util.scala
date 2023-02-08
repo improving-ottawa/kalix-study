@@ -34,11 +34,11 @@ object util {
   def convertInfoToApiUpdateInfo(info: Info): ApiUpdateInfo = {
     ApiUpdateInfo(
       info.contact.map(convertContactToApiContact),
-      info.handle,
-      info.avatar,
-      info.firstName,
-      info.lastName,
-      convertNotificationPreference(info.notificationPreference),
+      Option(info.handle),
+      Option(info.avatar),
+      Option(info.firstName),
+      Option(info.lastName),
+      info.notificationPreference.map(convertNotificationPreference),
       info.organizationMembership.map(org => ApiOrganizationId(org.id))
     )
   }
@@ -57,6 +57,8 @@ object util {
       memberStatus: MemberStatus
   ): ApiMemberStatus = {
     memberStatus match {
+      case MemberStatus.MEMBER_STATUS_DRAFT =>
+        ApiMemberStatus.API_MEMBER_STATUS_DRAFT
       case MemberStatus.MEMBER_STATUS_ACTIVE =>
         ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
       case MemberStatus.MEMBER_STATUS_INACTIVE =>
@@ -82,24 +84,12 @@ object util {
 
   def convertApiUpdateInfoToInfo(apiUpdateInfo: ApiUpdateInfo): Info = {
     Info(
-      Some(
-        Contact(
-          apiUpdateInfo.firstName,
-          apiUpdateInfo.lastName,
-          apiUpdateInfo.contact.flatMap(
-            _.emailAddress.map(email => EmailAddress(email.value))
-          ),
-          apiUpdateInfo.contact.flatMap(
-            _.phone.map(mobile => MobileNumber(mobile.value))
-          ),
-          apiUpdateInfo.handle
-        )
-      ),
-      apiUpdateInfo.handle,
-      apiUpdateInfo.avatar,
-      apiUpdateInfo.firstName,
-      apiUpdateInfo.lastName,
-      convertNotificationPreference(apiUpdateInfo.notificationPreference),
+      apiUpdateInfo.contact.map(convertApiContactToContact),
+      apiUpdateInfo.handle.getOrElse(""),
+      apiUpdateInfo.avatar.getOrElse(""),
+      apiUpdateInfo.firstName.getOrElse(""),
+      apiUpdateInfo.lastName.getOrElse(""),
+      apiUpdateInfo.notificationPreference.map(convertNotificationPreference),
       apiUpdateInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
       ),
@@ -114,7 +104,7 @@ object util {
       apiInfo.avatar,
       apiInfo.firstName,
       apiInfo.lastName,
-      convertNotificationPreference(apiInfo.notificationPreference),
+      apiInfo.notificationPreference.map(convertNotificationPreference),
       apiInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)
       ),
@@ -176,6 +166,8 @@ object util {
       apiMemberStatus: ApiMemberStatus
   ): MemberStatus = {
     apiMemberStatus match {
+      case ApiMemberStatus.API_MEMBER_STATUS_DRAFT =>
+        MemberStatus.MEMBER_STATUS_DRAFT
       case ApiMemberStatus.API_MEMBER_STATUS_ACTIVE =>
         MemberStatus.MEMBER_STATUS_ACTIVE
       case ApiMemberStatus.API_MEMBER_STATUS_INACTIVE =>

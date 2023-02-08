@@ -14,7 +14,8 @@ enum ApiNotificationPreference {
 }
 
 enum ApiMemberStatus {
-    API_MEMBER_STATUS_ACTIVE = 0;
+    API_MEMBER_STATUS_DRAFT = 0;
+    API_MEMBER_STATUS_ACTIVE = 1;
     API_MEMBER_STATUS_INACTIVE = 2;
     API_MEMBER_STATUS_SUSPENDED = 3;
     API_MEMBER_STATUS_TERMINATED = 4;
@@ -27,7 +28,7 @@ message ApiInfo {
     string avatar = 3; // URL type?
     string first_name = 4;
     string last_name = 5;
-    ApiNotificationPreference notification_preference = 6;
+    optional ApiNotificationPreference notification_preference = 6;
     repeated ApiOrganizationId organization_membership = 7;
     optional ApiTenantId tenant = 8;
 }
@@ -61,11 +62,11 @@ message ApiUpdateMemberStatus {
 
 message ApiUpdateInfo {
     ApiContact contact = 1;
-    string handle = 2;
-    string avatar = 3; // URL type?
-    string first_name = 4;
-    string last_name = 5;
-    ApiNotificationPreference notification_preference = 6;
+    optional string handle = 2;
+    optional string avatar = 3; // URL type?
+    optional string first_name = 4;
+    optional string last_name = 5;
+    optional ApiNotificationPreference notification_preference = 6;
     repeated ApiOrganizationId organization_membership = 7;
     ApiTenantId tenant_id = 8;
 }

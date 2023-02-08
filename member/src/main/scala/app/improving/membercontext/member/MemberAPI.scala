@@ -48,7 +48,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               memberIdOpt,
               Some(timestamp),
               memberIdOpt,
-              MemberStatus.MEMBER_STATUS_ACTIVE
+              MemberStatus.MEMBER_STATUS_DRAFT
             )
           )
         )
@@ -62,9 +62,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
-          if state.memberId.contains(
+          if (state.memberId.contains(
             MemberId(apiUpdateMemberStatus.memberId)
-          ) =>
+          ) && isStateChangeValid(state, apiUpdateMemberStatus.newStatus)) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = MemberStatusUpdated(
@@ -86,6 +86,38 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
+  def isStateChangeValid(member: Member, status: ApiMemberStatus): Boolean = {
+    member.status match {
+      case MemberStatus.MEMBER_STATUS_DRAFT if (
+        member.getInfo.handle.nonEmpty &&
+        member.getInfo.avatar.nonEmpty &&
+        member.getInfo.firstName.nonEmpty &&
+        member.getInfo.lastName.nonEmpty &&
+        !status.isApiMemberStatusDraft
+      ) =>
+        true
+      case MemberStatus.MEMBER_STATUS_ACTIVE if (
+        !status.isApiMemberStatusDraft &&
+        !status.isApiMemberStatusActive
+      ) =>
+        true
+      case MemberStatus.MEMBER_STATUS_INACTIVE if (
+        !status.isApiMemberStatusDraft &&
+        !status.isApiMemberStatusInactive &&
+        !status.isApiMemberStatusSuspended
+      ) =>
+        true
+      case MemberStatus.MEMBER_STATUS_SUSPENDED if(
+        ! status.isApiMemberStatusDraft &&
+        ! status.isApiMemberStatusInactive &&
+        ! status.isApiMemberStatusSuspended
+      ) =>
+        true
+      case _ =>
+        false
+    }
+  }
+
   override def updateMemberInfo(
       currentState: MemberState,
       apiUpdateMemberInfo: ApiUpdateMemberInfo
@@ -98,11 +130,27 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>
           MemberId(member.memberId)
         )
+
+        val updatedInfoOpt = apiUpdateMemberInfo.info.fold(state.info) { newApiInfo =>
+          val newInfo = convertApiUpdateInfoToInfo(newApiInfo)
+          state.info.fold(Some(newInfo)) { currentInfo =>
+            Some(
+              currentInfo.copy(
+                contact = newInfo.contact.orElse(currentInfo.contact),
+                handle = if (newInfo.handle.nonEmpty) newInfo.handle else currentInfo.handle,
+                avatar = if (newInfo.avatar.nonEmpty) newInfo.avatar else currentInfo.avatar,
+                firstName = if (newInfo.firstName.nonEmpty) newInfo.firstName else currentInfo.firstName,
+                lastName = if (newInfo.lastName.nonEmpty) newInfo.lastName else currentInfo.lastName,
+                notificationPreference = newInfo.notificationPreference.orElse(currentInfo.notificationPreference),
+                organizationMembership = if (newInfo.organizationMembership.nonEmpty) newInfo.organizationMembership else currentInfo.organizationMembership,
+                tenant = newInfo.tenant.orElse(currentInfo.tenant)
+              )
+            )
+          }
+        }
         val event = MemberInfoUpdated(
           Some(MemberId(apiUpdateMemberInfo.memberId)),
-          apiUpdateMemberInfo.info.map(info =>
-            convertApiUpdateInfoToInfo(info)
-          ),
+          updatedInfoOpt,
           Some(
             MetaInfo(
               Some(timestamp),
@@ -247,7 +295,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           memberRegistered.memberId,
           memberRegistered.info,
           memberRegistered.meta,
-          MemberStatus.MEMBER_STATUS_ACTIVE
+          MemberStatus.MEMBER_STATUS_DRAFT
         )
         currentState.withMember(member)
       }

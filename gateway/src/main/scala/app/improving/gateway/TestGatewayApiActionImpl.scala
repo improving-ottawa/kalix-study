@@ -717,8 +717,10 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       r.nextString(10),
       r.nextString(10),
       r.nextString(10),
-      ApiNotificationPreference.values(
-        r.nextInt(ApiNotificationPreference.values.length)
+      Some(
+        ApiNotificationPreference.values(
+          r.nextInt(ApiNotificationPreference.values.length)
+        )
       ),
       Seq(orgWithMemberTenantAndName._1),
       Some(orgWithMemberTenantAndName._3)
