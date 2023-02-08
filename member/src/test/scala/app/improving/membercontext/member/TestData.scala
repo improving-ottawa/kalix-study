@@ -28,20 +28,20 @@ object TestData {
   )
   val apiUpdateInfo = ApiUpdateInfo(
     Some(apiContact),
-    "new-handle",
-    "new-avatar",
-    "new-firstname",
-    "new-lastname",
+    Some("new-handle"),
+    Some("new-avatar"),
+    Some("new-firstname"),
+    Some("new-lastname"),
     Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
     Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId)),
     Some(ApiTenantId(testTenantId1))
   )
   val apiPartialUpdateInfo = ApiUpdateInfo(
     Some(apiContact),
-    "new-handle",
-    "new-avatar",
-    "",
-    "new-lastname",
+    Some("new-handle"),
+    Some("new-avatar"),
+    Some(""),
+    Some("new-lastname"),
     Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
     Seq.empty,
     None
