@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package app.improving.gateway;
+
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+import "app/improving/gateway/domain/testgateway_domain.proto";
+
+service TestGatewayApiAction {
+    option (kalix.codegen) = {
+        action: { }
+    };
+
+
+    rpc HandleStartScenario(StartScenario) returns (ScenarioResults) {
+        option (google.api.http) = {
+            post: "/member/register-members"
+            body: "*"
+        };
+    }
+}

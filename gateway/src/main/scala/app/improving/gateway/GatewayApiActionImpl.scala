@@ -1,24 +1,21 @@
 package app.improving.gateway
 
-import akka.NotUsed
-import akka.stream.scaladsl.Source
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
   AllEventsView
 }
-import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
+import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
+import app.improving.organizationcontext.organization.{
+  ApiEstablishOrganization,
+  OrganizationService
+}
 import app.improving.organizationcontext.{
   AllOrganizationsRequest,
   AllOrganizationsView,
   AllOrganizationsresult
-}
-import app.improving.eventcontext.event.{
-  ApiEvent,
-  ApiScheduleEvent,
-  EventService
 }
 import app.improving.membercontext.{
   AllMembersRequest,
@@ -30,10 +27,6 @@ import app.improving.ordercontext.{
   AllOrdersView,
   AllOrdersresult
 }
-import app.improving.organizationcontext.organization.{
-  ApiEstablishOrganization,
-  OrganizationService
-}
 import app.improving.productcontext.{
   AllProductsRequest,
   AllProductsResult,
@@ -41,6 +34,7 @@ import app.improving.productcontext.{
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
+import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import app.improving.storecontext.{
   AllStoresRequest,
   AllStoresResult,
@@ -51,7 +45,6 @@ import app.improving.tenantcontext.{
   AllTenantsView,
   GetAllTenantRequest
 }
-import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -59,7 +52,6 @@ import org.slf4j.LoggerFactory
 
 import java.util.UUID
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -163,7 +155,6 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.product.grpc-client-name"
     )
   )
-
 
   val allMembersView = creationContext.getGrpcClient(
     classOf[AllMembersView],

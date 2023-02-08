@@ -95,10 +95,14 @@ object util {
       apiOrganizationStatus: ApiOrganizationStatus
   ): OrganizationStatus = {
     apiOrganizationStatus match {
-      case ApiOrganizationStatus.DRAFT      => OrganizationStatus.DRAFT
-      case ApiOrganizationStatus.ACTIVE     => OrganizationStatus.ACTIVE
-      case ApiOrganizationStatus.SUSPENDED  => OrganizationStatus.SUSPENDED
-      case ApiOrganizationStatus.TERMINATED => OrganizationStatus.TERMINATED
+      case ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT =>
+        OrganizationStatus.ORGANIZATION_STATUS_DRAFT
+      case ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE =>
+        OrganizationStatus.ORGANIZATION_STATUS_ACTIVE
+      case ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED =>
+        OrganizationStatus.ORGANIZATION_STATUS_SUSPENDED
+      case ApiOrganizationStatus.API_ORGANIZATION_STATUS_TERMINATED =>
+        OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
       case ApiOrganizationStatus.Unrecognized(unrecognizedValue) =>
         OrganizationStatus.Unrecognized(unrecognizedValue)
     }
@@ -108,10 +112,14 @@ object util {
       organizationStatus: OrganizationStatus
   ): ApiOrganizationStatus = {
     organizationStatus match {
-      case OrganizationStatus.DRAFT      => ApiOrganizationStatus.DRAFT
-      case OrganizationStatus.ACTIVE     => ApiOrganizationStatus.ACTIVE
-      case OrganizationStatus.SUSPENDED  => ApiOrganizationStatus.SUSPENDED
-      case OrganizationStatus.TERMINATED => ApiOrganizationStatus.TERMINATED
+      case OrganizationStatus.ORGANIZATION_STATUS_DRAFT =>
+        ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
+      case OrganizationStatus.ORGANIZATION_STATUS_ACTIVE =>
+        ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
+      case OrganizationStatus.ORGANIZATION_STATUS_SUSPENDED =>
+        ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED
+      case OrganizationStatus.ORGANIZATION_STATUS_TERMINATED =>
+        ApiOrganizationStatus.API_ORGANIZATION_STATUS_TERMINATED
       case OrganizationStatus.Unrecognized(unrecognizedValue) =>
         ApiOrganizationStatus.Unrecognized(unrecognizedValue)
     }
@@ -205,7 +213,7 @@ object util {
       organizationEstablished.info
         .map(_.name)
         .getOrElse("Name is not provided."),
-      ApiOrganizationStatus.DRAFT
+      ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
     )
   }
 //  private def convertOrganizationStatusToApiOrganizationStatus(

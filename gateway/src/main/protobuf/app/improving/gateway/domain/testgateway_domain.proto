@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package app.improving.gateway;
+
+import "common_api.proto";
+import "app/improving/gateway/domain/gateway_domain.proto";
+
+message ScenarioInfo {
+    uint32 num_tenants = 1;
+    uint32 num_orgs_per_tenant = 2;
+    uint32 max_orgs_depth = 3;
+    uint32 max_orgs_width = 4;
+    uint32 num_members_per_org = 5;
+    uint32 num_events_per_org = 6;
+    uint32 num_stores = 7;
+    uint32 num_tickets_per_event = 8;
+}
+
+message StartScenario {
+    ScenarioInfo scenario_info = 1;
+}
+
+message ScenarioResults {
+    repeated ApiTenantId tenants = 1;
+    map<string, OrganizationIds> orgs_for_tenants = 2;
+    map<string, MemberIds> members_for_orgs = 3;
+    map<string, EventIds> events_for_orgs = 4;
+    StoreIds store_ids = 6;
+    map<string, Skus> products_for_stores = 7;
+}

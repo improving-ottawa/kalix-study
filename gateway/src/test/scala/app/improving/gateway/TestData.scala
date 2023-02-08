@@ -97,7 +97,7 @@ object TestData {
           Some(ApiMemberId(establishingMemberId)),
           Some(timestamp),
           Some(ApiMemberId(establishingMemberId)),
-          ApiOrganizationStatus.DRAFT,
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
           Seq.empty[ApiOrganizationId]
         )
       )
@@ -146,7 +146,7 @@ object TestData {
           Some(ApiMemberId(establishingMemberId)),
           Some(timestamp),
           Some(ApiMemberId(establishingMemberId)),
-          ApiOrganizationStatus.DRAFT,
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
           Seq.empty[ApiOrganizationId]
         )
       )
@@ -269,9 +269,7 @@ object TestData {
       "avartar",
       "member-name",
       "short-name",
-      Some(ApiMobileNumber("987-878-0987")),
-      Some(ApiEmailAddress("member@memberapi.com")),
-      ApiNotificationPreference.SMS,
+      ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS,
       Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
       Some(ApiTenantId(testTenantId))
     )

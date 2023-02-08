@@ -8,7 +8,7 @@ package app.improving.membercontext.member;
 
 
 message Member {
-    MemberId memberId = 1;
+    MemberId member_id = 1;
     Info info = 2;
     MetaInfo meta = 3;
     MemberStatus status = 4;

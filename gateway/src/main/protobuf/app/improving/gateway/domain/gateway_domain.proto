@@ -28,13 +28,13 @@ message TenantsCreated {
 }
 
 message EstablishOrganization {
-    organizationcontext.organization.ApiInfo info = 1;
-    organizationcontext.organization.ApiParent parent = 2;
-    repeated ApiMemberId members = 3;
-    repeated ApiMemberId owners = 4;
-    repeated organizationcontext.organization.ApiContacts contacts = 5;
-    ApiMemberId establishing_member = 6;
-    organizationcontext.organization.ApiMetaInfo meta = 7;
+    organizationcontext.organization.ApiInfo info = 2;
+    organizationcontext.organization.ApiParent parent = 3;
+    repeated ApiMemberId members = 4;
+    repeated ApiMemberId owners = 5;
+    repeated organizationcontext.organization.ApiContacts contacts = 6;
+    ApiMemberId establishing_member = 7;
+    organizationcontext.organization.ApiMetaInfo meta = 8;
 }
 
 message CreateOrganization {
@@ -53,6 +53,11 @@ message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
 
+message ScheduleEvent {
+    eventcontext.event.ApiEventInfo info = 1;
+    ApiMemberId scheduling_member = 2;
+}
+
 message CreateEvent {
     eventcontext.event.ApiEventInfo info = 1;
     ApiMemberId scheduling_member = 2;
@@ -69,6 +74,11 @@ message CreateEvents {
 
 message EventsCreated {
     repeated ApiEventId events_created = 1;
+}
+
+message EstablishStore {
+    storecontext.store.ApiStoreInfo info = 1;
+    ApiMemberId creating_member = 2;
 }
 
 message CreateStore {
@@ -153,4 +163,28 @@ message CreateOrders {
 
 message OrdersCreated {
     repeated ApiOrderId orders_created = 1;
+}
+
+message OrganizationIds {
+    repeated ApiOrganizationId org_ids = 1;
+}
+
+message MemberIds {
+    repeated ApiMemberId member_ids = 1;
+}
+
+message EventIds {
+    repeated ApiEventId event_ids = 1;
+}
+
+message OrderIds {
+    repeated ApiOrderId order_ids = 1;
+}
+
+message StoreIds {
+    repeated ApiStoreId store_ids = 1;
+}
+
+message Skus {
+    repeated ApiProductId skus = 1;
 }
