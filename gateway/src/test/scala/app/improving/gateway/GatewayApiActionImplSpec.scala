@@ -4,16 +4,10 @@ import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.ApiMemberId
-import app.improving.eventcontext.{AllEventsRequest, AllEventsViewClient}
+import app.improving.eventcontext.AllEventsRequest
 import app.improving.ordercontext.order.ApiLineItem
 import app.improving.tenantcontext.GetAllTenantRequest
 import app.improving.organizationcontext.AllOrganizationsRequest
-import app.improving.{ApiEventId, ApiMemberId}
-import app.improving.organizationcontext.organization.{
-  OrganizationService,
-  OrganizationServiceClient
-}
-import app.improving.ApiMemberId
 import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
 import app.improving.productcontext.AllProductsRequest

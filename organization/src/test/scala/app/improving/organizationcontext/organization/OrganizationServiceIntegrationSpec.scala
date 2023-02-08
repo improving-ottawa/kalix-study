@@ -12,8 +12,6 @@ import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
 
-import java.time.Instant
-
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -67,7 +65,7 @@ class OrganizationServiceIntegrationSpec
           .getOrganization(ApiGetOrganizationById(id.organizationId))
           .futureValue
 
-      organization.status shouldBe ApiOrganizationStatus.DRAFT
+      organization.status shouldBe ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
 
       organization.oid shouldBe Some(
         ApiOrganizationId(id.organizationId)
@@ -76,7 +74,7 @@ class OrganizationServiceIntegrationSpec
       client.updateOrganizationStatus(
         ApiOrganizationStatusUpdated(
           id.organizationId,
-          ApiOrganizationStatus.ACTIVE
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
         )
       )
 
@@ -85,7 +83,7 @@ class OrganizationServiceIntegrationSpec
           .getOrganization(ApiGetOrganizationById(id.organizationId))
           .futureValue
 
-      activeOrganization.status shouldBe ApiOrganizationStatus.ACTIVE
+      activeOrganization.status shouldBe ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
 
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
         id.organizationId,

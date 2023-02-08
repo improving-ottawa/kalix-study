@@ -6,10 +6,10 @@ import "google/protobuf/timestamp.proto";
 package app.improving.organizationcontext;
 
 enum OrganizationStatus {
-    DRAFT = 0;
-    ACTIVE = 1;
-    SUSPENDED = 2;
-    TERMINATED = 3;
+    ORGANIZATION_STATUS_DRAFT = 0;
+    ORGANIZATION_STATUS_ACTIVE = 1;
+    ORGANIZATION_STATUS_SUSPENDED = 2;
+    ORGANIZATION_STATUS_TERMINATED = 3;
 }
 
 

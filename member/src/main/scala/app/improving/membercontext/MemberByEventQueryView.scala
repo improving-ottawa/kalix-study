@@ -126,7 +126,7 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val updatedMetaOpt = state.meta.map(
 //        _.copy(
-//          last_modified_by = orderStatusUpdated.updating_member.map(member =>
+//          last_modified_by = orderStatusUpdated.updatingMember.map(member =>
 //            ApiMemberId(member.id)
 //          ),
 //          last_modified_on = Some(timestamp),
@@ -325,7 +325,7 @@
 //        meta.copy(
 //          status = ApiEventStatus.CANCELLED,
 //          last_modified_on = Some(timestamp),
-//          last_modified_by = eventCancelled.cancelling_member.map(member =>
+//          last_modified_by = eventCancelled.cancellingMember.map(member =>
 //            ApiMemberId(member.id)
 //          )
 //        )

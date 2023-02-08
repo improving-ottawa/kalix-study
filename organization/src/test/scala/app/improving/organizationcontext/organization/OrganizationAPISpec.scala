@@ -13,8 +13,6 @@ import app.improving.organizationcontext.{
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-import java.time.Instant
-
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -163,7 +161,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
           orgId,
-          ApiOrganizationStatus.SUSPENDED
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED
         )
 
       val updateOrganizationStatusResult =
@@ -176,10 +174,10 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val organizationStatusUpdated =
         updateOrganizationStatusResult.nextEvent[OrganizationStatusUpdated]
 
-      organizationStatusUpdated.newStatus shouldBe OrganizationStatus.SUSPENDED
+      organizationStatusUpdated.newStatus shouldBe OrganizationStatus.ORGANIZATION_STATUS_SUSPENDED
 
       testKit.currentState.organization.map(_.status) shouldBe Some(
-        OrganizationStatus.SUSPENDED
+        OrganizationStatus.ORGANIZATION_STATUS_SUSPENDED
       )
     }
 
@@ -189,7 +187,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
           testOrgId,
-          ApiOrganizationStatus.SUSPENDED
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED
         )
 
       val updateOrganizationStatusResult =

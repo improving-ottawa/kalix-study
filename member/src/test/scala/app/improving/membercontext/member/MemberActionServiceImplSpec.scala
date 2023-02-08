@@ -1,7 +1,6 @@
 package app.improving.membercontext.member
 
 import app.improving.ApiMemberId
-import com.google.protobuf.empty.Empty
 import kalix.scalasdk.testkit.MockRegistry
 import org.scalamock.scalatest.AsyncMockFactory
 import org.scalatest.matchers.should.Matchers
@@ -41,7 +40,6 @@ class MemberActionServiceImplSpec
         ApiMemberMap(Map[String, ApiInfo](testMemberId -> apiInfo))
 
       val apiRegisterMemberList = ApiRegisterMemberList(
-        testMemberId,
         Some(memberMap),
         Some(ApiMemberId(testMemberId2))
       )

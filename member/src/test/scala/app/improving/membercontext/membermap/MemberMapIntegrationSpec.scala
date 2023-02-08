@@ -1,8 +1,14 @@
 package app.improving.membercontext.membermap
 
 import kalix.scalasdk.testkit.KalixTestKit
-import app.improving.membercontext.NotificationPreference
-import app.improving.{Contact, EmailAddress, MobileNumber, OrganizationId, TenantId}
+import app.improving.membercontext.{Main, NotificationPreference}
+import app.improving.{
+  Contact,
+  EmailAddress,
+  MobileNumber,
+  OrganizationId,
+  TenantId
+}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -46,7 +52,7 @@ class MemberMapIntegrationSpec
       "short-name",
       Some(MobileNumber("987-878-0987")),
       Some(EmailAddress("member@memberapi.com")),
-      NotificationPreference.SMS,
+      NotificationPreference.NOTIFICATION_PREFERENCE_SMS,
       Seq[OrganizationId](OrganizationId(testMemberId)),
       Some(TenantId(testTenantId))
     )
@@ -58,7 +64,7 @@ class MemberMapIntegrationSpec
       "short-name2",
       Some(MobileNumber("987-878-0982")),
       Some(EmailAddress("membe2r@memberapi.com")),
-      NotificationPreference.SMS,
+      NotificationPreference.NOTIFICATION_PREFERENCE_SMS,
       Seq[OrganizationId](OrganizationId(testMemberId)),
       Some(TenantId(testTenantId))
     )

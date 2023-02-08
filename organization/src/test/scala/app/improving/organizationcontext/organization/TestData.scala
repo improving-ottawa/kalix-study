@@ -58,7 +58,7 @@ object TestData {
         Some(ApiMemberId(establishingMemberId)),
         Some(timestamp),
         Some(ApiMemberId(establishingMemberId)),
-        ApiOrganizationStatus.DRAFT,
+        ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
         Seq.empty[ApiOrganizationId]
       )
     )
