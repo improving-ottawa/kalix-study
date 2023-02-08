@@ -1,69 +1,13 @@
 package app.improving.gateway
 
-import app.improving.{
-  ApiAddress,
-  ApiContact,
-  ApiEmailAddress,
-  ApiEventId,
-  ApiGeoLocation,
-  ApiMemberId,
-  ApiMobileNumber,
-  ApiOrganizationId,
-  ApiProductId,
-  ApiStoreId,
-  ApiTenantId,
-  OrganizationId
-}
-import app.improving.membercontext.member.{
-  ApiInfo,
-  ApiMemberIds,
-  ApiMemberMap,
-  ApiMemberStatus,
-  ApiNotificationPreference,
-  ApiRegisterMember,
-  ApiRegisterMemberList,
-  ApiUpdateMemberStatus,
-  MemberActionService,
-  MemberService
-}
-import app.improving.eventcontext.event.{
-  ApiEventInfo,
-  ApiGetEventById,
-  ApiReservationId,
-  ApiScheduleEvent,
-  EventService
-}
-import app.improving.organizationcontext.organization.{
-  ApiContacts,
-  ApiEstablishOrganization,
-  ApiMetaInfo,
-  ApiOrganizationStatus,
-  ApiOrganizationStatusUpdated,
-  ApiParent,
-  OrganizationService
-}
-import app.improving.storecontext.store.{
-  ApiCreateStore,
-  ApiStoreInfo,
-  ApiUpdateStore,
-  StoreService
-}
-import app.improving.productcontext.product.{
-  ApiCreateProduct,
-  ApiProductInfo,
-  ProductService
-}
-import app.improving.tenantcontext.tenant.{
-  ApiActivateTenant,
-  ApiEstablishTenant,
-  TenantService
-}
-import app.improving.gateway.util.util.{
-  genAddress,
-  genContact,
-  genEmailAddressForName,
-  genMobileNumber
-}
+import app.improving.{ApiAddress, ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiLocationId, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId, ApiVenueId, OrganizationId}
+import app.improving.membercontext.member.{ApiInfo, ApiMemberIds, ApiMemberMap, ApiMemberStatus, ApiNotificationPreference, ApiRegisterMember, ApiRegisterMemberList, ApiUpdateMemberStatus, MemberActionService, MemberService}
+import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiReservationId, ApiScheduleEvent, EventService}
+import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
+import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiUpdateStore, StoreService}
+import app.improving.productcontext.product.{ApiCreateProduct, ApiProductInfo, ProductService}
+import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
+import app.improving.gateway.util.util.{genAddress, genContact, genEmailAddressForName, genMobileNumber}
 import app.improving.organizationcontext.organization
 import com.google.protobuf.timestamp.Timestamp
 
@@ -74,8 +18,8 @@ import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
-import scala.language.postfixOps
 
+import scala.language.postfixOps
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
@@ -465,8 +409,8 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                           storeId = storeId,
                           products = products.skus,
                           event = Some(ApiEventId(event.eventId)),
-                          venue = None,
-                          location = None
+                          venue = Some(ApiVenueId("test-venue-id")),
+                          location = Some(ApiLocationId("test-location-id"))
                         )
                       )
                     )
