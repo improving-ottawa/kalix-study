@@ -82,19 +82,7 @@ object util {
 
   def convertApiUpdateInfoToInfo(apiUpdateInfo: ApiUpdateInfo): Info = {
     Info(
-      Some(
-        Contact(
-          apiUpdateInfo.firstName.getOrElse(""),
-          apiUpdateInfo.lastName.getOrElse(""),
-          apiUpdateInfo.contact.flatMap(
-            _.emailAddress.map(email => EmailAddress(email.value))
-          ),
-          apiUpdateInfo.contact.flatMap(
-            _.phone.map(mobile => MobileNumber(mobile.value))
-          ),
-          apiUpdateInfo.handle.getOrElse("")
-        )
-      ),
+      apiUpdateInfo.contact.map(convertApiContactToContact),
       apiUpdateInfo.handle.getOrElse(""),
       apiUpdateInfo.avatar.getOrElse(""),
       apiUpdateInfo.firstName.getOrElse(""),

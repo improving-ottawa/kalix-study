@@ -16,6 +16,13 @@ object TestData {
     Some(ApiMobileNumber("987-878-0987")),
     "user-name"
   )
+  val updateApiContact = ApiContact(
+    "new-firstname",
+    "new-lastname",
+    Some(ApiEmailAddress("newemail@member.com")),
+    Some(ApiMobileNumber("898-000-9876")),
+    "user-name"
+  )
   val apiInfo = ApiInfo(
     Some(apiContact),
     "handle",
@@ -27,7 +34,7 @@ object TestData {
     Some(ApiTenantId(testTenantId))
   )
   val apiUpdateInfo = ApiUpdateInfo(
-    Some(apiContact),
+    Some(updateApiContact),
     Some("new-handle"),
     Some("new-avatar"),
     Some("new-firstname"),
@@ -40,7 +47,7 @@ object TestData {
     Some(apiContact),
     Some("new-handle"),
     Some("new-avatar"),
-    Some(""),
+    None,
     Some("new-lastname"),
     Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
     Seq.empty,
