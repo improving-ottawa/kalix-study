@@ -25,7 +25,7 @@ object util {
     EventInfo(
       apiEventInfo.eventName,
       apiEventInfo.description,
-      apiEventInfo.eventURL,
+      apiEventInfo.eventUrl,
       apiEventInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId)),
       apiEventInfo.geoLocation.map(location =>
         GeoLocation(location.latitude, location.longitude, location.elevation)
@@ -75,12 +75,12 @@ object util {
 
   def convertEventStatusToApiEventStatus(status: EventStatus): ApiEventStatus =
     status match {
-      case EventStatus.SCHEDULED  => ApiEventStatus.SCHEDULED
-      case EventStatus.INPROGRESS => ApiEventStatus.INPROGRESS
-      case EventStatus.PAST       => ApiEventStatus.PAST
-      case EventStatus.CANCELLED  => ApiEventStatus.CANCELLED
-      case EventStatus.DELAYED    => ApiEventStatus.DELAYED
-      case EventStatus.UNKNOWN    => ApiEventStatus.UNKNOWN
+      case EventStatus.SCHEDULED  => ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+      case EventStatus.INPROGRESS => ApiEventStatus.API_EVENT_STATUS_INPROGRESS
+      case EventStatus.PAST       => ApiEventStatus.API_EVENT_STATUS_PAST
+      case EventStatus.CANCELLED  => ApiEventStatus.API_EVENT_STATUS_CANCELLED
+      case EventStatus.DELAYED    => ApiEventStatus.API_EVENT_STATUS_DELAYED
+      case EventStatus.UNKNOWN    => ApiEventStatus.API_EVENT_STATUS_UNKNOWN
       case EventStatus.Unrecognized(unrecognizedValue) =>
         ApiEventStatus.Unrecognized(unrecognizedValue)
     }
@@ -103,7 +103,7 @@ object util {
       eventScheduled.meta.map(meta =>
         convertEventMetaInfoToApiEventMetaInfo(meta)
       ),
-      ApiEventStatus.SCHEDULED
+      ApiEventStatus.API_EVENT_STATUS_SCHEDULED
     )
   }
 
@@ -116,7 +116,7 @@ object util {
       eventRescheduled.meta.map(meta =>
         convertEventMetaInfoToApiEventMetaInfo(meta)
       ),
-      ApiEventStatus.SCHEDULED
+      ApiEventStatus.API_EVENT_STATUS_SCHEDULED
     )
   }
 

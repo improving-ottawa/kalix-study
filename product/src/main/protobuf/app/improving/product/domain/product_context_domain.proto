@@ -6,10 +6,10 @@ import "google/protobuf/timestamp.proto";
 package app.improving.productcontext;
 
 enum ProductStatus {
-    ACTIVE = 0;
-    INACTIVE = 2;
-    DELETED = 3;
-    UNKNOWN = 4;
+    PRODUCT_STATUS_ACTIVE = 0;
+    PRODUCT_STATUS_INACTIVE = 2;
+    PRODUCT_STATUS_DELETED = 3;
+    PRODUCT_STATUS_UNKNOWN = 4;
 }
 
 message ProductInfo {
@@ -41,10 +41,10 @@ message ProductInfoUpdate {
 }
 
 message ProductMetaInfo {
-    MemberId createdBy = 1;
-    google.protobuf.Timestamp createdOn = 2;
-    MemberId lastModifiedBy = 3;
-    google.protobuf.Timestamp lastModifiedOn = 4;
+    MemberId created_by = 1;
+    google.protobuf.Timestamp created_on = 2;
+    MemberId last_modified_by = 3;
+    google.protobuf.Timestamp last_modified_on = 4;
 }
 
 message ProductCreated {
@@ -59,15 +59,15 @@ message ProductInfoUpdated {
 }
 message ProductDeleted {
     ProductId sku = 1;
-    MemberId deletingMember = 2;
+    MemberId deleting_member = 2;
 }
 message ProductActivated {
     ProductId sku = 1;
-    MemberId activatingMember = 2;
+    MemberId activating_member = 2;
 }
 message ProductInactivated {
     ProductId sku = 1;
-    MemberId inactivatingMember = 2;
+    MemberId inactivating_member = 2;
 }
 message GetProductInfo {
     ProductId sku = 1;
