@@ -117,23 +117,15 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       val partialUpdateInfoOpt = memberOptPartial.flatMap(_.info)
 
-      val contactPartialOpt = partialUpdateInfoOpt.flatMap(_.contact)
+      partialUpdateInfoOpt shouldBe defined
 
-      contactPartialOpt.map(_.firstName) shouldBe Some("firstname")
+      partialUpdateInfoOpt.get.firstName shouldBe "member-name"
 
-      contactPartialOpt.map(_.lastName) shouldBe Some("new-lastname")
-
-      contactPartialOpt.flatMap(_.emailAddress) shouldBe Some(
-        EmailAddress("newemail@member.com")
-      )
-
-      contactPartialOpt.flatMap(_.phone) shouldBe Some(
-        MobileNumber("898-000-9876")
-      )
+      partialUpdateInfoOpt.get.lastName shouldBe "new-lastname"
 
       val apiOrganizationIdPartialOpt = partialUpdateInfoOpt.map(_.organizationMembership)
 
-      apiOrganizationIdPartialOpt.nonEmpty shouldBe true
+      apiOrganizationIdPartialOpt shouldBe defined
 
       val tenantIdPartialOpt = partialUpdateInfoOpt.flatMap(_.tenant)
 
