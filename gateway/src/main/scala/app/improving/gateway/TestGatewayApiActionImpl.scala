@@ -1,7 +1,6 @@
 package app.improving.gateway
 
 import app.improving.{
-  ApiAddress,
   ApiContact,
   ApiEmailAddress,
   ApiEventId,
@@ -13,13 +12,10 @@ import app.improving.{
   ApiProductId,
   ApiStoreId,
   ApiTenantId,
-  ApiVenueId,
-  OrganizationId,
-  TenantId
+  ApiVenueId
 }
 import app.improving.membercontext.member.{
   ApiInfo,
-  ApiMemberIds,
   ApiMemberMap,
   ApiMemberStatus,
   ApiNotificationPreference,
@@ -49,7 +45,6 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.{
   ApiCreateStore,
-  ApiOpenStore,
   ApiStoreInfo,
   ApiUpdateStore,
   StoreService
@@ -66,7 +61,6 @@ import app.improving.tenantcontext.tenant.{
 }
 import app.improving.gateway.util.util.{
   genAddress,
-  genContact,
   genEmailAddressForName,
   genMobileNumber
 }
@@ -75,7 +69,7 @@ import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID
 import scala.concurrent.{Await, Future}
-import scala.util.{Random, Success}
+import scala.util.Random
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -167,7 +161,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           .registerMember(genApiRegisterInitialMember())
           .map(memberId => {
             log.info(
-              s"handleStartScenario - initialMemberId - registerMember - ${memberId}"
+              s"handleStartScenario - initialMemberId - registerMember - $memberId"
             )
             memberService.updateMemberStatus(
               ApiUpdateMemberStatus(
@@ -181,7 +175,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         10 seconds
       )
 
-    log.info(s"in handleStartScenario initialMemberId - ${initialMemberId}")
+    log.info(s"in handleStartScenario initialMemberId - $initialMemberId")
 
     log.info(
       s"in handleStartScenario numOfTenants - ${startScenario.scenarioInfo.map(_.numTenants).getOrElse(0)}"
@@ -226,7 +220,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               )
               .map(memberId => {
                 log.info(
-                  s"handleStartScenario - initialMemberId - registerMember - ${memberId}"
+                  s"handleStartScenario - initialMemberId - registerMember - $memberId"
                 )
                 memberService.updateMemberStatus(
                   ApiUpdateMemberStatus(
@@ -321,31 +315,30 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       s"in handleStartScenario establishedOrgs - updateOrganizationStatus"
     )
 
-    val orgsByTenant: Map[String, OrganizationIds] =
+    val orgsByTenant: Map[ApiTenantId, Seq[ApiOrganizationId]] =
       establishedOrgs
         .map { case (orgId, establishedOrg) =>
           establishedOrg.info
             .flatMap(_.tenant)
-            .map(_.tenantId)
-            .getOrElse("TenantId is NOT FOUND.") ->
+            .getOrElse(ApiTenantId.defaultInstance) ->
             orgId
         }
         .groupBy(_._1)
-        .map(tup => tup._1 -> OrganizationIds(tup._2.values.toSeq.distinct))
+        .map(tup => tup._1 -> tup._2.values.toSeq.distinct)
 
-    log.info(s"in handleStartScenario orgsByTenant - ${orgsByTenant}")
+    log.info(s"in handleStartScenario orgsByTenant - $orgsByTenant")
 
-    val memberIds = Await.result(
+    val memberIds: Seq[ApiMemberId] = Await.result(
       Future
         .sequence(
           genApiRegisterMemberLists(
             scenarioInfo.numMembersPerOrg,
             orgsByTenant.flatMap { case (tenantId, orgIds) =>
-              orgIds.orgIds.map(orgId =>
+              orgIds.map(orgId =>
                 (
                   orgId,
                   initialMemberId,
-                  ApiTenantId(tenantId),
+                  tenantId,
                   establishedOrgs
                     .find(_._1 == orgId)
                     .flatMap(_._2.info.map(_.name))
@@ -374,30 +367,26 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       10 seconds
     )
 
-    log.info(s"in handleStartScenario memberIds - ${memberIds}")
+    log.info(s"in handleStartScenario memberIds - $memberIds")
 
-    val membersByOrg: Map[String, MemberIds] =
+    val membersByOrg: Map[ApiOrganizationId, Seq[ApiMemberId]] =
       establishedOrgs
         .map { case (orgId, establishedOrg) =>
           orgId -> establishedOrg.members
         }
         .groupBy(_._1)
-        .map(tup =>
-          tup._1.organizationId -> MemberIds(
-            tup._2.flatMap(_._2).toSeq
-          )
-        )
+        .map(tup => tup._1 -> tup._2.flatMap(_._2).toSeq)
 
-    log.info(s"in handleStartScenario membersByOrg - ${membersByOrg}")
+    log.info(s"in handleStartScenario membersByOrg - $membersByOrg")
 
-    val eventsByOrg: Map[String, EventIds] = Await
+    val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] = Await
       .result(
         Future
           .sequence(
             genApiScheduleEvents(
               startScenario.scenarioInfo
                 .map(_.numEventsPerOrg)
-                .getOrElse(0) * establishedOrgs.size: Int,
+                .getOrElse(0): Int,
               membersByOrg
             ).map(apiScheduleEvent => {
               eventService
@@ -407,7 +396,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     apiScheduleEvent.info
                       .flatMap(_.sponsoringOrg)
                       .getOrElse(
-                        ApiOrganizationId("OrganizationId is NOT FOUND.")
+                        ApiOrganizationId.defaultInstance
                       ),
                     eventId
                   )
@@ -419,43 +408,42 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       .groupBy { orgAndEvents: (ApiOrganizationId, ApiEventId) =>
         orgAndEvents._1
       }
-      .map { case (orgId, seq) =>
-        orgId.organizationId -> EventIds(seq.map(_._2))
+      .map {
+        case (
+              orgId: ApiOrganizationId,
+              seq: Seq[(ApiOrganizationId, ApiEventId)]
+            ) =>
+          orgId -> seq.map(_._2).toSet
       }
 
-    log.info(s"in handleStartScenario eventsByOrg - ${eventsByOrg}")
+    log.info(s"in handleStartScenario eventsByOrg - $eventsByOrg")
 
-    val storesByOrg: Map[String, StoreIds] = Await
+    val storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]] = Await
       .result(
         Future
           .sequence(
             genApiCreateStores(
-//              owners.map(owner =>
-//                owner._1.tenantId -> MemberIds(owner._2.toSeq)
-//              )
-              membersByOrg,
+              owners.map(owner => orgsByTenant(owner._1).head -> owner._2),
               eventsByOrg
             ).map(apiCreateStore => {
               storeService
                 .createStore(apiCreateStore)
                 .map(apiStoreId => {
-                  (
-                    apiCreateStore.info
-                      .flatMap(_.sponsoringOrg)
-                      .getOrElse(
-                        ApiOrganizationId("ApiOrganizationId is NOT FOUND.")
-                      ),
+                  apiCreateStore.info
+                    .flatMap(_.sponsoringOrg)
+                    .getOrElse(
+                      ApiOrganizationId.defaultInstance
+                    ) ->
                     apiStoreId
-                  )
                 })
             })
           ),
         10 seconds
       )
       .groupBy(_._1)
-      .map { case (orgId, seq) =>
-        orgId.organizationId -> StoreIds(seq.map(_._2).toSeq)
-      }
+      .map(orgWithStores =>
+        orgWithStores._1 -> orgWithStores._2.map(_._2).toSet
+      )
 
     log.info(s"in handleStartScenario storesByOrg - $storesByOrg")
 
@@ -468,27 +456,27 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         case productsMap =>
           val apiCreateProducts = productsMap.values.flatten
           log.info(
-            s"in handleStartScenario genApiCreateProduct - apiCreateProducts ${productsMap}"
+            s"in handleStartScenario genApiCreateProduct - apiCreateProducts $productsMap"
           )
 
           val result = Await
             .result(
               Future
                 .sequence(
-                  apiCreateProducts.map(apiCreateProduct => {
+                  apiCreateProducts.map { apiCreateProduct =>
                     log.info(
-                      s"in handleStartScenario genApiCreateProduct - apiCreateProduct ${apiCreateProduct}"
+                      s"in handleStartScenario genApiCreateProduct - apiCreateProduct $apiCreateProduct"
                     )
                     productService
                       .createProduct(apiCreateProduct)
-                      .map(productId => {
+                      .map { productId =>
                         apiCreateProduct.info
                           .flatMap(_.store)
                           .getOrElse(
-                            ApiStoreId("ApiStoreId is NOT FOUND.")
+                            ApiStoreId.defaultInstance
                           ) -> productId
-                      })
-                  })
+                      }
+                  }
                 ),
               10 seconds
             )
@@ -498,10 +486,10 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             }
 
           log.info(
-            s"in handleStartScenario genApiCreateProduct - result ${result}"
+            s"in handleStartScenario genApiCreateProduct - result $result"
           )
 
-          val eventIds = eventsByOrg.values.flatMap(_.eventIds)
+          val eventIds = eventsByOrg.values.toSeq.flatten
           Await.result(
             for {
               event <- eventService.getEventById(
@@ -509,7 +497,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
                 )
               )
-              temp <- (Future
+              temp <- Future
                 .sequence(result.map { case (storeId, products) =>
                   storeService.updateStore(
                     ApiUpdateStore(
@@ -525,7 +513,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                       )
                     )
                   )
-                }))
+                })
             } yield temp,
             10 seconds
           )
@@ -533,18 +521,24 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           result
       }
 
-    log.info(s"in handleStartScenario productsByStore - ${productsByStore}")
+    log.info(s"in handleStartScenario productsByStore - $productsByStore")
 
     effects.reply(
       ScenarioResults(
         tenantIds,
-        orgsByTenant,
-        membersByOrg,
-        eventsByOrg,
+        orgsByTenant.map(tenantWithOrgs =>
+          tenantWithOrgs._1.toString -> OrganizationIds(tenantWithOrgs._2)
+        ),
+        membersByOrg.map(orgWithMembers =>
+          orgWithMembers._1.toString -> MemberIds(orgWithMembers._2)
+        ),
+        eventsByOrg.map(orgWithEvents =>
+          orgWithEvents._1.toString -> EventIds(orgWithEvents._2.toSeq)
+        ),
         Some(
           storesByOrg.values.foldLeft(StoreIds(Seq.empty))(
             (accum, storeIds) => {
-              StoreIds(accum.storeIds ++ storeIds.storeIds)
+              StoreIds(accum.storeIds ++ storeIds)
             }
           )
         ),
@@ -555,26 +549,22 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
   private def genApiCreateProduct(
       numOfProductsPerEvent: Int,
-      eventsByOrg: Map[String, EventIds],
-      storesByOrg: Map[String, StoreIds]
+      eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]],
+      storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]]
   ): Map[ApiStoreId, Set[ApiCreateProduct]] = {
 
-    val eventOrgs = eventsByOrg.keySet
-    val storeOrgs = storesByOrg.keySet
-    val intersect = eventOrgs.intersect(storeOrgs)
-
     log.info(
-      s"in handleStartScenario genApiCreateProduct - eventsByOrg ${eventsByOrg} storesByOrg ${storesByOrg} numOfProductsPerEvent ${numOfProductsPerEvent} intersect ${intersect}"
+      s"in handleStartScenario genApiCreateProduct - eventsByOrg $eventsByOrg storesByOrg $storesByOrg numOfProductsPerEvent $numOfProductsPerEvent"
     )
 
     val r = new Random()
 
-    intersect
-      .flatMap(orgId => {
+    eventsByOrg.keys
+      .flatMap { orgId =>
         log.info(
           s"in handleStartScenario genApiCreateProduct - $orgId orgId "
         )
-        eventsByOrg(orgId).eventIds
+        eventsByOrg(orgId)
           .map(eventId => {
             log.info(
               s"in handleStartScenario genApiCreateProduct - $eventId eventId "
@@ -590,8 +580,8 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             (1 to numProducts)
               .map { _ =>
                 val sku = UUID.randomUUID().toString
-                val storeId = orgAndStores._2
-                  .storeIds(r.nextInt(orgAndStores._2.storeIds.size))
+                val storeId =
+                  orgAndStores._2.toSeq(r.nextInt(orgAndStores._2.size))
                 storeId -> ApiCreateProduct(
                   sku,
                   Some(
@@ -614,29 +604,23 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 )
               }
           }
-      })
+      }
+      .toSeq
       .flatten
       .groupBy(_._1)
-      .map(tuple => tuple._1 -> tuple._2.map(_._2))
+      .map(tuple => tuple._1 -> tuple._2.map(_._2).toSet)
   }
 
   private def genApiCreateStores(
-      membersByOrg: Map[String, MemberIds],
-      eventsByOrg: Map[String, EventIds]
-  ): Set[ApiCreateStore] = {
+      ownersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]],
+      eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]]
+  ): Seq[ApiCreateStore] = {
     val r = new Random()
     log.info(
-      s"in handleStartScenario genApiCreateStores - $eventsByOrg eventsByOrg ${membersByOrg} membersByOrg "
+      s"in handleStartScenario genApiCreateStores - $eventsByOrg eventsByOrg $ownersByOrg ownersByOrg "
     )
-    val memberOrgs = membersByOrg.keySet
-    val eventOrgs = eventsByOrg.keySet
-    val intersect = memberOrgs.intersect(eventOrgs)
 
-    (1 to r.between(1, membersByOrg.keys.size + 1)).map { _ =>
-      val orgId = intersect.toArray.apply(r.nextInt(intersect.size))
-      log.info(
-        s"in handleStartScenario genApiCreateStores - $intersect intersect ${orgId} orgId "
-      )
+    ownersByOrg.keys.map { orgId =>
       ApiCreateStore(
         UUID.randomUUID().toString,
         Some(
@@ -649,57 +633,59 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             None,
             None,
             Some(
-              ApiOrganizationId(orgId)
+              orgId
             )
           )
         ),
-        membersByOrg.get(orgId).flatMap(_.memberIds.headOption)
+        Some(ownersByOrg(orgId).head)
       )
-    }.toSet
+    }.toSeq
   }
 
   private def genApiScheduleEvents(
       numOfEvents: Integer,
-      membersByOrg: Map[String, MemberIds]
+      membersByOrg: Map[ApiOrganizationId, Seq[ApiMemberId]]
   ): Seq[ApiScheduleEvent] = {
     val r = new Random()
 
-    val result = (1 to r.between(1, numOfEvents + 1)).map { _ =>
-      membersByOrg.keys.map(organizationId => {
-        val schedulingMember =
-          membersByOrg.get(organizationId).map(_.memberIds.headOption).flatten
+    membersByOrg.keys
+      .map { organizationId =>
+        (1 to r.between(1, numOfEvents + 1)).map { _ =>
+          val schedulingMember =
+            membersByOrg.get(organizationId).flatMap(_.headOption)
 
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(
-          now.getEpochSecond,
-          now.getNano
-        )
-        ApiScheduleEvent(
-          UUID.randomUUID().toString,
-          Some(
-            ApiEventInfo(
-              r.nextString(15),
-              r.nextString(15),
-              r.nextString(15),
-              Some(ApiOrganizationId(organizationId)),
-              Some(
-                ApiGeoLocation(r.nextDouble(), r.nextDouble(), r.nextDouble())
-              ),
-              Some(ApiReservationId(r.nextString(15))),
-              Some(timestamp),
-              Some(
-                Timestamp.of(
-                  now.getEpochSecond + r.nextLong(100000),
-                  now.getNano + r.nextInt()
+          val now = java.time.Instant.now()
+          val timestamp = Timestamp.of(
+            now.getEpochSecond,
+            now.getNano
+          )
+          ApiScheduleEvent(
+            UUID.randomUUID().toString,
+            Some(
+              ApiEventInfo(
+                r.nextString(15),
+                r.nextString(15),
+                r.nextString(15),
+                Some(organizationId),
+                Some(
+                  ApiGeoLocation(r.nextDouble(), r.nextDouble(), r.nextDouble())
+                ),
+                Some(ApiReservationId(r.nextString(15))),
+                Some(timestamp),
+                Some(
+                  Timestamp.of(
+                    now.getEpochSecond + r.nextLong(100000),
+                    now.getNano + r.nextInt()
+                  )
                 )
               )
-            )
-          ),
-          schedulingMember
-        )
-      })
-    }
-    result.flatten
+            ),
+            schedulingMember
+          )
+        }
+      }
+      .toSeq
+      .flatten
   }
 
   private def genApiRegisterInitialMember(
@@ -747,11 +733,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     val r = new scala.util.Random()
 
     log.info(
-      s"handleStartScenario genApiEstablishTenants numTenants ${numTenants}"
+      s"handleStartScenario genApiEstablishTenants numTenants $numTenants"
     )
     (1 to numTenants).map(i => {
       log.info(
-        s"handleStartScenario genApiEstablishTenants numTenants ${i}"
+        s"handleStartScenario genApiEstablishTenants numTenants $i"
       )
 
       val tenantName = r.nextString(10)
@@ -787,7 +773,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Seq[ApiRegisterMemberList] = {
 
     log.info(
-      s"handleStartScenario genApiRegisterMemberLists numOfMembersPerOrg ${numOfMembersPerOrg}"
+      s"handleStartScenario genApiRegisterMemberLists numOfMembersPerOrg $numOfMembersPerOrg"
     )
 
     val r = new scala.util.Random()
@@ -934,8 +920,6 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               log.info(
                 s"handleStartScenario genApiEstablishOrgs tenant $tenant at width $w, depth $d"
               )
-              val now = java.time.Instant.now()
-              val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
               val id = UUID.randomUUID().toString
               establishOrgs = establishOrgs ++ Seq(
                 ApiEstablishOrganization(
