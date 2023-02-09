@@ -13,27 +13,35 @@ enum ProductStatus {
     UNKNOWN = 4;
 }
 
+enum ProductDetails {
+    RESERVED_TICKET = 0;
+    RESTRICTED_TICKET = 1;
+    OPEN_TICKET = 2;
+}
+
 message ProductInfo {
     ProductId sku = 1;
     string  name = 2;
     string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    EventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    StoreId store = 11;
+    ProductDetails productDetails = 4;
+    string section = 5;
+    string row = 6;
+    string seat = 7;
+    EventId event = 8;
+    repeated string image = 9;
+    double price = 10;
+    double cost = 11;
+    StoreId store = 12;
 }
 
 message ProductInfoUpdate {
     optional string name = 1;
     optional string description = 2;
-    repeated string image = 3;
-    optional double price = 4;
-    optional double cost = 5;
-    StoreId store = 6;
+    optional ProductDetails productDetails = 3;
+    repeated string image = 4;
+    optional double price = 5;
+    optional double cost = 6;
+    StoreId store = 7;
 }
 
 message ProductMetaInfo {

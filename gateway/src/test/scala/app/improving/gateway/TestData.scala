@@ -1,20 +1,11 @@
 package app.improving.gateway
 
 import app.improving._
-import app.improving.membercontext.member.{
-  ApiNotificationPreference,
-  ApiInfo => MemberApiInfo
-}
+import app.improving.membercontext.member.{ApiNotificationPreference, ApiInfo => MemberApiInfo}
 import app.improving.eventcontext.event.{ApiEventInfo, ApiReservationId}
-import app.improving.organizationcontext.organization.{
-  ApiOrganizationStatus,
-  ApiParent,
-  ApiInfo => OrgInfo,
-  ApiMetaInfo => OrgMetaInfo,
-  _
-}
+import app.improving.organizationcontext.organization.{ApiOrganizationStatus, ApiParent, ApiInfo => OrgInfo, ApiMetaInfo => OrgMetaInfo, _}
 import app.improving.storecontext.store.ApiStoreInfo
-import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
+import app.improving.productcontext.product.{ApiProductDetails, ApiProductInfo, ApiProductMetaInfo}
 import app.improving.tenantcontext.tenant.{ApiInfo => TenantInfo, _}
 import app.improving.ordercontext.order._
 import com.google.protobuf.timestamp.Timestamp
@@ -176,6 +167,7 @@ object TestData {
     val testStoreId = "test-store-id"
     val testName = "test-name"
     val testDescription = "test-description"
+    val testProductDetails = ApiProductDetails.OPEN_TICKET
     val testProductId1 = "test-product-id1"
     val testProductId2 = "test-product-id2"
     val testEventId = "test-event-id"
@@ -221,6 +213,7 @@ object TestData {
       testSku,
       testName,
       testDescription,
+      testProductDetails,
       testSection,
       testRow,
       testSeat,

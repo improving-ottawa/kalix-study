@@ -495,6 +495,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               sku,
               r.nextString(15),
               r.nextString(15),
+              ApiProductDetails.OPEN_TICKET,
               r.nextString(15),
               r.nextString(15),
               r.nextString(15),
