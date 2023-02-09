@@ -51,16 +51,6 @@ object TestData {
       ApiMemberId("member12")
     ),
     Seq.empty,
-    Some(ApiMemberId(establishingMemberId)),
-    Some(
-      ApiMetaInfo(
-        Some(timestamp),
-        Some(ApiMemberId(establishingMemberId)),
-        Some(timestamp),
-        Some(ApiMemberId(establishingMemberId)),
-        ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-        Seq.empty[ApiOrganizationId]
-      )
-    )
+    Some(ApiMemberId(establishingMemberId))
   )
 }

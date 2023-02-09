@@ -139,7 +139,10 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("Organization Id is not found.")
       val apiUpdateParent =
-        ApiUpdateParent(orgId, Some(ApiOrganizationId(newParentId)))
+        ApiUpdateParent(
+          orgId = orgId,
+          newParent = Some(ApiOrganizationId(newParentId)),
+          updatingMember = Some(ApiMemberId("member25")))
 
       val updateParentResult = testKit.updateParent(apiUpdateParent)
 
