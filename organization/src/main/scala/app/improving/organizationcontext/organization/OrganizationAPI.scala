@@ -316,7 +316,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             val statusDirectionOkayOrError: Either[String, Unit] = verifyStatusDirection(org.status, newStatus)
             val statusChangeOkayOrError: Either[String, Unit] = if(org.status == newStatus) Right(()) else verifyStatusStateBeforeStatusChange(org.status, currentState)
 
-            statusDirectionOkayOrError.orElse(statusChangeOkayOrError) match {
+            statusDirectionOkayOrError.flatMap(_ => statusChangeOkayOrError) match {
               case Left(error) => effects.error(error)
               case Right(_) =>
                 val event = OrganizationStatusUpdated(
@@ -570,11 +570,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   }
 
   private def getMissingFieldsError(
-      requiredFields: Map[String, Option[Any]],
-      container: String = "Message"
+      requiredFields: Map[String, Option[Any]]
   ): String = {
     val missingFields = requiredFields.filter(_._2.isEmpty)
-    s"$container is missing the following fields: ${missingFields.keySet.mkString(", ")}"
+    s"Message is missing the following fields: ${missingFields.keySet.mkString(", ")}"
   }
 
 
@@ -619,7 +618,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case _ => currentState.organization.map(verifyState).getOrElse(Map.empty[String, Option[Any]]) //all three of them have the same required fields
     }
     if(missingFields.isEmpty) Right(())
-    else Left(missingFields.mkString(s"Cannot leave state $oldStatus without required fields. The state is missing ${missingFields.mkString(", ")}"))
+    else Left(s"Cannot leave state $oldStatus without required fields. The state is missing: ${missingFields.keySet.mkString(", ")}")
   }
 
 

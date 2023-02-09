@@ -2,14 +2,8 @@ package app.improving.organizationcontext.organization
 
 import TestData._
 import app.improving._
-import app.improving.organizationcontext.{
-  MetaInfo,
-  OrganizationEstablished,
-  OrganizationInfoUpdated,
-  OrganizationStatus,
-  OrganizationStatusUpdated,
-  ParentUpdated
-}
+import app.improving.organizationcontext.{MetaInfo, OrganizationEstablished, OrganizationInfoUpdated, OrganizationStatus, OrganizationStatusUpdated, ParentUpdated}
+import com.google.protobuf.empty.Empty
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -254,6 +248,49 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       getOrganizationInfoResult.events should have size 0
 
     }
+
+    "fail to leave Draft state if requirements aren't met" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+      val missingMembersEstablingOrganization = apiEstablishOrganization.copy(members = Seq.empty[ApiMemberId])
+
+      testKit.establishOrganization(missingMembersEstablingOrganization)
+      val result = testKit.updateOrganizationStatus(ApiOrganizationStatusUpdated(
+        orgId = testOrgId,
+        newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+        updatingMember = Some(ApiMemberId("member36"))
+      ))
+      result.isError shouldBe true
+      result.errorDescription shouldBe "Cannot leave state ORGANIZATION_STATUS_DRAFT without required fields. The state is missing: Members"
+    }
+
+    "succeed in draft state update if already in draft state (even if required fields are missing in the state)" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+      val missingMembersEstablingOrganization = apiEstablishOrganization.copy(members = Seq.empty[ApiMemberId])
+
+      testKit.establishOrganization(missingMembersEstablingOrganization)
+      val result = testKit.updateOrganizationStatus(ApiOrganizationStatusUpdated(
+        orgId = testOrgId,
+        newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
+        updatingMember = Some(ApiMemberId("member36"))
+      ))
+      result.isReply shouldBe true
+      result.reply shouldBe Empty.defaultInstance
+    }
+
+    "fail to return to draft state when not in draft state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      testKit.establishOrganization(apiEstablishOrganization)
+      val result = testKit.updateOrganizationStatus(ApiOrganizationStatusUpdated(
+        orgId = testOrgId,
+        newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+        updatingMember = Some(ApiMemberId("member36"))
+      ))
+      result.isReply shouldBe true
+      result.reply shouldBe Empty.defaultInstance
+      result.updatedState.asInstanceOf[OrganizationState].organization.map(_.status) shouldBe Some(OrganizationStatus.ORGANIZATION_STATUS_ACTIVE)
+    }
+
 
     "correctly add members to the organization" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
