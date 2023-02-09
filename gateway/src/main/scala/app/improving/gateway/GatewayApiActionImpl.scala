@@ -1,6 +1,6 @@
 package app.improving.gateway
 
-import app.improving.{ApiEventId, ApiProductId, ApiStoreId}
+import app.improving.{ApiEventId, ApiOrganizationId, ApiProductId, ApiStoreId}
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -220,7 +220,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       organizationService
         .establishOrganization(
           ApiEstablishOrganization(
-            UUID.randomUUID().toString,
+            Some(ApiOrganizationId(UUID.randomUUID().toString)),
             createOrganization.establishOrganization.flatMap(_.info),
             createOrganization.establishOrganization.flatMap(_.parent),
             createOrganization.establishOrganization
@@ -257,7 +257,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               organizationService
                 .establishOrganization(
                   ApiEstablishOrganization(
-                    UUID.randomUUID().toString,
+                    Some(ApiOrganizationId(UUID.randomUUID().toString)),
                     establishOrganization.info,
                     establishOrganization.parent,
                     establishOrganization.members,

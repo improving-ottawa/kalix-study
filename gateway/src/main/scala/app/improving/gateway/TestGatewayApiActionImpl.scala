@@ -5,7 +5,7 @@ import app.improving.membercontext.member.{ApiInfo, ApiMemberIds, ApiMemberMap, 
 import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
 import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreUpdateInfo, ApiUpdateStore, StoreService}
-import app.improving.productcontext.product.{ApiCreateProduct, ApiProductInfo, ProductService}
+import app.improving.productcontext.product.{ApiCreateProduct, ApiProductDetails, ApiProductInfo, ApiReservedTicket, ProductService}
 import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
 import app.improving.gateway.util.util.{genAddress, genEmailAddressForName, genMobileNumber}
 import app.improving.ordercontext.order.OrderService
@@ -589,16 +589,22 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             .map { _ =>
               val sku = UUID.randomUUID().toString
               storeId -> ApiCreateProduct(
-                sku,
+                Some(ApiProductId(sku)),
                 Some(
                   ApiProductInfo(
-                    sku,
+                    Some(ApiProductId(sku)),
                     r.nextString(15),
                     r.nextString(15),
-                    r.nextString(15),
-                    r.nextString(15),
-                    r.nextString(15),
-                    Some(eventId),
+                    Some(
+                      ApiProductDetails(
+                        apiTicket = ApiProductDetails.ApiTicket.ReservedTicket(ApiReservedTicket(
+                          section = r.nextString(15),
+                          row = r.nextString(15),
+                          set = r.nextString(15),
+                          event = eventsByOrg(orgId).headOption
+                        ))
+                      )
+                    ),
                     Seq[String](r.nextString(15)),
                     r.nextDouble(),
                     r.nextDouble(),

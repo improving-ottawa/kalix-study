@@ -114,11 +114,11 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       // true -> event is not private (private is false)
       tupleFut.flatMap {
         case (true, _) => Future.successful(true)
-        case (false, Some(orgId)) => {
+        case (false, Some(orgId)) =>
           for {
             organization <- organization
               .getOrganization(
-                ApiGetOrganizationById(orgId.organizationId)
+                ApiGetOrganizationById(Some(orgId))
               )
           } yield {
             if (organization.memberIds.contains(memberId)) {
@@ -127,7 +127,6 @@ class OrderActionImpl(creationContext: ActionCreationContext)
               false
             }
           }
-        }
         case (false, None) => Future.successful(false)
       }
     }))

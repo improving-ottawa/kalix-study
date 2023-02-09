@@ -7,16 +7,16 @@ import java.time.Instant
 
 object TestData {
 
-  val testOrgId = "test-organization-id"
-  val parentIdTest = "parent-id-test"
-  val newParentId = "new-parent-id"
+  val testOrgId: ApiOrganizationId = ApiOrganizationId("test-organization-id")
+  val parentIdTest: ApiOrganizationId = ApiOrganizationId("parent-id-test")
+  val newParentId: ApiOrganizationId = ApiOrganizationId("new-parent-id")
   val testTenantId = "test-tenant-id"
   val establishingMemberId = "establishing-member-id"
   val now = Instant.now()
   val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
   val apiEstablishOrganization = ApiEstablishOrganization(
-    testOrgId,
+    Some(testOrgId),
     Some(
       ApiInfo(
         "name-test",
@@ -39,7 +39,7 @@ object TestData {
         Some(ApiTenantId(testTenantId))
       )
     ),
-    Some(ApiParent(parentIdTest)),
+    Some(ApiParent(Some(ApiOrganizationId(parentIdTest.organizationId)))),
     Seq[ApiMemberId](
       ApiMemberId("test-member-id"),
       ApiMemberId("member2"),

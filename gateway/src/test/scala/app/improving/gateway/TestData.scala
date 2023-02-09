@@ -79,7 +79,7 @@ object TestData {
           Some(ApiTenantId(testTenantId))
         )
       ),
-      Some(ApiParent(parentIdTest)),
+      Some(ApiParent(Some(ApiOrganizationId(parentIdTest)))),
       Seq[ApiMemberId](
         ApiMemberId("test-member-id"),
         ApiMemberId("member2"),
@@ -105,7 +105,7 @@ object TestData {
     )
 
     val apiEstablishOrganization = ApiEstablishOrganization(
-      testOrgId,
+      Some(ApiOrganizationId(testOrgId)),
       Some(
         OrgInfo(
           "name-test",
@@ -128,7 +128,7 @@ object TestData {
           Some(ApiTenantId(testTenantId))
         )
       ),
-      Some(ApiParent(parentIdTest)),
+      Some(ApiParent(Some(ApiOrganizationId(parentIdTest)))),
       Seq[ApiMemberId](
         ApiMemberId("test-member-id"),
         ApiMemberId("member2"),

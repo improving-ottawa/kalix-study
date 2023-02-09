@@ -28,7 +28,8 @@ service OrganizationService {
                 "app.improving.organizationcontext.OrganizationStatusUpdated",
                 "app.improving.organizationcontext.OwnersAddedToOrganization",
                 "app.improving.organizationcontext.OwnersRemovedFromOrganization",
-                "app.improving.organizationcontext.ParentUpdated"]
+                "app.improving.organizationcontext.ParentUpdated",
+                "app.improving.organizationcontext.OrganizationReleased"]
         }
     };
 
@@ -82,6 +83,13 @@ service OrganizationService {
     rpc EditOrganizationInfo(organizationcontext.organization.ApiEditOrganizationInfo) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/organization/{org_id}/edit-organization-info"
+            body: "*"
+        };
+    }
+
+    rpc ReleaseOrganization(organizationcontext.organization.ReleaseOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/{org_id}/release"
             body: "*"
         };
     }

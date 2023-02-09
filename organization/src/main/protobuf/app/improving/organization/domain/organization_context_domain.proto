@@ -9,14 +9,15 @@ enum OrganizationStatus {
     ORGANIZATION_STATUS_DRAFT = 0;
     ORGANIZATION_STATUS_ACTIVE = 1;
     ORGANIZATION_STATUS_SUSPENDED = 2;
-    ORGANIZATION_STATUS_TERMINATED = 3;
+    ORGANIZATION_STATUS_RELEASED = 3;
+    ORGANIZATION_STATUS_TERMINATED = 4;
 }
 
 
 message Contacts {
-    repeated MemberId primaryContacts = 1;
-    repeated MemberId billingContacts = 2;
-    repeated MemberId distributionContacts = 3;
+    repeated MemberId primary_contacts = 1;
+    repeated MemberId billing_contacts = 2;
+    repeated MemberId distribution_contacts = 3;
 }
 
 message ContactList {
@@ -25,7 +26,7 @@ message ContactList {
 
 message Info {
     string name = 1;
-    optional string shortName = 2;
+    optional string short_name = 2;
     Address address = 3;
     bool isPrivate = 4;
     optional string url = 5; // URL type?
@@ -38,16 +39,16 @@ message MemberList {
 }
 
 message MetaInfo {
-    google.protobuf.Timestamp createdOn = 1;
-    MemberId createdBy = 2;
-    google.protobuf.Timestamp   lastUpdated = 3;
-    MemberId lastUpdatedBy = 4;
-    OrganizationStatus currentStatus = 5;
+    google.protobuf.Timestamp created_on = 1;
+    MemberId created_by = 2;
+    google.protobuf.Timestamp last_updated = 3;
+    MemberId last_updated_by = 4;
+    OrganizationStatus current_status = 5;
     repeated OrganizationId children = 6;
 }
 
 message Parent {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
 }
 
 message OwnerList {
@@ -60,12 +61,12 @@ message PublicOrganizationEvent {
 
 message UpdateInfo {
     optional string name = 1;
-    optional string shortName = 2;
+    optional string short_name = 2;
     Address address = 3;
-    optional bool isPrivate = 4;
+    optional bool is_private = 4;
     optional string url = 5; // URL type?
     optional string logo = 6; // URL type?
-    optional TenantId tenant_id = 7;
+    TenantId tenant = 7;
 }
 
 message FindOrganizationsByMember {
@@ -77,35 +78,35 @@ message FindOrganizationsByOwner {
 }
 
 message GetOrganizationInfo {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
 }
 
 message MembersAddedToOrganization {
-    OrganizationId orgId = 1;
-    repeated MemberId newMembers = 2;
+    OrganizationId org_id = 1;
+    repeated MemberId new_members = 2;
     MetaInfo meta = 3;
 }
 
 message MembersRemovedFromOrganization {
-    OrganizationId orgId = 1;
-    repeated MemberId removedMembers = 2;
+    OrganizationId org_id = 1;
+    repeated MemberId removed_members = 2;
     MetaInfo meta = 3;
 }
 
 message OrganizationAccountsUpdated {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
     Info info = 2;
     MetaInfo meta = 3;
 }
 
 message OrganizationContactsUpdated {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
     repeated Contacts contacts = 2;
     MetaInfo meta = 3;
 }
 
 message OrganizationEstablished {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
     Info info = 2;
     Parent parent = 3;
     MemberList members = 4;
@@ -115,12 +116,12 @@ message OrganizationEstablished {
 }
 
 message OrganizationInfo {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
     Info info = 2;
 }
 
 message OrganizationInfoUpdated {
-    OrganizationId orgId = 1;
+    OrganizationId org_id = 1;
     Info info = 2;
     MetaInfo meta = 3;
 }
@@ -141,20 +142,25 @@ message OrganizationStatusUpdated {
     MetaInfo meta = 3;
 }
 
+message OrganizationReleased {
+    OrganizationId org_id = 1;
+    MetaInfo meta = 2;
+}
+
 message OwnersAddedToOrganization {
-    OrganizationId orgId = 1;
-    repeated MemberId newOwners = 2;
+    OrganizationId org_id = 1;
+    repeated MemberId new_owners = 2;
     MetaInfo meta = 3;
 }
 
 message OwnersRemovedFromOrganization {
-    OrganizationId orgId = 1;
-    repeated MemberId removedOwners = 2;
+    OrganizationId org_id = 1;
+    repeated MemberId removed_owners = 2;
     MetaInfo meta = 3;
 }
 
 message ParentUpdated {
-    OrganizationId orgId = 1;
-    OrganizationId newParent = 2;
+    OrganizationId org_id = 1;
+    OrganizationId new_parent = 2;
     MetaInfo meta = 3;
 }
