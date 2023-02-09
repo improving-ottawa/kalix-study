@@ -8,7 +8,7 @@ object util {
 
   def convertApiStoreInfoToStoreInfo(apiStoreInfo: ApiStoreInfo): StoreInfo = {
     StoreInfo(
-      Some(StoreId(apiStoreInfo.storeId)),
+      apiStoreInfo.storeId.map(apiId => StoreId(apiId.storeId)),
       apiStoreInfo.name,
       apiStoreInfo.description,
       apiStoreInfo.products.map(product => ProductId(product.productId)),
@@ -33,7 +33,7 @@ object util {
 
   def convertStoreInfoToApiStoreInfo(storeInfo: StoreInfo): ApiStoreInfo = {
     ApiStoreInfo(
-      storeInfo.storeId.map(_.id).getOrElse("StoreId IS NOT FOUND."),
+      storeInfo.storeId.map(id => ApiStoreId(id.id)),
       storeInfo.name,
       storeInfo.description,
       storeInfo.products.map(product => ApiProductId(product.id)),
@@ -48,12 +48,17 @@ object util {
       status: ApiStoreStatus
   ): StoreStatus = {
     status match {
-      case ApiStoreStatus.DRAFT   => StoreStatus.DRAFT
-      case ApiStoreStatus.READY   => StoreStatus.READY
-      case ApiStoreStatus.OPEN    => StoreStatus.OPEN
-      case ApiStoreStatus.CLOSED  => StoreStatus.CLOSED
-      case ApiStoreStatus.DELETED => StoreStatus.DELETED
-      case ApiStoreStatus.UNKNOWN => StoreStatus.UNKNOWN
+      case ApiStoreStatus.API_STORE_STATUS_DRAFT =>
+        StoreStatus.STORE_STATUS_DRAFT
+      case ApiStoreStatus.API_STORE_STATUS_READY =>
+        StoreStatus.STORE_STATUS_READY
+      case ApiStoreStatus.API_STORE_STATUS_OPEN => StoreStatus.STORE_STATUS_OPEN
+      case ApiStoreStatus.API_STORE_STATUS_CLOSED =>
+        StoreStatus.STORE_STATUS_CLOSED
+      case ApiStoreStatus.API_STORE_STATUS_DELETED =>
+        StoreStatus.STORE_STATUS_DELETED
+      case ApiStoreStatus.API_STORE_STATUS_UNKNOWN =>
+        StoreStatus.STORE_STATUS_UNKNOWN
       case ApiStoreStatus.Unrecognized(unrecognizedValue) =>
         StoreStatus.Unrecognized(unrecognizedValue)
     }
@@ -63,12 +68,17 @@ object util {
       status: StoreStatus
   ): ApiStoreStatus = {
     status match {
-      case StoreStatus.DRAFT   => ApiStoreStatus.DRAFT
-      case StoreStatus.READY   => ApiStoreStatus.READY
-      case StoreStatus.OPEN    => ApiStoreStatus.OPEN
-      case StoreStatus.CLOSED  => ApiStoreStatus.CLOSED
-      case StoreStatus.DELETED => ApiStoreStatus.DELETED
-      case StoreStatus.UNKNOWN => ApiStoreStatus.UNKNOWN
+      case StoreStatus.STORE_STATUS_DRAFT =>
+        ApiStoreStatus.API_STORE_STATUS_DRAFT
+      case StoreStatus.STORE_STATUS_READY =>
+        ApiStoreStatus.API_STORE_STATUS_READY
+      case StoreStatus.STORE_STATUS_OPEN => ApiStoreStatus.API_STORE_STATUS_OPEN
+      case StoreStatus.STORE_STATUS_CLOSED =>
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
+      case StoreStatus.STORE_STATUS_DELETED =>
+        ApiStoreStatus.API_STORE_STATUS_DELETED
+      case StoreStatus.STORE_STATUS_UNKNOWN =>
+        ApiStoreStatus.API_STORE_STATUS_UNKNOWN
       case StoreStatus.Unrecognized(unrecognizedValue) =>
         ApiStoreStatus.Unrecognized(unrecognizedValue)
     }

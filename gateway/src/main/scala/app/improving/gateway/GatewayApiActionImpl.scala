@@ -1,6 +1,6 @@
 package app.improving.gateway
 
-import app.improving.ApiProductId
+import app.improving.{ApiProductId, ApiStoreId}
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -326,10 +326,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       storeService
         .createStore(
           ApiCreateStore(
-            storeId,
+            Some(ApiStoreId(storeId)),
             createStore.info.map(
               _.copy(
-                storeId = storeId
+                storeId = Some(ApiStoreId(storeId))
               )
             ),
             createStore.creatingMember
@@ -350,10 +350,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .sequence(createStores.infos.map(info => {
           storeService.createStore(
             ApiCreateStore(
-              storeId,
+              Some(ApiStoreId(storeId)),
               Some(
                 info.copy(
-                  storeId = storeId
+                  storeId = Some(ApiStoreId(storeId))
                 )
               ),
               createStores.creatingMember

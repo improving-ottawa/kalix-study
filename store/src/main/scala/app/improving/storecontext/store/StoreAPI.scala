@@ -11,6 +11,7 @@ import app.improving.storecontext.{
   StoreMadeReady,
   StoreMetaInfo,
   StoreOpened,
+  StoreReleased,
   StoreStatus,
   StoreUpdated
 }
@@ -352,7 +353,6 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             status = StoreStatus.STORE_STATUS_CLOSED
           )
         )
-      }
       case _ => currentState
     }
 
@@ -400,4 +400,42 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
       case _ => currentState
     }
+  }
+
+  override def releaseStore(
+      currentState: StoreState,
+      apiReleaseStore: ApiReleaseStore
+  ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      StoreReleased(
+        apiReleaseStore.storeId.map(apiId => StoreId(apiId.storeId)),
+        apiReleaseStore.releasingMember.map(apiId => MemberId(apiId.memberId))
+      )
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def storeReleased(
+      currentState: StoreState,
+      storeReleased: StoreReleased
+  ): StoreState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(store =
+      currentState.store.map(
+        _.copy(
+          status = StoreStatus.STORE_STATUS_RELEASED,
+          meta = currentState.store.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = storeReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+          )
+        )
+      )
+    )
+  }
 }

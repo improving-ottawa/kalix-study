@@ -1,5 +1,6 @@
 package app.improving.storecontext
 
+import app.improving.ApiStoreId
 import app.improving.storecontext.infrastructure.util._
 import app.improving.storecontext.store.{ApiStore, ApiStoreStatus}
 import kalix.scalasdk.view.View.UpdateEffect
@@ -17,20 +18,17 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   override def processStoreCreated(
       state: ApiStore,
       storeCreated: StoreCreated
-  ): UpdateEffect[ApiStore] = {
+  ): UpdateEffect[ApiStore] =
     if (state != emptyState) effects.ignore()
     else
       effects.updateState(
         ApiStore(
-          storeCreated.storeId
-            .map(_.id)
-            .getOrElse("StoreId IS NOT FOUND."),
+          storeCreated.storeId.map(id => ApiStoreId(id.id)),
           storeCreated.info.map(convertStoreInfoToApiStoreInfo),
           storeCreated.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-          ApiStoreStatus.DRAFT
+          ApiStoreStatus.API_STORE_STATUS_DRAFT
         )
       )
-  }
 
   override def processStoreDeleted(
       state: ApiStore,
@@ -43,12 +41,10 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
     effects.updateState(
       ApiStore(
-        storeOpened.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        storeOpened.storeId.map(id => ApiStoreId(id.id)),
         storeOpened.info.map(convertStoreInfoToApiStoreInfo),
         storeOpened.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-        ApiStoreStatus.OPEN
+        ApiStoreStatus.API_STORE_STATUS_OPEN
       )
     )
   }
@@ -59,63 +55,52 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
     effects.updateState(
       ApiStore(
-        storeUpdated.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        storeUpdated.storeId.map(id => ApiStoreId(id.id)),
         storeUpdated.info.map(convertStoreInfoToApiStoreInfo),
         storeUpdated.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
         storeUpdated.meta
           .map(meta => convertStoreStatusToApiStoreStatus(meta.status))
-          .getOrElse(ApiStoreStatus.UNKNOWN)
+          .getOrElse(ApiStoreStatus.API_STORE_STATUS_UNKNOWN)
       )
     )
   }
   override def processStoreClosed(
       state: ApiStore,
       storeClosed: StoreClosed
-  ): UpdateEffect[ApiStore] = {
+  ): UpdateEffect[ApiStore] =
     effects.updateState(
       ApiStore(
-        storeClosed.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        storeClosed.storeId.map(id => ApiStoreId(id.id)),
         storeClosed.info.map(convertStoreInfoToApiStoreInfo),
         storeClosed.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-        ApiStoreStatus.CLOSED
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
-  }
 
   override def processProductsAddedToStore(
       state: ApiStore,
       productsAddedToStore: ProductsAddedToStore
-  ): UpdateEffect[ApiStore] = {
+  ): UpdateEffect[ApiStore] =
     effects.updateState(
       ApiStore(
-        productsAddedToStore.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        productsAddedToStore.storeId.map(id => ApiStoreId(id.id)),
         productsAddedToStore.info.map(convertStoreInfoToApiStoreInfo),
         productsAddedToStore.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-        ApiStoreStatus.CLOSED
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
-  }
   override def processProductsRemovedFromStore(
       state: ApiStore,
       productsRemovedFromStore: ProductsRemovedFromStore
-  ): UpdateEffect[ApiStore] = {
+  ): UpdateEffect[ApiStore] =
     effects.updateState(
       ApiStore(
-        productsRemovedFromStore.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        productsRemovedFromStore.storeId.map(id => ApiStoreId(id.id)),
         productsRemovedFromStore.info.map(convertStoreInfoToApiStoreInfo),
         productsRemovedFromStore.meta.map(
           convertStoreMetaInfoToApiStoreMetaInfo
         ),
-        ApiStoreStatus.CLOSED
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
-  }
 }

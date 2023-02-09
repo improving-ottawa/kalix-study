@@ -6,23 +6,24 @@ import "google/protobuf/timestamp.proto";
 package app.improving.storecontext;
 
 enum StoreStatus {
-    DRAFT = 0;
-    READY = 1;
-    OPEN = 2;
-    CLOSED = 3;
-    DELETED = 4;
-    UNKNOWN = 5;
+    STORE_STATUS_DRAFT = 0;
+    STORE_STATUS_READY = 1;
+    STORE_STATUS_OPEN = 2;
+    STORE_STATUS_CLOSED = 3;
+    STORE_STATUS_DELETED = 4;
+    STORE_STATUS_RELEASED = 5;
+    STORE_STATUS_UNKNOWN = 6;
 }
 
 message StoreInfo {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     string  name = 2;
     string  description = 3;
     repeated ProductId products = 4;
     EventId  event = 5;
     VenueId venue = 6;
     LocationId location = 7;
-    OrganizationId sponsoringOrg = 8;
+    OrganizationId sponsoring_org = 8;
 }
 
 message StoreUpdateInfo {
@@ -32,60 +33,64 @@ message StoreUpdateInfo {
     optional EventId event = 4;
     optional VenueId venue = 5;
     optional LocationId location = 6;
-    optional OrganizationId sponsoringOrg = 7;
+    optional OrganizationId sponsoring_org = 7;
 }
 
 message StoreMetaInfo {
-    MemberId createdBy = 1;
-    google.protobuf.Timestamp createdOn = 2;
-    MemberId lastModifiedBy = 3;
-    google.protobuf.Timestamp lastModifiedOn = 4;
+    MemberId created_by = 1;
+    google.protobuf.Timestamp created_on = 2;
+    MemberId last_modified_by = 3;
+    google.protobuf.Timestamp last_modified_on = 4;
     StoreStatus status = 5;
 }
 
 message StoreCreated {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
 message StoreUpdated {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
 message StoreDeleted {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreMetaInfo meta = 2;
 }
 message StoreMadeReady {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
 message StoreOpened {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
 message StoreClosed {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
+message StoreReleased {
+    StoreId store_id = 1;
+    MemberId releasing_member = 2;
+}
 message ProductsAddedToStore {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
 message ProductsRemovedFromStore {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
 }
 message GetProductsInStore {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
 }
 message ProductsInStore {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     repeated ProductId products = 2;
 }
