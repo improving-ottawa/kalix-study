@@ -1,13 +1,15 @@
 package app.improving.productcontext.product
 
-import app.improving.{ApiEventId, ApiMemberId, ApiStoreId}
+import app.improving.{ApiEventId, ApiMemberId, ApiProductId, ApiStoreId}
 import com.google.protobuf.timestamp.Timestamp
+
+import java.time.Instant
 
 object TestData {
 
-  val testSku = "test-product-id"
-  val testSku2 = "test-product-id2"
-  val testSku3 = "test-product-id3"
+  val testSku: ApiProductId = ApiProductId("test-product-id")
+  val testSku2: ApiProductId = ApiProductId("test-product-id2")
+  val testSku3: ApiProductId = ApiProductId("test-product-id3")
   val testName = "test-name"
   val testDescription = "test-description"
   val testRow = "test-row"
@@ -58,10 +60,10 @@ object TestData {
   val testStoreId = "test-store-id"
   val testMemberId = "test-member-id"
   val testMemberId1 = "test-member-id1"
-  val now = java.time.Instant.now()
-  val testTimestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-  val apiProductInfo = ApiProductInfo(
-    testSku,
+  val now: Instant = java.time.Instant.now()
+  val testTimestamp: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  val apiProductInfo: ApiProductInfo = ApiProductInfo(
+    Some(testSku),
     testName,
     testDescription,
     testProductDetails,
@@ -71,7 +73,7 @@ object TestData {
     Some(ApiStoreId(testStoreId))
   )
   val apiProductInfoPrivateEvent = ApiProductInfo(
-    testSku2,
+    Some(testSku2),
     testName,
     testDescription,
     testProductDetails2,
@@ -81,7 +83,7 @@ object TestData {
     Some(ApiStoreId(testStoreId))
   )
   val apiProductInfoPrivateFailedEvent = ApiProductInfo(
-    testSku3,
+    Some(testSku3),
     testName,
     testDescription,
     testProductDetails3,
@@ -135,36 +137,36 @@ object TestData {
   )
 
   val apiUpdateProductInfo = ApiUpdateProductInfo(
-    testSku,
+    Some(testSku),
     Some(apiProductInfoUpdate),
     Some(ApiMemberId(testMemberId1Update))
   )
 
   val anotherApiUpdateProductInfo = ApiUpdateProductInfo(
-    "unrelated-id",
+    Some(ApiProductId("unrelated-id")),
     Some(apiProductInfoUpdate),
     Some(ApiMemberId(testMemberId1Update))
   )
 
   val apiDeleteProduct = ApiDeleteProduct(
-    testSku,
+    Some(testSku),
     Some(ApiMemberId(testMemberId1))
   )
 
   val apiCreateProduct = ApiCreateProduct(
-    testSku,
+    Some(testSku),
     Some(apiProductInfo),
     Some(apiProductMetaInfo)
   )
 
   val apiCreateProductPrivateEvent = ApiCreateProduct(
-    testSku2,
+    Some(testSku2),
     Some(apiProductInfoPrivateEvent),
     Some(apiProductMetaInfo)
   )
 
   val apiCreateProductPrivateFailedEvent = ApiCreateProduct(
-    testSku3,
+    Some(testSku3),
     Some(apiProductInfoPrivateFailedEvent),
     Some(apiProductMetaInfo)
   )

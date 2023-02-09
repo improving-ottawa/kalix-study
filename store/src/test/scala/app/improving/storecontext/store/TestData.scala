@@ -6,13 +6,14 @@ import app.improving.{
   ApiMemberId,
   ApiOrganizationId,
   ApiProductId,
+  ApiStoreId,
   ApiVenueId
 }
 import com.google.protobuf.timestamp.Timestamp
 
 object TestData {
 
-  val testStoreId = "test-store-id"
+  val testStoreId = ApiStoreId("test-store-id")
   val testName = "test-name"
   val testDescription = "test-description"
   val testProductId1 = "test-product-id1"
@@ -33,7 +34,7 @@ object TestData {
   val testMember2 = "test-member2"
   val testMember3 = "test-member3"
   val apiStoreInfo = ApiStoreInfo(
-    testStoreId,
+    Some(testStoreId),
     testName,
     testDescription,
     testProducts,
@@ -43,12 +44,12 @@ object TestData {
     Some(testOrg)
   )
   val apiCreateStore = ApiCreateStore(
-    testStoreId,
+    Some(testStoreId),
     Some(apiStoreInfo),
     Some(ApiMemberId(testMember1))
   )
 
-  val testStoreIdUpdate = "test-store-id-update"
+  val testStoreIdUpdate = ApiStoreId("test-store-id-update")
   val testNameUpdate = "test-name-update"
   val testDescriptionUpdate = "test-description-update"
   val testProductId1Update = "test-product-id1-update"

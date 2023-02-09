@@ -32,8 +32,8 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[ApiProductId] = {
     val productId = apiCreateProduct.sku
     currentState.product match {
-      case Some(product) if product != Product.defaultInstance =>
-        effects.reply(ApiProductId.defaultInstance)
+      case Some(_) =>
+        effects.error(s"Product is already created with id $productId")
       case _ =>
         val event = ProductCreated(
           Some(ProductId(productId)),

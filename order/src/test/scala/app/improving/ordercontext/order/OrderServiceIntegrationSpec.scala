@@ -57,7 +57,7 @@
 //  "OrderService" must {
 //
 //    "purchase public order correctly" in {
-//      val eventId = event.scheduleEvent(apiScheduleEvent).futureValue
+//      val event_id = event.scheduleEvent(apiScheduleEvent).futureValue
 //
 //      val productId = product.createProduct(apiCreateProduct).futureValue
 //
@@ -76,7 +76,7 @@
 //    }
 //
 //    "purchase private order correctly" in {
-//      val eventId = event.scheduleEvent(apiSchedulePrivateEvent).futureValue
+//      val event_id = event.scheduleEvent(apiSchedulePrivateEvent).futureValue
 //
 //      val productId =
 //        product.createProduct(apiCreateProductPrivateEvent).futureValue
@@ -92,7 +92,7 @@
 //    }
 //
 //    "purchase private order fails as expected" in {
-//      val eventId =
+//      val event_id =
 //        event.scheduleEvent(apiSchedulePrivateFailedEvent).futureValue
 //
 //      val productId =

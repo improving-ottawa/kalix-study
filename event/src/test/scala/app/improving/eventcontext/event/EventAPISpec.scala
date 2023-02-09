@@ -33,7 +33,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val eventIdOpt = testKit.currentState.event.flatMap(_.eventId)
 
       val changeEventInfo = ApiChangeEventInfo(
-        eventIdOpt.map(_.id).getOrElse("id not found"),
+        eventIdOpt.map(id => ApiEventId(id.id)),
         Some(
           ApiEventUpdateInfo(
             Some("postponed-try-out"),
@@ -137,7 +137,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.CANCELLED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_CANCELLED)
 
       val metaOpt = testKit.currentState.event.flatMap(_.meta)
 
@@ -156,7 +156,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.SCHEDULED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_SCHEDULED)
 
       val rescheduledStart =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
@@ -183,7 +183,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.DELAYED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_DELAYED)
 
       val delayedStart =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
@@ -223,7 +223,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val eventIdOpt = testKit.currentState.event.flatMap(_.eventId)
 
       val started = ApiStartEvent(
-        eventIdOpt.map(_.id).getOrElse("eventId not found"),
+        eventIdOpt.map(id => ApiEventId(id.id)),
         Some(ApiMemberId("2"))
       )
 
@@ -233,7 +233,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.INPROGRESS)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_INPROGRESS)
 
       val metaOpt = testKit.currentState.event.flatMap(_.meta)
 
@@ -343,7 +343,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.PAST)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_PAST)
 
       val metaOpt = testKit.currentState.event.flatMap(_.meta)
 

@@ -29,6 +29,7 @@ import app.improving.eventcontext.{
   EventInfo,
   EventInfoChanged,
   EventMetaInfo,
+  EventReleased,
   EventRescheduled,
   EventScheduled,
   EventStarted,
@@ -116,6 +117,35 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       apiScheduleEvent: ApiScheduleEvent
   ): EventSourcedEntity.Effect[ApiEventId] = {
     currentState.event match {
+      case Some(_) =>
+        effects.error(
+          s"Event is already scheduled with id ${apiScheduleEvent.eventId}"
+        )
+      case _ =>
+        val eventId = apiScheduleEvent.eventId
+        val event = EventScheduled(
+          eventId.map(apiId => EventId(apiId.eventId)),
+          apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
+          Some(
+            EventMetaInfo(
+              memberIdOpt,
+              Some(timestamp),
+              memberIdOpt,
+              Some(timestamp),
+              apiScheduleEvent.info.flatMap(_.expectedStart),
+              apiScheduleEvent.info.flatMap(_.expectedEnd),
+              EventStatus.EVENT_STATUS_SCHEDULED
+            )
+          )
+        )
+        effects
+          .emitEvent(event)
+          .thenReply(eventOpt =>
+            eventOpt.event
+              .flatMap(event => event.eventId.map(id => ApiEventId(id.id)))
+              .getOrElse(ApiEventId.defaultInstance)
+          )
+
       case Some(_) => effects.reply(ApiEventId.defaultInstance)
       case _ =>
         errorOrReply(
@@ -164,7 +194,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def cancelEvent(
       currentState: EventState,
       apiCancelEvent: ApiCancelEvent
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
           if event.eventId.contains(EventId(apiCancelEvent.eventId)) =>
@@ -196,12 +226,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         }
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   override def rescheduleEvent(
       currentState: EventState,
       apiRescheduleEvent: ApiRescheduleEvent
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
           if event.eventId.contains(EventId(apiRescheduleEvent.eventId)) => {
@@ -247,13 +276,12 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       }
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   // TODO if we're setting meta's actualStart and actualEnd to the expected start and end on scheduleEvent and rescheduleEvent, shouldn't we do the same for delayEvent?
   override def delayEvent(
       currentState: EventState,
       apiDelayEvent: ApiDelayEvent
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
           if event.eventId.contains(EventId(apiDelayEvent.eventId)) =>
@@ -297,12 +325,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   override def startEvent(
       currentState: EventState,
       apiStartEvent: ApiStartEvent
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
           if event.eventId.contains(EventId(apiStartEvent.eventId)) =>
@@ -342,11 +369,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         }
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
+
   override def endEvent(
       currentState: EventState,
       apiEndEvent: ApiEndEvent
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
           if event.eventId.contains(EventId(apiEndEvent.eventId)) =>
@@ -436,10 +463,8 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       apiGetEventById: ApiGetEventById
   ): EventSourcedEntity.Effect[ApiEvent] = {
     currentState.event match {
-      case Some(event)
-          if event.eventId == Some(EventId(apiGetEventById.eventId)) => {
-        effects.reply(convertEventToApiEvent(event))
-      }
+      case Some(event) => effects.reply(convertEventToApiEvent(event))
+
       case _ =>
         effects.error(
           s"Event By ID ${apiGetEventById.eventId} IS NOT FOUND.",
@@ -451,21 +476,19 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def eventInfoChanged(
       currentState: EventState,
       eventInfoChanged: EventInfoChanged
-  ): EventState = {
+  ): EventState =
     currentState.event match {
-      case Some(event) if event.eventId == eventInfoChanged.eventId => {
+      case Some(event) =>
         currentState.withEvent(
           event.copy(info = eventInfoChanged.info, meta = eventInfoChanged.meta)
         )
-      }
       case _ => currentState
     }
-  }
 
   override def eventScheduled(
       currentState: EventState,
       eventScheduled: EventScheduled
-  ): EventState = {
+  ): EventState =
     currentState.event match {
       case Some(_) => currentState // event was already scheduled.
       case _ =>
@@ -475,69 +498,63 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             eventScheduled.info,
             None,
             eventScheduled.meta,
-            EventStatus.SCHEDULED
+            EventStatus.EVENT_STATUS_SCHEDULED
           )
         )
     }
-  }
+
   override def eventCancelled(
       currentState: EventState,
       eventCancelled: EventCancelled
-  ): EventState = {
+  ): EventState =
     currentState.event match {
       case Some(event) if event.eventId == eventCancelled.eventId => {
         currentState.withEvent(
           event.copy(meta = eventCancelled.meta, status = EventStatus.CANCELLED)
         )
-      }
+
       case _ => currentState
     }
-  }
 
   override def eventRescheduled(
       currentState: EventState,
       eventRescheduled: EventRescheduled
-  ): EventState = {
+  ): EventState =
     currentState.event match {
-      case Some(event) if event.eventId == eventRescheduled.eventId => {
+      case Some(event) =>
         currentState.withEvent(
           event.copy(
             info = eventRescheduled.info,
             meta = eventRescheduled.meta,
-            status = EventStatus.SCHEDULED
+            status = EventStatus.EVENT_STATUS_SCHEDULED
           )
         )
-      }
       case _ => currentState
     }
-  }
+
   override def eventDelayed(
       currentState: EventState,
       eventDelayed: EventDelayed
-  ): EventState = {
+  ): EventState =
     currentState.event match {
-      case Some(event) if event.eventId == eventDelayed.eventId => {
+      case Some(event) =>
         val infoOpt = event.info.map(info =>
           info.copy(
             expectedStart =
               for {
                 timestamp <- info.expectedStart
                 duration <- eventDelayed.expectedDuration
-              } yield (
-                Timestamp.of(
-                  timestamp.seconds + duration.seconds,
-                  timestamp.nanos + duration.nanos
-                )
+              } yield Timestamp.of(
+                timestamp.seconds + duration.seconds,
+                timestamp.nanos + duration.nanos
               ),
             expectedEnd =
               for {
                 timestamp <- info.expectedEnd
                 duration <- eventDelayed.expectedDuration
-              } yield (
-                Timestamp.of(
-                  timestamp.seconds + duration.seconds,
-                  timestamp.nanos + duration.nanos
-                )
+              } yield Timestamp.of(
+                timestamp.seconds + duration.seconds,
+                timestamp.nanos + duration.nanos
               )
           )
         )
@@ -546,44 +563,39 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           event.copy(
             info = infoOpt,
             meta = eventDelayed.meta,
-            status = EventStatus.DELAYED
+            status = EventStatus.EVENT_STATUS_DELAYED
           )
         )
-      }
       case _ => currentState
     }
-  }
 
   override def eventStarted(
       currentState: EventState,
       eventStarted: EventStarted
-  ): EventState = {
+  ): EventState =
     currentState.event match {
-      case Some(event) if event.eventId == eventStarted.eventId => {
+      case Some(event) =>
         currentState.withEvent(
           event.copy(
             meta = eventStarted.meta,
-            status = EventStatus.INPROGRESS
+            status = EventStatus.EVENT_STATUS_INPROGRESS
           )
         )
-      }
       case _ => currentState
     }
-  }
 
   override def eventEnded(
       currentState: EventState,
       eventEnded: EventEnded
   ): EventState = {
     currentState.event match {
-      case Some(event) if event.eventId == eventEnded.eventId => {
+      case Some(event) =>
         currentState.withEvent(
           event.copy(
             meta = eventEnded.meta,
-            status = EventStatus.PAST
+            status = EventStatus.EVENT_STATUS_PAST
           )
         )
-      }
       case _ => currentState
     }
   }
@@ -848,6 +860,43 @@ object EventAPI {
     }
   }
 
+  override def releaseEvent(
+                             currentState: EventState,
+                             apiReleaseEvent: ApiReleaseEvent
+                           ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      EventReleased(
+        apiReleaseEvent.eventId.map(apiId => EventId(apiId.eventId)),
+        apiReleaseEvent.releasingMember.map(apiId => MemberId(apiId.memberId))
+      )
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def eventReleased(
+                              currentState: EventState,
+                              eventReleased: EventReleased
+                            ): EventState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(event =
+      currentState.event.map(
+        _.copy(
+          status = EventStatus.EVENT_STATUS_RELEASED,
+          meta = currentState.event.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = eventReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+          )
+        )
+      )
+    )
+  }
+
   abstract class ValidatedFields(apiMemberId: ApiMemberId)
 
   case class JustMemberValidated(apiMemberId: ApiMemberId)
@@ -880,5 +929,4 @@ object EventAPI {
       apiMemberId: ApiMemberId,
       reservation: ReservationId
   ) extends ValidatedFields(apiMemberId)
-
 }

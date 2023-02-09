@@ -34,7 +34,7 @@ class StoreServiceIntegrationSpec
 
     "create store correctly" in {
       val apiGetProductsInStore = ApiGetProductsInStore(
-        testStoreId
+        Some(testStoreId)
       )
 
       val productsInStore =
@@ -45,7 +45,7 @@ class StoreServiceIntegrationSpec
 
     "update store correctly" in {
       val apiUpdateStore = ApiUpdateStore(
-        testStoreId,
+        Some(testStoreId),
         Some(apiStoreInfoUpdate),
         Some(apiStoreMetaInfo)
       )
@@ -53,7 +53,7 @@ class StoreServiceIntegrationSpec
       client.updateStore(apiUpdateStore).futureValue
 
       val apiGetProductsInStore = ApiGetProductsInStore(
-        testStoreId
+        Some(testStoreId)
       )
 
       val updatedProductsInStore =
@@ -64,14 +64,14 @@ class StoreServiceIntegrationSpec
 
     "delete correctly" in {
       val apiDeleteStore = ApiDeleteStore(
-        testStoreId,
+        Some(testStoreId),
         Some(ApiMemberId(testMember2))
       )
 
       client.deleteStore(apiDeleteStore).futureValue
 
       val apiGetProductsInStore = ApiGetProductsInStore(
-        testStoreId
+        Some(testStoreId)
       )
 
       val deletedStore =
@@ -85,7 +85,7 @@ class StoreServiceIntegrationSpec
     super.beforeAll()
 
     val command = ApiCreateStore(
-      testStoreId,
+      Some(testStoreId),
       Some(apiStoreInfo),
       Some(ApiMemberId(testMember2))
     )

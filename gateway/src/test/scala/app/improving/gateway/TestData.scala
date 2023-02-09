@@ -174,7 +174,7 @@ object TestData {
       Some(apiEventInfoPrivate),
       Some(ApiMemberId(testMember))
     )
-    val testStoreId = "test-store-id"
+    val testStoreId = ApiStoreId("test-store-id")
     val testName = "test-name"
     val testDescription = "test-description"
     val testProductId1 = "test-product-id1"
@@ -194,7 +194,7 @@ object TestData {
     val testMember2 = "test-member2"
     val testMember3 = "test-member3"
     val apiStoreInfo = ApiStoreInfo(
-      testStoreId,
+      Some(testStoreId),
       testName,
       testDescription,
       testProducts,
@@ -204,9 +204,9 @@ object TestData {
       Some(testOrg)
     )
 
-    val testSku = "test-product-id"
-    val testSku2 = "test-product-id2"
-    val testSku3 = "test-product-id3"
+    val testSku = ApiProductId("test-product-id")
+    val testSku2 = ApiProductId("test-product-id2")
+    val testSku3 = ApiProductId("test-product-id3")
     val testRow = "test-row"
     val testSeat = "test-seat"
     val testSection = "test-section"
@@ -219,14 +219,14 @@ object TestData {
     val testMemberId1 = "test-member-id1"
     val testTimestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     val apiProductInfo = ApiProductInfo(
-      testSku,
+      Some(testSku),
       testName,
       testDescription,
       testProductDetails,
       testImages,
       testPrice,
       testCost,
-      Some(ApiStoreId(testStoreId))
+      Some(testStoreId)
     )
     val apiProductMetaInfo = ApiProductMetaInfo(
       Some(ApiMemberId(testMemberId)),

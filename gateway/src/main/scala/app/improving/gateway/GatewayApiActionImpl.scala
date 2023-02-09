@@ -1,6 +1,6 @@
 package app.improving.gateway
 
-import app.improving.{ApiProductId, ApiStoreId}
+import app.improving.{ApiEventId, ApiProductId, ApiStoreId}
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -282,7 +282,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       eventService
         .scheduleEvent(
           ApiScheduleEvent(
-            UUID.randomUUID().toString,
+            Some(ApiEventId(UUID.randomUUID().toString)),
             createEvent.info,
             createEvent.schedulingMember
           )
@@ -304,7 +304,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             .map(info => {
               eventService.scheduleEvent(
                 ApiScheduleEvent(
-                  UUID.randomUUID().toString,
+                  Some(ApiEventId(UUID.randomUUID().toString)),
                   Some(info),
                   createEvents.schedulingMember
                 )

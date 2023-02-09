@@ -32,29 +32,32 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       currentState: StoreState,
       apiCreateStore: ApiCreateStore
   ): EventSourcedEntity.Effect[ApiStoreId] = currentState.store match {
-      case Some(_) => effects.reply(ApiStoreId.defaultInstance)
-      case _ =>
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val memberIdOpt = {
-          apiCreateStore.creatingMember.map(member => MemberId(member.memberId))
-        }
-        val storeId = apiCreateStore.storeId
-        val event = StoreCreated(
-          storeId.map(id => StoreId(id.storeId)),
-          apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
-          Some(
-            StoreMetaInfo(
-              memberIdOpt,
-              Some(timestamp),
-              memberIdOpt,
-              Some(timestamp),
-              StoreStatus.STORE_STATUS_DRAFT
-            )
+    case Some(_) =>
+      effects.error(s"Store already created with id ${apiCreateStore.storeId}")
+    case _ =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val memberIdOpt = {
+        apiCreateStore.creatingMember.map(member => MemberId(member.memberId))
+      }
+      val storeId = apiCreateStore.storeId
+      val event = StoreCreated(
+        storeId.map(apiId => StoreId(apiId.storeId)),
+        apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
+        Some(
+          StoreMetaInfo(
+            memberIdOpt,
+            Some(timestamp),
+            memberIdOpt,
+            Some(timestamp),
+            StoreStatus.STORE_STATUS_DRAFT
           )
         )
-        effects.emitEvent(event).thenReply(_ => storeId.map(id => ApiStoreId(id.storeId)).getOrElse(ApiStoreId.defaultInstance))
-    }
+      )
+      effects
+        .emitEvent(event)
+        .thenReply(_ => storeId.getOrElse(ApiStoreId.defaultInstance))
+  }
 
   override def updateStore(
       currentState: StoreState,

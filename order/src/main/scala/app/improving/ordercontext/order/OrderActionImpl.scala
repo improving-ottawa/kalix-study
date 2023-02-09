@@ -1,6 +1,6 @@
 package app.improving.ordercontext.order
 
-import app.improving.ApiOrderId
+import app.improving.{ApiEventId, ApiOrderId}
 import app.improving.eventcontext.event.{ApiGetEventById, EventService}
 import app.improving.organizationcontext.organization.{ApiGetOrganizationById, OrganizationService}
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
@@ -23,7 +23,7 @@ import scala.util.{Failure, Success}
 // Get MemberId from Order
 // Get Product with ProductId
 // Get EventId from Product
-// Get Event with EventId and get isPrivate flag.
+// Get Event with EventId and get is_private flag.
 // If yes -> get OrganizationId to get Organization to check member_id is in members ->
 //           if yes -> allow else not allow
 // If no -> allow the purchase
@@ -90,7 +90,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       val tupleFut = (for {
         eventId <- eventIdFut
         event <- event
-          .getEventById(ApiGetEventById(eventId))
+          .getEventById(ApiGetEventById(Some(ApiEventId(eventId))))
       } yield {
         (
           !event.info.forall(_.isPrivate),

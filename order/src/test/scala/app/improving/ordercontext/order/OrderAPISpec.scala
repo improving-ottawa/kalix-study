@@ -173,7 +173,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCancelled.info shouldBe defined
       orderCancelled.meta shouldBe defined
 
-      orderCancelled.meta.map(_.status) shouldBe Some(OrderStatus.CANCELLED)
+      orderCancelled.meta.map(_.status) shouldBe Some(OrderStatus.ORDER_STATUS_CANCELLED)
       orderCancelled.meta.flatMap(_.lastModifiedBy) shouldBe Some(
         MemberId(testCancellingMemberId)
       )

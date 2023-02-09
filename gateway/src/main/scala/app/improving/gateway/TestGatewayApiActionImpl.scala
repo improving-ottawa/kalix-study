@@ -534,6 +534,9 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     endScenario.stores.map(
       _.storeIds.map(id => storeService.releaseStore(ApiReleaseStore(Some(id))))
     )
+    endScenario.events.map(
+      _.eventIds.map(id => eventService.releaseEvent(ApiReleaseEvent(Some(id))))
+    )
     endScenario.members.map(
       _.memberIds.map(id =>
         memberService.releaseMember(ApiReleaseMember(Some(id)))

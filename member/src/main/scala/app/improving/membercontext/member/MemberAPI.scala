@@ -30,9 +30,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[ApiMemberId] = {
     currentState.member match {
       case Some(_) =>
-        effects.reply(
-          ApiMemberId.defaultInstance
-        ) // already registered so just return.
+        effects.error(
+          s"Member already registered for id ${apiRegisterMember.memberId}"
+        )
       case _ =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)

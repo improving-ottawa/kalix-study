@@ -284,20 +284,20 @@
 //    ): UpdateEffect[ApiEvent] = {
 //      val infoOpt = state.info.map(info =>
 //        info.copy(
-//          expectedStart =
+//          expected_start =
 //            for {
-//              timestamp <- info.expectedStart
-//              duration <- eventDelayed.expectedDuration
+//              timestamp <- info.expected_start
+//              duration <- eventDelayed.expected_duration
 //            } yield (
 //              Timestamp.of(
 //                timestamp.seconds + duration.seconds,
 //                timestamp.nanos + duration.nanos
 //              )
 //            ),
-//          expectedEnd =
+//          expected_end =
 //            for {
-//              timestamp <- info.expectedEnd
-//              duration <- eventDelayed.expectedDuration
+//              timestamp <- info.expected_end
+//              duration <- eventDelayed.expected_duration
 //            } yield (
 //              Timestamp.of(
 //                timestamp.seconds + duration.seconds,
