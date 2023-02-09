@@ -29,7 +29,7 @@ class UIGatewayTestDriverSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(5, Seconds), Span(500, Millis))
 
-  implicit val sys: ActorSystem = ActorSystem("OrderActionImpl")
+  implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -91,7 +91,6 @@ class UIGatewayTestDriverSpec
         json.hcursor.downField("maxOrgsWidth").as[Int].getOrElse(0),
         json.hcursor.downField("numMembersPerOrg").as[Int].getOrElse(0),
         json.hcursor.downField("numEventsPerOrg").as[Int].getOrElse(0),
-        json.hcursor.downField("numStores").as[Int].getOrElse(0),
         json.hcursor.downField("numTicketsPerEvent").as[Int].getOrElse(0)
       )
 
@@ -99,6 +98,7 @@ class UIGatewayTestDriverSpec
         client.handleStartScenario(StartScenario(Some(info))).futureValue
 
       checkResults(results, info)
+
       println(results)
     }
   }
