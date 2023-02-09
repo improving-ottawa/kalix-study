@@ -62,7 +62,7 @@ object Testing {
       Test / parallelExecution := false,
       Test / testOptions += Tests.Argument("-oDF"),
       Test / logBuffered := false,
-      libraryDependencies ++= basicTestingDependencies
+      libraryDependencies ++= basicTestingDependencies ++ jsonDependencies
     )
   }
 }

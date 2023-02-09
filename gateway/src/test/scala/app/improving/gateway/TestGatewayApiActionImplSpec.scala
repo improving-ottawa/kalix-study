@@ -22,7 +22,7 @@ class TestGatewayApiActionImplSpec
     with ScalaFutures {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(500, Millis))
+    PatienceConfig(Span(5, Seconds), Span(5000, Millis))
 
   implicit val sys = ActorSystem("OrderActionImpl")
   implicit val ec = sys.dispatcher
@@ -48,12 +48,10 @@ class TestGatewayApiActionImplSpec
 
     "handle command HandleStartScenario base case" in {
       val numTenants = 1
-      val numOrgsPerTenant = 1
-      val maxOrgsDepth = 1
-      val maxOrgsWidth = 1
+      val maxOrgsDepth = 2
+      val maxOrgsWidth = 2
       val numMembersPerOrg = 1
       val numEventsPerOrg = 1
-      val numStores = 1
       val numTicketsPerEvent = 1
 
       val scenarioResult = testGateWayAction
@@ -62,12 +60,10 @@ class TestGatewayApiActionImplSpec
             Some(
               ScenarioInfo(
                 numTenants,
-                numOrgsPerTenant,
                 maxOrgsDepth,
                 maxOrgsWidth,
                 numMembersPerOrg,
                 numEventsPerOrg,
-                numStores,
                 numTicketsPerEvent
               )
             )
