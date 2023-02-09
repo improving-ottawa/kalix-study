@@ -832,8 +832,6 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         s"handleStartScenario genApiEstablishOrgs parents owners $owners"
       )
 
-      val now = java.time.Instant.now()
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val topParent = UUID.randomUUID().toString
       establishOrgs = establishOrgs ++ Seq(
         ApiEstablishOrganization(

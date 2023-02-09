@@ -1,8 +1,8 @@
 package app.improving.productcontext.infrastructure
 
 import app.improving.{ApiEventId, ApiMemberId, ApiStoreId, EventId, MemberId, ProductId, StoreId}
-import app.improving.productcontext.{ProductCreated, ProductInfo, ProductInfoUpdate, ProductMetaInfo}
-import app.improving.productcontext.product.{ApiProduct, ApiProductInfo, ApiProductInfoUpdate, ApiProductMetaInfo, ApiProductStatus}
+import app.improving.productcontext.{ProductCreated, ProductDetails, ProductInfo, ProductInfoUpdate, ProductMetaInfo}
+import app.improving.productcontext.product.{ApiProduct, ApiProductDetails, ApiProductInfo, ApiProductInfoUpdate, ApiProductMetaInfo, ApiProductStatus}
 
 object util {
 
@@ -13,6 +13,7 @@ object util {
       Some(ProductId(apiProductInfo.sku)),
       apiProductInfo.name,
       apiProductInfo.description,
+      convertApiProductDetailsToProductDetails(apiProductInfo.productDetails),
       apiProductInfo.section,
       apiProductInfo.row,
       apiProductInfo.seat,
@@ -67,6 +68,7 @@ object util {
       productInfo.sku.map(_.id).getOrElse("SKU is not found"),
       productInfo.name,
       productInfo.description,
+      convertProductDetailsToApiProductDetails(productInfo.productDetails),
       productInfo.section,
       productInfo.row,
       productInfo.seat,
@@ -87,5 +89,27 @@ object util {
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
       ApiProductStatus.ACTIVE
     )
+  }
+
+  def convertApiProductDetailsToProductDetails(
+    apiProductDetails: ApiProductDetails
+  ): ProductDetails = {
+    apiProductDetails match {
+      case ApiProductDetails.RESERVED_TICKET => ProductDetails.RESERVED_TICKET
+      case ApiProductDetails.RESTRICTED_TICKET => ProductDetails.RESTRICTED_TICKET
+      case ApiProductDetails.OPEN_TICKET => ProductDetails.OPEN_TICKET
+      case ApiProductDetails.Unrecognized(unrecognizedValue) => ProductDetails.Unrecognized(unrecognizedValue)
+    }
+  }
+
+  def convertProductDetailsToApiProductDetails(
+                                                productDetails: ProductDetails
+                                              ): ApiProductDetails = {
+    productDetails match {
+      case ProductDetails.RESERVED_TICKET => ApiProductDetails.RESERVED_TICKET
+      case ProductDetails.RESTRICTED_TICKET => ApiProductDetails.RESTRICTED_TICKET
+      case ProductDetails.OPEN_TICKET => ApiProductDetails.OPEN_TICKET
+      case ProductDetails.Unrecognized(unrecognizedValue) => ApiProductDetails.Unrecognized(unrecognizedValue)
+    }
   }
 }

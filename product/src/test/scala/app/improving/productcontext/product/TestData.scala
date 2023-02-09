@@ -10,6 +10,7 @@ object TestData {
   val testSku3 = "test-product-id3"
   val testName = "test-name"
   val testDescription = "test-description"
+  val testProductDetails = ApiProductDetails.OPEN_TICKET
   val testRow = "test-row"
   val testSeat = "test-seat"
   val testSection = "test-section"
@@ -28,6 +29,7 @@ object TestData {
     testSku,
     testName,
     testDescription,
+    testProductDetails,
     testSection,
     testRow,
     testSeat,
@@ -41,6 +43,7 @@ object TestData {
     testSku2,
     testName,
     testDescription,
+    testProductDetails,
     testSection,
     testRow,
     testSeat,
@@ -54,6 +57,7 @@ object TestData {
     testSku3,
     testName,
     testDescription,
+    testProductDetails,
     testSection,
     testRow,
     testSeat,
@@ -78,6 +82,7 @@ object TestData {
   val apiProductInfoUpdate = ApiProductInfoUpdate(
     Option(testNameUpdate),
     Option(testDescriptionUpdate),
+    None,
     testImagesUpdate,
     None,
     Option(testCostUpdate),
