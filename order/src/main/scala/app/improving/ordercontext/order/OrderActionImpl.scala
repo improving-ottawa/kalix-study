@@ -51,9 +51,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       "kalix-study-org"
     )
     val orderInfo = order.info.getOrElse(ApiOrderInfo())
-    val productIds = orderInfo.lineItems.map(
-      _.product.map(_.productId).getOrElse("ProductId is not found.")
-    )
+    val productIds = orderInfo.lineItems.map(_.product)
 
     val memberId = order.creatingMember
       .map(_.memberId)
@@ -95,7 +93,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           .getEventById(ApiGetEventById(eventId))
       } yield {
         (
-          event.info.map(_.isPrivate).contains(false),
+          !event.info.forall(_.isPrivate),
           event.info
             .flatMap(_.sponsoringOrg)
         )

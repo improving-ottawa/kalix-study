@@ -8,6 +8,7 @@ import app.improving.productcontext.{
   ProductDeleted,
   ProductInactivated,
   ProductInfoUpdated,
+  ProductReleased,
   ProductStatus
 }
 import com.google.protobuf.empty.Empty
@@ -39,8 +40,10 @@ class ProductAPI(context: EventSourcedEntityContext)
           apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
           apiCreateProduct.meta.map(convertApiProductMetaInfoToProductMetaInfo)
         )
-        effects.emitEvent(event).thenReply(_ => ApiProductId(productId))
-
+        effects
+          .emitEvent(event)
+          .thenReply(_ => ApiProductId(productId))
+      }
     }
   }
 
@@ -50,8 +53,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] =
     currentState.product match {
       case Some(product)
-          if product.status != ProductStatus.PRODUCT_STATUS_DELETED &&
-            product.info.isDefined =>
+          if product.info.isDefined && product.status != ProductStatus.PRODUCT_STATUS_DELETED =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val productInfoUpdateOpt = apiUpdateProductInfo.info.map(
@@ -275,5 +277,42 @@ class ProductAPI(context: EventSourcedEntityContext)
       }
       case _ => currentState
     }
+  }
+
+  override def releaseProduct(
+      currentState: ProductState,
+      apiReleaseProduct: ApiReleaseProduct
+  ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      ProductReleased(
+        apiReleaseProduct.sku.map(apiSku => ProductId(apiSku.productId)),
+        apiReleaseProduct.releasingMember.map(apiId => MemberId(apiId.memberId))
+      )
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def productReleased(
+      currentState: ProductState,
+      productReleased: ProductReleased
+  ): ProductState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(product =
+      currentState.product.map(
+        _.copy(
+          status = ProductStatus.PRODUCT_STATUS_RELEASED,
+          meta = currentState.product.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = productReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+          )
+        )
+      )
+    )
   }
 }

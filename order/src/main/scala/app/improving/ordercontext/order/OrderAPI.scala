@@ -57,10 +57,10 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   override def updateOrderStatus(
       currentState: OrderState,
       apiUpdateOrderStatus: ApiUpdateOrderStatus
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.order match {
       case Some(order)
-          if order.orderId.contains(OrderId(apiUpdateOrderStatus.orderId)) => {
+          if order.orderId.contains(OrderId(apiUpdateOrderStatus.orderId)) =>
         val event = OrderStatusUpdated(
           order.orderId,
           convertApiOrderStatusToOrderStatus(apiUpdateOrderStatus.newStatus),
@@ -69,10 +69,8 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
           )
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
       case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   def isValidStateChange(
     currentState: OrderStatus,
@@ -275,7 +273,8 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] = effects
     .emitEvent(
       OrderReleased(
-        apiReleaseOrder.orderId.map(apiId => OrderId(apiId.orderId))
+        apiReleaseOrder.orderId.map(apiId => OrderId(apiId.orderId)),
+        apiReleaseOrder.releasingMember.map(apiId => MemberId(apiId.memberId))
       )
     )
     .deleteEntity()

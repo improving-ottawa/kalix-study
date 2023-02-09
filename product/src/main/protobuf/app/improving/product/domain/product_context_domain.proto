@@ -9,7 +9,8 @@ enum ProductStatus {
     PRODUCT_STATUS_ACTIVE = 0;
     PRODUCT_STATUS_INACTIVE = 1;
     PRODUCT_STATUS_DELETED = 2;
-    PRODUCT_STATUS_UNKNOWN = 3;
+    PRODUCT_STATUS_RELEASED = 3;
+    PRODUCT_STATUS_UNKNOWN = 4;
 }
 
 message ReservedTicket {
@@ -85,6 +86,11 @@ message ProductActivated {
 message ProductInactivated {
     ProductId sku = 1;
     MemberId inactivating_member = 2;
+}
+message ProductReleased {
+    ProductId sku = 1;
+    MemberId releasing_member = 2;
+
 }
 message GetProductInfo {
     ProductId sku = 1;

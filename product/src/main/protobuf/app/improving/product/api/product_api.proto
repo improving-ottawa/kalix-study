@@ -83,12 +83,13 @@ message ApiCreateProduct {
 message ApiUpdateProductInfo {
     ApiProductId sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfoUpdate info = 2;
-    ApiMemberId updatingMember = 3;
+    ApiMemberId updating_member = 3;
 }
 message ApiDeleteProduct {
     ApiProductId sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId deleting_member = 2;
-}message ApiReleaseProduct {
+}
+message ApiReleaseProduct {
     ApiProductId sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }

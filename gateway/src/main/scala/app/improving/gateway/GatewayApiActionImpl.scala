@@ -1,5 +1,6 @@
 package app.improving.gateway
 
+import app.improving.ApiProductId
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -374,9 +375,11 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       productService
         .createProduct(
           ApiCreateProduct(
-            sku,
+            Some(ApiProductId(sku)),
             createProduct.establishProduct
-              .flatMap(_.info.map(_.copy(sku = sku))),
+              .flatMap(
+                _.info.map(_.copy(sku = Some(ApiProductId(sku))))
+              ),
             createProduct.establishProduct.flatMap(_.meta)
           )
         )
@@ -398,8 +401,9 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               productService
                 .createProduct(
                   ApiCreateProduct(
-                    sku,
-                    establishProduct.info.map(_.copy(sku = sku)),
+                    Some(ApiProductId(sku)),
+                    establishProduct.info
+                      .map(_.copy(sku = Some(ApiProductId(sku)))),
                     establishProduct.meta
                   )
                 )

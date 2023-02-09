@@ -12,7 +12,7 @@ object util {
       apiProductInfo: ApiProductInfo
   ): ProductInfo = {
     ProductInfo(
-      Some(ProductId(apiProductInfo.sku)),
+      apiProductInfo.sku.map(apiSku => ProductId(apiSku.productId)),
       apiProductInfo.name,
       apiProductInfo.description,
       apiProductInfo.productDetails.map(convertApiProductDetailsToProductDetails),
@@ -63,7 +63,7 @@ object util {
       productInfo: ProductInfo
   ): ApiProductInfo = {
     ApiProductInfo(
-      productInfo.sku.map(_.id).getOrElse("SKU is not found"),
+      productInfo.sku.map(sku => ApiProductId(sku.id)),
       productInfo.name,
       productInfo.description,
       productInfo.productDetails.map(convertProductDetailsToApiProductDetails),
@@ -76,9 +76,9 @@ object util {
 
   def convertProductCreatedToApiProduct(
       productCreated: ProductCreated
-  ): ApiProduct = {
+  ): ApiProduct =
     ApiProduct(
-      productCreated.sku.map(_.id).getOrElse("ProductId is not found"),
+      productCreated.sku.map(sku => ApiProductId(sku.id)),
       productCreated.info.map(convertProductInfoToApiProductInfo),
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
       ApiProductStatus.API_PRODUCT_STATUS_ACTIVE

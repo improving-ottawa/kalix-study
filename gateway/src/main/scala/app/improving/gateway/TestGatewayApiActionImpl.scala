@@ -1,22 +1,15 @@
 package app.improving.gateway
 
-import app.improving.{ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId}
+import app.improving.{ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiLocationId, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId, ApiVenueId}
 import app.improving.membercontext.member.{ApiInfo, ApiMemberIds, ApiMemberMap, ApiMemberStatus, ApiNotificationPreference, ApiRegisterMember, ApiRegisterMemberList, ApiUpdateInfo, ApiUpdateMemberInfo, ApiUpdateMemberStatus, MemberActionService, MemberService}
 import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
-import app.improving.storecontext.store.{ApiCreateStore, StoreService}
-import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
-import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
-import app.improving.gateway.util.util.{genAddress, genEmailAddressForName, genMobileNumber}
-import app.improving.ordercontext.order.OrderService
-import app.improving.{ApiAddress, ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiLocationId, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId, ApiVenueId, OrganizationId}
-import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
-import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
 import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreUpdateInfo, ApiUpdateStore, StoreService}
-import app.improving.productcontext.product.{ApiCreateProduct, ApiProductDetails, ApiProductInfo, ApiReservedTicket, ProductService}
+import app.improving.productcontext.product.{ApiCreateProduct, ApiProductInfo, ProductService}
 import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
 import app.improving.gateway.util.util.{genAddress, genEmailAddressForName, genMobileNumber}
 import app.improving.ordercontext.order.OrderService
+import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
@@ -532,6 +525,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
   ): Action.Effect[Empty] = {
     endScenario.orders.map(
       _.orderIds.map(id => orderService.releaseOrder(ApiReleaseOrder(Some(id))))
+    )
+    endScenario.products.map(
+      _.skus.map(id =>
+        productService.releaseProduct(ApiReleaseProduct(Some(id)))
+      )
     )
     endScenario.members.map(
       _.memberIds.map(id =>
