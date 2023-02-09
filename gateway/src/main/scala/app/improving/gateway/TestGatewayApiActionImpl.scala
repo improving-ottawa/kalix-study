@@ -451,7 +451,13 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       genApiCreateProduct(
         scenarioInfo.numTicketsPerEvent,
         eventsByOrg,
-        storesByOrg
+        storesByOrg,
+        orgsByTenant,
+        orgsByTenant
+          .map(tenantOrgs => tenantOrgs._2.map(org => org -> tenantOrgs._1))
+          .toSeq
+          .flatten
+          .toMap
       ) match {
         case productsMap =>
           val apiCreateProducts = productsMap.values.flatten
@@ -550,7 +556,9 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
   private def genApiCreateProduct(
       numOfProductsPerEvent: Int,
       eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]],
-      storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]]
+      storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]],
+      orgsByTenant: Map[ApiTenantId, Seq[ApiOrganizationId]],
+      tenantsByOrg: Map[ApiOrganizationId, ApiTenantId]
   ): Map[ApiStoreId, Set[ApiCreateProduct]] = {
 
     log.info(
@@ -559,51 +567,50 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     val r = new Random()
 
-    eventsByOrg.keys
-      .flatMap { orgId =>
-        log.info(
-          s"in handleStartScenario genApiCreateProduct - $orgId orgId "
-        )
-        eventsByOrg(orgId)
-          .map(eventId => {
-            log.info(
-              s"in handleStartScenario genApiCreateProduct - $eventId eventId "
-            )
-            eventId -> (orgId, storesByOrg(orgId))
-          })
-          .map { case (eventId, orgAndStores) =>
-            val numProducts = r.between(1, numOfProductsPerEvent + 1)
+    eventsByOrg
+      .flatMap { case (orgId, eventIds) =>
+        eventIds.map { eventId =>
+          log.info(
+            s"in handleStartScenario genApiCreateProduct - $eventId eventId "
+          )
+          val storeId: ApiStoreId =
+            if (storesByOrg.contains(orgId))
+              storesByOrg(orgId).head
+            else
+              storesByOrg(
+                orgsByTenant(tenantsByOrg(orgId)).head
+              ).head
 
-            log.info(
-              s"in handleStartScenario genApiCreateProduct - $numProducts products for org ${orgAndStores._1} in store ${orgAndStores._2} "
-            )
-            (1 to numProducts)
-              .map { _ =>
-                val sku = UUID.randomUUID().toString
-                val storeId =
-                  orgAndStores._2.toSeq(r.nextInt(orgAndStores._2.size))
-                storeId -> ApiCreateProduct(
-                  sku,
-                  Some(
-                    ApiProductInfo(
-                      sku,
-                      r.nextString(15),
-                      r.nextString(15),
-                      r.nextString(15),
-                      r.nextString(15),
-                      r.nextString(15),
-                      Some(eventId),
-                      Seq[String](r.nextString(15)),
-                      r.nextDouble(),
-                      r.nextDouble(),
-                      Some(
-                        storeId
-                      )
+          val numProducts = r.between(1, numOfProductsPerEvent + 1)
+
+          log.info(
+            s"in handleStartScenario genApiCreateProduct - $numProducts products for org $orgId in store $storeId "
+          )
+          (1 to numProducts)
+            .map { _ =>
+              val sku = UUID.randomUUID().toString
+              storeId -> ApiCreateProduct(
+                sku,
+                Some(
+                  ApiProductInfo(
+                    sku,
+                    r.nextString(15),
+                    r.nextString(15),
+                    r.nextString(15),
+                    r.nextString(15),
+                    r.nextString(15),
+                    Some(eventId),
+                    Seq[String](r.nextString(15)),
+                    r.nextDouble(),
+                    r.nextDouble(),
+                    Some(
+                      storeId
                     )
                   )
                 )
-              }
-          }
+              )
+            }
+        }.toSeq
       }
       .toSeq
       .flatten
