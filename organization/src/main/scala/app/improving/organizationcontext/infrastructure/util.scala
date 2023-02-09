@@ -36,7 +36,7 @@ object util {
   def convertApiMemberIdToMemberId(memberId: ApiMemberId) = MemberId(memberId.memberId)
 
 
-  def convertApiUpdateInfoToInfo(
+  def buildNewInfoFromApiUpdateInfo(
       updateInfo: ApiUpdateInfo,
       currentInfo: Option[Info]
   ): Option[Info] = {
@@ -59,7 +59,7 @@ object util {
     Info(
       apiInfo.name,
       apiInfo.shortName,
-      apiInfo.address.map(convertApiAddressToAddress(_)),
+      apiInfo.address.map(convertApiAddressToAddress),
       apiInfo.isPrivate.getOrElse(true),
       apiInfo.url,
       apiInfo.logo,

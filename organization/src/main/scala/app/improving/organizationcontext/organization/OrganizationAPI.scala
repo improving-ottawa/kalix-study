@@ -1,10 +1,11 @@
 package app.improving.organizationcontext.organization
 
+import app.improving.organizationcontext.OrganizationStatus.{ORGANIZATION_STATUS_DRAFT, ORGANIZATION_STATUS_TERMINATED}
 import app.improving.organizationcontext.infrastructure.util._
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{ApiMemberId, ApiOrganizationId, MemberId, OrganizationId}
-import app.improving.organizationcontext.{ContactList, Contacts, FindOrganizationsByMember, FindOrganizationsByOwner, GetOrganizationInfo, MemberList, MembersAddedToOrganization, MembersRemovedFromOrganization, OrganizationAccountsUpdated, OrganizationContactsUpdated, OrganizationEstablished, OrganizationInfoUpdated, OrganizationStatus, OrganizationStatusUpdated, OwnerList, OwnersAddedToOrganization, OwnersRemovedFromOrganization, ParentUpdated}
+import app.improving.organizationcontext.{ContactList, Contacts, FindOrganizationsByMember, FindOrganizationsByOwner, GetOrganizationInfo, MemberList, MembersAddedToOrganization, MembersRemovedFromOrganization, MetaInfo, OrganizationAccountsUpdated, OrganizationContactsUpdated, OrganizationEstablished, OrganizationInfoUpdated, OrganizationStatus, OrganizationStatusUpdated, OwnerList, OwnersAddedToOrganization, OwnersRemovedFromOrganization, ParentUpdated}
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -178,7 +179,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         val maybeMember = apiEditOrganizationInfo.editingMember
         (maybeUpdateInfo, maybeMember) match {
           case (Some(updateInfo), Some(editingMember)) =>
-            val newInfo = convertApiUpdateInfoToInfo(updateInfo, org.info)
+            val newInfo = buildNewInfoFromApiUpdateInfo(updateInfo, org.info)
 
             val newMeta = org.orgMeta.map(meta =>
             meta.copy(
@@ -200,7 +201,6 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     }
   }
 
-  //TODO in the incoming command, members & owners aren't marked as required in the riddl (see organizationTypeDefinitions/Info). But the draft state requires at least one member and at least one owner. Should we just use the establishing member if members & owners is empty? Or verify their non-emptiness & mark them as required?
   override def establishOrganization(
       currentState: OrganizationState,
       apiEstablishOrganization: ApiEstablishOrganization
@@ -213,14 +213,12 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case _ =>
 
         val maybeInfo = apiEstablishOrganization.info
-        val maybeMeta = apiEstablishOrganization.meta
         val maybeMember = apiEstablishOrganization.establishingMember
 
-        (maybeInfo, maybeMeta, maybeMember) match {
-          case (Some(apiInfo), Some(metaInfo), Some(establishingMember)) if verifyInfo(apiInfo) && verifyMeta(metaInfo) =>
+        (maybeInfo, maybeMember) match {
+          case (Some(apiInfo), Some(apiEstablishingMember)) if verifyInfo(apiInfo) =>
             val orgId = apiEstablishOrganization.orgId
-            val now = java.time.Instant.now()
-            val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+            val establishingMember = convertApiMemberIdToMemberId(apiEstablishingMember)
             val event = OrganizationEstablished(
               orgId = Some(OrganizationId(orgId)),
               info = Some(convertApiInfoToInfo(apiInfo)),
@@ -256,24 +254,18 @@ class OrganizationAPI(context: EventSourcedEntityContext)
                   )
                 )
               ),
-              //TODO Do we actually need the meta info coming in? The previous code was doing a map so I've run with that, but wanted to check
-              meta = Some(
-                convertApiMetaInfoToMetaInfo(
-                  metaInfo.copy(
-                    createdOn = Some(timestamp),
-                    createdBy = Some(establishingMember),
-                    lastUpdated = Some(timestamp),
-                    lastUpdatedBy = Some(establishingMember),
-                    currentStatus =
-                      ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
-                  )
-                )
+              meta = Some(MetaInfo(
+                createdOn = Some(nowTs),
+                createdBy = Some(establishingMember),
+                lastUpdated = Some(nowTs),
+                lastUpdatedBy = Some(establishingMember),
+                currentStatus = OrganizationStatus.ORGANIZATION_STATUS_DRAFT
               )
-            )
+            ))
 
             effects.emitEvent(event).thenReply(_ => ApiOrganizationId(orgId))
-          case (_, _, _) =>
-              effects.error(getMissingFieldsError(Map("Info" -> maybeInfo, "Meta" -> maybeMeta, "Members" -> maybeMember) ++ getInfoFields(maybeInfo) ++ getMetaFields(maybeMeta)))
+          case (_,  _) =>
+              effects.error(getMissingFieldsError(Map("Info" -> maybeInfo, "Members" -> maybeMember) ++ getInfoFields(maybeInfo)))
         }
     }
   }
@@ -287,12 +279,12 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid.contains(OrganizationId(apiUpdateParent.orgId)) => {
 
-        apiUpdateParent.newParent match {
-          case Some(parent) =>
+        (apiUpdateParent.newParent, apiUpdateParent.updatingMember) match {
+          case (Some(parent), Some(updatingMember)) =>
             val event = ParentUpdated(
               orgId = Some(OrganizationId(apiUpdateParent.orgId)),
               newParent = Some(OrganizationId(parent.organizationId)),
-              meta = org.orgMeta.map(_.copy(lastUpdated = Some(nowTs))) //TODO since we don't have a last updated by, the last updated by is going to be incorrect
+              meta = org.orgMeta.map(_.copy(lastUpdated = Some(nowTs), lastUpdatedBy = Some(convertApiMemberIdToMemberId(updatingMember))))
             )
 
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
@@ -314,16 +306,28 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           if org.oid.contains(OrganizationId(apiOrganizationStatusUpdated.orgId)) => {
 
         val maybeUpdatingMember = apiOrganizationStatusUpdated.updatingMember
-
         (maybeUpdatingMember) match {
-          case (Some(_)) =>
-            val event = OrganizationStatusUpdated(
-              orgId = org.oid,
-              newStatus = convertApiOrganizationStatusToOrganizationStatus(
-                apiOrganizationStatusUpdated.newStatus
-              )
+          case (Some(apiUpdatingMember)) =>
+
+            val newStatus = convertApiOrganizationStatusToOrganizationStatus(
+              apiOrganizationStatusUpdated.newStatus
             )
-            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+
+            val statusDirectionOkayOrError: Either[String, Unit] = verifyStatusDirection(org.status, newStatus)
+            val statusChangeOkayOrError: Either[String, Unit] = if(org.status == newStatus) Right(()) else verifyStatusStateBeforeStatusChange(org.status, currentState)
+
+            statusDirectionOkayOrError.orElse(statusChangeOkayOrError) match {
+              case Left(error) => effects.error(error)
+              case Right(_) =>
+                val event = OrganizationStatusUpdated(
+                  orgId = org.oid,
+                  newStatus = newStatus,
+                  meta = org.orgMeta.map(_.copy(lastUpdated = Some(nowTs), lastUpdatedBy = Some(convertApiMemberIdToMemberId(apiUpdatingMember))))
+                )
+                effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+            }
+
+
           case _ => effects.error(getMissingFieldsError(Map("UpdatingMember" -> maybeUpdatingMember)))
         }
 
@@ -496,13 +500,14 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = currentState.organization match {
     case Some(org)
         if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid == organizationStatusUpdated.orgId => {
-      val timestamp = nowTs
+
       currentState.withOrganization(
         org.copy(
           orgMeta = org.orgMeta.map(
             _.copy(
               currentStatus = organizationStatusUpdated.newStatus,
-              lastUpdated = Some(timestamp)
+              lastUpdated = organizationStatusUpdated.meta.flatMap(_.lastUpdated),
+              lastUpdatedBy = organizationStatusUpdated.meta.flatMap(_.lastUpdatedBy)
             )
           ),
           status = organizationStatusUpdated.newStatus
@@ -565,10 +570,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   }
 
   private def getMissingFieldsError(
-      requiredFields: Map[String, Option[Any]]
+      requiredFields: Map[String, Option[Any]],
+      container: String = "Message"
   ): String = {
     val missingFields = requiredFields.filter(_._2.isEmpty)
-    s"Message is missing the following fields: ${missingFields.keySet.mkString(", ")}"
+    s"$container is missing the following fields: ${missingFields.keySet.mkString(", ")}"
   }
 
 
@@ -581,14 +587,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       .getOrElse(Map.empty[String, Option[Any]])
   }
 
-  private def getMetaFields(maybeApiMetaInfo: Option[ApiMetaInfo]): Map[String, Option[Any]] = {
-    maybeApiMetaInfo.map(apiMetaInfo => Map("MetaInfo.CreatedOn" -> apiMetaInfo.createdOn, "MetaInfo.CreatedBy" -> apiMetaInfo.createdBy,
-    "MetaInfo.LastUpdated" -> apiMetaInfo.lastUpdated, "MetaInfo.LastUpdatedBy" -> apiMetaInfo.lastUpdatedBy))
+  private def getMetaFields(maybeMetaInfo: Option[MetaInfo]): Map[String, Option[Any]] = {
+    maybeMetaInfo.map(meta => Map("Meta.CreatedOn" -> meta.createdOn, "Meta.CreatedBy" -> meta.createdBy, "Meta.LastUpdated" -> meta.lastUpdated, "Meta.LastUpdatedBy" -> meta.lastUpdatedBy)
+    .filter(_._2.isEmpty))
       .getOrElse(Map.empty[String, Option[Any]])
-  }
-
-  private def verifyMeta(apiMetaInfo: ApiMetaInfo): Boolean = {
-    apiMetaInfo.createdOn.isDefined && apiMetaInfo.createdBy.isDefined && apiMetaInfo.lastUpdated.isDefined && apiMetaInfo.lastUpdatedBy.isDefined
   }
 
   private def nowTs: Timestamp = {
@@ -601,6 +603,31 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case (Some(updatingMember), Some(_)) => block(updatingMember, itemsToAdd)
       case _ => effects.error(getMissingFieldsError(Map("UpdatingMember" -> maybeUpdatingMember, label -> itemsToAdd.headOption)))
     }
+  }
+
+  private def verifyStatusDirection(oldStatus: OrganizationStatus, newStatus: OrganizationStatus): Either[String, Unit] = {
+    (oldStatus, newStatus) match {
+      case (ORGANIZATION_STATUS_TERMINATED, _) if newStatus != ORGANIZATION_STATUS_TERMINATED => Left("You cannot exit Terminated state.")
+      case (_, ORGANIZATION_STATUS_DRAFT) if oldStatus != ORGANIZATION_STATUS_DRAFT => Left("You cannot return to Draft state once Draft state has been exited.")
+      case (_, _) => Right(())
+    }
+  }
+
+  private def verifyStatusStateBeforeStatusChange(oldStatus: OrganizationStatus, currentState: OrganizationState): Either[String, Unit] = {
+    val missingFields: Map[String, Option[Any]] = oldStatus match {
+      case ORGANIZATION_STATUS_TERMINATED => Map.empty[String, Option[Any]]
+      case _ => currentState.organization.map(verifyState).getOrElse(Map.empty[String, Option[Any]]) //all three of them have the same required fields
+    }
+    if(missingFields.isEmpty) Right(())
+    else Left(missingFields.mkString(s"Cannot leave state $oldStatus without required fields. The state is missing ${missingFields.mkString(", ")}"))
+  }
+
+
+  private def verifyState(currentOrganization: Organization): Map[String, Option[Any]]
+  = {
+    (Map("Info" -> currentOrganization.info, "Members" -> currentOrganization.members.headOption, "Owners" -> currentOrganization.owners.headOption, "Meta" -> currentOrganization.orgMeta) ++
+      getInfoFields(currentOrganization.info.map(convertInfoToApiInfo)) ++ getMetaFields(currentOrganization.orgMeta))
+      .filter(_._2.isEmpty)
   }
 
 }

@@ -76,6 +76,7 @@ message ApiUpdateInfo {
 message ApiUpdateParent {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiOrganizationId newParent = 2;
+    ApiMemberId updatingMember = 3;
 }
 
 message ApiAddMembersToOrganization {
@@ -104,7 +105,6 @@ message ApiEstablishOrganization {
     repeated ApiMemberId owners = 5;
     repeated ApiContacts contacts = 6;
     ApiMemberId establishingMember = 7;
-    ApiMetaInfo meta = 8;
 }
 
 message ApiRemoveOwnersFromOrganization {
