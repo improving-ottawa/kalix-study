@@ -86,12 +86,12 @@ class UIGatewayTestDriverSpec
         requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
 
       val info = ScenarioInfo(
-        json.hcursor.downField("numTenants").as[Int].getOrElse(0),
-        json.hcursor.downField("maxOrgsDepth").as[Int].getOrElse(0),
-        json.hcursor.downField("maxOrgsWidth").as[Int].getOrElse(0),
-        json.hcursor.downField("numMembersPerOrg").as[Int].getOrElse(0),
-        json.hcursor.downField("numEventsPerOrg").as[Int].getOrElse(0),
-        json.hcursor.downField("numTicketsPerEvent").as[Int].getOrElse(0)
+        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
+        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
       )
 
       val results =

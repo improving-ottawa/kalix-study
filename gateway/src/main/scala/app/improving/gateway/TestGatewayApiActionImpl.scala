@@ -64,7 +64,7 @@ import app.improving.gateway.util.util.{
   genEmailAddressForName,
   genMobileNumber
 }
-import app.improving.organizationcontext.organization
+import app.improving.organizationcontext.{OrganizationInfo, organization}
 import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID
@@ -316,15 +316,21 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
 
     val orgsByTenant: Map[ApiTenantId, Seq[ApiOrganizationId]] =
-      establishedOrgs
-        .map { case (orgId, establishedOrg) =>
-          establishedOrg.info
-            .flatMap(_.tenant)
-            .getOrElse(ApiTenantId.defaultInstance) ->
-            orgId
+      establishedOrgs.toSeq
+        .map {
+          case (
+                orgId: ApiOrganizationId,
+                establishedOrg: ApiEstablishOrganization
+              ) =>
+            (
+              establishedOrg.info
+                .flatMap(_.tenant)
+                .getOrElse(ApiTenantId.defaultInstance),
+              orgId
+            )
         }
         .groupBy(_._1)
-        .map(tup => tup._1 -> tup._2.values.toSeq.distinct)
+        .map(tup => tup._1 -> tup._2.map(_._2).distinct)
 
     log.info(s"in handleStartScenario orgsByTenant - $orgsByTenant")
 
@@ -423,7 +429,12 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         Future
           .sequence(
             genApiCreateStores(
-              owners.map(owner => orgsByTenant(owner._1).head -> owner._2),
+              owners.flatMap(owner =>
+                owner._2
+                  .map(memberId => orgsByTenant(owner._1).head -> memberId)
+                  .groupBy(_._1)
+                  .map(tup => tup._1 -> tup._2.map(_._2))
+              ),
               eventsByOrg
             ).map(apiCreateStore => {
               storeService
@@ -487,8 +498,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               10 seconds
             )
             .groupBy(_._1)
-            .map { case (orgId, set) =>
-              orgId.storeId -> Skus(set.map(_._2).toSeq)
+            .map { case (storeId, set) =>
+              log.info(
+                s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
+              )
+              storeId.storeId -> Skus(set.map(_._2).toSeq)
             }
 
           log.info(
@@ -568,18 +582,24 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     val r = new Random()
 
     eventsByOrg
-      .flatMap { case (orgId, eventIds) =>
-        eventIds.map { eventId =>
+      .flatMap { case (orgId: ApiOrganizationId, eventIds: Set[ApiEventId]) =>
+        eventIds.map { eventId: ApiEventId =>
           log.info(
-            s"in handleStartScenario genApiCreateProduct - $eventId eventId "
+            s"in handleStartScenario genApiCreateProduct orgsForTenant ${orgsByTenant(tenantsByOrg(orgId))
+                .dropWhile(!storesByOrg.contains(_))}"
           )
           val storeId: ApiStoreId =
             if (storesByOrg.contains(orgId))
               storesByOrg(orgId).head
-            else
+            else {
               storesByOrg(
-                orgsByTenant(tenantsByOrg(orgId)).head
+                orgsByTenant(tenantsByOrg(orgId))
+                  .dropWhile(
+                    !storesByOrg.contains(_)
+                  )
+                  .head
               ).head
+            }
 
           val numProducts = r.between(1, numOfProductsPerEvent + 1)
 
