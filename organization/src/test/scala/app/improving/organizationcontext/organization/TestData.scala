@@ -50,7 +50,9 @@ object TestData {
       ApiMemberId("member11"),
       ApiMemberId("member12")
     ),
-    Seq.empty,
+    Seq[ApiContacts](
+      ApiContacts(primaryContacts = Seq(ApiMemberId("member81")))
+    ),
     Some(ApiMemberId(establishingMemberId))
   )
 }
