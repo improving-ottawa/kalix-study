@@ -40,7 +40,7 @@ message ApiEventInfo {
     ApiReservationId reservation = 6;
     google.protobuf.Timestamp expectedStart = 7;
     google.protobuf.Timestamp expectedEnd = 8;
-    bool isPrivate = 9;
+    optional bool isPrivate = 9;
 }
 
 message ApiEventMetaInfo {

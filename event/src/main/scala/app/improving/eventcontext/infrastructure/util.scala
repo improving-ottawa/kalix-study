@@ -5,6 +5,7 @@ import app.improving.{
   ApiMemberId,
   ApiOrganizationId,
   GeoLocation,
+  MemberId,
   OrganizationId
 }
 import app.improving.eventcontext.event._
@@ -18,6 +19,42 @@ import app.improving.eventcontext.{
 }
 
 object util {
+
+  def buildEventInfoFromUpdateInfo(
+      eventInfo: Option[EventInfo],
+      updatingInfo: ApiEventInfo
+  ): EventInfo = {
+    EventInfo(
+      Some(updatingInfo.eventName)
+        .filter(_.nonEmpty)
+        .orElse(eventInfo.map(_.eventName))
+        .getOrElse(""),
+      Some(updatingInfo.description)
+        .filter(_.nonEmpty)
+        .orElse(eventInfo.map(_.description))
+        .getOrElse(""),
+      Some(updatingInfo.eventURL)
+        .filter(_.nonEmpty)
+        .orElse(eventInfo.map(_.eventURL))
+        .getOrElse(""),
+      updatingInfo.sponsoringOrg
+        .map(org => OrganizationId(org.organizationId))
+        .orElse(eventInfo.flatMap(_.sponsoringOrg)),
+      updatingInfo.geoLocation
+        .map(location =>
+          GeoLocation(location.latitude, location.longitude, location.elevation)
+        )
+        .orElse(eventInfo.flatMap(_.geoLocation)),
+      updatingInfo.reservation
+        .map(reservation => ReservationId(reservation.reservationId))
+        .orElse(eventInfo.flatMap(_.reservation)),
+      updatingInfo.expectedStart.orElse(eventInfo.flatMap(_.expectedStart)),
+      updatingInfo.expectedEnd.orElse(eventInfo.flatMap(_.expectedEnd)),
+      updatingInfo.isPrivate.getOrElse(
+        true
+      ) // TODO Defaulting isPrivate to true--is that correct?
+    )
+  }
 
   def convertApiEventInfoToEventInfo(
       apiEventInfo: ApiEventInfo
@@ -35,7 +72,9 @@ object util {
       ),
       apiEventInfo.expectedStart,
       apiEventInfo.expectedEnd,
-      apiEventInfo.isPrivate
+      apiEventInfo.isPrivate.getOrElse(
+        true
+      ) // Defaulting isPrivate to true--is that correct?
     )
   }
 
@@ -57,7 +96,7 @@ object util {
       ),
       eventInfo.expectedStart,
       eventInfo.expectedEnd,
-      eventInfo.isPrivate
+      Some(eventInfo.isPrivate)
     )
   }
 
@@ -119,5 +158,8 @@ object util {
       ApiEventStatus.SCHEDULED
     )
   }
+
+  def convertApiMemberIdToMemberId(apiMemberId: ApiMemberId): MemberId =
+    MemberId(apiMemberId.memberId)
 
 }
