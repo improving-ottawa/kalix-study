@@ -63,7 +63,8 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiUpdateOrderStatus.orderId)) => {
+          if order.orderId == Some(OrderId(apiUpdateOrderStatus.orderId)) &&
+          isValidStateChange(order.status, apiUpdateOrderStatus.newStatus) => {
         val event = OrderStatusUpdated(
           order.orderId,
           convertApiOrderStatusToOrderStatus(apiUpdateOrderStatus.newStatus),
@@ -74,6 +75,23 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
       case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
+  def isValidStateChange(
+    currentState: OrderStatus,
+    newApiStatus: ApiOrderStatus
+  ): Boolean = {
+    currentState match {
+      case OrderStatus.DRAFT =>
+        newApiStatus.isPending || newApiStatus.isCancelled
+      case OrderStatus.PENDING =>
+        newApiStatus.isCancelled || newApiStatus.isInprocess
+      case OrderStatus.INPROCESS =>
+        newApiStatus.isReady
+      case OrderStatus.READY =>
+        newApiStatus.isDelivered
+      case _ => false
     }
   }
 
