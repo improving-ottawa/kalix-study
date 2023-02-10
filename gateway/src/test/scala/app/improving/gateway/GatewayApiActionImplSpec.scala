@@ -451,7 +451,7 @@ class GatewayApiActionImplSpec
       val result =
         gateWayAction.handleGetAllEvents(AllEventsRequest()).futureValue
 
-      result.events.size > 0 shouldBe true
+      result.events.nonEmpty shouldBe true
 
     }
 
@@ -463,7 +463,7 @@ class GatewayApiActionImplSpec
       val result =
         gateWayAction.handleGetAllTenants(GetAllTenantRequest()).futureValue
 
-      result.tenants.size > 0 shouldBe true
+      result.tenants.nonEmpty shouldBe true
     }
 
     "handle get all stores correctly" in {
@@ -577,7 +577,7 @@ class GatewayApiActionImplSpec
       val result =
         gateWayAction.handleGetAllOrders(AllOrdersRequest()).futureValue
 
-      result.orders.size > 0 shouldBe true
+      result.orders.nonEmpty shouldBe true
 
     }
 
