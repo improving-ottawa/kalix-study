@@ -25,8 +25,10 @@ object Main {
       new MemberMap(_),
       new AllMembersViewImpl(_),
       new MemberActionServiceImpl(_),
+      new MemberByMemberIdsQueryView(_),
       new MemberByMetaInfoViewImpl(_),
-      new MemberByOrderQueryView(_))
+      new MemberByOrderQueryView(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

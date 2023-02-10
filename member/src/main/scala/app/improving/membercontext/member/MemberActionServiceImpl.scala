@@ -1,6 +1,19 @@
 package app.improving.membercontext.member
 
 import app.improving.ApiMemberId
+import app.improving.membercontext.{
+  MemberByMemberIdsQuery,
+  MemberByMemberIdsRequest
+}
+import app.improving.ordercontext.{
+  OrderByProductQuery,
+  OrderByProductQueryClient,
+  OrderByProductRequest
+}
+import app.improving.productcontext.{
+  TicketByEventTimeQuery,
+  TicketByEventTimeRequest
+}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -27,6 +40,27 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
         "app.improving.member.member.grpc-client-name"
       )
     )
+
+  val memberByMemberIdsView = creationContext.getGrpcClient(
+    classOf[MemberByMemberIdsQuery],
+    config.getString(
+      "app.improving.member.member.grpc-client-name"
+    )
+  )
+
+  val orderByProductView = creationContext.getGrpcClient(
+    classOf[OrderByProductQuery],
+    config.getString(
+      "app.improving.member.order.grpc-client-name"
+    )
+  )
+
+  val ticketByEventTimeView = creationContext.getGrpcClient(
+    classOf[TicketByEventTimeQuery],
+    config.getString(
+      "app.improving.member.product.grpc-client-name"
+    )
+  )
 
   override def registerMemberList(
       apiRegisterMemberList: ApiRegisterMemberList
@@ -57,5 +91,34 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       .map(memberIds => ApiMemberIds(memberIds.toSeq))
 
     effects.asyncReply(result)
+  }
+
+  override def findMembersByEventTime(
+      memberByEventTimeRequest: MemberByEventTimeRequest
+  ): Action.Effect[MemberByEventTimeResponse] = {
+
+    log.info("in MemberActionServiceImpl findMembersByEventTime")
+
+    val givenTimeOpt = memberByEventTimeRequest.givenTime
+
+    val products = ticketByEventTimeView.findProductsByEventTime(
+      TicketByEventTimeRequest(givenTimeOpt)
+    )
+
+    val productIds = products.map(_.products.map(_.sku))
+
+    val orders = orderByProductView.findOrdersByProducts(
+      OrderByProductRequest(Seq[String]())
+    )
+
+    val memberIds = orders.map(response =>
+      response.orders.flatMap(_.meta.flatMap(_.memberId).map(_.memberId))
+    )
+
+    val members = memberByMemberIdsView.findMembersByMemberIds(
+      MemberByMemberIdsRequest(Seq.empty[String])
+    )
+
+    ???
   }
 }

@@ -6,7 +6,6 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/event/domain/event_context_domain.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/domain/product_context_domain.proto";
-import "app/improving/product/view/product_by_event_view.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 

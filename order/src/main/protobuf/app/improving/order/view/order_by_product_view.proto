@@ -26,8 +26,14 @@ message OrderByProductRequest {
     repeated string skus = 1;
 }
 
+message OrderResponse {
+    string order_id = 1;
+    order.ApiOrderInfo info = 2;
+    order.ApiOrderMetaInfo meta = 3;
+}
+
 message OrderByProductResponse {
-    repeated order.ApiOrder orders = 1;
+    repeated OrderResponse orders = 1;
 }
 
 service OrderByProductQuery {
@@ -128,10 +134,10 @@ service OrderByProductQuery {
     rpc FindOrdersByProducts(OrderByProductRequest) returns (OrderByProductResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "* AS orders "
+                    "(order_by_product_order.order_id AS order_id, order_by_product_order.info AS info, order_by_product_order.meta AS meta) AS orders "
                     "FROM  order_by_product_order "
-                    "JOIN  order_by_product_product ON order_by_product_product.sku = order_by_product_order.lineItems.product.product_id "
-                    "WHERE order_by_product_product.sku = ANY(skus) "
+                    "JOIN  order_by_product_product ON order_by_product_product.sku = order_by_product_order.info.line_items.product.product_id "
+                    "WHERE order_by_product_product.sku = ANY(:skus) "
 
         };
     }

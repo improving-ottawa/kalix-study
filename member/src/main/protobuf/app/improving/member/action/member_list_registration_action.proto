@@ -5,11 +5,19 @@ package app.improving.membercontext.member;
 import "app/improving/member/api/member_api.proto";
 import "common_api.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
 message ApiMemberIds {
     repeated ApiMemberId member_ids = 1;
+}
+
+message MemberByEventTimeRequest {
+    google.protobuf.Timestamp given_time = 1;
+}
+
+message MemberByEventTimeResponse {
+    repeated ApiMemberData members = 1;
 }
 
 service MemberActionService {
@@ -21,6 +29,12 @@ service MemberActionService {
         option (google.api.http) = {
             post: "/member/register-memberlist"
             body: "*"
+        };
+    }
+
+    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (MemberByEventTimeResponse) {
+        option (google.api.http) = {
+            get: "/member/members-by-event-time"
         };
     }
 
