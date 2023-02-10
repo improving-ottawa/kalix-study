@@ -22,7 +22,9 @@ object Main {
     KalixFactory.withComponents(
       new OrderAPI(_),
       new AllOrdersViewImpl(_),
-      new OrderActionImpl(_))
+      new OrderActionImpl(_),
+      new OrderByProductQueryView(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

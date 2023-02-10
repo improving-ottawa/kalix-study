@@ -48,7 +48,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
               Some(timestamp),
               memberIdOpt,
               Some(timestamp),
-              OrderStatus.DRAFT
+              OrderStatus.ORDER_STATUS_DRAFT
             )
           )
         )
@@ -100,8 +100,9 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             _.copy(
               lastModifiedBy = updatingMemberIdOpt,
               lastModifiedOn = Some(timestamp),
-              status =
-                currentState.order.map(_.status).getOrElse(OrderStatus.UNKNOWN)
+              status = currentState.order
+                .map(_.status)
+                .getOrElse(OrderStatus.ORDER_STATUS_UNKNOWN)
             )
           ),
           updatingMemberIdOpt
@@ -132,7 +133,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             _.copy(
               lastModifiedBy = cancellingMemberIdOpt,
               lastModifiedOn = Some(timestamp),
-              status = OrderStatus.CANCELLED
+              status = OrderStatus.ORDER_STATUS_CANCELLED
             )
           ),
           cancellingMemberIdOpt
@@ -175,7 +176,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             orderCreated.orderId,
             orderCreated.info,
             orderCreated.meta,
-            OrderStatus.DRAFT
+            OrderStatus.ORDER_STATUS_DRAFT
           )
         )
       }
@@ -236,7 +237,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
           order.copy(
             info = orderCanceled.info,
             meta = orderCanceled.meta,
-            status = OrderStatus.CANCELLED
+            status = OrderStatus.ORDER_STATUS_CANCELLED
           )
         )
       }

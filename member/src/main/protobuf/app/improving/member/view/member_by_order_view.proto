@@ -7,7 +7,6 @@ import "app/improving/member/api/member_api.proto";
 import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/order/api/order_api.proto";
 import "app/improving/order/domain/order_context_domain.proto";
-import "common_api.proto";
 import "kalix/annotations.proto";
 
 /**
@@ -28,9 +27,7 @@ message MemberByOrderRequest {
 }
 
 message MemberByOrderResponse {
-    string member_id = 1;
-    member.ApiInfo info = 2;
-    member.ApiMetaInfo meta = 3;
+    repeated member.ApiMemberData members = 1;
 }
 
 service MemberByOrderQuery {
@@ -119,14 +116,12 @@ service MemberByOrderQuery {
     }
 
 
-    rpc FindMembersByOrder(MemberByOrderRequest) returns (stream member.ApiMemberData) {
+    rpc FindMembersByOrder(MemberByOrderRequest) returns (MemberByOrderResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "member_by_order_member.member_id AS member_id, "
-                    "member_by_order_member.info AS info, "
-                    "member_by_order_member.meta AS meta "
+                    "(member_by_order_member.member_id AS member_id, member_by_order_member.info AS info, member_by_order_member.meta AS meta) AS members "
                     "FROM  member_by_order_member "
-                    "JOIN member_by_order_order ON member_by_order_order.meta.memberId.member_id = member_by_order_member.member_id "
+                    "JOIN member_by_order_order ON member_by_order_order.meta.member_id.member_id = member_by_order_member.member_id "
                     "WHERE member_by_order_order.order_id = :order_id "
 
         };
