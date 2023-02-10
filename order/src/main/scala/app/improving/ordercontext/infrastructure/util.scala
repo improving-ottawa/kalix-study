@@ -15,14 +15,12 @@ object util {
     )
   }
 
-  def convertApiUpdateOrderInfoToOrderInfo(
+  def convertApiUpdateOrderInfoToOrderInfoUpdate(
       apiOrderInfoUpdate: ApiOrderInfoUpdate
-  ): OrderInfo = {
-    OrderInfo(
-      Some(OrderId(apiOrderInfoUpdate.orderId)),
+  ): OrderInfoUpdate = {
+    OrderInfoUpdate(
       apiOrderInfoUpdate.lineItems.map(convertApiLineItemToLineItem),
-      apiOrderInfoUpdate.specialInstructions,
-      apiOrderInfoUpdate.orderTotal
+      apiOrderInfoUpdate.specialInstructions
     )
   }
 

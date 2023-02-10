@@ -101,15 +101,12 @@ object TestData {
     testQuantity2Update,
     testLineTotal2Update
   )
-  val testSpecialInstructionUpdate = "test-special-instruction-update"
   val testOrderTotalUpdate = 100.0
   val testLineItemsUpdate =
     Seq[ApiLineItem](testLineItem1Update, testLineItem2Update)
   val apiOrderInfoUpdate = ApiOrderInfoUpdate(
-    testOrderId,
     testLineItemsUpdate,
-    testSpecialInstructionUpdate,
-    testOrderTotalUpdate
+    None
   )
   val apiUpdateOrderInfo = ApiUpdateOrderInfo(
     testOrderId,

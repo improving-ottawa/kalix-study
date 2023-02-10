@@ -28,6 +28,12 @@ message OrderInfo {
         double orderTotal = 4;
 }
 
+message OrderInfoUpdate {
+    repeated LineItem lineItems = 1;
+    optional string specialInstructions = 2;
+    double orderTotal = 3;
+}
+
 message OrderMetaInfo  {
     OrderId orderId = 1;
     MemberId memberId = 2;
