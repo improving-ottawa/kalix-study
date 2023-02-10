@@ -83,7 +83,9 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiUpdateOrderInfo.orderId)) => {
+          if order.orderId == Some(OrderId(apiUpdateOrderInfo.orderId)) &&
+            order.info.isDefined &&
+            (order.status.isDraft || order.status.isPending) => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val orderInfoUpdateOpt = apiUpdateOrderInfo.update

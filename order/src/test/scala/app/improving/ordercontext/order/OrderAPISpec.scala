@@ -131,6 +131,30 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         testKit.updateOrderInfo(nullApiUpdateOrderInfo)
 
       nullUpdateOrderInfoResult.events should have size 0
+
+      val updateOrderStatusResultToPending =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            orderId = orderId
+          )
+        )
+
+      updateOrderStatusResultToPending.events should have size 1
+
+      val updateOrderStatusResultToInProcess =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            orderId = orderId,
+            newStatus = testNewOrderStatusToInProcess
+          )
+        )
+
+      updateOrderStatusResultToInProcess.events should have size 1
+
+      val updateInProcessOrderInfoResult =
+        testKit.updateOrderInfo(apiUpdateOrderInfo.copy(orderId = orderId))
+
+      updateInProcessOrderInfoResult.events should have size 0
     }
 
     "correctly process commands of type CancelOrder" in {
