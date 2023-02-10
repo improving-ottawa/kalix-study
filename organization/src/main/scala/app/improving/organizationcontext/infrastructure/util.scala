@@ -31,10 +31,11 @@ import app.improving.organizationcontext.{
 import app.improving.organizationcontext.organization._
 object util {
 
-  //private def
+  // private def
 
-  def convertApiMemberIdToMemberId(memberId: ApiMemberId) = MemberId(memberId.memberId)
-
+  def convertApiMemberIdToMemberId(memberId: ApiMemberId) = MemberId(
+    memberId.memberId
+  )
 
   def buildNewInfoFromApiUpdateInfo(
       updateInfo: ApiUpdateInfo,
@@ -45,11 +46,15 @@ object util {
       Info(
         name = updateInfo.name.getOrElse(info.name),
         shortName = updateInfo.shortName.orElse(info.shortName),
-        address = updateInfo.address.map(convertApiAddressToAddress).orElse(currentInfo.flatMap(_.address)),
+        address = updateInfo.address
+          .map(convertApiAddressToAddress)
+          .orElse(currentInfo.flatMap(_.address)),
         isPrivate = updateInfo.isPrivate.getOrElse(info.isPrivate),
         url = updateInfo.url.orElse(info.url),
         logo = updateInfo.logo.orElse(info.logo),
-        tenant = updateInfo.tenant.map(tenant => TenantId(tenant.tenantId)).orElse(info.tenant)
+        tenant = updateInfo.tenant
+          .map(tenant => TenantId(tenant.tenantId))
+          .orElse(info.tenant)
       )
     })
 
