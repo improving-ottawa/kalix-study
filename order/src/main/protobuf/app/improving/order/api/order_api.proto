@@ -48,10 +48,8 @@ message ApiOrderMetaInfo  {
 }
 
 message ApiOrderInfoUpdate {
-        string order_id = 1 [(kalix.field).entity_key = true];
         repeated ApiLineItem lineItems = 2;
-        string specialInstructions = 3;
-        double orderTotal = 4;
+        optional string specialInstructions = 3;
 }
 message ApiCreateOrder {
     string order_id = 1 [(kalix.field).entity_key = true];

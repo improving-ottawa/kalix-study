@@ -123,6 +123,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         .map(item => item.lineTotal * item.quantity)
         .sum
 
+      orderInfoUpdated.info
+        .map(_.specialInstructions)
+        .getOrElse("") shouldBe testSpecialInstruction
+
       val nullUpdateOrderInfoResult =
         testKit.updateOrderInfo(nullApiUpdateOrderInfo)
 
