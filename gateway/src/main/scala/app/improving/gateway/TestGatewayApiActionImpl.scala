@@ -1,69 +1,13 @@
 package app.improving.gateway
 
-import app.improving.{
-  ApiContact,
-  ApiEmailAddress,
-  ApiEventId,
-  ApiGeoLocation,
-  ApiLocationId,
-  ApiMemberId,
-  ApiMobileNumber,
-  ApiOrganizationId,
-  ApiProductId,
-  ApiStoreId,
-  ApiTenantId,
-  ApiVenueId
-}
-import app.improving.membercontext.member.{
-  ApiInfo,
-  ApiMemberMap,
-  ApiMemberStatus,
-  ApiNotificationPreference,
-  ApiRegisterMember,
-  ApiRegisterMemberList,
-  ApiUpdateInfo,
-  ApiUpdateMemberInfo,
-  ApiUpdateMemberStatus,
-  MemberActionService,
-  MemberService
-}
-import app.improving.eventcontext.event.{
-  ApiEventInfo,
-  ApiGetEventById,
-  ApiReservationId,
-  ApiScheduleEvent,
-  EventService
-}
-import app.improving.organizationcontext.organization.{
-  ApiContacts,
-  ApiEstablishOrganization,
-  ApiMetaInfo,
-  ApiOrganizationStatus,
-  ApiOrganizationStatusUpdated,
-  ApiParent,
-  OrganizationService
-}
-import app.improving.storecontext.store.{
-  ApiCreateStore,
-  ApiStoreInfo,
-  ApiUpdateStore,
-  StoreService
-}
-import app.improving.productcontext.product.{
-  ApiCreateProduct,
-  ApiProductInfo,
-  ProductService
-}
-import app.improving.tenantcontext.tenant.{
-  ApiActivateTenant,
-  ApiEstablishTenant,
-  TenantService
-}
-import app.improving.gateway.util.util.{
-  genAddress,
-  genEmailAddressForName,
-  genMobileNumber
-}
+import app.improving.{ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiLocationId, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId, ApiVenueId}
+import app.improving.membercontext.member.{ApiInfo, ApiMemberMap, ApiMemberStatus, ApiNotificationPreference, ApiRegisterMember, ApiRegisterMemberList, ApiUpdateInfo, ApiUpdateMemberInfo, ApiUpdateMemberStatus, MemberActionService, MemberService}
+import app.improving.eventcontext.event.{ApiGetEventById, ApiScheduleEvent, EventService}
+import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
+import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreUpdateInfo, ApiUpdateStore, StoreService}
+import app.improving.productcontext.product.{ApiCreateProduct, ApiProductInfo, ProductService}
+import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
+import app.improving.gateway.util.util.{genAddress, genEmailAddressForName, genMobileNumber}
 import app.improving.organizationcontext.{OrganizationInfo, organization}
 import com.google.protobuf.timestamp.Timestamp
 
@@ -271,7 +215,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               organizationService
                 .updateOrganizationStatus(
                   ApiOrganizationStatusUpdated(
-                    orgId.organizationId,
+                    Some(orgId),
                     ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
                   )
                 )
@@ -294,11 +238,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                         Some(
                           ApiUpdateInfo(
                             None,
-                            "",
-                            "",
-                            "",
-                            "",
-                            ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL,
+                            Some(""),
+                            Some(""),
+                            Some(""),
+                            Some(""),
+                            Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
                             Seq(topOrgs(ownersForTenant._1)),
                             Some(ownersForTenant._1)
                           )
@@ -502,7 +446,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               log.info(
                 s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
               )
-              storeId.storeId -> Skus(set.map(_._2).toSeq)
+              storeId -> Skus(set.map(_._2).toSeq)
             }
 
           log.info(
@@ -514,19 +458,18 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             for {
               event <- eventService.getEventById(
                 ApiGetEventById(
-                  eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
+                  Some(eventIds.toArray.apply(r.nextInt(eventIds.size)))
                 )
               )
               temp <- Future
                 .sequence(result.map { case (storeId, products) =>
                   storeService.updateStore(
                     ApiUpdateStore(
-                      storeId,
+                      Some(storeId),
                       Some(
-                        ApiStoreInfo(
-                          storeId = storeId,
+                        ApiStoreUpdateInfo(
                           products = products.skus,
-                          event = Some(ApiEventId(event.eventId)),
+                          event = event.eventId,
                           venue = Some(ApiVenueId("test-venue-id")),
                           location = Some(ApiLocationId("test-location-id"))
                         )

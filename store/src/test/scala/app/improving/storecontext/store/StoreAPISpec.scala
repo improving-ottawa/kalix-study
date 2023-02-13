@@ -71,7 +71,15 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       storeUpdated.info shouldBe Some(
         convertApiStoreInfoToStoreInfo(
-          apiStoreInfoUpdate
+          apiStoreInfo.copy(
+            name = testNameUpdate,
+            description = testDescriptionUpdate,
+            products = testProductsUpdate,
+            event = Some(testEventUpdate),
+            venue = Some(testVenueUpdate),
+            location = Some(testLocaltionUpdate),
+            sponsoringOrg = Some(testOrgUpdate)
+          )
         )
       )
       storeUpdated.meta.flatMap(_.lastModifiedBy) shouldBe Some(

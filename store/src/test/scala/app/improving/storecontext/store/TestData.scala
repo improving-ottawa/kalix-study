@@ -67,10 +67,9 @@ object TestData {
   val testOrgUpdate = ApiOrganizationId(testOrgIdUpdate)
   val testMember1Update = "test-member1-update"
   val testMember2Update = "test-member2-update"
-  val apiStoreInfoUpdate = ApiStoreInfo(
-    testStoreIdUpdate,
-    testNameUpdate,
-    testDescriptionUpdate,
+  val apiStoreInfoUpdate = ApiStoreUpdateInfo(
+    Some(testNameUpdate),
+    Some(testDescriptionUpdate),
     testProductsUpdate,
     Some(testEventUpdate),
     Some(testVenueUpdate),
