@@ -15,10 +15,28 @@ enum ApiProductStatus {
     UNKNOWN = 4;
 }
 
-enum ApiProductDetails {
-    RESERVED_TICKET = 0;
-    RESTRICTED_TICKET = 1;
-    OPEN_TICKET = 2;
+message ApiReservedTicket {
+    string section = 1;
+    string row = 2;
+    string set = 3;
+    ApiEventId event = 4;
+}
+
+message ApiRestrictedTicket {
+    string section = 1;
+    ApiEventId event = 2;
+}
+
+message ApiOpenTicket {
+    ApiEventId event = 1;
+}
+
+message ApiProductDetails {
+    oneof apiTicket {
+        ApiReservedTicket reservedTicket = 1;
+        ApiRestrictedTicket restrictedTicket = 2;
+        ApiOpenTicket openTicket = 3;
+    }
 }
 
 message ApiProduct {
@@ -27,19 +45,16 @@ message ApiProduct {
     ApiProductMetaInfo meta = 3;
     ApiProductStatus status = 4;
 }
+
 message ApiProductInfo {
     string sku = 1 [(kalix.field).entity_key = true];
-    string  name = 2;
-    string  description = 3;
+    string name = 2;
+    string description = 3;
     ApiProductDetails productDetails = 4;
-    string section = 5;
-    string row = 6;
-    string seat = 7;
-    ApiEventId event = 8;
-    repeated string image = 9;
-    double price = 10;
-    double cost = 11;
-    ApiStoreId store = 12;
+    repeated string image = 5;
+    double price = 6;
+    double cost = 7;
+    ApiStoreId store = 8;
 }
 
 message ApiProductInfoUpdate {
