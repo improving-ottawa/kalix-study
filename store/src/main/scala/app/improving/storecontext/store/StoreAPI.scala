@@ -2,7 +2,7 @@ package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
 import app.improving.{ApiProductId, ApiStoreId, MemberId, ProductId, StoreId}
-import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMetaInfo, StoreOpened, StoreStatus, StoreUpdated}
+import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreMetaInfo, StoreOpened, StoreStatus, StoreUpdated}
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -90,6 +90,31 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
               ),
               lastModifiedOn = Some(timestamp),
               status = StoreStatus.STORE_STATUS_DELETED
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+
+  override def makeStoreReady(
+    currentState: StoreState,
+    apiReadyStore: ApiReadyStore
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+      case Some(store)
+        if store.status.isStoreStatusDraft =>
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val event = StoreMadeReady(
+          apiReadyStore.storeId.map(id => StoreId(id.storeId)),
+          store.info,
+          store.meta.map(
+            _.copy(
+              lastModifiedBy = apiReadyStore.readyingMember.map(member =>
+                MemberId(member.memberId)
+              ),
+              lastModifiedOn = Some(timestamp),
+              status = StoreStatus.STORE_STATUS_READY
             )
           )
         )
@@ -253,7 +278,25 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             && (store.status.isStoreStatusDraft || store.status.isStoreStatusClosed) =>
         currentState.withStore(
           store.copy(
-            meta = storeDeleted.meta
+            meta = storeDeleted.meta,
+            status = StoreStatus.STORE_STATUS_DELETED
+          )
+        )
+      case _ => currentState
+    }
+
+  override def storeMadeReady(
+    currentState: StoreState,
+    storeMadeReady: StoreMadeReady
+  ): StoreState = {
+    currentState.store match {
+      case Some(store)
+        if store.status.isStoreStatusDraft =>
+        currentState.withStore(
+          store.copy(
+            info = storeMadeReady.info,
+            meta = storeMadeReady.meta,
+            status = StoreStatus.STORE_STATUS_READY
           )
         )
       case _ => currentState
@@ -264,8 +307,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       storeOpened: StoreOpened
   ): StoreState = currentState.store match {
       case Some(store)
-          if store.storeId == storeOpened.storeId
-            && (store.status.isStoreStatusReady || store.status.isStoreStatusClosed) => {
+          if store.status.isStoreStatusReady || store.status.isStoreStatusClosed =>
         currentState.withStore(
           store.copy(
             info = storeOpened.info,
@@ -273,7 +315,6 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             status = StoreStatus.STORE_STATUS_OPEN
           )
         )
-      }
       case _ => currentState
     }
 
@@ -282,8 +323,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       storeClosed: StoreClosed
   ): StoreState = currentState.store match {
       case Some(store)
-          if store.storeId == storeClosed.storeId
-            && (store.status.isStoreStatusReady || store.status.isStoreStatusOpen) => {
+          if store.status.isStoreStatusReady || store.status.isStoreStatusOpen => {
         currentState.withStore(
           store.copy(
             info = storeClosed.info,
@@ -300,8 +340,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       productAddedToStore: ProductsAddedToStore
   ): StoreState = currentState.store match {
       case Some(store)
-          if store.storeId == productAddedToStore.storeId
-            && !store.status.isStoreStatusDeleted =>
+          if !store.status.isStoreStatusDeleted =>
         currentState.withStore(
           store.copy(
             info = productAddedToStore.info,
@@ -316,8 +355,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       productRemovedFromStore: ProductsRemovedFromStore
   ): StoreState = currentState.store match {
       case Some(store)
-          if store.storeId == productRemovedFromStore.storeId
-            && !store.status.isStoreStatusDeleted =>
+          if !store.status.isStoreStatusDeleted =>
         currentState.withStore(
           store.copy(
             info = productRemovedFromStore.info,
@@ -332,8 +370,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       storeUpdated: StoreUpdated
   ): StoreState = currentState.store match {
       case Some(store)
-          if store.storeId == storeUpdated.storeId
-            && !store.status.isStoreStatusDeleted =>
+          if !store.status.isStoreStatusDeleted =>
         currentState.withStore(
           store.copy(
             info = storeUpdated.info,
