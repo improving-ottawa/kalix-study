@@ -21,7 +21,7 @@ message ReservationId {
 
 message EventCancelled {
     EventId eventId = 1;
-    MemberId cancellingMember = 2;
+    EventMetaInfo meta = 2;
 }
 
 message EventDelayed {
@@ -84,8 +84,7 @@ message EventScheduled {
 
 message EventStarted {
     EventId  eventId = 1;
-    EventInfo info = 2;
-    EventMetaInfo meta = 3;
+    EventMetaInfo meta = 2;
 }
 
 message LiveUpdate {
