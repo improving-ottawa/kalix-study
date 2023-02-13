@@ -13,10 +13,28 @@ enum ProductStatus {
     UNKNOWN = 4;
 }
 
-enum ProductDetails {
-    RESERVED_TICKET = 0;
-    RESTRICTED_TICKET = 1;
-    OPEN_TICKET = 2;
+message ReservedTicket {
+    string section = 1;
+    string row = 2;
+    string set = 3;
+    EventId event = 4;
+}
+
+message RestrictedTicket {
+    string section = 1;
+    EventId event = 2;
+}
+
+message OpenTicket {
+    EventId event = 1;
+}
+
+message ProductDetails {
+    oneof ticket {
+        ReservedTicket reservedTicket = 1;
+        RestrictedTicket restrictedTicket = 2;
+        OpenTicket openTicket = 3;
+    }
 }
 
 message ProductInfo {
@@ -24,14 +42,10 @@ message ProductInfo {
     string  name = 2;
     string  description = 3;
     ProductDetails productDetails = 4;
-    string section = 5;
-    string row = 6;
-    string seat = 7;
-    EventId event = 8;
-    repeated string image = 9;
-    double price = 10;
-    double cost = 11;
-    StoreId store = 12;
+    repeated string image = 5;
+    double price = 6;
+    double cost = 7;
+    StoreId store = 8;
 }
 
 message ProductInfoUpdate {

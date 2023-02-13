@@ -10,13 +10,48 @@ object TestData {
   val testSku3 = "test-product-id3"
   val testName = "test-name"
   val testDescription = "test-description"
-  val testProductDetails = ApiProductDetails.OPEN_TICKET
   val testRow = "test-row"
   val testSeat = "test-seat"
   val testSection = "test-section"
   val testEventId = "test-event-id"
   val testEventId2 = "test-event-id2"
   val testEventId3 = "test-event-id3"
+  val testProductDetails = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId))
+        )
+      )
+    )
+  )
+  val testProductDetails2 = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId2))
+        )
+      )
+    )
+  )
+  val testProductDetails3 = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId3))
+        )
+      )
+    )
+  )
   val testImages = Seq[String]("test-image")
   val testPrice = 10.0
   val testCost = 3.0
@@ -30,10 +65,6 @@ object TestData {
     testName,
     testDescription,
     testProductDetails,
-    testSection,
-    testRow,
-    testSeat,
-    Some(ApiEventId(testEventId)),
     testImages,
     testPrice,
     testCost,
@@ -43,11 +74,7 @@ object TestData {
     testSku2,
     testName,
     testDescription,
-    testProductDetails,
-    testSection,
-    testRow,
-    testSeat,
-    Some(ApiEventId(testEventId2)),
+    testProductDetails2,
     testImages,
     testPrice,
     testCost,
@@ -57,11 +84,7 @@ object TestData {
     testSku3,
     testName,
     testDescription,
-    testProductDetails,
-    testSection,
-    testRow,
-    testSeat,
-    Some(ApiEventId(testEventId3)),
+    testProductDetails3,
     testImages,
     testPrice,
     testCost,

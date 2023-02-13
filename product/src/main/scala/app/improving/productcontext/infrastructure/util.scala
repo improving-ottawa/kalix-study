@@ -1,8 +1,10 @@
 package app.improving.productcontext.infrastructure
 
+import app.improving.productcontext.ProductDetails.Ticket
+import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.{ApiEventId, ApiMemberId, ApiStoreId, EventId, MemberId, ProductId, StoreId}
-import app.improving.productcontext.{ProductCreated, ProductDetails, ProductInfo, ProductInfoUpdate, ProductMetaInfo}
-import app.improving.productcontext.product.{ApiProduct, ApiProductDetails, ApiProductInfo, ApiProductInfoUpdate, ApiProductMetaInfo, ApiProductStatus}
+import app.improving.productcontext.{OpenTicket, ProductCreated, ProductDetails, ProductInfo, ProductInfoUpdate, ProductMetaInfo, ReservedTicket, RestrictedTicket}
+import app.improving.productcontext.product.{ApiOpenTicket, ApiProduct, ApiProductDetails, ApiProductInfo, ApiProductInfoUpdate, ApiProductMetaInfo, ApiProductStatus, ApiReservedTicket, ApiRestrictedTicket}
 
 object util {
 
@@ -13,11 +15,7 @@ object util {
       Some(ProductId(apiProductInfo.sku)),
       apiProductInfo.name,
       apiProductInfo.description,
-      convertApiProductDetailsToProductDetails(apiProductInfo.productDetails),
-      apiProductInfo.section,
-      apiProductInfo.row,
-      apiProductInfo.seat,
-      apiProductInfo.event.map(event => EventId(event.eventId)),
+      apiProductInfo.productDetails.map(convertApiProductDetailsToProductDetails),
       apiProductInfo.image,
       apiProductInfo.price,
       apiProductInfo.cost,
@@ -68,11 +66,7 @@ object util {
       productInfo.sku.map(_.id).getOrElse("SKU is not found"),
       productInfo.name,
       productInfo.description,
-      convertProductDetailsToApiProductDetails(productInfo.productDetails),
-      productInfo.section,
-      productInfo.row,
-      productInfo.seat,
-      productInfo.event.map(event => ApiEventId(event.id)),
+      productInfo.productDetails.map(convertProductDetailsToApiProductDetails),
       productInfo.image,
       productInfo.price,
       productInfo.cost,
@@ -91,25 +85,77 @@ object util {
     )
   }
 
+  def convertApiReservedTicketToReservedTicket(apiReservedTicket: ApiReservedTicket): ReservedTicket = {
+    ReservedTicket(
+      section = apiReservedTicket.section,
+      row = apiReservedTicket.row,
+      set = apiReservedTicket.set,
+      event = apiReservedTicket.event.map(event => EventId(event.eventId))
+    )
+  }
+
+  def convertApiRestrictedTicketToRestrictedTicket(apiRestrictedTicket: ApiRestrictedTicket): RestrictedTicket = {
+    RestrictedTicket(
+      section = apiRestrictedTicket.section,
+      event = apiRestrictedTicket.event.map(event => EventId(event.eventId))
+    )
+  }
+
+  def convertApiOpenTicketToOpenTicket(apiOpenTicket: ApiOpenTicket): OpenTicket = {
+    OpenTicket(
+      event = apiOpenTicket.event.map(event => EventId(event.eventId))
+    )
+  }
+
   def convertApiProductDetailsToProductDetails(
     apiProductDetails: ApiProductDetails
   ): ProductDetails = {
-    apiProductDetails match {
-      case ApiProductDetails.RESERVED_TICKET => ProductDetails.RESERVED_TICKET
-      case ApiProductDetails.RESTRICTED_TICKET => ProductDetails.RESTRICTED_TICKET
-      case ApiProductDetails.OPEN_TICKET => ProductDetails.OPEN_TICKET
-      case ApiProductDetails.Unrecognized(unrecognizedValue) => ProductDetails.Unrecognized(unrecognizedValue)
+    apiProductDetails.apiTicket match {
+      case ApiTicket.ReservedTicket(value) =>
+        ProductDetails(ProductDetails.Ticket.ReservedTicket(convertApiReservedTicketToReservedTicket(value)))
+      case ApiTicket.RestrictedTicket(value) =>
+        ProductDetails(ProductDetails.Ticket.RestrictedTicket(convertApiRestrictedTicketToRestrictedTicket(value)))
+      case ApiTicket.OpenTicket(value) =>
+        ProductDetails(ProductDetails.Ticket.OpenTicket(convertApiOpenTicketToOpenTicket(value)))
+      case ApiTicket.Empty =>
+        ProductDetails(ProductDetails.Ticket.Empty)
     }
+  }
+
+  def convertReservedTicketToApiReservedTicket(reservedTicket: ReservedTicket): ApiReservedTicket = {
+    ApiReservedTicket(
+      section = reservedTicket.section,
+      row = reservedTicket.row,
+      set = reservedTicket.set,
+      event = reservedTicket.event.map(event => ApiEventId(event.id))
+    )
+  }
+
+  def convertRestrictedTicketToApiRestrictedTicket(restrictedTicket: RestrictedTicket): ApiRestrictedTicket = {
+    ApiRestrictedTicket(
+      section = restrictedTicket.section,
+      event = restrictedTicket.event.map(event => ApiEventId(event.id))
+    )
+  }
+
+  def convertOpenTicketToApiOpenTicket(openTicket: OpenTicket): ApiOpenTicket = {
+    ApiOpenTicket(
+      event = openTicket.event.map(event => ApiEventId(event.id))
+    )
   }
 
   def convertProductDetailsToApiProductDetails(
                                                 productDetails: ProductDetails
                                               ): ApiProductDetails = {
-    productDetails match {
-      case ProductDetails.RESERVED_TICKET => ApiProductDetails.RESERVED_TICKET
-      case ProductDetails.RESTRICTED_TICKET => ApiProductDetails.RESTRICTED_TICKET
-      case ProductDetails.OPEN_TICKET => ApiProductDetails.OPEN_TICKET
-      case ProductDetails.Unrecognized(unrecognizedValue) => ApiProductDetails.Unrecognized(unrecognizedValue)
+    productDetails.ticket match {
+      case Ticket.ReservedTicket(value) =>
+        ApiProductDetails(ApiProductDetails.ApiTicket.ReservedTicket(convertReservedTicketToApiReservedTicket(value)))
+      case Ticket.RestrictedTicket(value) =>
+        ApiProductDetails(ApiProductDetails.ApiTicket.RestrictedTicket(convertRestrictedTicketToApiRestrictedTicket(value)))
+      case Ticket.OpenTicket(value) =>
+        ApiProductDetails(ApiProductDetails.ApiTicket.OpenTicket(convertOpenTicketToApiOpenTicket(value)))
+      case Ticket.Empty =>
+        ApiProductDetails(ApiProductDetails.ApiTicket.Empty)
     }
   }
 }

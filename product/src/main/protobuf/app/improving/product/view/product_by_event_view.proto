@@ -77,7 +77,8 @@ service TicketByEventView {
             query: "SELECT "
                     "* "
                     "FROM ticket_by_event_product "
-                    "WHERE ticket_by_event_product.info.event.event_id = :eventId "
+                    "WHERE ticket_by_event_product.info.productDetails.reservedTicket.event.event_id = :eventId"
+            // Kalix does not yet support OR operations. Query should be `:eventId IN (...reservedTicket..., ...restrictedTicket..., ...openTicket...)`
         };
     }
 
