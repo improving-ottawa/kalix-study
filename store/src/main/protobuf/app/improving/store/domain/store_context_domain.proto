@@ -57,6 +57,11 @@ message StoreDeleted {
     StoreId storeId = 1;
     StoreMetaInfo meta = 2;
 }
+message StoreMadeReady {
+    StoreId storeId = 1;
+    StoreInfo info = 2;
+    StoreMetaInfo meta = 3;
+}
 message StoreOpened {
     StoreId storeId = 1;
     StoreInfo info = 2;

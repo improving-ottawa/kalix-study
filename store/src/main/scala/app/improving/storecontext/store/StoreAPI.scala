@@ -2,17 +2,7 @@ package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
 import app.improving.{ApiProductId, ApiStoreId, MemberId, ProductId, StoreId}
-import app.improving.storecontext.{
-  ProductsAddedToStore,
-  ProductsRemovedFromStore,
-  StoreClosed,
-  StoreCreated,
-  StoreDeleted,
-  StoreMetaInfo,
-  StoreOpened,
-  StoreStatus,
-  StoreUpdated
-}
+import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreMetaInfo, StoreOpened, StoreStatus, StoreUpdated}
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -110,6 +100,35 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
               ),
               lastModifiedOn = Some(timestamp),
               status = StoreStatus.DELETED
+            )
+          )
+        )
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
+  override def makeStoreReady(
+    currentState: StoreState,
+    apiReadyStore: ApiReadyStore
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.store match {
+      case Some(store)
+        if store.storeId == Some(StoreId(apiReadyStore.storeId)) &&
+          store.status.isDraft => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val event = StoreMadeReady(
+          Some(StoreId(apiReadyStore.storeId)),
+          store.info,
+          store.meta.map(
+            _.copy(
+              lastModifiedBy = apiReadyStore.readyingMember.map(member =>
+                MemberId(member.memberId)
+              ),
+              lastModifiedOn = Some(timestamp),
+              status = StoreStatus.READY
             )
           )
         )
@@ -302,7 +321,28 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             && (store.status.isDraft || store.status.isClosed) => {
         currentState.withStore(
           store.copy(
-            meta = storeDeleted.meta
+            meta = storeDeleted.meta,
+            status = StoreStatus.DELETED
+          )
+        )
+      }
+      case _ => currentState
+    }
+  }
+
+  override def storeMadeReady(
+    currentState: StoreState,
+    storeMadeReady: StoreMadeReady
+  ): StoreState = {
+    currentState.store match {
+      case Some(store)
+        if store.storeId == storeMadeReady.storeId
+          && store.status.isDraft => {
+        currentState.withStore(
+          store.copy(
+            info = storeMadeReady.info,
+            meta = storeMadeReady.meta,
+            status = StoreStatus.READY
           )
         )
       }

@@ -17,6 +17,7 @@ service StoreService {
             events: [
                 "app.improving.storecontext.StoreCreated",
                 "app.improving.storecontext.StoreDeleted",
+                "app.improving.storecontext.StoreMadeReady",
                 "app.improving.storecontext.StoreOpened",
                 "app.improving.storecontext.StoreUpdated",
                 "app.improving.storecontext.StoreClosed",
@@ -42,6 +43,12 @@ service StoreService {
     rpc DeleteStore(ApiDeleteStore) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/store/{store_id}"
+        };
+    }
+
+    rpc MakeStoreReady(ApiReadyStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/ready-store"
         };
     }
 
