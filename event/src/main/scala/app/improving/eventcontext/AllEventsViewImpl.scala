@@ -48,19 +48,9 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state: ApiEvent,
       eventCancelled: EventCancelled
   ): UpdateEffect[ApiEvent] = {
-    val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-    val metaOpt = state.meta.map(meta =>
-      meta.copy(
-        status = ApiEventStatus.CANCELLED,
-        lastModifiedOn = Some(timestamp),
-        lastModifiedBy =
-          eventCancelled.cancellingMember.map(member => ApiMemberId(member.id))
-      )
-    )
     effects.updateState(
       state.copy(
-        meta = metaOpt,
+        meta = eventCancelled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.CANCELLED
       )
     )
@@ -123,7 +113,6 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
     effects.updateState(
       state.copy(
-        info = eventStarted.info.map(convertEventInfoToApiEventInfo),
         meta = eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.INPROGRESS
       )
