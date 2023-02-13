@@ -1,34 +1,11 @@
 package app.improving.eventcontext.event
 
-import app.improving.eventcontext.event.EventAPI.{
-  JustMemberValidated,
-  ValidatedFields,
-  ValidatedFieldsWithEventInfo,
-  ValidatedFieldsWithReasonAndDuration,
-  ValidatedFieldsWithStartAndEnd,
-  ValidationNeeded,
-  ValidationNeededWithEventInfo,
-  ValidationNeededWithJustMember,
-  ValidationNeededWithReasonAndDuration,
-  ValidationNeededWithStartAndEnd,
-  validateApiEventInfo
-}
+import app.improving.eventcontext.event.EventAPI.{JustMemberValidated, ValidatedFields, ValidatedFieldsWithEventInfo, ValidatedFieldsWithReasonAndDuration, ValidatedFieldsWithStartAndEnd, ValidationNeeded, ValidationNeededWithEventInfoExistence, ValidationNeededWithEventInfoFields, ValidationNeededWithJustMember, ValidationNeededWithReasonAndDuration, ValidationNeededWithStartAndEnd, validateApiEventInfo}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.eventcontext.infrastructure.util._
 import app.improving.{ApiEventId, ApiMemberId, EventId, MemberId}
-import app.improving.eventcontext.{
-  EventCancelled,
-  EventDelayed,
-  EventEnded,
-  EventInfo,
-  EventInfoChanged,
-  EventMetaInfo,
-  EventRescheduled,
-  EventScheduled,
-  EventStarted,
-  EventStatus
-}
+import app.improving.eventcontext.{EventCancelled, EventDelayed, EventEnded, EventInfo, EventInfoChanged, EventMetaInfo, EventRescheduled, EventScheduled, EventStarted, EventStatus}
 import com.google.protobuf.duration.Duration
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
@@ -47,7 +24,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
     EventStatus.DELAYED
   ) // TODO: can you change an event's info after it's started?
   val cancellableStatuses: Set[EventStatus] =
-    Set(EventStatus.CANCELLED, EventStatus.SCHEDULED)
+    Set(EventStatus.CANCELLED, EventStatus.SCHEDULED, EventStatus.DELAYED)
   val endableStatuses: Set[EventStatus] = Set(EventStatus.INPROGRESS)
 
   override def changeEventInfo(
@@ -61,7 +38,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           event.status,
           changeableInfoStatuses,
           "change event info",
-          ValidationNeededWithEventInfo(
+          ValidationNeededWithEventInfoExistence(
             apiChangeEventInfo.changingMember,
             apiChangeEventInfo.info
           )
@@ -112,7 +89,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           EventStatus.SCHEDULED,
           Set(EventStatus.SCHEDULED),
           "schedule event",
-          ValidationNeededWithEventInfo(
+          ValidationNeededWithEventInfoFields(
             apiScheduleEvent.schedulingMember,
             apiScheduleEvent.info
           )
@@ -547,7 +524,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       fieldsNeeded.toValidatedFields match {
         case Left(missingFields) =>
           effects.error(
-            s"Message is missing the following fields: ${missingFields.mkString(", ")}"
+            s"Message is missing the following fields: ${missingFields.toSeq.sorted.mkString(", ")}"
           )
         case Right(validatedFields) => block(validatedFields)
       }
@@ -595,10 +572,15 @@ object EventAPI {
   case class ValidationNeededWithJustMember(
       maybeApiMemberId: Option[ApiMemberId]
   ) extends ValidationNeeded(maybeApiMemberId)
-  case class ValidationNeededWithEventInfo(
+  case class ValidationNeededWithEventInfoFields(
       maybeApiMemberId: Option[ApiMemberId],
       maybeApiEventInfo: Option[ApiEventInfo]
   ) extends ValidationNeeded(maybeApiMemberId)
+
+  case class ValidationNeededWithEventInfoExistence(
+    maybeApiMemberId: Option[ApiMemberId],
+  maybeAiEventInfo: Option[ApiEventInfo])
+  extends ValidationNeeded(maybeApiMemberId)
   case class ValidationNeededWithStartAndEnd(
       maybeApiMemberId: Option[ApiMemberId],
       maybeStart: Option[Timestamp],
@@ -620,7 +602,7 @@ object EventAPI {
                 Right(JustMemberValidated(apiMemberId))
               case _ => Left(Set("Member"))
             }
-          case ValidationNeededWithEventInfo(
+          case ValidationNeededWithEventInfoFields(
                 maybeApiMemberId,
                 maybeApiEventInfo
               ) =>
@@ -637,6 +619,16 @@ object EventAPI {
                     maybeApiEventInfo
                   )
                 )
+            }
+          case ValidationNeededWithEventInfoExistence(maybeApiMemberId, maybeApiEventInfo) =>
+            (maybeApiMemberId, maybeApiEventInfo) match {
+              case (Some(apiMemberId), Some(apiEventInfo)) => Right(ValidatedFieldsWithEventInfo(apiMemberId, apiEventInfo))
+              case _ => Left(
+                Map(
+                  "Member" -> maybeApiMemberId,
+                  "ApiEventInfo" -> maybeApiEventInfo
+                ).filter(_._2.isEmpty).keySet
+              )
             }
           case ValidationNeededWithStartAndEnd(
                 maybeApiMemberId,
