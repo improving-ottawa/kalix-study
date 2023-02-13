@@ -64,10 +64,24 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       case Some(store)
           if store.storeId == Some(
             StoreId(apiUpdateStore.storeId)
-          ) && store.meta.map(_.status) != Some(StoreStatus.DELETED) => {
+          ) && !store.status.isDeleted => {
+        val updateInfoOpt = apiUpdateStore.info.map(convertApiStoreUpdateInfoToStoreUpdateInfo)
+        val updatedInfoOpt = store.info.map {storeInfo =>
+          updateInfoOpt.fold(storeInfo) { updateInfo =>
+            storeInfo.copy(
+              name = updateInfo.name.getOrElse(storeInfo.name),
+              description = updateInfo.description.getOrElse(storeInfo.description),
+              products = if (updateInfo.products.isEmpty) storeInfo.products else updateInfo.products,
+              event = updateInfo.event.orElse(storeInfo.event),
+              venue = updateInfo.venue.orElse(storeInfo.venue),
+              location = updateInfo.location.orElse(storeInfo.location),
+              sponsoringOrg = updateInfo.sponsoringOrg.orElse(storeInfo.sponsoringOrg)
+            )
+          }
+        }
         val event = StoreUpdated(
           Some(StoreId(apiUpdateStore.storeId)),
-          apiUpdateStore.info.map(convertApiStoreInfoToStoreInfo),
+          updatedInfoOpt,
           apiUpdateStore.meta.map(convertApiStoreMetaInfoToStoreMetaInfo)
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)

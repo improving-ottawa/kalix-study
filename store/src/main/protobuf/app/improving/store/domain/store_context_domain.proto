@@ -26,14 +26,13 @@ message StoreInfo {
 }
 
 message StoreUpdateInfo {
-    string storeId = 1;
-    string  name = 2;
-    string  description = 3;
-    repeated ProductId products = 4;
-    EventId  event = 5;
-    VenueId venue = 6;
-    LocationId location = 7;
-    OrganizationId sponsoringOrg = 8;
+    optional string  name = 1;
+    optional string description = 2;
+    repeated ProductId products = 3;
+    EventId event = 4;
+    VenueId venue = 5;
+    LocationId location = 6;
+    OrganizationId sponsoringOrg = 7;
 }
 
 message StoreMetaInfo {

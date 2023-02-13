@@ -62,7 +62,7 @@ message ApiCreateStore {
 }
 message ApiUpdateStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    ApiStoreInfo info = 2;
+    ApiStoreUpdateInfo info = 2;
     ApiStoreMetaInfo meta = 3;
 }
 message ApiDeleteStore {
