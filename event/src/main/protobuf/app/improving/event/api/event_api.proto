@@ -28,6 +28,7 @@ message ApiGetEventById {
 message ApiEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
+    ApiReservationId reservation = 5;
     ApiEventMetaInfo meta = 3;
     ApiEventStatus status = 4;
 }

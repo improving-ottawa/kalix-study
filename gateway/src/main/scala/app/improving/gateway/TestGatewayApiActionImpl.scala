@@ -2,7 +2,7 @@ package app.improving.gateway
 
 import app.improving.{ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiLocationId, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId, ApiVenueId}
 import app.improving.membercontext.member.{ApiInfo, ApiMemberMap, ApiMemberStatus, ApiNotificationPreference, ApiRegisterMember, ApiRegisterMemberList, ApiUpdateInfo, ApiUpdateMemberInfo, ApiUpdateMemberStatus, MemberActionService, MemberService}
-import app.improving.eventcontext.event.{ApiGetEventById, ApiScheduleEvent, EventService}
+import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
 import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreUpdateInfo, ApiUpdateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ApiProductInfo, ProductService}
@@ -592,10 +592,10 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     ownersByOrg.keys.map { orgId =>
       ApiCreateStore(
-        UUID.randomUUID().toString,
+        Some(ApiStoreId(UUID.randomUUID().toString)),
         Some(
           ApiStoreInfo(
-            r.nextString(15),
+            Some(ApiStoreId(r.nextString(15))),
             r.nextString(15),
             r.nextString(15),
             Seq.empty[ApiProductId],
@@ -630,7 +630,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             now.getNano
           )
           ApiScheduleEvent(
-            UUID.randomUUID().toString,
+            Some(ApiEventId(UUID.randomUUID().toString)),
             Some(
               ApiEventInfo(
                 r.nextString(15),
@@ -640,7 +640,6 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 Some(
                   ApiGeoLocation(r.nextDouble(), r.nextDouble(), r.nextDouble())
                 ),
-                Some(ApiReservationId(r.nextString(15))),
                 Some(timestamp),
                 Some(
                   Timestamp.of(
@@ -687,9 +686,9 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           r.nextString(10),
           r.nextString(10),
           r.nextString(10),
-          ApiNotificationPreference.values(
+          Some(ApiNotificationPreference.values(
             r.nextInt(ApiNotificationPreference.values.length)
-          ),
+          )),
           Seq.empty,
           forTenant
         )
@@ -838,15 +837,15 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       val topParent = UUID.randomUUID().toString
       establishOrgs = establishOrgs ++ Seq(
         ApiEstablishOrganization(
-          topParent,
+          Some(ApiOrganizationId(topParent)),
           Some(
             organization.ApiInfo(
               r.nextString(10),
-              r.nextString(5),
+              Some(r.nextString(5)),
               Some(genAddress(r)),
-              r.nextBoolean(),
-              r.nextString(15),
-              r.nextString(15),
+              Some(r.nextBoolean()),
+              Some(r.nextString(15)),
+              Some(r.nextString(15)),
               Some(tenant)
             )
           ),
@@ -860,17 +859,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               Seq.empty
             )
           ),
-          owners.headOption,
-          Some(
-            ApiMetaInfo(
-              Some(timestamp),
-              owners.headOption,
-              Some(timestamp),
-              owners.headOption,
-              ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-              Seq.empty[ApiOrganizationId]
-            )
-          )
+          owners.headOption
         )
       )
       var parentsForPrevDepth: Seq[String] = Seq.empty
@@ -895,20 +884,20 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               val id = UUID.randomUUID().toString
               establishOrgs = establishOrgs ++ Seq(
                 ApiEstablishOrganization(
-                  id,
+                  Some(ApiOrganizationId(id)),
                   Some(
                     organization.ApiInfo(
                       r.nextString(10),
-                      r.nextString(5),
+                      Some(r.nextString(5)),
                       Some(genAddress(r)),
-                      r.nextBoolean(),
-                      r.nextString(15),
-                      r.nextString(15),
+                      Some(r.nextBoolean()),
+                      Some(r.nextString(15)),
+                      Some(r.nextString(15)),
                       Some(tenant)
                     )
                   ),
                   Some(
-                    ApiParent(parent)
+                    ApiParent(Some(ApiOrganizationId(parent)))
                   ),
                   Seq.empty,
                   owners,
@@ -919,8 +908,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                       Seq.empty
                     )
                   ),
-                  owners.headOption,
-                  None
+                  owners.headOption
                 )
               )
               nextParents = nextParents ++ Seq(id)

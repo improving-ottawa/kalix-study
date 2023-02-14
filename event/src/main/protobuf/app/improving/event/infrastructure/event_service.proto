@@ -92,7 +92,7 @@ service EventService {
 
     rpc AddReservationToEvent(event.ApiAddReservationToEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/event/{event-id}/add-reservation-to-event"
+            post: "/event/{event_id}/add-reservation-to-event"
             body: "*"
         };
     }
