@@ -1,7 +1,6 @@
 package app.improving.eventcontext.event
 
 import com.google.protobuf.duration.Duration
-import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{
   ApiEventId,
@@ -101,7 +100,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.CANCELLED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_CANCELLED)
 
       val metaOpt = testKit.currentState.event.flatMap(_.meta)
 
@@ -134,7 +133,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.SCHEDULED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_SCHEDULED)
 
       val rescheduledStart =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
@@ -176,7 +175,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.DELAYED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_DELAYED)
 
       val delayedStart =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
@@ -217,7 +216,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.INPROGRESS)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_INPROGRESS)
 
       val metaOpt = testKit.currentState.event.flatMap(_.meta)
 
@@ -249,7 +248,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val statusOpt = testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.PAST)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_PAST)
 
       val metaOpt = testKit.currentState.event.flatMap(_.meta)
 

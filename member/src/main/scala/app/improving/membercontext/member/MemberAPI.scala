@@ -92,7 +92,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
-          if state.memberId.contains(MemberId(apiUpdateMemberInfo.memberId)) => {
+          if state.memberId.contains(
+            MemberId(apiUpdateMemberInfo.memberId)
+          ) => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>

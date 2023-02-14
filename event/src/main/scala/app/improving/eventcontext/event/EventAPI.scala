@@ -52,7 +52,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               currentState.event
                 .map(_.status)
                 .getOrElse(
-                  EventStatus.UNKNOWN
+                  EventStatus.EVENT_STATUS_UNKNOWN
                 )
             )
           )
@@ -88,7 +88,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               Some(timestamp),
               apiScheduleEvent.info.flatMap(_.expectedStart),
               apiScheduleEvent.info.flatMap(_.expectedEnd),
-              EventStatus.SCHEDULED
+              EventStatus.EVENT_STATUS_SCHEDULED
             )
           )
         )
@@ -164,7 +164,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             lastModifiedBy = apiDelayEvent.delayingMember
               .map(member => MemberId(member.memberId)),
             lastModifiedOn = Some(timestamp),
-            status = EventStatus.DELAYED
+            status = EventStatus.EVENT_STATUS_DELAYED
           )
         )
         val delayed = EventDelayed(
@@ -195,7 +195,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             lastModifiedBy = apiStartEvent.startingMember.map(member =>
               MemberId(member.memberId)
             ),
-            status = EventStatus.INPROGRESS,
+            status = EventStatus.EVENT_STATUS_INPROGRESS,
             actualStart = Some(timestamp)
           )
         )
@@ -223,7 +223,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             lastModifiedOn = Some(timestamp),
             lastModifiedBy =
               apiEndEvent.endingMember.map(member => MemberId(member.memberId)),
-            status = EventStatus.PAST,
+            status = EventStatus.EVENT_STATUS_PAST,
             actualEnd = Some(timestamp)
           )
         )
@@ -287,7 +287,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             eventScheduled.eventId,
             eventScheduled.info,
             eventScheduled.meta,
-            EventStatus.SCHEDULED
+            EventStatus.EVENT_STATUS_SCHEDULED
           )
         )
     }
@@ -302,13 +302,16 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val metaOpt = event.meta.map(meta =>
           meta.copy(
-            status = EventStatus.CANCELLED,
+            status = EventStatus.EVENT_STATUS_CANCELLED,
             lastModifiedOn = Some(timestamp),
             lastModifiedBy = eventCancelled.cancellingMember
           )
         )
         currentState.withEvent(
-          event.copy(meta = metaOpt, status = EventStatus.CANCELLED)
+          event.copy(
+            meta = metaOpt,
+            status = EventStatus.EVENT_STATUS_CANCELLED
+          )
         )
       }
       case _ => currentState
@@ -325,7 +328,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           event.copy(
             info = eventRescheduled.info,
             meta = eventRescheduled.meta,
-            status = EventStatus.SCHEDULED
+            status = EventStatus.EVENT_STATUS_SCHEDULED
           )
         )
       }
@@ -367,7 +370,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           event.copy(
             info = infoOpt,
             meta = eventDelayed.meta,
-            status = EventStatus.DELAYED
+            status = EventStatus.EVENT_STATUS_DELAYED
           )
         )
       }
@@ -385,7 +388,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           event.copy(
             info = eventStarted.info,
             meta = eventStarted.meta,
-            status = EventStatus.INPROGRESS
+            status = EventStatus.EVENT_STATUS_INPROGRESS
           )
         )
       }
@@ -402,7 +405,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         currentState.withEvent(
           event.copy(
             meta = eventEnded.meta,
-            status = EventStatus.PAST
+            status = EventStatus.EVENT_STATUS_PAST
           )
         )
       }

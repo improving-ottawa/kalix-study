@@ -94,8 +94,8 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
   }
 
   override def findMembersByEventTime(
-      memberByEventTimeRequest: MemberByEventTimeRequest
-  ): Action.Effect[MemberByEventTimeResponse] = {
+      memberByEventTimeRequest: MembersByEventTimeRequest
+  ): Action.Effect[MembersByEventTimeResponse] = {
 
     log.info("in MemberActionServiceImpl findMembersByEventTime")
 
@@ -107,18 +107,24 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
 
     val productIds = products.map(_.products.map(_.sku))
 
-    val orders = orderByProductView.findOrdersByProducts(
-      OrderByProductRequest(Seq[String]())
+    effects.asyncReply(
+      for {
+        productIds <- productIds
+        memberIds <- orderByProductView
+          .findOrdersByProducts(
+            OrderByProductRequest(productIds)
+          )
+          .map(response =>
+            response.orders
+              .map(_.meta.flatMap(_.memberId.map(_.memberId)))
+              .flatten
+          )
+        members <- memberByMemberIdsView.findMembersByMemberIds(
+          MemberByMemberIdsRequest(memberIds)
+        )
+      } yield {
+        MembersByEventTimeResponse(members.members)
+      }
     )
-
-    val memberIds = orders.map(response =>
-      response.orders.flatMap(_.meta.flatMap(_.memberId).map(_.memberId))
-    )
-
-    val members = memberByMemberIdsView.findMembersByMemberIds(
-      MemberByMemberIdsRequest(Seq.empty[String])
-    )
-
-    ???
   }
 }

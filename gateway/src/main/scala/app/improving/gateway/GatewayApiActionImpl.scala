@@ -1,50 +1,19 @@
 package app.improving.gateway
 
-import app.improving.eventcontext.{
-  AllEventsRequest,
-  AllEventsResult,
-  AllEventsView
-}
+import app.improving.eventcontext.{AllEventsRequest, AllEventsResult, AllEventsView}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
-import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
+import app.improving.membercontext.member.{ApiRegisterMember, MemberActionService, MemberService, MembersByEventTimeRequest, MembersByEventTimeResponse}
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
-import app.improving.organizationcontext.organization.{
-  ApiEstablishOrganization,
-  OrganizationService
-}
-import app.improving.organizationcontext.{
-  AllOrganizationsRequest,
-  AllOrganizationsView,
-  AllOrganizationsresult
-}
-import app.improving.membercontext.{
-  AllMembersRequest,
-  AllMembersResult,
-  AllMembersView
-}
-import app.improving.ordercontext.{
-  AllOrdersRequest,
-  AllOrdersView,
-  AllOrdersresult
-}
-import app.improving.productcontext.{
-  AllProductsRequest,
-  AllProductsResult,
-  AllProductsView
-}
+import app.improving.organizationcontext.organization.{ApiEstablishOrganization, OrganizationService}
+import app.improving.organizationcontext.{AllOrganizationsRequest, AllOrganizationsView, AllOrganizationsresult}
+import app.improving.membercontext.{AllMembersRequest, AllMembersResult, AllMembersView}
+import app.improving.ordercontext.{AllOrdersRequest, AllOrdersView, AllOrdersresult}
+import app.improving.productcontext.{AllProductsRequest, AllProductsResult, AllProductsView}
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
-import app.improving.storecontext.{
-  AllStoresRequest,
-  AllStoresResult,
-  AllStoresView
-}
-import app.improving.tenantcontext.{
-  AllTenantResult,
-  AllTenantsView,
-  GetAllTenantRequest
-}
+import app.improving.storecontext.{AllStoresRequest, AllStoresResult, AllStoresView}
+import app.improving.tenantcontext.{AllTenantResult, AllTenantsView, GetAllTenantRequest}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -111,6 +80,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
   val memberService = creationContext.getGrpcClient(
     classOf[MemberService],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
+    )
+  )
+
+  val memberAction = creationContext.getGrpcClient(
+    classOf[MemberActionService],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
     )
@@ -561,5 +537,17 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetAllOrders")
 
     effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))
+  }
+
+  override def handleGetMembersByEventTime(
+      membersByEventTimeRequest: MembersByEventTimeRequest
+  ): Action.Effect[MembersByEventTimeResponse] = {
+
+    log.info("in handleGetMembersByEventTime")
+
+    effects.asyncReply(
+      memberAction.findMembersByEventTime(MembersByEventTimeRequest(membersByEventTimeRequest.givenTime))
+    )
+
   }
 }

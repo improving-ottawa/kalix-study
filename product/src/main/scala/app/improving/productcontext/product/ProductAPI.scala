@@ -34,10 +34,19 @@ class ProductAPI(context: EventSourcedEntityContext)
       case Some(product) if product != Product.defaultInstance =>
         effects.reply(ApiProductId.defaultInstance)
       case _ => {
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = ProductCreated(
           Some(ProductId(productId)),
           apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
-          apiCreateProduct.meta.map(convertApiProductMetaInfoToProductMetaInfo)
+          apiCreateProduct.meta
+            .map(
+              _.copy(
+                createdOn = Some(timestamp),
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+            .map(convertApiProductMetaInfoToProductMetaInfo)
         )
         effects.emitEvent(event).thenReply(_ => ApiProductId(productId))
       }

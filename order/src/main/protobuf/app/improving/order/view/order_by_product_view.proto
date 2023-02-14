@@ -81,9 +81,10 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "products"
+    rpc ProcessProductCreated(productcontext.product.ApiProductCreated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-product"
+            event_stream_id: "event_products"
         };
         option (kalix.method).view.update = {
             table: "order_by_product_product"
@@ -91,9 +92,10 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "products"
+    rpc ProcessProductInfoUpdated(productcontext.product.ApiProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-product"
+            event_stream_id: "event_products"
         };
         option (kalix.method).view.update = {
             table: "order_by_product_product"
@@ -101,9 +103,10 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "products"
+    rpc ProcessProductDeleted(productcontext.product.ApiProductDeleted) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-product"
+            event_stream_id: "event_products"
         };
         option (kalix.method).view.update = {
             table: "order_by_product_product"
@@ -111,9 +114,10 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "products"
+    rpc ProcessProductActivated(productcontext.product.ApiProductActivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-product"
+            event_stream_id: "event_products"
         };
         option (kalix.method).view.update = {
             table: "order_by_product_product"
@@ -121,9 +125,10 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "products"
+    rpc ProcessProductInactivated(productcontext.product.ApiProductInactivated) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-product"
+            event_stream_id: "event_products"
         };
         option (kalix.method).view.update = {
             table: "order_by_product_product"

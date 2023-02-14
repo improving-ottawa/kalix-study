@@ -7,17 +7,7 @@ import app.improving.ordercontext.infrastructure.util.{
   convertOrderStatusToApiOrderStatus
 }
 import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
-import app.improving.productcontext.ProductActivated
-import app.improving.productcontext.ProductCreated
-import app.improving.productcontext.ProductDeleted
-import app.improving.productcontext.ProductInactivated
-import app.improving.productcontext.ProductInfoUpdated
-import app.improving.productcontext.infrastructure.util.{
-  convertProductCreatedToApiProduct,
-  convertProductInfoToApiProductInfo,
-  convertProductMetaInfoToApiProductMetaInfo
-}
-import app.improving.productcontext.product.{ApiProduct, ApiProductStatus}
+import app.improving.productcontext.product._
 import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -126,38 +116,40 @@ class OrderByProductQueryView(context: ViewContext)
 
     override def processProductCreated(
         state: ApiProduct,
-        productCreated: ProductCreated
+        productCreated: ApiProductCreated
     ): UpdateEffect[ApiProduct] = {
       if (state != emptyState) effects.ignore()
       else
         effects.updateState(
-          convertProductCreatedToApiProduct(productCreated)
+          ApiProduct(
+            productCreated.sku.map(_.productId).getOrElse("Sku is NOT FOUND."),
+            productCreated.info,
+            productCreated.meta,
+            ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
+          )
         )
     }
 
     override def processProductInfoUpdated(
         state: ApiProduct,
-        productInfoUpdated: ProductInfoUpdated
+        productInfoUpdated: ApiProductInfoUpdated
     ): UpdateEffect[ApiProduct] =
       effects.updateState(
         state.copy(
-          info =
-            productInfoUpdated.info.map(convertProductInfoToApiProductInfo),
-          meta = productInfoUpdated.meta.map(
-            convertProductMetaInfoToApiProductMetaInfo
-          )
+          info = productInfoUpdated.info,
+          meta = productInfoUpdated.meta
         )
       )
 
     override def processProductDeleted(
         state: ApiProduct,
-        productDeleted: ProductDeleted
+        productDeleted: ApiProductDeleted
     ): UpdateEffect[ApiProduct] =
       effects.deleteState()
 
     override def processProductActivated(
         state: ApiProduct,
-        productActivated: ProductActivated
+        productActivated: ApiProductActivated
     ): UpdateEffect[ApiProduct] = {
       effects.updateState(
         state.copy(
@@ -168,7 +160,7 @@ class OrderByProductQueryView(context: ViewContext)
 
     override def processProductInactivated(
         state: ApiProduct,
-        productInactivated: ProductInactivated
+        productInactivated: ApiProductInactivated
     ): UpdateEffect[ApiProduct] = {
       effects.updateState(
         state.copy(

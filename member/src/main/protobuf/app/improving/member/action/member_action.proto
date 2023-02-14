@@ -12,11 +12,11 @@ message ApiMemberIds {
     repeated ApiMemberId member_ids = 1;
 }
 
-message MemberByEventTimeRequest {
+message MembersByEventTimeRequest {
     google.protobuf.Timestamp given_time = 1;
 }
 
-message MemberByEventTimeResponse {
+message MembersByEventTimeResponse {
     repeated ApiMemberData members = 1;
 }
 
@@ -32,7 +32,7 @@ service MemberActionService {
         };
     }
 
-    rpc FindMembersByEventTime(MemberByEventTimeRequest) returns (MemberByEventTimeResponse) {
+    rpc FindMembersByEventTime(MembersByEventTimeRequest) returns (MembersByEventTimeResponse) {
         option (google.api.http) = {
             get: "/member/members-by-event-time"
         };

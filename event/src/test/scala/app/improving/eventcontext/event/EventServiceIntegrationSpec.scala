@@ -37,7 +37,7 @@ class EventServiceIntegrationSpec
       val scheduled =
         client.getEventById(ApiGetEventById(testEventId)).futureValue
 
-      scheduled.status shouldBe ApiEventStatus.SCHEDULED
+      scheduled.status shouldBe ApiEventStatus.API_EVENT_STATUS_SCHEDULED
 
     }
 

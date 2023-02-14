@@ -75,9 +75,10 @@ service MemberByOrderQuery {
     //        };
     //    }
 
-    rpc ProcessOrderCreated(ordercontext.OrderCreated) returns (ordercontext.order.ApiOrder) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "orders"
+    rpc ProcessOrderCreated(ordercontext.order.ApiOrderCreated) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-order"
+            event_stream_id: "event_orders"
         };
         option (kalix.method).view.update = {
             table: "member_by_order_order"
@@ -85,9 +86,10 @@ service MemberByOrderQuery {
         };
     }
 
-    rpc ProcessOrderStatusUpdated(ordercontext.OrderStatusUpdated) returns (ordercontext.order.ApiOrder) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "orders"
+    rpc ProcessOrderStatusUpdated(ordercontext.order.ApiOrderStatusUpdated) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-order"
+            event_stream_id: "event_orders"
         };
         option (kalix.method).view.update = {
             table: "member_by_order_order"
@@ -95,9 +97,10 @@ service MemberByOrderQuery {
         };
     }
 
-    rpc ProcessOrderInfoUpdated(ordercontext.OrderInfoUpdated) returns (ordercontext.order.ApiOrder) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "orders"
+    rpc ProcessOrderInfoUpdated(ordercontext.order.ApiOrderInfoUpdated) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-order"
+            event_stream_id: "event_orders"
         };
         option (kalix.method).view.update = {
             table: "member_by_order_order"
@@ -105,9 +108,10 @@ service MemberByOrderQuery {
         };
     }
 
-    rpc ProcessOrderCanceled(ordercontext.OrderCanceled) returns (ordercontext.order.ApiOrder) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "orders"
+    rpc ProcessOrderCanceled(ordercontext.order.ApiOrderCanceled) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-order"
+            event_stream_id: "event_orders"
         };
         option (kalix.method).view.update = {
             table: "member_by_order_order"

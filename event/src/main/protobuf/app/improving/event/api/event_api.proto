@@ -103,3 +103,47 @@ message ApiLiveUpdate {
     string from = 1;
     string to = 2;
 }
+
+// For direct event source in direct_event_events.proto
+
+
+message ApiEventCancelled {
+    ApiEventId event_id = 1;
+    ApiMemberId cancelling_member = 2;
+}
+
+message ApiEventDelayed {
+    ApiEventId event_id = 1;
+    string reason = 2;
+    ApiEventMetaInfo meta = 3;
+    google.protobuf.Duration expected_duration = 4;
+}
+
+message ApiEventEnded {
+    ApiEventId event_id = 1;
+    ApiEventMetaInfo meta = 2;
+}
+
+message ApiEventInfoChanged {
+    ApiEventId event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventRescheduled {
+    ApiEventId  event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventScheduled {
+    ApiEventId  event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventStarted {
+    ApiEventId  event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}

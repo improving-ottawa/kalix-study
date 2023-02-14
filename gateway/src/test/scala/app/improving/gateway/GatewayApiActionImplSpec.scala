@@ -12,6 +12,8 @@ import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
 import app.improving.productcontext.AllProductsRequest
 import app.improving.membercontext.AllMembersRequest
+import app.improving.membercontext.member.MembersByEventTimeRequest
+import com.google.protobuf.timestamp.Timestamp
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -600,5 +602,18 @@ class GatewayApiActionImplSpec
 
       result.members.isEmpty shouldBe false
     }
+  }
+
+  "handle command find member by event time correctly" in {
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    val result = gateWayAction
+      .handleGetMembersByEventTime(
+        MembersByEventTimeRequest(Some(timestamp))
+      )
+      .futureValue
+
+    result.members.isEmpty shouldBe false
   }
 }

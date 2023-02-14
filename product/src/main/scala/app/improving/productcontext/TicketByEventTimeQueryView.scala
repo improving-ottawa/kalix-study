@@ -4,10 +4,8 @@ import app.improving.ApiMemberId
 import app.improving.eventcontext.EventCancelled
 import app.improving.eventcontext.EventDelayed
 import app.improving.eventcontext.EventEnded
-import app.improving.eventcontext.EventRescheduled
-import app.improving.eventcontext.EventScheduled
 import app.improving.eventcontext.EventStarted
-import app.improving.eventcontext.event.{ApiEvent, ApiEventStatus}
+import app.improving.eventcontext.event._
 import app.improving.eventcontext.infrastructure.util.{
   convertEventInfoToApiEventInfo,
   convertEventMetaInfoToApiEventMetaInfo,
@@ -118,49 +116,63 @@ class TicketByEventTimeQueryView(context: ViewContext)
 
     override def processEventScheduled(
         state: ApiEvent,
-        eventScheduled: EventScheduled
+        eventScheduled: ApiEventScheduled
     ): UpdateEffect[ApiEvent] = {
       if (state != emptyState) effects.ignore()
       else
         effects.updateState(
-          convertEventScheduledToApiEvent(eventScheduled)
+          ApiEvent(
+            eventScheduled.eventId
+              .map(_.eventId)
+              .getOrElse("EventId is NOT FOUND."),
+            eventScheduled.info,
+            eventScheduled.meta,
+            ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+          )
         )
     }
 
     override def processEventRescheduled(
         state: ApiEvent,
-        eventRescheduled: EventRescheduled
+        eventRescheduled: ApiEventRescheduled
     ): UpdateEffect[ApiEvent] =
       effects.updateState(
-        convertEventReScheduledToApiEvent(eventRescheduled)
+        ApiEvent(
+          eventRescheduled.eventId
+            .map(_.eventId)
+            .getOrElse("EventId is NOT FOUND."),
+          eventRescheduled.info,
+          eventRescheduled.meta,
+          ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+        )
       )
 
     override def processEventStarted(
         state: ApiEvent,
-        eventStarted: EventStarted
+        eventStarted: ApiEventStarted
     ): UpdateEffect[ApiEvent] =
       effects.updateState(
         state.copy(
-          info = eventStarted.info.map(convertEventInfoToApiEventInfo),
-          meta = eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          info = eventStarted.info,
+          meta = eventStarted.meta,
           status = ApiEventStatus.API_EVENT_STATUS_INPROGRESS
         )
       )
 
     override def processEventEnded(
         state: ApiEvent,
-        eventEnded: EventEnded
+        eventEnded: ApiEventEnded
     ): UpdateEffect[ApiEvent] =
       effects.updateState(
         state.copy(
-          meta = eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          meta = eventEnded.meta,
           status = ApiEventStatus.API_EVENT_STATUS_PAST
         )
       )
 
     override def processEventDelayed(
         state: ApiEvent,
-        eventDelayed: EventDelayed
+        eventDelayed: ApiEventDelayed
     ): UpdateEffect[ApiEvent] = {
       val infoOpt = state.info.map(info =>
         info.copy(
@@ -189,7 +201,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
       effects.updateState(
         state.copy(
           info = infoOpt,
-          meta = eventDelayed.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          meta = eventDelayed.meta,
           status = ApiEventStatus.API_EVENT_STATUS_DELAYED
         )
       )
@@ -197,7 +209,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
 
     override def processEventCancelled(
         state: ApiEvent,
-        eventCancelled: EventCancelled
+        eventCancelled: ApiEventCancelled
     ): UpdateEffect[ApiEvent] = {
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
@@ -206,7 +218,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
           status = ApiEventStatus.API_EVENT_STATUS_CANCELLED,
           lastModifiedOn = Some(timestamp),
           lastModifiedBy = eventCancelled.cancellingMember.map(member =>
-            ApiMemberId(member.id)
+            ApiMemberId(member.memberId)
           )
         )
       )

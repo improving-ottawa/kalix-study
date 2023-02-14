@@ -93,3 +93,28 @@ message ApiTicketsForEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     repeated ProductId tickets  = 2;
 }
+
+// For direct_event_product events.
+
+message ApiProductCreated {
+    ApiProductId sku = 1;
+    ApiProductInfo info = 2;
+    ApiProductMetaInfo meta = 3;
+}
+message ApiProductInfoUpdated {
+    ApiProductId sku = 1;
+    ApiProductInfo info = 2;
+    ApiProductMetaInfo meta = 3;
+}
+message ApiProductDeleted {
+    ApiProductId sku = 1;
+    ApiMemberId deleting_member = 2;
+}
+message ApiProductActivated {
+    ApiProductId sku = 1;
+    ApiMemberId activating_member = 2;
+}
+message ApiProductInactivated {
+    ApiProductId sku = 1;
+    ApiMemberId inactivating_member = 2;
+}

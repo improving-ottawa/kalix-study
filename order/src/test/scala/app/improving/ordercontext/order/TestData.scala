@@ -1,6 +1,24 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiMemberId, ApiProductId}
+import app.improving.ordercontext.{
+  LineItem,
+  OrderCanceled,
+  OrderCreated,
+  OrderInfo,
+  OrderInfoUpdated,
+  OrderMetaInfo,
+  OrderStatus,
+  OrderStatusUpdated
+}
+import app.improving.{
+  ApiMemberId,
+  ApiProductId,
+  MemberId,
+  OrderId,
+  ProductId,
+  StoreId
+}
+import com.google.protobuf.timestamp.Timestamp
 
 object TestData {
 
@@ -75,7 +93,7 @@ object TestData {
     Some(testOrderInfoPrivateFailedEvent),
     Some(ApiMemberId(testCreatingMemberId1))
   )
-  val testNewOrderStatus = ApiOrderStatus.READY
+  val testNewOrderStatus = ApiOrderStatus.API_ORDER_STATUS_READY
   val testUpdatingMemberId = "updating-member-id"
   val apiUpdateOrderStatus = ApiUpdateOrderStatus(
     testOrderId,
@@ -134,5 +152,57 @@ object TestData {
   val apiGetOrderInfo = ApiGetOrderInfo(
     testOrderId,
     Some(ApiMemberId(requestingMemberId))
+  )
+
+  val testItem1 = LineItem(
+    Some(ProductId(testProductId)),
+    testQuantity,
+    testLineTotal
+  )
+  val testItem2 = LineItem(
+    Some(ProductId(testProductId)),
+    testQuantity2,
+    testLineTotal2
+  )
+  val testItems = Seq[LineItem](testItem1, testItem2)
+  val testInfo = OrderInfo(
+    Some(OrderId(testOrderId)),
+    testItems,
+    testSpecialInstruction,
+    testOrderTotal
+  )
+  val now = java.time.Instant.now()
+  val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  val testStoreId = "test-store-id"
+  val testMetaInfo = OrderMetaInfo(
+    Some(OrderId(testOrderId)),
+    Some(MemberId(testCreatingMemberId)),
+    Some(StoreId(testStoreId)),
+    Some(timestamp),
+    Some(MemberId(testCreatingMemberId)),
+    Some(timestamp),
+    OrderStatus.ORDER_STATUS_DRAFT
+  )
+  val orderCreated = OrderCreated(
+    Some(OrderId(testOrderId)),
+    Some(testInfo),
+    Some(testMetaInfo)
+  )
+  val orderStatusUpdated = OrderStatusUpdated(
+    Some(OrderId(testOrderId)),
+    OrderStatus.ORDER_STATUS_READY,
+    Some(MemberId(testUpdatingMemberId))
+  )
+  val orderInfoUpdated = OrderInfoUpdated(
+    Some(OrderId(testOrderId)),
+    Some(testInfo),
+    Some(testMetaInfo),
+    Some(MemberId(testUpdatingMemberId))
+  )
+  val orderCancelled = OrderCanceled(
+    Some(OrderId(testOrderId)),
+    Some(testInfo),
+    Some(testMetaInfo.copy(status = OrderStatus.ORDER_STATUS_CANCELLED)),
+    Some(MemberId(testCancellingMemberId))
   )
 }

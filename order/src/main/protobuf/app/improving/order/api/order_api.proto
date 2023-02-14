@@ -82,3 +82,28 @@ message ApiOrderInfoResult {
     ApiOrderId order_id = 1;
     ApiOrderInfo info = 2;
 }
+
+// For direct_event_order events.
+
+message ApiOrderCreated {
+    ApiOrderId order_id = 1;
+    ApiOrderInfo info = 2;
+    ApiOrderMetaInfo meta = 3;
+}
+message ApiOrderStatusUpdated {
+    ApiOrderId order_id = 1;
+    ApiOrderStatus new_status = 2;
+    ApiMemberId updating_member = 3;
+}
+message ApiOrderInfoUpdated {
+    ApiOrderId order_id = 1;
+    ApiOrderInfo info = 2;
+    ApiOrderMetaInfo meta = 3;
+    ApiMemberId updating_member = 4;
+}
+message ApiOrderCanceled {
+    ApiOrderId order_id = 1;
+    ApiOrderInfo info = 2;
+    ApiOrderMetaInfo meta = 3;
+    ApiMemberId cancelling_member = 4;
+}

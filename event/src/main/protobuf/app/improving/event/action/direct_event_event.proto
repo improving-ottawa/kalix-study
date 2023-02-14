@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+
+package app.improving.eventcontext.event;
+
+import "app/improving/event/api/event_api.proto";
+import "app/improving/event/domain/event_context_domain.proto";
+import "kalix/annotations.proto";
+
+
+service EventEventsService {
+    option (kalix.codegen) = {
+        action: {}
+    };
+    option (kalix.service).eventing.in = {
+        event_sourced_entity: "events"
+        ignore_unknown: true
+    };
+    option (kalix.service).eventing.out.direct.event_stream_id = "event_events";
+
+    option (kalix.service).acl.allow = { service: "*" };
+
+    rpc TransformEventInfoChanged(EventInfoChanged) returns (ApiEventInfoChanged) { }
+    rpc TransformEventScheduled(EventScheduled) returns (ApiEventScheduled) {}
+    rpc TransformEventCancelled(EventCancelled) returns (ApiEventCancelled) {}
+    rpc TransformEventRescheduled(EventRescheduled) returns (ApiEventRescheduled) {}
+    rpc TransformEventDelayed(EventDelayed) returns (ApiEventDelayed) {}
+    rpc TransformEventStarted(EventStarted) returns (ApiEventStarted) {}
+    rpc TransformEventEnded(EventEnded) returns (ApiEventEnded) {}
+
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+
+package app.improving.ordercontext.order;
+
+import "app/improving/event/api/event_api.proto";
+import "app/improving/event/domain/event_context_domain.proto";
+import "app/improving/order/api/order_api.proto";
+import "app/improving/order/domain/order_context_domain.proto";
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+
+
+service OrderEventsService {
+    option (kalix.codegen) = {
+        action: {}
+    };
+    option (kalix.service).eventing.in = {
+        event_sourced_entity: "orders"
+        ignore_unknown: true
+    };
+    option (kalix.service).eventing.out.direct.event_stream_id = "event_orders";
+
+    option (kalix.service).acl.allow = { service: "*" };
+
+    rpc TransformOrderCreated(OrderCreated) returns (ApiOrderCreated) { }
+    rpc TransformOrderStatusUpdated(OrderStatusUpdated) returns (ApiOrderStatusUpdated) {}
+    rpc TransformOrderInfoUpdated(OrderInfoUpdated) returns (ApiOrderInfoUpdated) {}
+    rpc TransformOrderCanceled(OrderCanceled) returns (ApiOrderCanceled) {}
+
+}

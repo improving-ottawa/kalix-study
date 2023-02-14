@@ -1,6 +1,10 @@
 package app.improving.eventcontext
 
-import app.improving.eventcontext.event.EventAPI
+import app.improving.eventcontext.event.{
+  EventAPI,
+  EventEventsService,
+  EventEventsServiceAction
+}
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -20,7 +24,9 @@ object Main {
     // `Kalix()` instance.
     KalixFactory.withComponents(
       new EventAPI(_),
-      new AllEventsViewImpl(_))
+      new AllEventsViewImpl(_),
+      new EventEventsServiceAction(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

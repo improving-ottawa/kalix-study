@@ -44,7 +44,7 @@ service EventService {
     rpc CancelEvent(event.ApiCancelEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/event/{event_id}/cancel-event"
-            body: "cancellingMember"
+            body: "cancelling_member"
         };
     }
 
@@ -65,14 +65,14 @@ service EventService {
     rpc StartEvent(event.ApiStartEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/event/{event_id}/start-event"
-            body: "startingMember"
+            body: "starting_member"
         };
     }
 
     rpc EndEvent(event.ApiEndEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/event/{event_id}/end-event"
-            body: "endingMember"
+            body: "ending_member"
         };
     }
 

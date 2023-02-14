@@ -75,12 +75,17 @@ object util {
 
   def convertEventStatusToApiEventStatus(status: EventStatus): ApiEventStatus =
     status match {
-      case EventStatus.SCHEDULED  => ApiEventStatus.API_EVENT_STATUS_SCHEDULED
-      case EventStatus.INPROGRESS => ApiEventStatus.API_EVENT_STATUS_INPROGRESS
-      case EventStatus.PAST       => ApiEventStatus.API_EVENT_STATUS_PAST
-      case EventStatus.CANCELLED  => ApiEventStatus.API_EVENT_STATUS_CANCELLED
-      case EventStatus.DELAYED    => ApiEventStatus.API_EVENT_STATUS_DELAYED
-      case EventStatus.UNKNOWN    => ApiEventStatus.API_EVENT_STATUS_UNKNOWN
+      case EventStatus.EVENT_STATUS_SCHEDULED =>
+        ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+      case EventStatus.EVENT_STATUS_INPROGRESS =>
+        ApiEventStatus.API_EVENT_STATUS_INPROGRESS
+      case EventStatus.EVENT_STATUS_PAST => ApiEventStatus.API_EVENT_STATUS_PAST
+      case EventStatus.EVENT_STATUS_CANCELLED =>
+        ApiEventStatus.API_EVENT_STATUS_CANCELLED
+      case EventStatus.EVENT_STATUS_DELAYED =>
+        ApiEventStatus.API_EVENT_STATUS_DELAYED
+      case EventStatus.EVENT_STATUS_UNKNOWN =>
+        ApiEventStatus.API_EVENT_STATUS_UNKNOWN
       case EventStatus.Unrecognized(unrecognizedValue) =>
         ApiEventStatus.Unrecognized(unrecognizedValue)
     }

@@ -7,17 +7,13 @@ import app.improving.membercontext.infrastructure.util.{
   convertMetaInfoToApiMetaInfo
 }
 import app.improving.membercontext.member.ApiMemberData
-import app.improving.ordercontext.OrderCanceled
-import app.improving.ordercontext.OrderCreated
-import app.improving.ordercontext.OrderInfoUpdated
-import app.improving.ordercontext.OrderStatusUpdated
 import app.improving.ordercontext.infrastructure.util.{
   convertOrderCancelledToApiOrder,
   convertOrderCreatedToApiOrder,
   convertOrderInfoUpdatedToApiOrder,
   convertOrderStatusToApiOrderStatus
 }
-import app.improving.ordercontext.order.ApiOrder
+import app.improving.ordercontext.order._
 import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -77,29 +73,32 @@ class MemberByOrderQueryView(context: ViewContext)
 
     override def processOrderCreated(
         state: ApiOrder,
-        orderCreated: OrderCreated
+        orderCreated: ApiOrderCreated
     ): UpdateEffect[ApiOrder] = {
       if (state != emptyState) effects.ignore()
       else
         effects.updateState(
-          convertOrderCreatedToApiOrder(orderCreated)
+          ApiOrder(
+            orderCreated.orderId
+              .map(_.orderId)
+              .getOrElse("OrderId is NOT FOUND."),
+            orderCreated.info,
+            orderCreated.meta,
+            ApiOrderStatus.API_ORDER_STATUS_DRAFT
+          )
         )
     }
 
     override def processOrderStatusUpdated(
         state: ApiOrder,
-        orderStatusUpdated: OrderStatusUpdated
+        orderStatusUpdated: ApiOrderStatusUpdated
     ): UpdateEffect[ApiOrder] = {
-      val updatedStatus = convertOrderStatusToApiOrderStatus(
-        orderStatusUpdated.newStatus
-      )
+      val updatedStatus = orderStatusUpdated.newStatus
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val updatedMetaOpt = state.meta.map(
         _.copy(
-          lastModifiedBy = orderStatusUpdated.updatingMember.map(member =>
-            ApiMemberId(member.id)
-          ),
+          lastModifiedBy = orderStatusUpdated.updatingMember,
           lastModifiedOn = Some(timestamp),
           status = updatedStatus
         )
@@ -111,17 +110,44 @@ class MemberByOrderQueryView(context: ViewContext)
 
     override def processOrderInfoUpdated(
         state: ApiOrder,
-        orderInfoUpdated: OrderInfoUpdated
+        orderInfoUpdated: ApiOrderInfoUpdated
     ): UpdateEffect[ApiOrder] = {
-      effects.updateState(convertOrderInfoUpdatedToApiOrder(orderInfoUpdated))
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val updatedMetaOpt = orderInfoUpdated.meta.map(
+        _.copy(
+          lastModifiedBy = orderInfoUpdated.updatingMember,
+          lastModifiedOn = Some(timestamp)
+        )
+      )
+      effects.updateState(
+        state.copy(
+          info = orderInfoUpdated.info,
+          meta = updatedMetaOpt
+        )
+      )
     }
 
     override def processOrderCanceled(
         state: ApiOrder,
-        orderCanceled: OrderCanceled
-    ): UpdateEffect[ApiOrder] =
-      effects.updateState(convertOrderCancelledToApiOrder(orderCanceled))
-
+        orderCanceled: ApiOrderCanceled
+    ): UpdateEffect[ApiOrder] = {
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val updatedMetaOpt = state.meta.map(
+        _.copy(
+          lastModifiedBy = orderCanceled.cancellingMember,
+          lastModifiedOn = Some(timestamp),
+          status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED
+        )
+      )
+      effects.updateState(
+        state.copy(
+          meta = updatedMetaOpt,
+          status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED
+        )
+      )
+    }
   }
 
 }

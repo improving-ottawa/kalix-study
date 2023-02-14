@@ -117,7 +117,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       deleteProduct.deletingMember shouldBe Some(MemberId(testMemberId1))
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.DELETED
+        ProductStatus.PRODUCT_STATUS_DELETED
       )
     }
 
@@ -140,7 +140,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       productCreated.sku.isDefined shouldBe true
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.ACTIVE
+        ProductStatus.PRODUCT_STATUS_ACTIVE
       )
       val sku = testKit.currentState.product
         .flatMap(_.sku)
@@ -162,7 +162,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       productInactivated.sku shouldBe Some(ProductId(sku))
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.INACTIVE
+        ProductStatus.PRODUCT_STATUS_INACTIVE
       )
 
       val nullApiActivateProduct = ApiActivateProduct(
@@ -176,7 +176,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       nullApiActivateProductResult.events should have size 0
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.INACTIVE
+        ProductStatus.PRODUCT_STATUS_INACTIVE
       )
 
       val apiActivateProduct = ApiActivateProduct(
@@ -194,7 +194,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       productActivated.sku shouldBe Some(ProductId(sku))
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.ACTIVE
+        ProductStatus.PRODUCT_STATUS_ACTIVE
       )
 
       val nullApiInactivateProduct = ApiInactivateProduct(
@@ -208,7 +208,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       nullApiInActivateProductResult.events should have size 0
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.ACTIVE
+        ProductStatus.PRODUCT_STATUS_ACTIVE
       )
     }
   }
