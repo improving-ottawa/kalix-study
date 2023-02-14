@@ -41,10 +41,10 @@ message ApiStoreUpdateInfo {
     optional string name = 1;
     optional string description = 2;
     repeated ApiProductId products = 3;
-    ApiEventId  event = 4;
-    ApiVenueId venue = 5;
-    ApiLocationId location = 6;
-    ApiOrganizationId sponsoringOrg = 7;
+    optional ApiEventId event = 4;
+    optional ApiVenueId venue = 5;
+    optional ApiLocationId location = 6;
+    optional ApiOrganizationId sponsoringOrg = 7;
 }
 
 message ApiStore {

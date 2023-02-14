@@ -29,10 +29,10 @@ message StoreUpdateInfo {
     optional string  name = 1;
     optional string description = 2;
     repeated ProductId products = 3;
-    EventId event = 4;
-    VenueId venue = 5;
-    LocationId location = 6;
-    OrganizationId sponsoringOrg = 7;
+    optional EventId event = 4;
+    optional VenueId venue = 5;
+    optional LocationId location = 6;
+    optional OrganizationId sponsoringOrg = 7;
 }
 
 message StoreMetaInfo {
