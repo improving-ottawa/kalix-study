@@ -9,6 +9,7 @@ package app.improving.eventcontext.event;
 message Event {
     EventId eventId = 1;
     EventInfo info = 2;
+    ReservationId reservation = 5;
     EventMetaInfo meta = 3;
     EventStatus status = 4;
 }

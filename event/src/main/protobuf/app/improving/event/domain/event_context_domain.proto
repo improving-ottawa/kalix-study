@@ -42,7 +42,6 @@ message EventInfo {
     string eventURL = 3; // URL type?
     OrganizationId sponsoringOrg = 4;
     GeoLocation geoLocation = 5;
-    ReservationId reservation = 6;
     google.protobuf.Timestamp expectedStart = 7;
     google.protobuf.Timestamp expectedEnd = 8;
     bool isPrivate = 9;
@@ -90,4 +89,10 @@ message EventStarted {
 message LiveUpdate {
     string from = 1;
     string to = 2;
+}
+
+message ReservationAddedToEvent {
+    EventId eventId = 1;
+    ReservationId reservation = 2;
+    EventMetaInfo meta = 3;
 }

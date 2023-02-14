@@ -21,38 +21,31 @@ import app.improving.eventcontext.{
 object util {
 
   def buildEventInfoFromUpdateInfo(
-      eventInfo: Option[EventInfo],
-      updatingInfo: ApiEventInfo
+      eventInfo: EventInfo,
+      updatingInfo: ApiEventUpdateInfo
   ): EventInfo = {
     EventInfo(
-      Some(updatingInfo.eventName)
+      eventName = updatingInfo.eventName
         .filter(_.nonEmpty)
-        .orElse(eventInfo.map(_.eventName))
-        .getOrElse(""),
-      Some(updatingInfo.description)
+        .getOrElse(eventInfo.eventName),
+      description = updatingInfo.description
         .filter(_.nonEmpty)
-        .orElse(eventInfo.map(_.description))
-        .getOrElse(""),
-      Some(updatingInfo.eventURL)
+        .getOrElse(eventInfo.description),
+      eventURL = updatingInfo.eventURL
         .filter(_.nonEmpty)
-        .orElse(eventInfo.map(_.eventURL))
-        .getOrElse(""),
-      updatingInfo.sponsoringOrg
+        .getOrElse(eventInfo.eventURL),
+      sponsoringOrg = updatingInfo.sponsoringOrg
         .map(org => OrganizationId(org.organizationId))
-        .orElse(eventInfo.flatMap(_.sponsoringOrg)),
-      updatingInfo.geoLocation
+        .orElse(eventInfo.sponsoringOrg),
+      geoLocation = updatingInfo.geoLocation
         .map(location =>
           GeoLocation(location.latitude, location.longitude, location.elevation)
         )
-        .orElse(eventInfo.flatMap(_.geoLocation)),
-      updatingInfo.reservation
-        .map(reservation => ReservationId(reservation.reservationId))
-        .orElse(eventInfo.flatMap(_.reservation)),
-      updatingInfo.expectedStart.orElse(eventInfo.flatMap(_.expectedStart)),
-      updatingInfo.expectedEnd.orElse(eventInfo.flatMap(_.expectedEnd)),
-      updatingInfo.isPrivate.getOrElse(
-        true
-      ) // TODO Defaulting isPrivate to true--is that correct?
+        .orElse(eventInfo.geoLocation),
+      expectedStart =
+        updatingInfo.expectedStart.orElse(eventInfo.expectedStart),
+      expectedEnd = updatingInfo.expectedEnd.orElse(eventInfo.expectedEnd),
+      updatingInfo.isPrivate.getOrElse(eventInfo.isPrivate)
     )
   }
 
@@ -67,14 +60,9 @@ object util {
       apiEventInfo.geoLocation.map(location =>
         GeoLocation(location.latitude, location.longitude, location.elevation)
       ),
-      apiEventInfo.reservation.map(reservation =>
-        ReservationId(reservation.reservationId)
-      ),
       apiEventInfo.expectedStart,
       apiEventInfo.expectedEnd,
-      apiEventInfo.isPrivate.getOrElse(
-        true
-      ) // Defaulting isPrivate to true--is that correct?
+      apiEventInfo.isPrivate
     )
   }
 
@@ -91,12 +79,9 @@ object util {
           location.elevation
         )
       ),
-      eventInfo.reservation.map(reservation =>
-        ApiReservationId(reservation.id)
-      ),
       eventInfo.expectedStart,
       eventInfo.expectedEnd,
-      Some(eventInfo.isPrivate)
+      eventInfo.isPrivate
     )
   }
 
@@ -161,5 +146,11 @@ object util {
 
   def convertApiMemberIdToMemberId(apiMemberId: ApiMemberId): MemberId =
     MemberId(apiMemberId.memberId)
+
+  def convertApiReservationIdToReservationId(
+      apiReservationId: ApiReservationId
+  ): ReservationId = {
+    ReservationId(apiReservationId.reservationId)
+  }
 
 }

@@ -23,13 +23,18 @@ object TestData {
         "www.nowhere.com",
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-        Some(ApiReservationId("reserve-1")),
         Some(start),
         Some(end),
-        Some(false)
+        false
       )
     ),
     Some(ApiMemberId("1"))
+  )
+
+  val apiAddReservationToEvent: ApiAddReservationToEvent = ApiAddReservationToEvent(
+    testEventId,
+    Some(ApiReservationId("reservation33")),
+    Some(ApiMemberId("5"))
   )
 
   val apiStartEvent: ApiStartEvent = ApiStartEvent(
@@ -70,10 +75,9 @@ object TestData {
         "www.nowhere.com",
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-        Some(ApiReservationId("reserve-1")),
         Some(start),
         Some(end),
-        Some(true)
+        true
       )
     ),
     Some(ApiMemberId("1"))
@@ -88,10 +92,9 @@ object TestData {
         "www.nowhere.com",
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-        Some(ApiReservationId("reserve-1")),
         Some(start),
         Some(end),
-        Some(true)
+        true
       )
     ),
     Some(ApiMemberId("1"))

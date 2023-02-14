@@ -3,6 +3,7 @@ syntax = "proto3";
 
 package app.improving.eventcontext.event;
 
+import "app/improving/event/domain/event_context_domain.proto";
 import "common_api.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
@@ -36,10 +37,20 @@ message ApiEventInfo {
     string description = 2;
     string eventURL = 3;
     ApiOrganizationId sponsoringOrg = 4;
-    ApiGeoLocation geoLocation = 5;
-    ApiReservationId reservation = 6;
+    optional ApiGeoLocation geoLocation = 5;
     google.protobuf.Timestamp expectedStart = 7;
     google.protobuf.Timestamp expectedEnd = 8;
+    bool isPrivate = 9;
+}
+
+message ApiEventUpdateInfo {
+    optional string eventName = 1;
+    optional string description = 2;
+    optional string eventURL = 3;
+    optional ApiOrganizationId sponsoringOrg = 4;
+    optional ApiGeoLocation geoLocation = 5;
+    optional google.protobuf.Timestamp expectedStart = 7;
+    optional google.protobuf.Timestamp expectedEnd = 8;
     optional bool isPrivate = 9;
 }
 
@@ -55,7 +66,7 @@ message ApiEventMetaInfo {
 
 message ApiChangeEventInfo {
     string event_id = 1 [(kalix.field).entity_key = true];
-    ApiEventInfo info = 2;
+    ApiEventUpdateInfo info = 2;
     ApiMemberId changingMember = 3;
 }
 
@@ -102,4 +113,10 @@ message ApiAddLiveUpdate {
 message ApiLiveUpdate {
     string from = 1;
     string to = 2;
+}
+
+message ApiAddReservationToEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiReservationId reservation = 2;
+    ApiMemberId reservingMember = 3;
 }
