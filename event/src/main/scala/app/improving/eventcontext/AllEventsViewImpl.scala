@@ -23,11 +23,10 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     if (state != emptyState) effects.ignore()
     else
       effects.updateState(
-        ApiEvent(
-          eventInfoChanged.eventId.map(_.id).getOrElse("EventId is NOT FOUND."),
-          eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
-          eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-          ApiEventStatus.SCHEDULED
+        state.copy(
+          info = eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
+          meta = eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          status = ApiEventStatus.SCHEDULED
         )
       )
   }
@@ -127,6 +126,15 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state.copy(
         meta = eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.PAST
+      )
+    )
+  }
+
+  override def processReservationAddedToEvent(state: ApiEvent, reservationAddedToEvent: ReservationAddedToEvent): UpdateEffect[ApiEvent] = {
+    effects.updateState(
+      state.copy(
+        meta = reservationAddedToEvent.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+        reservation = reservationAddedToEvent.reservation.map(convertReservationIdToApiReservationId)
       )
     )
   }

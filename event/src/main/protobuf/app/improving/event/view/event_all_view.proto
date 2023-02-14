@@ -59,6 +59,16 @@ service AllEventsView {
         };
     }
 
+    rpc ProcessReservationAddedToEvent(ReservationAddedToEvent) returns (event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
     rpc ProcessEventDelayed(EventDelayed) returns (event.ApiEvent) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "events"
