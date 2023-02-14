@@ -64,7 +64,7 @@ message ApiProductInfoUpdate {
     repeated string image = 4;
     optional double price = 5;
     optional double cost = 6;
-    ApiStoreId store = 7;
+    optional ApiStoreId store = 7;
 }
 
 message ApiProductMetaInfo {
