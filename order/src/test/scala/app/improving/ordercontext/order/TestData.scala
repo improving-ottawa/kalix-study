@@ -35,7 +35,6 @@ object TestData {
     testLineTotal2
   )
   val testSpecialInstruction = "test-special-instruction"
-  val testOrderTotal = 100.0
   val testLineItems = Seq[ApiLineItem](testLineItem1, testLineItem2)
   val testLineItemsPrivateEvent = Seq[ApiLineItem](testLineItem3)
   val testLineItemsPrivateFailedEvent =
@@ -43,20 +42,17 @@ object TestData {
   val testOrderInfo = ApiOrderInfo(
     testOrderId,
     testLineItems,
-    testSpecialInstruction,
-    testOrderTotal
+    testSpecialInstruction
   )
   val testOrderInfoPrivateEvent = ApiOrderInfo(
     testOrderId,
     testLineItemsPrivateEvent,
-    testSpecialInstruction,
-    testOrderTotal
+    testSpecialInstruction
   )
   val testOrderInfoPrivateFailedEvent = ApiOrderInfo(
     testOrderId3,
     testLineItemsPrivateFailedEvent,
-    testSpecialInstruction,
-    testOrderTotal
+    testSpecialInstruction
   )
   val testCreatingMemberId = "test-member-id"
   val testCreatingMemberId1 = "test-member-id1"
@@ -102,7 +98,6 @@ object TestData {
     testQuantity2Update,
     testLineTotal2Update
   )
-  val testOrderTotalUpdate = 100.0
   val testLineItemsUpdate =
     Seq[ApiLineItem](testLineItem1Update, testLineItem2Update)
   val apiOrderInfoUpdate = ApiOrderInfoUpdate(

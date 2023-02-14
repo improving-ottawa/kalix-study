@@ -31,7 +31,6 @@ message OrderInfo {
 message OrderInfoUpdate {
     repeated LineItem lineItems = 1;
     optional string specialInstructions = 2;
-    double orderTotal = 3;
 }
 
 message OrderMetaInfo  {

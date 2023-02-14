@@ -2,17 +2,8 @@ package app.improving.ordercontext.order
 
 import TestData._
 import app.improving.MemberId
-import app.improving.ordercontext.infrastructure.util.{
-  convertApiOrderInfoToOrderInfo,
-  convertApiOrderStatusToOrderStatus
-}
-import app.improving.ordercontext.{
-  OrderCanceled,
-  OrderCreated,
-  OrderInfoUpdated,
-  OrderStatus,
-  OrderStatusUpdated
-}
+import app.improving.ordercontext.infrastructure.util.{convertApiOrderInfoToOrderInfo, convertApiOrderStatusToOrderStatus, convertLineItemToApiLineItem}
+import app.improving.ordercontext.{OrderCanceled, OrderCreated, OrderInfoUpdated, OrderStatus, OrderStatusUpdated}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -37,9 +28,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCreated.info shouldBe defined
       orderCreated.meta shouldBe defined
 
-      orderCreated.info.map(_.orderTotal).getOrElse(0.0) shouldBe testLineItems
-        .map(item => item.lineTotal * item.quantity)
-        .sum
+      orderCreated.info.map(_.lineItems).map(lineItemSeq => lineItemSeq.map(convertLineItemToApiLineItem)).get shouldBe testLineItems
 
       val nullCreateOrderResult = testKit.createOrder(apiCreateOrder)
 
@@ -214,13 +203,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       result.orderId shouldBe defined
       result.info shouldBe defined
 
-      result.info shouldBe Some(
-        testOrderInfo.copy(orderTotal =
-          testLineItems
-            .map(item => item.lineTotal * item.quantity)
-            .sum
-        )
-      )
+      result.info shouldBe Some(testOrderInfo)
     }
   }
 }
