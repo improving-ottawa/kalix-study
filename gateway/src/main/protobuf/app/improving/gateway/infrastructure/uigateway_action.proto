@@ -12,7 +12,7 @@ service UiGatewayApiAction {
         action: { }
     };
 
-    rpc HandlePurchaseTicket(PurchaseTicketRequest) returns (ApiOrderId) {
+    rpc HandlePurchaseTickets(PurchaseTicketsRequest) returns (ApiOrderIds) {
         option (google.api.http) = {
             post: "/order/purchase-ticket"
             body: "*"

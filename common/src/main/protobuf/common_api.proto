@@ -32,6 +32,10 @@ message ApiOrderId {
     string order_id = 1 [(kalix.field).entity_key = true];
 }
 
+message ApiOrderIds {
+    repeated ApiOrderId order_ids = 1 [(kalix.field).entity_key = true];
+}
+
 message ApiVenueId {
     string venue_id = 1 [(kalix.field).entity_key = true];
 }

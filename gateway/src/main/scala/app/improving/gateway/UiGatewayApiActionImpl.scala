@@ -1,23 +1,15 @@
 package app.improving.gateway
 
-import app.improving.{ApiMemberId, ApiOrderId, ApiProductId, ApiStoreId}
-import app.improving.ordercontext.order.{
-  ApiCreateOrder,
-  ApiLineItem,
-  ApiOrder,
-  ApiOrderInfo,
-  OrderAction
-}
-import app.improving.productcontext.product.{ApiGetProductInfo, ProductService}
+import app.improving.{ApiMemberId, ApiOrderIds, ApiStoreId}
+import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
+import app.improving.productcontext.product.ProductService
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import java.util.UUID
-import scala.concurrent.Await
-import scala.concurrent.duration.DurationInt
-import scala.util.Random
+import scala.concurrent.Future
 import scala.language.postfixOps
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
@@ -46,59 +38,30 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-  override def handlePurchaseTicket(
-      purchaseTicketRequest: PurchaseTicketRequest
-  ): Action.Effect[ApiOrderId] = {
+  override def handlePurchaseTickets(
+      purchaseTicketRequest: PurchaseTicketsRequest
+  ): Action.Effect[ApiOrderIds] = {
 
     log.info("in handlePurchaseTicket")
-    val r = new Random()
-    val storeId = purchaseTicketRequest.storeIds
-      .map(stores =>
-        stores.storeIds.toIndexedSeq(r.nextInt(stores.storeIds.size))
+    effects
+      .asyncReply(
+        Future
+          .sequence(purchaseTicketRequest.ordersForStoresForMembers.map {
+            case (memberId, ordersForStores) =>
+              Future
+                .sequence(ordersForStores.ordersForStores.map {
+                  case (storeId, orderInfo) =>
+                    orderAction.purchaseTicket(
+                      ApiCreateOrder(
+                        UUID.randomUUID().toString,
+                        Some(orderInfo),
+                        Some(ApiMemberId(memberId)),
+                        Some(ApiStoreId(storeId))
+                      )
+                    )
+                }.toSeq)
+          }.toSeq)
+          .map(reqs => ApiOrderIds(reqs.flatten))
       )
-      .getOrElse(ApiStoreId("StoreId is NOT FOUND."))
-    val products =
-      purchaseTicketRequest.productsForStores
-        .get(storeId.storeId)
-        .map(_.skus)
-        .getOrElse(Seq.empty[ApiProductId])
-    val product = Await.result(
-      productService
-        .getProductInfo(
-          ApiGetProductInfo(
-            products.toIndexedSeq(r.nextInt(products.size)).productId
-          )
-        ),
-      10 seconds
-    )
-    val memberIds =
-      purchaseTicketRequest.membersForOrgs.values.map(_.memberIds).flatten
-    val memberId =
-      memberIds.toIndexedSeq(r.nextInt(memberIds.size))
-    val orderId = UUID.randomUUID().toString
-    effects.asyncReply(
-      orderAction.purchaseTicket(
-        ApiCreateOrder(
-          orderId,
-          Some(
-            ApiOrderInfo(
-              orderId,
-              Seq[ApiLineItem](
-                ApiLineItem(
-                  Some(ApiProductId(product.sku)),
-                  1,
-                  product.info.map(_.price).getOrElse(0.0)
-                )
-              ),
-              r.nextString(15),
-              1.0 * product.info.map(_.price).getOrElse(0.0)
-            )
-          ),
-          Some(memberId),
-          Some(storeId)
-        )
-      )
-    )
-
   }
 }

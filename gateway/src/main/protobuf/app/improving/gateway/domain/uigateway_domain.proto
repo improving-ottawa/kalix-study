@@ -2,14 +2,12 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
-import "app/improving/gateway/domain/gateway_domain.proto";
-import "common_api.proto";
+import "app/improving/order/api/order_api.proto";
 
-message PurchaseTicketRequest {
-    repeated ApiTenantId tenants = 1;
-    map<string, OrganizationIds> orgs_for_tenants = 2;
-    map<string, MemberIds> members_for_orgs = 3;
-    map<string, EventIds> events_for_orgs = 4;
-    StoreIds store_ids = 6;
-    map<string, Skus> products_for_stores = 7;
+message OrdersForStores {
+    map<string, ordercontext.order.ApiOrderInfo> orders_for_stores = 1;
+}
+
+message PurchaseTicketsRequest {
+    map <string, OrdersForStores> orders_for_stores_for_members = 1;
 }

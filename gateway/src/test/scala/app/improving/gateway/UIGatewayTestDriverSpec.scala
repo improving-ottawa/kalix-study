@@ -2,7 +2,9 @@ package app.improving.gateway
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.{ApiOrderId, ApiProductId}
 import app.improving.gateway.TestData.Fixture
+import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe
 import org.scalatest.{Assertion, BeforeAndAfterAll}
@@ -12,12 +14,13 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.io.Source
 import io.circe._
 import io.circe.syntax._
 
 import scala.collection.immutable
+import scala.util.Random
 
 class UIGatewayTestDriverSpec
     extends AnyWordSpec
@@ -44,7 +47,11 @@ class UIGatewayTestDriverSpec
       config.getInt("app.improving.akka.grpc.client-url-port")
     )
 
-  val client: TestGatewayApiActionClient = TestGatewayApiActionClient(
+  val testClient: TestGatewayApiActionClient = TestGatewayApiActionClient(
+    gatewayClientSettings
+  )
+
+  val uiClient: UiGatewayApiActionClient = UiGatewayApiActionClient(
     gatewayClientSettings
   )
 
@@ -95,11 +102,85 @@ class UIGatewayTestDriverSpec
       )
 
       val results =
-        client.handleStartScenario(StartScenario(Some(info))).futureValue
+        testClient.handleStartScenario(StartScenario(Some(info))).futureValue
 
       checkResults(results, info)
 
       println(results)
     }
+  }
+
+  "UiGatewayApiActionImpl" must {
+
+    "handle command HandlePurchaseTicket base case" in {
+      val numTenants = 1
+      val maxOrgsDepth = 2
+      val maxOrgsWidth = 2
+      val numMembersPerOrg = 1
+      val numEventsPerOrg = 1
+      val numTicketsPerEvent = 1
+
+      val scenarioResult = testClient
+        .handleStartScenario(
+          StartScenario(
+            Some(
+              ScenarioInfo(
+                numTenants,
+                maxOrgsDepth,
+                maxOrgsWidth,
+                numMembersPerOrg,
+                numEventsPerOrg,
+                numTicketsPerEvent
+              )
+            )
+          )
+        )
+        .futureValue
+
+      scenarioResult.tenants.isEmpty shouldBe false
+      scenarioResult.orgsForTenants.isEmpty shouldBe false
+      scenarioResult.membersForOrgs.isEmpty shouldBe false
+      scenarioResult.eventsForOrgs.isEmpty shouldBe false
+      scenarioResult.storeIds.isDefined shouldBe true
+      scenarioResult.productsForStores.isEmpty shouldBe false
+
+      val r = new Random()
+      val storeId = scenarioResult.storeIds
+        .getOrElse(StoreIds.defaultInstance)
+        .storeIds
+        .take(1)
+        .head
+      val products = scenarioResult
+        .productsForStores(storeId.storeId)
+        .skus
+        .take(r.nextInt(4))
+      val memberIds =
+        scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
+
+      val memberId = memberIds(r.nextInt(memberIds.size))
+
+      val orderIds = uiClient
+        .handlePurchaseTickets(
+          PurchaseTicketsRequest(
+            Map(
+              memberId.toString -> OrdersForStores(
+                products.map { productId =>
+                  storeId.storeId ->
+                    ApiOrderInfo(
+                      ApiOrderId.defaultInstance.orderId,
+                      Seq[ApiLineItem](
+                        ApiLineItem(Some(productId), 1)
+                      )
+                    )
+                }.toMap
+              )
+            )
+          )
+        )
+        .futureValue
+
+      orderIds.orderIds.isEmpty shouldBe false
+    }
+
   }
 }
