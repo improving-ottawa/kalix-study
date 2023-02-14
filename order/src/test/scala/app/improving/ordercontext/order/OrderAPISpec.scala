@@ -2,17 +2,8 @@ package app.improving.ordercontext.order
 
 import TestData._
 import app.improving.MemberId
-import app.improving.ordercontext.infrastructure.util.{
-  convertApiOrderInfoToOrderInfo,
-  convertApiOrderStatusToOrderStatus
-}
-import app.improving.ordercontext.{
-  OrderCanceled,
-  OrderCreated,
-  OrderInfoUpdated,
-  OrderStatus,
-  OrderStatusUpdated
-}
+import app.improving.ordercontext.infrastructure.util.{convertApiOrderInfoToOrderInfo, convertApiOrderStatusToOrderStatus, convertLineItemToApiLineItem}
+import app.improving.ordercontext.{OrderCanceled, OrderCreated, OrderInfoUpdated, OrderStatus, OrderStatusUpdated}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -37,9 +28,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCreated.info shouldBe defined
       orderCreated.meta shouldBe defined
 
-      orderCreated.info.map(_.orderTotal).getOrElse(0.0) shouldBe testLineItems
-        .map(item => item.lineTotal * item.quantity)
-        .sum
+      orderCreated.info.map(_.lineItems).map(lineItemSeq => lineItemSeq.map(convertLineItemToApiLineItem)).get shouldBe testLineItems
 
       val nullCreateOrderResult = testKit.createOrder(apiCreateOrder)
 
@@ -123,10 +112,38 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         .map(item => item.lineTotal * item.quantity)
         .sum
 
+      orderInfoUpdated.info
+        .map(_.specialInstructions)
+        .getOrElse("") shouldBe testSpecialInstruction
+
       val nullUpdateOrderInfoResult =
         testKit.updateOrderInfo(nullApiUpdateOrderInfo)
 
       nullUpdateOrderInfoResult.events should have size 0
+
+      val updateOrderStatusResultToPending =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            orderId = orderId
+          )
+        )
+
+      updateOrderStatusResultToPending.events should have size 1
+
+      val updateOrderStatusResultToInProcess =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            orderId = orderId,
+            newStatus = testNewOrderStatusToInProcess
+          )
+        )
+
+      updateOrderStatusResultToInProcess.events should have size 1
+
+      val updateInProcessOrderInfoResult =
+        testKit.updateOrderInfo(apiUpdateOrderInfo.copy(orderId = orderId))
+
+      updateInProcessOrderInfoResult.events should have size 0
     }
 
     "correctly process commands of type CancelOrder" in {
@@ -186,13 +203,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       result.orderId shouldBe defined
       result.info shouldBe defined
 
-      result.info shouldBe Some(
-        testOrderInfo.copy(orderTotal =
-          testLineItems
-            .map(item => item.lineTotal * item.quantity)
-            .sum
-        )
-      )
+      result.info shouldBe Some(testOrderInfo)
     }
   }
 }

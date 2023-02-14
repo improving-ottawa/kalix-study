@@ -10,19 +10,16 @@ object util {
     OrderInfo(
       Some(OrderId(apiOrderInfo.orderId)),
       apiOrderInfo.lineItems.map(convertApiLineItemToLineItem),
-      apiOrderInfo.specialInstructions,
-      apiOrderInfo.orderTotal
+      apiOrderInfo.specialInstructions
     )
   }
 
-  def convertApiUpdateOrderInfoToOrderInfo(
+  def convertApiUpdateOrderInfoToOrderInfoUpdate(
       apiOrderInfoUpdate: ApiOrderInfoUpdate
-  ): OrderInfo = {
-    OrderInfo(
-      Some(OrderId(apiOrderInfoUpdate.orderId)),
+  ): OrderInfoUpdate = {
+    OrderInfoUpdate(
       apiOrderInfoUpdate.lineItems.map(convertApiLineItemToLineItem),
-      apiOrderInfoUpdate.specialInstructions,
-      apiOrderInfoUpdate.orderTotal
+      apiOrderInfoUpdate.specialInstructions
     )
   }
 
@@ -85,8 +82,7 @@ object util {
     ApiOrderInfo(
       orderInfo.orderId.map(_.id).getOrElse("OrderId is not set."),
       orderInfo.lineItems.map(convertLineItemToApiLineItem),
-      orderInfo.specialInstructions,
-      orderInfo.orderTotal
+      orderInfo.specialInstructions
     )
   }
 

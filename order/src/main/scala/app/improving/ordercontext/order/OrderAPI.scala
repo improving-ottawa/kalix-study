@@ -63,7 +63,8 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiUpdateOrderStatus.orderId)) => {
+          if order.orderId == Some(OrderId(apiUpdateOrderStatus.orderId)) &&
+          isValidStateChange(order.status, apiUpdateOrderStatus.newStatus) => {
         val event = OrderStatusUpdated(
           order.orderId,
           convertApiOrderStatusToOrderStatus(apiUpdateOrderStatus.newStatus),
@@ -77,25 +78,56 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
     }
   }
 
+  def isValidStateChange(
+    currentState: OrderStatus,
+    newApiStatus: ApiOrderStatus
+  ): Boolean = {
+    currentState match {
+      case OrderStatus.DRAFT =>
+        newApiStatus.isPending || newApiStatus.isCancelled
+      case OrderStatus.PENDING =>
+        newApiStatus.isCancelled || newApiStatus.isInprocess
+      case OrderStatus.INPROCESS =>
+        newApiStatus.isReady
+      case OrderStatus.READY =>
+        newApiStatus.isDelivered
+      case _ => false
+    }
+  }
+
   override def updateOrderInfo(
       currentState: OrderState,
       apiUpdateOrderInfo: ApiUpdateOrderInfo
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.order match {
       case Some(order)
-          if order.orderId == Some(OrderId(apiUpdateOrderInfo.orderId)) => {
+          if order.orderId == Some(OrderId(apiUpdateOrderInfo.orderId)) &&
+            order.info.isDefined &&
+            (order.status.isDraft || order.status.isPending) => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val orderInfo = apiUpdateOrderInfo.update
-          .map(convertApiUpdateOrderInfoToOrderInfo)
-          .map(calculateOrderTotal)
+        val orderInfoUpdateOpt = apiUpdateOrderInfo.update
+          .map(convertApiUpdateOrderInfoToOrderInfoUpdate)
+        val updatedInfo = order.info.map {orderInfo =>
+          calculateOrderTotal(
+            orderInfo.copy(
+              lineItems = orderInfoUpdateOpt.fold(orderInfo.lineItems) {orderInfoUpdate =>
+                if (orderInfoUpdate.lineItems.isEmpty) orderInfo.lineItems else orderInfoUpdate.lineItems
+              },
+              specialInstructions = orderInfoUpdateOpt.fold(orderInfo.specialInstructions) {orderInfoUpdate =>
+                orderInfoUpdate.specialInstructions.getOrElse(orderInfo.specialInstructions)
+              }
+            )
+          )
+        }
+
         val updatingMemberIdOpt =
           apiUpdateOrderInfo.updatingMember.map(member =>
             MemberId(member.memberId)
           )
         val event = OrderInfoUpdated(
           order.orderId,
-          orderInfo,
+          updatedInfo,
           order.meta.map(
             _.copy(
               lastModifiedBy = updatingMemberIdOpt,
