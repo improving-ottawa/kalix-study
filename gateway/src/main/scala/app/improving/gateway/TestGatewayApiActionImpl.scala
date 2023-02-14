@@ -495,11 +495,16 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               sku,
               r.nextString(15),
               r.nextString(15),
-              ApiProductDetails.OPEN_TICKET,
-              r.nextString(15),
-              r.nextString(15),
-              r.nextString(15),
-              eventsByOrg(orgId).eventIds.headOption,
+              Some(
+                ApiProductDetails(
+                  apiTicket = ApiProductDetails.ApiTicket.ReservedTicket(ApiReservedTicket(
+                    section = r.nextString(15),
+                    row = r.nextString(15),
+                    set = r.nextString(15),
+                    event = eventsByOrg(orgId).eventIds.headOption
+                  ))
+                )
+              ),
               Seq[String](r.nextString(15)),
               r.nextDouble(),
               r.nextDouble(),
