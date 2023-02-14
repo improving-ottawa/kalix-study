@@ -3,7 +3,7 @@ package app.improving.productcontext.infrastructure
 import app.improving.productcontext.ProductDetails.Ticket
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.{ApiEventId, ApiMemberId, ApiStoreId, EventId, MemberId, ProductId, StoreId}
-import app.improving.productcontext.{OpenTicket, ProductCreated, ProductDetails, ProductInfo, ProductInfoUpdate, ProductMetaInfo, ReservedTicket, RestrictedTicket}
+import app.improving.productcontext.{OpenTicket, ProductCreated, ProductDetails, ProductInfo, ProductInfoUpdate, ProductMetaInfo, ProductStatus, ReservedTicket, RestrictedTicket, TicketEventCorrTableRow}
 import app.improving.productcontext.product.{ApiOpenTicket, ApiProduct, ApiProductDetails, ApiProductInfo, ApiProductInfoUpdate, ApiProductMetaInfo, ApiProductStatus, ApiReservedTicket, ApiRestrictedTicket}
 
 object util {
@@ -82,6 +82,27 @@ object util {
       productCreated.info.map(convertProductInfoToApiProductInfo),
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
       ApiProductStatus.ACTIVE
+    )
+  }
+
+  def convertProductCreatedToTicketEventCorrTableRow(productCreated: ProductCreated): TicketEventCorrTableRow = {
+    TicketEventCorrTableRow(
+      sku = Some(ProductId(productCreated.sku.map(_.id).getOrElse("Product is not found"))),
+      info = productCreated.info,
+      meta = productCreated.meta,
+      status = ProductStatus.ACTIVE.toString(),
+      event = productCreated.info.flatMap(extractEventIdFromProductInfo)
+    )
+  }
+
+  def extractEventIdFromProductInfo(productInfo: ProductInfo): Option[EventId] = {
+    productInfo.productDetails.flatMap(
+      _.ticket match {
+        case Ticket.ReservedTicket(value) => value.event
+        case Ticket.RestrictedTicket(value) => value.event
+        case Ticket.OpenTicket(value) => value.event
+        case Ticket.Empty => None
+      }
     )
   }
 

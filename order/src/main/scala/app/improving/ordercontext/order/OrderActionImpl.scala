@@ -2,10 +2,8 @@ package app.improving.ordercontext.order
 
 import app.improving.ApiOrderId
 import app.improving.eventcontext.event.{ApiGetEventById, EventService}
-import app.improving.organizationcontext.organization.{
-  ApiGetOrganizationById,
-  OrganizationService
-}
+import app.improving.organizationcontext.organization.{ApiGetOrganizationById, OrganizationService}
+import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.productcontext.product.{ApiGetProductInfo, ProductService}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -67,7 +65,16 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           apiProductInfo <- product
             .getProductInfo(ApiGetProductInfo(sku))
         } yield apiProductInfo.info
-          .flatMap(_.event)
+          .flatMap(
+            _.productDetails.flatMap(
+              _.apiTicket match {
+                case ApiTicket.ReservedTicket(value) => value.event
+                case ApiTicket.RestrictedTicket(value) => value.event
+                case ApiTicket.OpenTicket(value) => value.event
+                case ApiTicket.Empty => None
+              }
+            )
+          )
           .map(_.eventId)
           .getOrElse("EventId is not found.")).transformWith {
           case Success(id) => Future.successful(id)
