@@ -1,11 +1,41 @@
 package app.improving.eventcontext.event
 
-import app.improving.eventcontext.event.EventAPI.{JustMemberValidated, ValidatedFields, ValidatedFieldsWithEventInfo, ValidatedFieldsWithReasonAndDuration, ValidatedFieldsWithStartAndEnd, ValidationNeeded, ValidationNeededWithEventInfoExistence, ValidationNeededWithEventInfoFields, ValidationNeededWithJustMember, ValidationNeededWithReasonAndDuration, ValidationNeededWithStartAndEnd, validateApiEventInfo}
+import app.improving.eventcontext.event.EventAPI.{
+  JustMemberValidated,
+  ValidatedFields,
+  ValidatedFieldsWithEventInfo,
+  ValidatedFieldsWithEventUpdateInfo,
+  ValidatedFieldsWithReasonDurationAndReservation,
+  ValidatedFieldsWithReservation,
+  ValidatedFieldsWithStartAndEnd,
+  ValidationNeeded,
+  ValidationNeededWithApiReservation,
+  ValidationNeededWithEventInfo,
+  ValidationNeededWithEventUpdateInfo,
+  ValidationNeededWithJustMember,
+  ValidationNeededWithReasonDurationAndReservation,
+  ValidationNeededWithStartAndEnd,
+  ValidationNeededWithStateReservation,
+  validateApiEventInfo
+}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.eventcontext.infrastructure.util._
 import app.improving.{ApiEventId, ApiMemberId, EventId, MemberId}
-import app.improving.eventcontext.{EventCancelled, EventDelayed, EventEnded, EventInfo, EventInfoChanged, EventMetaInfo, EventRescheduled, EventScheduled, EventStarted, EventStatus}
+import app.improving.eventcontext.{
+  EventCancelled,
+  EventDelayed,
+  EventEnded,
+  EventInfo,
+  EventInfoChanged,
+  EventMetaInfo,
+  EventRescheduled,
+  EventScheduled,
+  EventStarted,
+  EventStatus,
+  ReservationAddedToEvent,
+  ReservationId
+}
 import com.google.protobuf.duration.Duration
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
@@ -19,12 +49,17 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def emptyState: EventState = EventState.defaultInstance
 
-  val changeableInfoStatuses: Set[EventStatus] = Set(
-    EventStatus.SCHEDULED,
-    EventStatus.DELAYED
-  ) // TODO: can you change an event's info after it's started?
+  val reservableStatuses: Set[EventStatus] = Set(EventStatus.SCHEDULED)
+  val updateableStatuses: Set[EventStatus] =
+    Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
+  val reschedulableStatuses: Set[EventStatus] =
+    Set(EventStatus.SCHEDULED, EventStatus.DELAYED, EventStatus.CANCELLED)
+  val delayableStatuses: Set[EventStatus] =
+    Set(EventStatus.SCHEDULED, EventStatus.INPROGRESS)
+  val startableStatuses: Set[EventStatus] =
+    Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
   val cancellableStatuses: Set[EventStatus] =
-    Set(EventStatus.CANCELLED, EventStatus.SCHEDULED, EventStatus.DELAYED)
+    Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
   val endableStatuses: Set[EventStatus] = Set(EventStatus.INPROGRESS)
 
   override def changeEventInfo(
@@ -36,41 +71,37 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           if event.eventId.contains(EventId(apiChangeEventInfo.eventId)) => {
         errorOrReply(
           event.status,
-          changeableInfoStatuses,
+          updateableStatuses,
           "change event info",
-          ValidationNeededWithEventInfoExistence(
+          ValidationNeededWithEventUpdateInfo(
             apiChangeEventInfo.changingMember,
             apiChangeEventInfo.info
           )
         ) { validatedFields =>
 
-          val validatedFieldsWithEventInfo: ValidatedFieldsWithEventInfo =
-            validatedFields.asInstanceOf[ValidatedFieldsWithEventInfo]
+          val validatedFieldsWithEventUpdateInfo
+              : ValidatedFieldsWithEventUpdateInfo =
+            validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
           val updatingMember: ApiMemberId =
-            validatedFieldsWithEventInfo.apiMemberId
-          val updatingInfo: ApiEventInfo =
-            validatedFieldsWithEventInfo.apiEventInfo
-          val newInfo: EventInfo = buildEventInfoFromUpdateInfo(
-            currentState.event.flatMap(_.info),
-            updatingInfo
-          )
-
-          val event: EventInfoChanged = EventInfoChanged(
+            validatedFieldsWithEventUpdateInfo.apiMemberId
+          val updatingInfo: ApiEventUpdateInfo =
+            validatedFieldsWithEventUpdateInfo.apiEventUpdateInfo
+          val newInfo: Option[EventInfo] =
+            event.info.map(buildEventInfoFromUpdateInfo(_, updatingInfo))
+          val infoChanged: EventInfoChanged = EventInfoChanged(
             eventId = Some(EventId(apiChangeEventInfo.eventId)),
-            info = Some(newInfo),
-            meta = currentState.event.flatMap(
-              _.meta.map(
-                _.copy(
-                  actualStart = updatingInfo.expectedStart,
-                  actualEnd = updatingInfo.expectedEnd,
-                  lastModifiedBy =
-                    Some(convertApiMemberIdToMemberId(updatingMember)),
-                  lastModifiedOn = Some(nowTs)
-                )
+            info = newInfo,
+            meta = event.meta.map(
+              _.copy(
+                actualStart = updatingInfo.expectedStart,
+                actualEnd = updatingInfo.expectedEnd,
+                lastModifiedBy =
+                  Some(convertApiMemberIdToMemberId(updatingMember)),
+                lastModifiedOn = Some(nowTs)
               )
             )
           )
-          effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          effects.emitEvent(infoChanged).thenReply(_ => Empty.defaultInstance)
         }
 
       }
@@ -89,7 +120,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           EventStatus.SCHEDULED,
           Set(EventStatus.SCHEDULED),
           "schedule event",
-          ValidationNeededWithEventInfoFields(
+          ValidationNeededWithEventInfo(
             apiScheduleEvent.schedulingMember,
             apiScheduleEvent.info
           )
@@ -174,7 +205,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           if event.eventId.contains(EventId(apiRescheduleEvent.eventId)) => {
         errorOrReply(
           event.status,
-          changeableInfoStatuses,
+          reschedulableStatuses,
           "reschedule event",
           ValidationNeededWithStartAndEnd(
             apiRescheduleEvent.reschedulingMember,
@@ -226,22 +257,24 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           if event.eventId.contains(EventId(apiDelayEvent.eventId)) =>
         errorOrReply(
           event.status,
-          changeableInfoStatuses,
+          delayableStatuses,
           "delay event",
-          ValidationNeededWithReasonAndDuration(
+          ValidationNeededWithReasonDurationAndReservation(
             maybeApiMemberId = apiDelayEvent.delayingMember,
-            maybeReason = Some(apiDelayEvent.reason),
-            maybeDuration = apiDelayEvent.expectedDuration
+            maybeApiReason = Some(apiDelayEvent.reason),
+            maybeApiDuration = apiDelayEvent.expectedDuration,
+            maybeReservation = event.reservation
           )
         ) { validatedFields =>
-          val validatedFieldsWithReasonAndDuration
-              : ValidatedFieldsWithReasonAndDuration =
-            validatedFields.asInstanceOf[ValidatedFieldsWithReasonAndDuration]
+          val validatedFieldsWithReasonDurationAndReservation
+              : ValidatedFieldsWithReasonDurationAndReservation =
+            validatedFields
+              .asInstanceOf[ValidatedFieldsWithReasonDurationAndReservation]
           val metaOpt = event.meta.map(
             _.copy(
               lastModifiedBy = Some(
                 convertApiMemberIdToMemberId(
-                  validatedFieldsWithReasonAndDuration.apiMemberId
+                  validatedFieldsWithReasonDurationAndReservation.apiMemberId
                 )
               ),
               lastModifiedOn = Some(nowTs),
@@ -251,10 +284,10 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
 
           val delayed = EventDelayed(
             eventId = event.eventId,
-            reason = validatedFieldsWithReasonAndDuration.reason,
+            reason = validatedFieldsWithReasonDurationAndReservation.apiReason,
             meta = metaOpt,
             expectedDuration =
-              Some(validatedFieldsWithReasonAndDuration.duration)
+              Some(validatedFieldsWithReasonDurationAndReservation.apiDuration)
           )
 
           effects.emitEvent(delayed).thenReply(_ => Empty.defaultInstance)
@@ -273,13 +306,16 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           if event.eventId.contains(EventId(apiStartEvent.eventId)) =>
         errorOrReply(
           event.status,
-          changeableInfoStatuses, // TODO should you allow starting an event if it's already started? you could combine with "actual start" not being defined until the event actually starts, and only set it on start event if it's not already set
+          startableStatuses,
           "start event",
-          ValidationNeededWithJustMember(apiStartEvent.startingMember)
+          ValidationNeededWithStateReservation(
+            apiStartEvent.startingMember,
+            event.reservation
+          )
         ) { validatedFields =>
 
-          val validatedFieldsWithJustMember: JustMemberValidated =
-            validatedFields.asInstanceOf[JustMemberValidated]
+          val validatedFieldsWithReservation: ValidatedFieldsWithReservation =
+            validatedFields.asInstanceOf[ValidatedFieldsWithReservation]
           val timestamp: Timestamp = nowTs
 
           val metaOpt: Option[EventMetaInfo] = event.meta.map(
@@ -287,7 +323,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               lastModifiedOn = Some(timestamp),
               lastModifiedBy = Some(
                 convertApiMemberIdToMemberId(
-                  validatedFieldsWithJustMember.apiMemberId
+                  validatedFieldsWithReservation.apiMemberId
                 )
               ),
               status = EventStatus.INPROGRESS,
@@ -342,6 +378,49 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
+
+  override def addReservationToEvent(
+      currentState: EventState,
+      apiAddReservationToEvent: ApiAddReservationToEvent
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.event match {
+      case Some(event)
+          if event.eventId.contains(
+            EventId(apiAddReservationToEvent.eventId)
+          ) =>
+        errorOrReply(
+          event.status,
+          reservableStatuses,
+          "add reservation to event",
+          ValidationNeededWithApiReservation(
+            apiAddReservationToEvent.reservingMember,
+            apiAddReservationToEvent.reservation
+          )
+        ) { validatedFields =>
+          val validatedFieldsWithReservation: ValidatedFieldsWithReservation =
+            validatedFields.asInstanceOf[ValidatedFieldsWithReservation]
+          val reservationAdded = ReservationAddedToEvent(
+            eventId = event.eventId,
+            reservation = Some(validatedFieldsWithReservation.reservation),
+            meta = event.meta.map(
+              _.copy(
+                lastModifiedBy = Some(
+                  convertApiMemberIdToMemberId(
+                    validatedFieldsWithReservation.apiMemberId
+                  )
+                ),
+                lastModifiedOn = Some(nowTs)
+              )
+            )
+          )
+          effects
+            .emitEvent(reservationAdded)
+            .thenReply(_ => Empty.defaultInstance)
+        }
+      case _ => effects.reply(Empty.defaultInstance)
+    }
+  }
+
   override def addLiveUpdate(
       currentState: EventState,
       apiAddLiveUpdate: ApiAddLiveUpdate
@@ -392,6 +471,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           Event(
             eventScheduled.eventId,
             eventScheduled.info,
+            None,
             eventScheduled.meta,
             EventStatus.SCHEDULED
           )
@@ -506,6 +586,22 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
     }
   }
 
+  override def reservationAddedToEvent(
+      currentState: EventState,
+      reservationAddedToEvent: ReservationAddedToEvent
+  ): EventState = {
+    currentState.event match {
+      case Some(event) if event.eventId == reservationAddedToEvent.eventId =>
+        currentState.withEvent(
+          event.copy(
+            reservation = reservationAddedToEvent.reservation,
+            meta = reservationAddedToEvent.meta
+          )
+        )
+      case _ => currentState
+    }
+  }
+
   private def nowTs = {
     val now = java.time.Instant.now()
     Timestamp.of(now.getEpochSecond, now.getNano)
@@ -523,8 +619,18 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
     if (allowableStatuses.contains(eventStatus)) {
       fieldsNeeded.toValidatedFields match {
         case Left(missingFields) =>
+          val (messageFields, stateFields) =
+            missingFields.partition(_.startsWith("Api"))
+          val missingMessage = messageFields.headOption.map(_ =>
+            s"Message is missing the following fields: ${messageFields.toSeq.sorted.mkString(", ")}"
+          )
+          val missingState = stateFields.headOption.map(_ =>
+            s"State is missing the following fields: ${stateFields.toSeq.sorted.mkString(", ")}"
+          )
+          val error: String =
+            (missingMessage.toList ++ missingState.toList).mkString("\n")
           effects.error(
-            s"Message is missing the following fields: ${missingFields.toSeq.sorted.mkString(", ")}"
+            error
           )
         case Right(validatedFields) => block(validatedFields)
       }
@@ -550,11 +656,8 @@ object EventAPI {
             _.isEmpty
           ),
           "ApiEventInfo.SponsoringOrg" -> apiEventInfo.sponsoringOrg,
-          "ApiEventInfo.GeoLocation" -> apiEventInfo.geoLocation,
-          "ApiEventInfo.Reservation" -> apiEventInfo.reservation, //TODO does EventInfo require a reservation ID? It's in here but not in the riddl; on the other hand, the riddl seems to have a sometimes-optional top-level ReservationId field (see eventContext.riddl)
           "ApiEventInfo.ExpectedStart" -> apiEventInfo.expectedStart,
-          "ApiEventInfo.ExpectedEnd" -> apiEventInfo.expectedEnd,
-          "ApiEventInfo.IsPrivate" -> apiEventInfo.isPrivate
+          "ApiEventInfo.ExpectedEnd" -> apiEventInfo.expectedEnd
         )
           .filter(_._2.isEmpty)
           .keySet
@@ -568,41 +671,54 @@ object EventAPI {
     getMissingApiEventInfoFields(maybeApiEventInfo).isEmpty
   }
 
-  abstract class ValidationNeeded(maybeApiMemberId: Option[ApiMemberId])
+  sealed trait ValidationNeeded
   case class ValidationNeededWithJustMember(
       maybeApiMemberId: Option[ApiMemberId]
-  ) extends ValidationNeeded(maybeApiMemberId)
-  case class ValidationNeededWithEventInfoFields(
+  ) extends ValidationNeeded
+  case class ValidationNeededWithEventInfo(
       maybeApiMemberId: Option[ApiMemberId],
       maybeApiEventInfo: Option[ApiEventInfo]
-  ) extends ValidationNeeded(maybeApiMemberId)
+  ) extends ValidationNeeded
 
-  case class ValidationNeededWithEventInfoExistence(
-    maybeApiMemberId: Option[ApiMemberId],
-  maybeAiEventInfo: Option[ApiEventInfo])
-  extends ValidationNeeded(maybeApiMemberId)
+  case class ValidationNeededWithStateReservation(
+      maybeApiMemberId: Option[ApiMemberId],
+      maybeReservation: Option[ReservationId]
+  ) extends ValidationNeeded
+
+  case class ValidationNeededWithApiReservation(
+      maybeApiMemberId: Option[ApiMemberId],
+      maybeApiReservation: Option[ApiReservationId]
+  ) extends ValidationNeeded
+
+  case class ValidationNeededWithEventUpdateInfo(
+      maybeApiMemberId: Option[ApiMemberId],
+      maybeApiEventUpdateInfo: Option[ApiEventUpdateInfo]
+  ) extends ValidationNeeded
   case class ValidationNeededWithStartAndEnd(
       maybeApiMemberId: Option[ApiMemberId],
       maybeStart: Option[Timestamp],
       maybeEnd: Option[Timestamp]
-  ) extends ValidationNeeded(maybeApiMemberId)
-  case class ValidationNeededWithReasonAndDuration(
+  ) extends ValidationNeeded
+  case class ValidationNeededWithReasonDurationAndReservation(
       maybeApiMemberId: Option[ApiMemberId],
-      maybeReason: Option[String],
-      maybeDuration: Option[Duration]
-  ) extends ValidationNeeded(maybeApiMemberId)
+      maybeApiReason: Option[String],
+      maybeApiDuration: Option[Duration],
+      maybeReservation: Option[ReservationId]
+  ) extends ValidationNeeded
 
   object ValidationNeeded {
-    implicit class ValidationNeededOps(validationNeeded: ValidationNeeded) {
+    implicit class MessageValidationNeededOps(
+        validationNeeded: ValidationNeeded
+    ) {
       def toValidatedFields: Either[Set[String], ValidatedFields] = {
         validationNeeded match {
           case ValidationNeededWithJustMember(maybeApiMemberId) =>
             maybeApiMemberId match {
               case Some(apiMemberId: ApiMemberId) =>
                 Right(JustMemberValidated(apiMemberId))
-              case _ => Left(Set("Member"))
+              case _ => Left(Set("ApiMember"))
             }
-          case ValidationNeededWithEventInfoFields(
+          case ValidationNeededWithEventInfo(
                 maybeApiMemberId,
                 maybeApiEventInfo
               ) =>
@@ -613,22 +729,29 @@ object EventAPI {
               case _ =>
                 Left(
                   Map(
-                    "Member" -> maybeApiMemberId,
+                    "ApiMember" -> maybeApiMemberId,
                     "ApiEventInfo" -> maybeApiEventInfo
                   ).filter(_._2.isEmpty).keySet ++ getMissingApiEventInfoFields(
                     maybeApiEventInfo
                   )
                 )
             }
-          case ValidationNeededWithEventInfoExistence(maybeApiMemberId, maybeApiEventInfo) =>
+          case ValidationNeededWithEventUpdateInfo(
+                maybeApiMemberId,
+                maybeApiEventInfo
+              ) =>
             (maybeApiMemberId, maybeApiEventInfo) match {
-              case (Some(apiMemberId), Some(apiEventInfo)) => Right(ValidatedFieldsWithEventInfo(apiMemberId, apiEventInfo))
-              case _ => Left(
-                Map(
-                  "Member" -> maybeApiMemberId,
-                  "ApiEventInfo" -> maybeApiEventInfo
-                ).filter(_._2.isEmpty).keySet
-              )
+              case (Some(apiMemberId), Some(apiEventInfo)) =>
+                Right(
+                  ValidatedFieldsWithEventUpdateInfo(apiMemberId, apiEventInfo)
+                )
+              case _ =>
+                Left(
+                  Map(
+                    "ApiMember" -> maybeApiMemberId,
+                    "ApiEventInfo" -> maybeApiEventInfo
+                  ).filter(_._2.isEmpty).keySet
+                )
             }
           case ValidationNeededWithStartAndEnd(
                 maybeApiMemberId,
@@ -641,33 +764,80 @@ object EventAPI {
               case _ =>
                 Left(
                   Map(
-                    "Member" -> maybeApiMemberId,
-                    "Start" -> maybeStart,
-                    "End" -> maybeEnd
+                    "ApiMember" -> maybeApiMemberId,
+                    "ApiStart" -> maybeStart,
+                    "ApiEnd" -> maybeEnd
                   ).filter(_._2.isEmpty).keySet
                 )
             }
-          case ValidationNeededWithReasonAndDuration(
+          case ValidationNeededWithReasonDurationAndReservation(
                 maybeApiMemberId,
                 maybeReason,
-                maybeDuration
+                maybeDuration,
+                maybeReservation
               ) =>
-            (maybeApiMemberId, maybeReason, maybeDuration) match {
-              case (Some(apiMemberId), Some(reason), Some(duration))
-                  if reason.nonEmpty =>
+            (
+              maybeApiMemberId,
+              maybeReason,
+              maybeDuration,
+              maybeReservation
+            ) match {
+              case (
+                    Some(apiMemberId),
+                    Some(apiReason),
+                    Some(apiDuration),
+                    Some(reservation)
+                  ) if apiReason.nonEmpty =>
                 Right(
-                  ValidatedFieldsWithReasonAndDuration(
+                  ValidatedFieldsWithReasonDurationAndReservation(
                     apiMemberId,
-                    reason,
-                    duration
+                    apiReason,
+                    apiDuration,
+                    reservation
                   )
                 )
               case _ =>
                 Left(
                   Map(
-                    "Member" -> maybeApiMemberId,
-                    "Reason" -> maybeReason.filter(_.nonEmpty),
-                    "Duration" -> maybeDuration
+                    "ApiMember" -> maybeApiMemberId,
+                    "ApiReason" -> maybeReason.filter(_.nonEmpty),
+                    "ApiDuration" -> maybeDuration,
+                    "Reservation" -> maybeReservation
+                  ).filter(_._2.isEmpty).keySet
+                )
+            }
+          case ValidationNeededWithStateReservation(
+                maybeApiMemberId,
+                maybeReservation
+              ) =>
+            (maybeApiMemberId, maybeReservation) match {
+              case (Some(apiMemberId), Some(reservation)) =>
+                Right(ValidatedFieldsWithReservation(apiMemberId, reservation))
+              case _ =>
+                Left(
+                  Map(
+                    "ApiMember" -> maybeApiMemberId,
+                    "Reservation" -> maybeReservation
+                  ).filter(_._2.isEmpty).keySet
+                )
+            }
+          case ValidationNeededWithApiReservation(
+                maybeApiMemberId,
+                maybeApiReservation
+              ) =>
+            (maybeApiMemberId, maybeApiReservation) match {
+              case (Some(apiMemberId), Some(apiReservation)) =>
+                Right(
+                  ValidatedFieldsWithReservation(
+                    apiMemberId,
+                    convertApiReservationIdToReservationId(apiReservation)
+                  )
+                )
+              case _ =>
+                Left(
+                  Map(
+                    "ApiMember" -> maybeApiMemberId,
+                    "ApiReservation" -> maybeApiReservation
                   ).filter(_._2.isEmpty).keySet
                 )
             }
@@ -686,18 +856,27 @@ object EventAPI {
       apiEventInfo: ApiEventInfo
   ) extends ValidatedFields(apiMemberId)
 
+  case class ValidatedFieldsWithEventUpdateInfo(
+      apiMemberId: ApiMemberId,
+      apiEventUpdateInfo: ApiEventUpdateInfo
+  ) extends ValidatedFields(apiMemberId)
+
   case class ValidatedFieldsWithStartAndEnd(
       apiMemberId: ApiMemberId,
       start: Timestamp,
       end: Timestamp
   ) extends ValidatedFields(apiMemberId)
 
-  case class ValidatedFieldsWithReasonAndDuration(
+  case class ValidatedFieldsWithReasonDurationAndReservation(
       apiMemberId: ApiMemberId,
-      reason: String,
-      duration: Duration
+      apiReason: String,
+      apiDuration: Duration,
+      reservation: ReservationId
   ) extends ValidatedFields(apiMemberId)
 
-  // private def getMissingApiInfoFields(apiEventInfo: Option[ApiEventInfo]) =
+  case class ValidatedFieldsWithReservation(
+      apiMemberId: ApiMemberId,
+      reservation: ReservationId
+  ) extends ValidatedFields(apiMemberId)
 
 }
