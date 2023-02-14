@@ -49,6 +49,8 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def emptyState: EventState = EventState.defaultInstance
 
+  //It's possible to add a reservation to an update if you're the status is in the set of statuses in reservablestatuses, update the info if it's in updateableStatuses,
+  //reschedule if it's in reschedulableStatuses, etc. Note that status isn't the only constraint: the command fields must be validated, and for delay and start we verify that the reservation has been set.
   val reservableStatuses: Set[EventStatus] = Set(EventStatus.SCHEDULED)
   val updateableStatuses: Set[EventStatus] =
     Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
