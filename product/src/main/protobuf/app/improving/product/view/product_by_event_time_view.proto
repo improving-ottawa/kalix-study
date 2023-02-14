@@ -36,11 +36,6 @@ service TicketByEventTimeQuery {
         view: {}
     };
 
-    option (kalix.service).eventing.in.direct = {
-        service: "kalix-study-event"
-        event_stream_id: "event_events"
-    };
-
     rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
@@ -92,6 +87,9 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventScheduled(eventcontext.EventScheduled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
         option (kalix.method).view.update = {
             table: "ticket_by_event_event"
             transform_updates: true
@@ -99,6 +97,9 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventRescheduled(eventcontext.EventRescheduled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
         option (kalix.method).view.update = {
             table: "ticket_by_event_event"
             transform_updates: true
@@ -106,6 +107,9 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventStarted(eventcontext.EventStarted) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
         option (kalix.method).view.update = {
             table: "ticket_by_event_event"
             transform_updates: true
@@ -113,6 +117,9 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventEnded(eventcontext.EventEnded) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
         option (kalix.method).view.update = {
             table: "ticket_by_event_event"
             transform_updates: true
@@ -120,6 +127,9 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventDelayed(eventcontext.EventDelayed) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
         option (kalix.method).view.update = {
             table: "ticket_by_event_event"
             transform_updates: true
@@ -127,6 +137,9 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventCancelled(eventcontext.EventCancelled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "events"
+        };
         option (kalix.method).view.update = {
             table: "ticket_by_event_event"
             transform_updates: true

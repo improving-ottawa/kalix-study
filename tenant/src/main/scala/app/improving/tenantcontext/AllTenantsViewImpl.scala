@@ -38,14 +38,18 @@ class AllTenantsViewImpl(context: ViewContext) extends AbstractAllTenantsView {
       state: ApiTenant,
       tenantActivated: TenantActivated
   ): UpdateEffect[ApiTenant] =
-    throw new UnsupportedOperationException(
-      "Update handler for 'ProcessTenantActivated' not implemented yet"
+    effects.updateState(
+      state.copy(
+        meta = tenantActivated.meta.map(convertMetaInfoToApiMetaInfo),
+        name = tenantActivated.name,
+        status = ApiTenantStatus.SUSPENDED
+      )
     )
 
   override def processTenantSuspended(
       state: ApiTenant,
       tenantSuspended: TenantSuspended
-  ): UpdateEffect[ApiTenant] = {
+  ): UpdateEffect[ApiTenant] =
     effects.updateState(
       state.copy(
         meta = tenantSuspended.meta.map(convertMetaInfoToApiMetaInfo),
@@ -53,7 +57,6 @@ class AllTenantsViewImpl(context: ViewContext) extends AbstractAllTenantsView {
         status = ApiTenantStatus.SUSPENDED
       )
     )
-  }
 
   override def processPrimaryContactUpdated(
       state: ApiTenant,

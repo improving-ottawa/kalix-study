@@ -64,7 +64,7 @@ import app.improving.gateway.util.util.{
   genEmailAddressForName,
   genMobileNumber
 }
-import app.improving.organizationcontext.{OrganizationInfo, organization}
+import app.improving.organizationcontext.organization
 import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID

@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package app.improving.mega;
+
+import "google/protobuf/empty.proto";
+import "kalix/annotations.proto";
+
+service MegaAction {
+    option (kalix.codegen) = {
+        action: {}
+    };
+}

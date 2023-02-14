@@ -37,28 +37,28 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
     creationContext.getGrpcClient(
       classOf[MemberService],
       config.getString(
-        "app.improving.member.member.grpc-client-name"
+        "app.improving.member.mega.grpc-client-name"
       )
     )
 
   val memberByMemberIdsView = creationContext.getGrpcClient(
     classOf[MemberByMemberIdsQuery],
     config.getString(
-      "app.improving.member.member.grpc-client-name"
+      "app.improving.member.mega.grpc-client-name"
     )
   )
 
   val orderByProductView = creationContext.getGrpcClient(
     classOf[OrderByProductQuery],
     config.getString(
-      "app.improving.member.order.grpc-client-name"
+      "app.improving.member.mega.grpc-client-name"
     )
   )
 
   val ticketByEventTimeView = creationContext.getGrpcClient(
     classOf[TicketByEventTimeQuery],
     config.getString(
-      "app.improving.member.product.grpc-client-name"
+      "app.improving.member.mega.grpc-client-name"
     )
   )
 

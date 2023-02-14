@@ -51,9 +51,9 @@ lazy val tenant = project
   .configure(Kalix.service("tenant"))
   .configure(Kalix.dependsOn(common, "common"))
 
-lazy val gateway = project
-  .in(file("gateway"))
-  .configure(Kalix.service("gateway"))
+lazy val mega = project
+  .in(file("mega-kalix"))
+  .configure(Kalix.service("mega-kalix"))
   .configure(Kalix.dependsOn(tenant, "tenant"))
   .configure(Kalix.dependsOn(org, "organization"))
   .configure(Kalix.dependsOn(order, "order"))
@@ -62,6 +62,11 @@ lazy val gateway = project
   .configure(Kalix.dependsOn(product, "product"))
   .configure(Kalix.dependsOn(member, "member"))
 
+lazy val gateway = project
+  .in(file("gateway"))
+  .configure(Kalix.service("gateway"))
+  .configure(Kalix.dependsOn(mega, "mega"))
+
 lazy val root = project
   .in(file("."))
   .settings(
@@ -69,4 +74,4 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(product)
+  .aggregate(gateway)
