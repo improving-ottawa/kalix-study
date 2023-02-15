@@ -25,7 +25,8 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       effects.updateState(
         state.copy(
           info = eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
-          meta = eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          meta =
+            eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
           status = ApiEventStatus.SCHEDULED
         )
       )
@@ -35,7 +36,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       eventScheduled: EventScheduled
   ): UpdateEffect[ApiEvent] = {
     effects.updateState(
-      state.copy(
+      ApiEvent(
         info = eventScheduled.info.map(convertEventInfoToApiEventInfo),
         meta = eventScheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.SCHEDULED
@@ -130,11 +131,18 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     )
   }
 
-  override def processReservationAddedToEvent(state: ApiEvent, reservationAddedToEvent: ReservationAddedToEvent): UpdateEffect[ApiEvent] = {
+  override def processReservationAddedToEvent(
+      state: ApiEvent,
+      reservationAddedToEvent: ReservationAddedToEvent
+  ): UpdateEffect[ApiEvent] = {
     effects.updateState(
       state.copy(
-        meta = reservationAddedToEvent.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-        reservation = reservationAddedToEvent.reservation.map(convertReservationIdToApiReservationId)
+        meta = reservationAddedToEvent.meta.map(
+          convertEventMetaInfoToApiEventMetaInfo
+        ),
+        reservation = reservationAddedToEvent.reservation.map(
+          convertReservationIdToApiReservationId
+        )
       )
     )
   }
