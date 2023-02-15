@@ -27,7 +27,8 @@ import app.improving.membercontext.{
   MemberRegistered,
   MemberStatus,
   MetaInfo,
-  NotificationPreference
+  NotificationPreference,
+  UpdateInfo
 }
 object util {
 
@@ -82,13 +83,15 @@ object util {
     )
   }
 
-  def convertApiUpdateInfoToInfo(apiUpdateInfo: ApiUpdateInfo): Info = {
-    Info(
+  def convertApiUpdateInfoToUpdateInfo(
+      apiUpdateInfo: ApiUpdateInfo
+  ): UpdateInfo = {
+    UpdateInfo(
       apiUpdateInfo.contact.map(convertApiContactToContact),
-      apiUpdateInfo.handle.getOrElse(""),
-      apiUpdateInfo.avatar.getOrElse(""),
-      apiUpdateInfo.firstName.getOrElse(""),
-      apiUpdateInfo.lastName.getOrElse(""),
+      apiUpdateInfo.handle,
+      apiUpdateInfo.avatar,
+      apiUpdateInfo.firstName,
+      apiUpdateInfo.lastName,
       apiUpdateInfo.notificationPreference.map(convertNotificationPreference),
       apiUpdateInfo.organizationMembership.map(org =>
         OrganizationId(org.organizationId)

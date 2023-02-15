@@ -312,20 +312,17 @@ object TestData {
     val testOrderInfo = ApiOrderInfo(
       testOrderId,
       testLineItems,
-      testSpecialInstruction,
-      testOrderTotal
+      testSpecialInstruction
     )
     val testOrderInfoPrivateEvent = ApiOrderInfo(
       testOrderId,
       testLineItemsPrivateEvent,
-      testSpecialInstruction,
-      testOrderTotal
+      testSpecialInstruction
     )
     val testOrderInfoPrivateFailedEvent = ApiOrderInfo(
       testOrderId3,
       testLineItemsPrivateFailedEvent,
-      testSpecialInstruction,
-      testOrderTotal
+      testSpecialInstruction
     )
   }
 }

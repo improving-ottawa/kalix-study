@@ -2,7 +2,7 @@ package app.improving.membercontext.member
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiMemberId, MemberId}
+import app.improving.{ApiMemberId, Contact, MemberId}
 import app.improving.membercontext.{
   MemberInfoUpdated,
   MemberRegistered,
@@ -88,30 +88,34 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 
   def isStateChangeValid(member: Member, status: ApiMemberStatus): Boolean = {
     member.status match {
-      case MemberStatus.MEMBER_STATUS_DRAFT if (
-        member.getInfo.handle.nonEmpty &&
-        member.getInfo.avatar.nonEmpty &&
-        member.getInfo.firstName.nonEmpty &&
-        member.getInfo.lastName.nonEmpty &&
-        !status.isApiMemberStatusDraft
-      ) =>
+      case MemberStatus.MEMBER_STATUS_DRAFT
+          if (
+            member.getInfo.handle.nonEmpty &&
+              member.getInfo.avatar.nonEmpty &&
+              member.getInfo.firstName.nonEmpty &&
+              member.getInfo.lastName.nonEmpty &&
+              !status.isApiMemberStatusDraft
+          ) =>
         true
-      case MemberStatus.MEMBER_STATUS_ACTIVE if (
-        !status.isApiMemberStatusDraft &&
-        !status.isApiMemberStatusActive
-      ) =>
+      case MemberStatus.MEMBER_STATUS_ACTIVE
+          if (
+            !status.isApiMemberStatusDraft &&
+              !status.isApiMemberStatusActive
+          ) =>
         true
-      case MemberStatus.MEMBER_STATUS_INACTIVE if (
-        !status.isApiMemberStatusDraft &&
-        !status.isApiMemberStatusInactive &&
-        !status.isApiMemberStatusSuspended
-      ) =>
+      case MemberStatus.MEMBER_STATUS_INACTIVE
+          if (
+            !status.isApiMemberStatusDraft &&
+              !status.isApiMemberStatusInactive &&
+              !status.isApiMemberStatusSuspended
+          ) =>
         true
-      case MemberStatus.MEMBER_STATUS_SUSPENDED if(
-        ! status.isApiMemberStatusDraft &&
-        ! status.isApiMemberStatusInactive &&
-        ! status.isApiMemberStatusSuspended
-      ) =>
+      case MemberStatus.MEMBER_STATUS_SUSPENDED
+          if (
+            !status.isApiMemberStatusDraft &&
+              !status.isApiMemberStatusInactive &&
+              !status.isApiMemberStatusSuspended
+          ) =>
         true
       case _ =>
         false
@@ -124,26 +128,39 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
-          if state.memberId.contains(MemberId(apiUpdateMemberInfo.memberId)) => {
+          if state.memberId.contains(
+            MemberId(apiUpdateMemberInfo.memberId)
+          ) => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>
           MemberId(member.memberId)
         )
 
-        val updatedInfoOpt = apiUpdateMemberInfo.info.fold(state.info) { newApiInfo =>
-          val newInfo = convertApiUpdateInfoToInfo(newApiInfo)
-          state.info.fold(Some(newInfo)) { currentInfo =>
+        val updatedInfoOpt = apiUpdateMemberInfo.info.flatMap { newApiInfo =>
+          val newInfo = convertApiUpdateInfoToUpdateInfo(newApiInfo)
+          state.info.flatMap { currentInfo =>
             Some(
               currentInfo.copy(
-                contact = newInfo.contact.orElse(currentInfo.contact),
-                handle = if (newInfo.handle.nonEmpty) newInfo.handle else currentInfo.handle,
-                avatar = if (newInfo.avatar.nonEmpty) newInfo.avatar else currentInfo.avatar,
-                firstName = if (newInfo.firstName.nonEmpty) newInfo.firstName else currentInfo.firstName,
-                lastName = if (newInfo.lastName.nonEmpty) newInfo.lastName else currentInfo.lastName,
-                notificationPreference = newInfo.notificationPreference.orElse(currentInfo.notificationPreference),
-                organizationMembership = if (newInfo.organizationMembership.nonEmpty) newInfo.organizationMembership else currentInfo.organizationMembership,
-                tenant = newInfo.tenant.orElse(currentInfo.tenant)
+                contact =
+                  if (newInfo.contact.isDefined) newInfo.contact
+                  else currentInfo.contact,
+                handle = newInfo.handle.getOrElse(currentInfo.handle),
+                avatar = newInfo.avatar.getOrElse(currentInfo.avatar),
+                firstName = newInfo.firstName.getOrElse(currentInfo.firstName),
+                lastName = newInfo.lastName.getOrElse(currentInfo.lastName),
+                notificationPreference =
+                  if (newInfo.notificationPreference.nonEmpty)
+                    newInfo.notificationPreference
+                  else
+                    currentInfo.notificationPreference,
+                organizationMembership =
+                  if (newInfo.organizationMembership.nonEmpty)
+                    newInfo.organizationMembership
+                  else currentInfo.organizationMembership,
+                tenant =
+                  if (newInfo.tenantId.isDefined) newInfo.tenantId
+                  else currentInfo.tenant
               )
             )
           }
