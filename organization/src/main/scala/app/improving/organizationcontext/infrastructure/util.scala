@@ -45,16 +45,24 @@ object util {
     currentInfo.map(info => {
       Info(
         name = updateInfo.name.getOrElse(info.name),
-        shortName = updateInfo.shortName.orElse(info.shortName),
-        address = updateInfo.address
-          .map(convertApiAddressToAddress)
-          .orElse(currentInfo.flatMap(_.address)),
+        shortName =
+          if (updateInfo.shortName.isDefined) updateInfo.shortName
+          else info.shortName,
+        address =
+          if (updateInfo.address.isDefined)
+            updateInfo.address
+              .map(convertApiAddressToAddress)
+          else currentInfo.flatMap(_.address),
         isPrivate = updateInfo.isPrivate.getOrElse(info.isPrivate),
-        url = updateInfo.url.orElse(info.url),
-        logo = updateInfo.logo.orElse(info.logo),
-        tenant = updateInfo.tenant
-          .map(tenant => TenantId(tenant.tenantId))
-          .orElse(info.tenant)
+        url =
+          if (updateInfo.url.isDefined) updateInfo.url.orElse(info.url)
+          else info.url,
+        logo = if (updateInfo.logo.isDefined) updateInfo.logo else info.logo,
+        tenant =
+          if (updateInfo.tenant.isDefined)
+            updateInfo.tenant
+              .map(tenant => TenantId(tenant.tenantId))
+          else info.tenant
       )
     })
 

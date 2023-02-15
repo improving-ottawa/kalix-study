@@ -236,8 +236,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               .flatten,
             createOrganization.establishOrganization.flatMap(
               _.establishingMember
-            ),
-            createOrganization.establishOrganization.flatMap(_.meta)
+            )
           )
         )
         .map(id => OrganizationCreated(Some(id)))
@@ -263,8 +262,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
                     establishOrganization.members,
                     establishOrganization.owners,
                     establishOrganization.contacts,
-                    establishOrganization.establishingMember,
-                    establishOrganization.meta
+                    establishOrganization.establishingMember
                   )
                 )
             })
