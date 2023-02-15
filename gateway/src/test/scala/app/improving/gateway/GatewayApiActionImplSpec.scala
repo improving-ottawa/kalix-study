@@ -3,15 +3,18 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.ApiMemberId
+import app.improving.{ApiEventId, ApiMemberId, EventId}
 import app.improving.eventcontext.AllEventsRequest
 import app.improving.ordercontext.order.ApiLineItem
 import app.improving.tenantcontext.GetAllTenantRequest
 import app.improving.organizationcontext.AllOrganizationsRequest
 import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
-import app.improving.productcontext.AllProductsRequest
+import app.improving.productcontext.{AllProductsRequest, ProductDetails}
 import app.improving.membercontext.AllMembersRequest
+import app.improving.productcontext.ProductDetails.Ticket
+import app.improving.productcontext.product.ApiProductDetails
+import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -258,7 +261,32 @@ class GatewayApiActionImplSpec
         .handleEstablishOrganizations(command)
         .futureValue
 
-      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductInfoForEvent = apiProductInfo.copy(productDetails =
+        apiProductInfo.productDetails
+          .flatMap { details =>
+            val ticket: ApiTicket = details.apiTicket
+            if (ticket.isOpenTicket)
+              ticket.openTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.OpenTicket(
+                    t.copy(event = eventId)
+                  )
+                )
+              )
+            else if (ticket.isReservedTicket)
+              ticket.reservedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.ReservedTicket(t.copy(event = eventId))
+                )
+              )
+            else
+              ticket.restrictedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.RestrictedTicket(t.copy(event = eventId))
+                )
+              )
+          }
+      )
       val apiProductMetaInfoForEvent =
         apiProductMetaInfo.copy(createdBy = memberId)
       val establisProductForEvent = EstablishProduct(
@@ -340,7 +368,32 @@ class GatewayApiActionImplSpec
 
       val eventId = eventCreated.eventCreated
 
-      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductInfoForEvent = apiProductInfo.copy(productDetails =
+        apiProductInfo.productDetails
+          .flatMap { details =>
+            val ticket: ApiTicket = details.apiTicket
+            if (ticket.isOpenTicket)
+              ticket.openTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.OpenTicket(
+                    t.copy(event = eventId)
+                  )
+                )
+              )
+            else if (ticket.isReservedTicket)
+              ticket.reservedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.ReservedTicket(t.copy(event = eventId))
+                )
+              )
+            else
+              ticket.restrictedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.RestrictedTicket(t.copy(event = eventId))
+                )
+              )
+          }
+      )
       val apiProductMetaInfoForEvent =
         apiProductMetaInfo.copy(createdBy = memberId)
       val establisProductForEvent = EstablishProduct(
@@ -390,7 +443,32 @@ class GatewayApiActionImplSpec
 
       val eventId = eventCreated.eventCreated
 
-      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductInfoForEvent = apiProductInfo.copy(productDetails =
+        apiProductInfo.productDetails
+          .flatMap { details =>
+            val ticket: ApiTicket = details.apiTicket
+            if (ticket.isOpenTicket)
+              ticket.openTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.OpenTicket(
+                    t.copy(event = eventId)
+                  )
+                )
+              )
+            else if (ticket.isReservedTicket)
+              ticket.reservedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.ReservedTicket(t.copy(event = eventId))
+                )
+              )
+            else
+              ticket.restrictedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.RestrictedTicket(t.copy(event = eventId))
+                )
+              )
+          }
+      )
       val establisProductForEvent = EstablishProduct(
         Some(apiProductInfoForEvent),
         Some(apiProductMetaInfo)
@@ -442,7 +520,7 @@ class GatewayApiActionImplSpec
           .handleGetAllOrganizations(AllOrganizationsRequest())
           .futureValue
       println(result + " result")
-      result.organizations.size > 0 shouldBe true
+      result.organizations.nonEmpty shouldBe true
     }
 
     "handle get all events correctly" in {
@@ -535,7 +613,32 @@ class GatewayApiActionImplSpec
         .handleEstablishOrganizations(command)
         .futureValue
 
-      val apiProductInfoForEvent = apiProductInfo.copy(event = eventId)
+      val apiProductInfoForEvent = apiProductInfo.copy(productDetails =
+        apiProductInfo.productDetails
+          .flatMap { details =>
+            val ticket: ApiTicket = details.apiTicket
+            if (ticket.isOpenTicket)
+              ticket.openTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.OpenTicket(
+                    t.copy(event = eventId)
+                  )
+                )
+              )
+            else if (ticket.isReservedTicket)
+              ticket.reservedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.ReservedTicket(t.copy(event = eventId))
+                )
+              )
+            else
+              ticket.restrictedTicket.map(t =>
+                ApiProductDetails.of(
+                  ApiTicket.RestrictedTicket(t.copy(event = eventId))
+                )
+              )
+          }
+      )
       val apiProductMetaInfoForEvent =
         apiProductMetaInfo.copy(createdBy = memberId)
       val establisProductForEvent = EstablishProduct(
