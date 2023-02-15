@@ -2,7 +2,18 @@ package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
 import app.improving.{ApiProductId, ApiStoreId, MemberId, ProductId, StoreId}
-import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreMetaInfo, StoreOpened, StoreStatus, StoreUpdated}
+import app.improving.storecontext.{
+  ProductsAddedToStore,
+  ProductsRemovedFromStore,
+  StoreClosed,
+  StoreCreated,
+  StoreDeleted,
+  StoreMadeReady,
+  StoreMetaInfo,
+  StoreOpened,
+  StoreStatus,
+  StoreUpdated
+}
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -55,17 +66,29 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == Some(
             StoreId(apiUpdateStore.storeId)
           ) && !store.status.isDeleted => {
-        val updateInfoOpt = apiUpdateStore.info.map(convertApiStoreUpdateInfoToStoreUpdateInfo)
-        val updatedInfoOpt = store.info.map {storeInfo =>
+        val updateInfoOpt =
+          apiUpdateStore.info.map(convertApiStoreUpdateInfoToStoreUpdateInfo)
+        val updatedInfoOpt = store.info.map { storeInfo =>
           updateInfoOpt.fold(storeInfo) { updateInfo =>
             storeInfo.copy(
               name = updateInfo.name.getOrElse(storeInfo.name),
-              description = updateInfo.description.getOrElse(storeInfo.description),
-              products = if (updateInfo.products.isEmpty) storeInfo.products else updateInfo.products,
-              event = updateInfo.event.orElse(storeInfo.event),
-              venue = updateInfo.venue.orElse(storeInfo.venue),
-              location = updateInfo.location.orElse(storeInfo.location),
-              sponsoringOrg = updateInfo.sponsoringOrg.orElse(storeInfo.sponsoringOrg)
+              description =
+                updateInfo.description.getOrElse(storeInfo.description),
+              products =
+                if (updateInfo.products.isEmpty) storeInfo.products
+                else updateInfo.products,
+              event =
+                if (updateInfo.event.isDefined) updateInfo.event
+                else storeInfo.event,
+              venue =
+                if (updateInfo.venue.isDefined) updateInfo.venue
+                else storeInfo.venue,
+              location =
+                if (updateInfo.location.isDefined) updateInfo.location
+                else storeInfo.location,
+              sponsoringOrg =
+                if (updateInfo.sponsoringOrg.isDefined) updateInfo.sponsoringOrg
+                else storeInfo.sponsoringOrg
             )
           }
         }
@@ -110,13 +133,13 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   }
 
   override def makeStoreReady(
-    currentState: StoreState,
-    apiReadyStore: ApiReadyStore
+      currentState: StoreState,
+      apiReadyStore: ApiReadyStore
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.store match {
       case Some(store)
-        if store.storeId == Some(StoreId(apiReadyStore.storeId)) &&
-          store.status.isDraft => {
+          if store.storeId == Some(StoreId(apiReadyStore.storeId)) &&
+            store.status.isDraft => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = StoreMadeReady(
@@ -331,13 +354,13 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   }
 
   override def storeMadeReady(
-    currentState: StoreState,
-    storeMadeReady: StoreMadeReady
+      currentState: StoreState,
+      storeMadeReady: StoreMadeReady
   ): StoreState = {
     currentState.store match {
       case Some(store)
-        if store.storeId == storeMadeReady.storeId
-          && store.status.isDraft => {
+          if store.storeId == storeMadeReady.storeId
+            && store.status.isDraft => {
         currentState.withStore(
           store.copy(
             info = storeMadeReady.info,
