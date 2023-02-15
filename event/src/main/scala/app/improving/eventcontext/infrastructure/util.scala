@@ -35,16 +35,25 @@ object util {
         .filter(_.nonEmpty)
         .getOrElse(eventInfo.eventURL),
       sponsoringOrg = updatingInfo.sponsoringOrg
-        .map(org => OrganizationId(org.organizationId))
-        .orElse(eventInfo.sponsoringOrg),
-      geoLocation = updatingInfo.geoLocation
-        .map(location =>
-          GeoLocation(location.latitude, location.longitude, location.elevation)
-        )
-        .orElse(eventInfo.geoLocation),
+        .map(org => OrganizationId(org.organizationId)),
+      geoLocation =
+        if (updatingInfo.geoLocation.isDefined)
+          updatingInfo.geoLocation
+            .map(location =>
+              GeoLocation(
+                location.latitude,
+                location.longitude,
+                location.elevation
+              )
+            )
+        else eventInfo.geoLocation,
       expectedStart =
-        updatingInfo.expectedStart.orElse(eventInfo.expectedStart),
-      expectedEnd = updatingInfo.expectedEnd.orElse(eventInfo.expectedEnd),
+        if (updatingInfo.expectedStart.isDefined) updatingInfo.expectedStart
+        else eventInfo.expectedStart,
+      expectedEnd =
+        if (updatingInfo.expectedEnd.isDefined)
+          updatingInfo.expectedEnd
+        else eventInfo.expectedEnd,
       updatingInfo.isPrivate.getOrElse(eventInfo.isPrivate)
     )
   }
@@ -129,7 +138,7 @@ object util {
   }
 
   def convertReservationIdToApiReservationId(
-                                            reservationId: ReservationId
-                                            ): ApiReservationId = ApiReservationId(reservationId.id)
+      reservationId: ReservationId
+  ): ApiReservationId = ApiReservationId(reservationId.id)
 
 }

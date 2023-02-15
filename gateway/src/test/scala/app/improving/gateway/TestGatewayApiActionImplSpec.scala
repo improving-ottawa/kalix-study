@@ -49,8 +49,8 @@ class TestGatewayApiActionImplSpec
     "handle command HandleStartScenario base case" in {
       val numTenants = 1
       val numOrgsPerTenant = 1
-      val maxOrgsDepth = 1
-      val maxOrgsWidth = 1
+      val maxOrgsDepth = 2
+      val maxOrgsWidth = 2
       val numMembersPerOrg = 1
       val numEventsPerOrg = 1
       val numStores = 1
