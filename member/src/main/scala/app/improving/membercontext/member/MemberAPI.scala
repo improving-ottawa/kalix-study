@@ -2,7 +2,7 @@ package app.improving.membercontext.member
 
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiMemberId, Contact, MemberId}
+import app.improving.{ApiMemberId, MemberId}
 import app.improving.membercontext.{
   MemberReleased,
   MemberInfoUpdated,
@@ -63,9 +63,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
       case Some(state)
-          if (state.memberId.contains(
+          if state.memberId.contains(
             MemberId(apiUpdateMemberStatus.memberId)
-          ) && isStateChangeValid(state, apiUpdateMemberStatus.newStatus)) =>
+          ) && isStateChangeValid(state, apiUpdateMemberStatus.newStatus) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = MemberStatusUpdated(
@@ -90,33 +90,25 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   def isStateChangeValid(member: Member, status: ApiMemberStatus): Boolean = {
     member.status match {
       case MemberStatus.MEMBER_STATUS_DRAFT
-          if (
-            member.getInfo.handle.nonEmpty &&
-              member.getInfo.avatar.nonEmpty &&
-              member.getInfo.firstName.nonEmpty &&
-              member.getInfo.lastName.nonEmpty &&
-              !status.isApiMemberStatusDraft
-          ) =>
+          if member.getInfo.handle.nonEmpty &&
+            member.getInfo.avatar.nonEmpty &&
+            member.getInfo.firstName.nonEmpty &&
+            member.getInfo.lastName.nonEmpty &&
+            !status.isApiMemberStatusDraft =>
         true
       case MemberStatus.MEMBER_STATUS_ACTIVE
-          if (
-            !status.isApiMemberStatusDraft &&
-              !status.isApiMemberStatusActive
-          ) =>
+          if !status.isApiMemberStatusDraft &&
+            !status.isApiMemberStatusActive =>
         true
       case MemberStatus.MEMBER_STATUS_INACTIVE
-          if (
-            !status.isApiMemberStatusDraft &&
-              !status.isApiMemberStatusInactive &&
-              !status.isApiMemberStatusSuspended
-          ) =>
+          if !status.isApiMemberStatusDraft &&
+            !status.isApiMemberStatusInactive &&
+            !status.isApiMemberStatusSuspended =>
         true
       case MemberStatus.MEMBER_STATUS_SUSPENDED
-          if (
-            !status.isApiMemberStatusDraft &&
-              !status.isApiMemberStatusInactive &&
-              !status.isApiMemberStatusSuspended
-          ) =>
+          if !status.isApiMemberStatusDraft &&
+            !status.isApiMemberStatusInactive &&
+            !status.isApiMemberStatusSuspended =>
         true
       case _ =>
         false

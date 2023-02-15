@@ -14,12 +14,11 @@ enum ApiOrderStatus {
     API_ORDER_STATUS_READY = 3;
     API_ORDER_STATUS_DELIVERED = 4;
     API_ORDER_STATUS_CANCELLED = 5;
-    API_ORDER_STATUS_DELETED = 6;
     API_ORDER_STATUS_UNKNOWN = 7;
 }
 
 message ApiOrder {
-    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiOrderMetaInfo meta = 3;
     ApiOrderStatus status = 4;
@@ -32,13 +31,11 @@ message ApiLineItem {
 }
 
 message ApiOrderInfo {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     repeated ApiLineItem line_items = 2;
     string special_instructions = 3;
 }
 
 message ApiOrderMetaInfo  {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId member_id = 2;
     ApiStoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;
@@ -52,28 +49,28 @@ message ApiOrderInfoUpdate {
         optional string special_instructions = 3;
 }
 message ApiCreateOrder {
-    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiMemberId creating_member = 3;
     ApiStoreId store_id = 4;
 }
 
 message ApiUpdateOrderStatus {
-    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderStatus new_status = 2;
     ApiMemberId updating_member = 3;
 }
 message ApiUpdateOrderInfo {
-    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfoUpdate update = 2;
     ApiMemberId updating_member = 3;
 }
 message ApiCancelOrder {
-    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId cancelling_member = 2;
 }
 message ApiGetOrderInfo {
-    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId requesting_member = 2;
 }
 message ApiOrderInfoResult {

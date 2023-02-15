@@ -28,13 +28,13 @@ enum ApiOrganizationStatus {
 }
 
 message ApiInfo {
-        string name = 1;
-        optional string short_name = 2;
-        ApiAddress address = 3;
-        optional bool is_private = 4;
-        optional string url = 5; // URL type?
-        optional string logo = 6; // URL type?
-        ApiTenantId tenant = 7;
+    string name = 1;
+    optional string short_name = 2;
+    ApiAddress address = 3;
+    optional bool is_private = 4;
+    optional string url = 5; // URL type?
+    optional string logo = 6; // URL type?
+    ApiTenantId tenant = 7;
 }
 
 message ApiMetaInfo {

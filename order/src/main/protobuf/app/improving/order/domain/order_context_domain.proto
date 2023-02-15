@@ -23,19 +23,17 @@ message LineItem {
 }
 
 message OrderInfo {
-        OrderId order_id = 1;
         repeated LineItem line_items = 2;
         string special_instructions = 3;
         double order_total = 4;
 }
 
 message OrderInfoUpdate {
-    repeated LineItem lineItems = 1;
-    optional string specialInstructions = 2;
+    repeated LineItem line_items = 1;
+    optional string special_instructions = 2;
 }
 
 message OrderMetaInfo  {
-    OrderId order_id = 1;
     MemberId member_id = 2;
     StoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;

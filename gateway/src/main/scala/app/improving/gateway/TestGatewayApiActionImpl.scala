@@ -1,16 +1,76 @@
 package app.improving.gateway
 
-import app.improving.{ApiContact, ApiEmailAddress, ApiEventId, ApiGeoLocation, ApiLocationId, ApiMemberId, ApiMobileNumber, ApiOrganizationId, ApiProductId, ApiStoreId, ApiTenantId, ApiVenueId}
-import app.improving.membercontext.member.{ApiInfo, ApiMemberIds, ApiMemberMap, ApiMemberStatus, ApiNotificationPreference, ApiRegisterMember, ApiRegisterMemberList, ApiUpdateInfo, ApiUpdateMemberInfo, ApiUpdateMemberStatus, MemberActionService, MemberService}
-import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
-import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
-import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreUpdateInfo, ApiUpdateStore, StoreService}
-import app.improving.productcontext.product.{ApiCreateProduct, ApiProductDetails, ApiProductInfo, ApiReservedTicket, ProductService}
-import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
-import app.improving.gateway.util.util.{genAddress, genEmailAddressForName, genMobileNumber}
-import app.improving.ordercontext.order.OrderService
-import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiScheduleEvent, EventService}
+import app.improving.{
+  ApiContact,
+  ApiEmailAddress,
+  ApiEventId,
+  ApiGeoLocation,
+  ApiLocationId,
+  ApiMemberId,
+  ApiMobileNumber,
+  ApiOrganizationId,
+  ApiProductId,
+  ApiStoreId,
+  ApiTenantId,
+  ApiVenueId
+}
+import app.improving.membercontext.member.{
+  ApiInfo,
+  ApiMemberMap,
+  ApiMemberStatus,
+  ApiNotificationPreference,
+  ApiRegisterMember,
+  ApiRegisterMemberList,
+  ApiReleaseMember,
+  ApiUpdateInfo,
+  ApiUpdateMemberInfo,
+  ApiUpdateMemberStatus,
+  MemberActionService,
+  MemberService
+}
+import app.improving.eventcontext.event.{
+  ApiEventInfo,
+  ApiGetEventById,
+  ApiReleaseEvent,
+  ApiScheduleEvent,
+  EventService
+}
+import app.improving.storecontext.store.{
+  ApiCreateStore,
+  ApiReleaseStore,
+  ApiStoreInfo,
+  ApiStoreUpdateInfo,
+  ApiUpdateStore,
+  StoreService
+}
+import app.improving.productcontext.product.{
+  ApiCreateProduct,
+  ApiProductDetails,
+  ApiProductInfo,
+  ApiReleaseProduct,
+  ApiReservedTicket,
+  ProductService
+}
+import app.improving.tenantcontext.tenant.{
+  ApiActivateTenant,
+  ApiEstablishTenant,
+  TenantService
+}
+import app.improving.gateway.util.util.{
+  genAddress,
+  genEmailAddressForName,
+  genMobileNumber
+}
+import app.improving.ordercontext.order.{ApiReleaseOrder, OrderService}
 import app.improving.organizationcontext.organization
+import app.improving.organizationcontext.organization.{
+  ApiContacts,
+  ApiEstablishOrganization,
+  ApiOrganizationStatus,
+  ApiOrganizationStatusUpdated,
+  ApiParent,
+  OrganizationService
+}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 
@@ -252,7 +312,9 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                             Some(""),
                             Some(""),
                             Some(""),
-                            Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
+                            Some(
+                              ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
+                            ),
                             Seq(topOrgs(ownersForTenant._1)),
                             Some(ownersForTenant._1)
                           )
@@ -515,7 +577,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             }
           )
         ),
-        productsByStore
+        productsByStore.map(tup => tup._1.storeId -> tup._2)
       )
     )
   }
@@ -597,12 +659,14 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     r.nextString(15),
                     Some(
                       ApiProductDetails(
-                        apiTicket = ApiProductDetails.ApiTicket.ReservedTicket(ApiReservedTicket(
-                          section = r.nextString(15),
-                          row = r.nextString(15),
-                          set = r.nextString(15),
-                          event = eventsByOrg(orgId).headOption
-                        ))
+                        apiTicket = ApiProductDetails.ApiTicket.ReservedTicket(
+                          ApiReservedTicket(
+                            section = r.nextString(15),
+                            row = r.nextString(15),
+                            set = r.nextString(15),
+                            event = Some(eventId)
+                          )
+                        )
                       )
                     ),
                     Seq[String](r.nextString(15)),
@@ -728,9 +792,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           r.nextString(10),
           r.nextString(10),
           r.nextString(10),
-          Some(ApiNotificationPreference.values(
-            r.nextInt(ApiNotificationPreference.values.length)
-          )),
+          Some(
+            ApiNotificationPreference.values(
+              r.nextInt(ApiNotificationPreference.values.length)
+            )
+          ),
           Seq.empty,
           forTenant
         )

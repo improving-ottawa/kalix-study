@@ -1,6 +1,12 @@
 package app.improving.gateway
 
-import app.improving.{ApiEventId, ApiOrganizationId, ApiProductId, ApiStoreId}
+import app.improving.{
+  ApiEventId,
+  ApiOrderId,
+  ApiOrganizationId,
+  ApiProductId,
+  ApiStoreId
+}
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -71,7 +77,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.tenant.grpc-client-name"
     ) + " config.getString(\"app.improving.gateway.tenant.grpc-client-name\")"
   )
-  val tenantService =
+  val tenantService: TenantService =
     creationContext.getGrpcClient(
       classOf[TenantService],
       config.getString("app.improving.gateway.tenant.grpc-client-name")
@@ -82,89 +88,89 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.organization.grpc-client-name"
     ) + " config.getString(\"app.improving.gateway.organization.grpc-client-name\")"
   )
-  val organizationService = creationContext.getGrpcClient(
+  val organizationService: OrganizationService = creationContext.getGrpcClient(
     classOf[OrganizationService],
     config.getString(
       "app.improving.gateway.organization.grpc-client-name"
     )
   )
 
-  val eventService = creationContext.getGrpcClient(
+  val eventService: EventService = creationContext.getGrpcClient(
     classOf[EventService],
     config.getString(
       "app.improving.gateway.event.grpc-client-name"
     )
   )
 
-  val storeService = creationContext.getGrpcClient(
+  val storeService: StoreService = creationContext.getGrpcClient(
     classOf[StoreService],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
     )
   )
 
-  val productService = creationContext.getGrpcClient(
+  val productService: ProductService = creationContext.getGrpcClient(
     classOf[ProductService],
     config.getString(
       "app.improving.gateway.product.grpc-client-name"
     )
   )
 
-  val memberService = creationContext.getGrpcClient(
+  val memberService: MemberService = creationContext.getGrpcClient(
     classOf[MemberService],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
     )
   )
 
-  val orderAction = creationContext.getGrpcClient(
+  private val orderAction: OrderAction = creationContext.getGrpcClient(
     classOf[OrderAction],
     config.getString(
       "app.improving.gateway.order.grpc-client-name"
     )
   )
 
-  val allEventsView = creationContext.getGrpcClient(
+  private val allEventsView = creationContext.getGrpcClient(
     classOf[AllEventsView],
     config.getString(
       "app.improving.gateway.event.grpc-client-name"
     )
   )
-  val allOrganizationsView = creationContext.getGrpcClient(
+  private val allOrganizationsView = creationContext.getGrpcClient(
     classOf[AllOrganizationsView],
     config.getString(
       "app.improving.gateway.organization.grpc-client-name"
     )
   )
-  val allTenantsView = creationContext.getGrpcClient(
+  private val allTenantsView = creationContext.getGrpcClient(
     classOf[AllTenantsView],
     config.getString(
       "app.improving.gateway.tenant.grpc-client-name"
     )
   )
 
-  val allStoresView = creationContext.getGrpcClient(
+  private val allStoresView = creationContext.getGrpcClient(
     classOf[AllStoresView],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
     )
   )
 
-  val allProductsView = creationContext.getGrpcClient(
+  private val allProductsView = creationContext.getGrpcClient(
     classOf[AllProductsView],
     config.getString(
       "app.improving.gateway.product.grpc-client-name"
     )
   )
 
-  val allMembersView = creationContext.getGrpcClient(
+  private val allMembersView = creationContext.getGrpcClient(
     classOf[AllMembersView],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"
     )
   )
 
-  val allOrdersView = creationContext.getGrpcClient(
+  private val allOrdersView = creationContext.getGrpcClient(
     classOf[AllOrdersView],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
@@ -471,10 +477,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       orderAction
         .purchaseTicket(
           ApiCreateOrder(
-            orderId,
-            createOrder.establishOrder
-              .flatMap(_.info.map(_.copy(orderId = orderId))),
-            createOrder.establishOrder.flatMap(_.creatingMember)
+            Some(ApiOrderId(orderId)),
+            createOrder.establishOrder.flatMap(_.info),
+            createOrder.establishOrder.flatMap(_.creatingMember),
+            createOrder.establishOrder.flatMap(_.storeId)
           )
         )
         .map(id => OrderCreated(Some(id)))
@@ -495,9 +501,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             orderAction
               .purchaseTicket(
                 ApiCreateOrder(
-                  orderId,
-                  establishOrder.info.map(_.copy(orderId = orderId)),
-                  establishOrder.creatingMember
+                  Some(ApiOrderId(orderId)),
+                  establishOrder.info,
+                  establishOrder.creatingMember,
+                  establishOrder.storeId
                 )
               )
           })

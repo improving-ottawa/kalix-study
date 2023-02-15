@@ -15,7 +15,7 @@ object TestData {
   val testEventId2: ApiEventId = ApiEventId("test-event-id2")
   val testEventId3: ApiEventId = ApiEventId("test-event-id3")
   val apiScheduleEvent: ApiScheduleEvent = ApiScheduleEvent(
-    testEventId.eventId,
+    Some(testEventId),
     Some(
       ApiEventInfo(
         "try-out-event",
@@ -24,50 +24,50 @@ object TestData {
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
         Some(start),
-        Some(end),
-        isPrivate = false
+        Some(end)
       )
     ),
     Some(ApiMemberId("1"))
   )
 
-  val apiAddReservationToEvent: ApiAddReservationToEvent = ApiAddReservationToEvent(
-    testEventId.eventId,
-    Some(ApiReservationId("reservation33")),
-    Some(ApiMemberId("5"))
-  )
+  val apiAddReservationToEvent: ApiAddReservationToEvent =
+    ApiAddReservationToEvent(
+      testEventId.eventId,
+      "reservation33",
+      Some(ApiMemberId("5"))
+    )
 
   val apiStartEvent: ApiStartEvent = ApiStartEvent(
-    testEventId.eventId,
+    Some(testEventId),
     Some(ApiMemberId("1"))
   )
 
   val apiEndEvent: ApiEndEvent = ApiEndEvent(
-    testEventId.eventId,
+    Some(testEventId),
     Some(ApiMemberId("2"))
   )
 
   val apiDelayEvent: ApiDelayEvent = ApiDelayEvent(
-    testEventId.eventId,
+    Some(testEventId),
     "The venue has been scheduled to shutdown",
     Some(Duration.of(durationDelayed, 0)),
     Some(ApiMemberId("2"))
   )
 
   val apiCancelEvent: ApiCancelEvent = ApiCancelEvent(
-    testEventId.eventId,
+    Some(testEventId),
     Some(ApiMemberId("2"))
   )
 
   val apiRescheduleEvent: ApiRescheduleEvent = ApiRescheduleEvent(
-    testEventId.eventId,
+    Some(testEventId),
     Some(Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)),
     Some(Timestamp.of(now.getEpochSecond + 2000000L, now.getNano)),
     Some(ApiMemberId("2"))
   )
 
   val apiSchedulePrivateEvent: ApiScheduleEvent = ApiScheduleEvent(
-    testEventId2.eventId,
+    Some(testEventId2),
     Some(
       ApiEventInfo(
         "try-out-event",
@@ -84,7 +84,7 @@ object TestData {
   )
 
   val apiSchedulePrivateFailedEvent: ApiScheduleEvent = ApiScheduleEvent(
-    testEventId3.eventId,
+    Some(testEventId3),
     Some(
       ApiEventInfo(
         "try-out-event",
