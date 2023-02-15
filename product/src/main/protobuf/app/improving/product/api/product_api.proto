@@ -9,11 +9,12 @@ import "kalix/annotations.proto";
 package app.improving.productcontext.product;
 
 enum ApiProductStatus {
-    API_PRODUCT_STATUS_ACTIVE = 0;
-    API_PRODUCT_STATUS_INACTIVE = 1;
-    API_PRODUCT_STATUS_DELETED = 2;
-    API_PRODUCT_STATUS_RELEASED = 3;
-    API_PRODUCT_STATUS_UNKNOWN = 4;
+    API_PRODUCT_STATUS_DRAFT = 0;
+    API_PRODUCT_STATUS_ACTIVE = 1;
+    API_PRODUCT_STATUS_INACTIVE = 2;
+    API_PRODUCT_STATUS_DELETED = 3;
+    API_PRODUCT_STATUS_RELEASED = 4;
+    API_PRODUCT_STATUS_UNKNOWN = 5;
 }
 
 message ApiReservedTicket {
@@ -34,9 +35,9 @@ message ApiOpenTicket {
 
 message ApiProductDetails {
     oneof apiTicket {
-        ApiReservedTicket reservedTicket = 1;
-        ApiRestrictedTicket restrictedTicket = 2;
-        ApiOpenTicket openTicket = 3;
+        ApiReservedTicket reserved_ticket = 1;
+        ApiRestrictedTicket restricted_ticket = 2;
+        ApiOpenTicket open_ticket = 3;
     }
 }
 
@@ -51,7 +52,7 @@ message ApiProductInfo {
     ApiProductId sku = 1 [(kalix.field).entity_key = true];
     string name = 2;
     string description = 3;
-    ApiProductDetails productDetails = 4;
+    ApiProductDetails product_details = 4;
     repeated string image = 5;
     double price = 6;
     double cost = 7;
@@ -61,7 +62,7 @@ message ApiProductInfo {
 message ApiProductInfoUpdate {
     optional string name = 1;
     optional string description = 2;
-    optional ApiProductDetails productDetails = 3;
+    optional ApiProductDetails product_details = 3;
     repeated string image = 4;
     optional double price = 5;
     optional double cost = 6;

@@ -74,7 +74,7 @@ class OrganizationServiceIntegrationSpec
       client
         .updateOrganizationStatus(
           ApiOrganizationStatusUpdated(
-            id.organizationId,
+            Some(id),
             ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
             Some(ApiMemberId("member81"))
           )

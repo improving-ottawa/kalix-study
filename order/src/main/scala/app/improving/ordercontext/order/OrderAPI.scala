@@ -59,8 +59,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       apiUpdateOrderStatus: ApiUpdateOrderStatus
   ): EventSourcedEntity.Effect[Empty] =
     currentState.order match {
-      case Some(order)
-          if order.orderId.contains(OrderId(apiUpdateOrderStatus.orderId)) =>
+      case Some(order) =>
         val event = OrderStatusUpdated(
           order.orderId,
           convertApiOrderStatusToOrderStatus(apiUpdateOrderStatus.newStatus),
@@ -73,18 +72,18 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
     }
 
   def isValidStateChange(
-    currentState: OrderStatus,
-    newApiStatus: ApiOrderStatus
+      currentState: OrderStatus,
+      newApiStatus: ApiOrderStatus
   ): Boolean = {
     currentState match {
-      case OrderStatus.DRAFT =>
-        newApiStatus.isPending || newApiStatus.isCancelled
-      case OrderStatus.PENDING =>
-        newApiStatus.isCancelled || newApiStatus.isInprocess
-      case OrderStatus.INPROCESS =>
-        newApiStatus.isReady
-      case OrderStatus.READY =>
-        newApiStatus.isDelivered
+      case OrderStatus.ORDER_STATUS_DRAFT =>
+        newApiStatus.isApiOrderStatusPending || newApiStatus.isApiOrderStatusPending
+      case OrderStatus.ORDER_STATUS_PENDING =>
+        newApiStatus.isApiOrderStatusCancelled || newApiStatus.isApiOrderStatusInprocess
+      case OrderStatus.ORDER_STATUS_INPROCESS =>
+        newApiStatus.isApiOrderStatusReady
+      case OrderStatus.ORDER_STATUS_READY =>
+        newApiStatus.isApiOrderStatusDelivered
       case _ => false
     }
   }
@@ -95,24 +94,28 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] =
     currentState.order match {
       case Some(order)
-          if
-            order.info.isDefined &&
-            (order.status.isDraft || order.status.isPending) &&
+          if order.info.isDefined &&
+            (order.status.isOrderStatusDraft || order.status.isOrderStatusPending) &&
             order.orderId.contains(OrderId(apiUpdateOrderInfo.orderId)) =>
-
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val orderInfoUpdateOpt = apiUpdateOrderInfo.update
           .map(convertApiUpdateOrderInfoToOrderInfoUpdate)
-        val updatedInfo = order.info.map {orderInfo =>
+        val updatedInfo = order.info.map { orderInfo =>
           calculateOrderTotal(
             orderInfo.copy(
-              lineItems = orderInfoUpdateOpt.fold(orderInfo.lineItems) {orderInfoUpdate =>
-                if (orderInfoUpdate.lineItems.isEmpty) orderInfo.lineItems else orderInfoUpdate.lineItems
+              lineItems = orderInfoUpdateOpt.fold(orderInfo.lineItems) {
+                orderInfoUpdate =>
+                  if (orderInfoUpdate.lineItems.isEmpty) orderInfo.lineItems
+                  else orderInfoUpdate.lineItems
               },
-              specialInstructions = orderInfoUpdateOpt.fold(orderInfo.specialInstructions) {orderInfoUpdate =>
-                orderInfoUpdate.specialInstructions.getOrElse(orderInfo.specialInstructions)
-              }
+              specialInstructions =
+                orderInfoUpdateOpt.fold(orderInfo.specialInstructions) {
+                  orderInfoUpdate =>
+                    orderInfoUpdate.specialInstructions.getOrElse(
+                      orderInfo.specialInstructions
+                    )
+                }
             )
           )
         }
@@ -237,7 +240,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       orderInfoUpdated: OrderInfoUpdated
   ): OrderState = {
     currentState.order match {
-      case Some(_)=>
+      case Some(_) =>
         currentState.copy(order =
           currentState.order.map(
             _.copy(

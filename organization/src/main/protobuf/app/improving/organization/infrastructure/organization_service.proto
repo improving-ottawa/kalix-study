@@ -87,7 +87,7 @@ service OrganizationService {
         };
     }
 
-    rpc ReleaseOrganization(organizationcontext.organization.ReleaseOrganization) returns (google.protobuf.Empty) {
+    rpc ReleaseOrganization(organizationcontext.organization.ApiReleaseOrganization) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/organization/{org_id}/release"
             body: "*"

@@ -13,10 +13,8 @@ import app.improving.eventcontext.event._
 import app.improving.eventcontext.{
   EventInfo,
   EventMetaInfo,
-  EventRescheduled,
   EventScheduled,
-  EventStatus,
-  ReservationId
+  EventStatus
 }
 
 object util {
@@ -32,9 +30,9 @@ object util {
       description = updatingInfo.description
         .filter(_.nonEmpty)
         .getOrElse(eventInfo.description),
-      eventURL = updatingInfo.eventURL
+      eventUrl = updatingInfo.eventUrl
         .filter(_.nonEmpty)
-        .getOrElse(eventInfo.eventURL),
+        .getOrElse(eventInfo.eventUrl),
       sponsoringOrg = updatingInfo.sponsoringOrg
         .map(org => OrganizationId(org.organizationId)),
       geoLocation =
@@ -128,7 +126,7 @@ object util {
     ApiEvent(
       event.eventId.map(id => ApiEventId(id.id)),
       event.info.map(convertEventInfoToApiEventInfo),
-      event.reservation.map(convertReservationIdToApiReservationId),
+      event.reservation,
       event.meta.map(convertEventMetaInfoToApiEventMetaInfo),
       convertEventStatusToApiEventStatus(event.status)
     )
@@ -136,39 +134,17 @@ object util {
   def convertApiMemberIdToMemberId(apiMemberId: ApiMemberId): MemberId =
     MemberId(apiMemberId.memberId)
 
-  def convertApiReservationIdToReservationId(
-      apiReservationId: ApiReservationId
-  ): ReservationId = {
-    ReservationId(apiReservationId.reservationId)
-  }
-
   def convertEventScheduledToApiEvent(
-                                       eventScheduled: EventScheduled
-                                     ): ApiEvent =
+      eventScheduled: EventScheduled
+  ): ApiEvent =
     ApiEvent(
       eventScheduled.eventId.map(id => ApiEventId(id.id)),
       eventScheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
+      "",
       eventScheduled.meta.map(meta =>
         convertEventMetaInfoToApiEventMetaInfo(meta)
       ),
       ApiEventStatus.API_EVENT_STATUS_SCHEDULED
     )
-
-  def convertEventReScheduledToApiEvent(
-                                         eventRescheduled: EventRescheduled
-                                       ): ApiEvent = {
-    ApiEvent(
-      eventRescheduled.eventId.map(id => ApiEventId(id.id)),
-      eventRescheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
-      eventRescheduled.meta.map(meta =>
-        convertEventMetaInfoToApiEventMetaInfo(meta)
-      ),
-      ApiEventStatus.API_EVENT_STATUS_SCHEDULED
-    )
-  }
-
-  def convertReservationIdToApiReservationId(
-      reservationId: ReservationId
-  ): ApiReservationId = ApiReservationId(reservationId.id)
 
 }

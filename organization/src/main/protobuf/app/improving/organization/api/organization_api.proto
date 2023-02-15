@@ -2,7 +2,6 @@
 syntax = "proto3";
 
 import "common_api.proto";
-import "common_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
@@ -106,7 +105,7 @@ message ApiEstablishOrganization {
     repeated ApiMemberId members = 4;
     repeated ApiMemberId owners = 5;
     repeated ApiContacts contacts = 6;
-    ApiMemberId establishingMember = 7;
+    ApiMemberId establishing_member = 7;
 }
 
 message ApiRemoveOwnersFromOrganization {
@@ -128,7 +127,7 @@ message ApiOrganizationStatusUpdated {
     ApiMemberId updating_member = 3;
 }
 
-message ReleaseOrganization {
+message ApiReleaseOrganization {
     ApiOrganizationId org_id = 1;
     ApiMemberId releasing_member = 2;
 }

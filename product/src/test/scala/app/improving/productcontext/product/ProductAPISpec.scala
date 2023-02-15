@@ -43,7 +43,7 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
       productCreated.meta.isDefined shouldBe true
 
       testKit.currentState.product.map(_.status) shouldBe Some(
-        ProductStatus.DRAFT
+        ProductStatus.PRODUCT_STATUS_DRAFT
       )
     }
 

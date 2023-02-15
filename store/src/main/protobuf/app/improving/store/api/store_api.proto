@@ -1,9 +1,7 @@
 // This is the public API offered by your entity.
 syntax = "proto3";
 
-
 import "common_api.proto";
-import "common_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
@@ -45,7 +43,7 @@ message ApiStoreUpdateInfo {
     optional ApiEventId event = 4;
     optional ApiVenueId venue = 5;
     optional ApiLocationId location = 6;
-    optional ApiOrganizationId sponsoringOrg = 7;
+    optional ApiOrganizationId sponsoring_org = 7;
 }
 
 message ApiStore {
@@ -71,7 +69,7 @@ message ApiDeleteStore {
 }
 message ApiReadyStore {
     ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId readyingMember = 3;
+    ApiMemberId readying_member = 3;
 }
 message ApiOpenStore {
     ApiStoreId store_id = 1 [(kalix.field).entity_key = true];

@@ -16,12 +16,8 @@ enum EventStatus {
     EVENT_STATUS_UNKNOWN = 6;
 }
 
-message ReservationId {
-    string id = 1;
-}
-
 message EventCancelled {
-    EventId eventId = 1;
+    EventId event_id = 1;
     EventMetaInfo meta = 2;
 }
 
@@ -77,13 +73,13 @@ message EventResults {
 }
 
 message EventScheduled {
-    EventId  event_id = 1;
+    EventId event_id = 1;
     EventInfo info = 2;
     EventMetaInfo meta = 3;
 }
 
 message EventStarted {
-    EventId  event_idd = 1;
+    EventId event_id = 1;
     EventInfo info = 2;
     EventMetaInfo meta = 3;
 }
@@ -100,7 +96,7 @@ message LiveUpdate {
 }
 
 message ReservationAddedToEvent {
-    EventId event_idd = 1;
-    ReservationId reservation = 2;
+    EventId event_id = 1;
+    string reservation = 2;
     EventMetaInfo meta = 3;
 }

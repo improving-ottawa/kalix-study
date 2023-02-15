@@ -16,9 +16,6 @@ enum ApiEventStatus {
     API_EVENT_STATUS_RELEASED = 5;
     API_EVENT_STATUS_UNKNOWN = 6;
 }
-message ApiReservationId {
-    string reservation_id = 1 [(kalix.field).entity_key = true];
-}
 
 message ApiGetEventById {
     ApiEventId event_id = 1 [(kalix.field).entity_key = true];
@@ -27,7 +24,7 @@ message ApiGetEventById {
 message ApiEvent {
     ApiEventId event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
-    ApiReservationId reservation = 5;
+    string reservation = 5;
     ApiEventMetaInfo meta = 3;
     ApiEventStatus status = 4;
 }
@@ -67,7 +64,7 @@ message ApiEventMetaInfo {
 message ApiChangeEventInfo {
     ApiEventId event_id = 1 [(kalix.field).entity_key = true];
     ApiEventUpdateInfo info = 2;
-    ApiMemberId changingMember = 3;
+    ApiMemberId changing_member = 3;
 }
 
 message ApiScheduleEvent {
@@ -122,6 +119,6 @@ message ApiLiveUpdate {
 
 message ApiAddReservationToEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
-    ApiReservationId reservation = 2;
+    string reservation = 2;
     ApiMemberId reserving_member = 3;
 }

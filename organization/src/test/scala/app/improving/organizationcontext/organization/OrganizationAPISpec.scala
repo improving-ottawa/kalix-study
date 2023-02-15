@@ -145,8 +145,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         .flatMap(_.oid)
       val apiUpdateParent =
         ApiUpdateParent(
-          orgId = orgId,
-          newParent = Some(ApiOrganizationId(newParentId)),
+          orgId = orgId.map(id => ApiOrganizationId(id.id)),
+          newParent = Some(newParentId),
           updatingMember = Some(ApiMemberId("member25"))
         )
 
@@ -188,7 +188,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         .flatMap(_.oid)
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
-          orgId,
+          orgId.map(id => ApiOrganizationId(id.id)),
           ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED,
           Some(ApiMemberId("member1"))
         )
@@ -268,7 +268,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       testKit.establishOrganization(missingMembersEstablingOrganization)
       val result = testKit.updateOrganizationStatus(
         ApiOrganizationStatusUpdated(
-          orgId = testOrgId,
+          orgId = Some(testOrgId),
           newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
           updatingMember = Some(ApiMemberId("member36"))
         )
@@ -285,7 +285,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       testKit.establishOrganization(missingMembersEstablingOrganization)
       val result = testKit.updateOrganizationStatus(
         ApiOrganizationStatusUpdated(
-          orgId = testOrgId,
+          orgId = Some(testOrgId),
           newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
           updatingMember = Some(ApiMemberId("member36"))
         )
@@ -300,7 +300,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       testKit.establishOrganization(apiEstablishOrganization)
       val result = testKit.updateOrganizationStatus(
         ApiOrganizationStatusUpdated(
-          orgId = testOrgId,
+          orgId = Some(testOrgId),
           newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
           updatingMember = Some(ApiMemberId("member36"))
         )

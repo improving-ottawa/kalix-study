@@ -1,8 +1,33 @@
 package app.improving.storecontext.infrastructure
 
-import app.improving.{ApiEventId, ApiLocationId, ApiMemberId, ApiOrganizationId, ApiProductId, ApiVenueId, EventId, LocationId, MemberId, OrganizationId, ProductId, StoreId, VenueId}
-import app.improving.storecontext.{StoreInfo, StoreMetaInfo, StoreStatus, StoreUpdateInfo}
-import app.improving.storecontext.store.{ApiStoreInfo, ApiStoreMetaInfo, ApiStoreStatus, ApiStoreUpdateInfo}
+import app.improving.{
+  ApiEventId,
+  ApiLocationId,
+  ApiMemberId,
+  ApiOrganizationId,
+  ApiProductId,
+  ApiStoreId,
+  ApiVenueId,
+  EventId,
+  LocationId,
+  MemberId,
+  OrganizationId,
+  ProductId,
+  StoreId,
+  VenueId
+}
+import app.improving.storecontext.{
+  StoreInfo,
+  StoreMetaInfo,
+  StoreStatus,
+  StoreUpdateInfo
+}
+import app.improving.storecontext.store.{
+  ApiStoreInfo,
+  ApiStoreMetaInfo,
+  ApiStoreStatus,
+  ApiStoreUpdateInfo
+}
 
 object util {
 
@@ -19,15 +44,23 @@ object util {
     )
   }
 
-  def convertApiStoreUpdateInfoToStoreUpdateInfo(apiStoreUpdateInfo: ApiStoreUpdateInfo): StoreUpdateInfo = {
+  def convertApiStoreUpdateInfoToStoreUpdateInfo(
+      apiStoreUpdateInfo: ApiStoreUpdateInfo
+  ): StoreUpdateInfo = {
     StoreUpdateInfo(
       name = apiStoreUpdateInfo.name,
       description = apiStoreUpdateInfo.description,
-      products = apiStoreUpdateInfo.products.map(product => ProductId(product.productId)),
+      products = apiStoreUpdateInfo.products.map(product =>
+        ProductId(product.productId)
+      ),
       event = apiStoreUpdateInfo.event.map(event => EventId(event.eventId)),
       venue = apiStoreUpdateInfo.venue.map(venue => VenueId(venue.venueId)),
-      location = apiStoreUpdateInfo.location.map(location => LocationId(location.locationId)),
-      sponsoringOrg = apiStoreUpdateInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId))
+      location = apiStoreUpdateInfo.location.map(location =>
+        LocationId(location.locationId)
+      ),
+      sponsoringOrg = apiStoreUpdateInfo.sponsoringOrg.map(org =>
+        OrganizationId(org.organizationId)
+      )
     )
   }
 

@@ -8,7 +8,7 @@ object util {
 
   def convertApiOrderInfoToOrderInfo(apiOrderInfo: ApiOrderInfo): OrderInfo = {
     OrderInfo(
-      Some(OrderId(apiOrderInfo.orderId)),
+      apiOrderInfo.orderId.map(id => OrderId(id.orderId)),
       apiOrderInfo.lineItems.map(convertApiLineItemToLineItem),
       apiOrderInfo.specialInstructions
     )
@@ -94,7 +94,7 @@ object util {
 
   def convertOrderInfoToApiOrderInfo(orderInfo: OrderInfo): ApiOrderInfo = {
     ApiOrderInfo(
-      orderInfo.orderId.map(_.id).getOrElse("OrderId is not set."),
+      orderInfo.orderId.map(id => ApiOrderId(id.id)),
       orderInfo.lineItems.map(convertLineItemToApiLineItem),
       orderInfo.specialInstructions
     )
@@ -104,7 +104,7 @@ object util {
       orderMetaInfo: OrderMetaInfo
   ): ApiOrderMetaInfo = {
     ApiOrderMetaInfo(
-      orderMetaInfo.orderId.map(_.id).getOrElse("OrderId is not found."),
+      orderMetaInfo.orderId.map(id => ApiOrderId(id.id)),
       orderMetaInfo.memberId.map(member => ApiMemberId(member.id)),
       orderMetaInfo.storeId.map(store => ApiStoreId(store.id)),
       orderMetaInfo.createdOn,

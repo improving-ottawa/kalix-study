@@ -2,8 +2,18 @@ package app.improving.storecontext.store
 
 import TestData._
 import app.improving.storecontext.infrastructure.util._
-import app.improving.{ApiMemberId, MemberId, ProductId}
-import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreOpened, StoreStatus, StoreUpdated}
+import app.improving.{ApiMemberId, ApiStoreId, MemberId, ProductId}
+import app.improving.storecontext.{
+  ProductsAddedToStore,
+  ProductsRemovedFromStore,
+  StoreClosed,
+  StoreCreated,
+  StoreDeleted,
+  StoreMadeReady,
+  StoreOpened,
+  StoreStatus,
+  StoreUpdated
+}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -133,10 +143,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         createStoreResult.nextEvent[StoreCreated]
 
       storeCreated.storeId.isDefined shouldBe true
-      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+      storeCreated.meta.map(_.status) shouldBe Some(
+        StoreStatus.STORE_STATUS_DRAFT
+      )
 
       val nullApiOpenStore = ApiOpenStore(
-        "other-id",
+        Some(ApiStoreId("other-id")),
         Some(ApiMemberId(testMember2))
       )
 
@@ -148,7 +160,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("StoreId is not found.")
       val apiMakeStoreReady = ApiReadyStore(
-        storeId,
+        Some(ApiStoreId(storeId)),
         Some(ApiMemberId(testMember2))
       )
 
@@ -158,7 +170,9 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
 
-      storeMadeReady.meta.map(_.status) shouldBe Some(StoreStatus.READY)
+      storeMadeReady.meta.map(_.status) shouldBe Some(
+        StoreStatus.STORE_STATUS_READY
+      )
     }
 
     "correctly process commands of type OpenStore" in {
@@ -189,7 +203,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("StoreId is not found.")
       val apiMakeStoreReady = ApiReadyStore(
-        storeId,
+        Some(ApiStoreId(storeId)),
         Some(ApiMemberId(testMember2))
       )
 
@@ -199,10 +213,12 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
 
-      storeMadeReady.meta.map(_.status) shouldBe Some(StoreStatus.READY)
+      storeMadeReady.meta.map(_.status) shouldBe Some(
+        StoreStatus.STORE_STATUS_RELEASED
+      )
 
       val apiOpenStore = ApiOpenStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        Some(ApiStoreId(storeId)),
         Some(ApiMemberId(testMember2))
       )
 
@@ -248,7 +264,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("StoreId is not found.")
       val apiMakeStoreReady = ApiReadyStore(
-        storeId,
+        Some(ApiStoreId(storeId)),
         Some(ApiMemberId(testMember2))
       )
 
@@ -258,7 +274,9 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
 
-      storeMadeReady.meta.map(_.status) shouldBe Some(StoreStatus.READY)
+      storeMadeReady.meta.map(_.status) shouldBe Some(
+        StoreStatus.STORE_STATUS_READY
+      )
 
       val apiOpenStore = ApiOpenStore(
         Some(ApiStoreId(storeId)),

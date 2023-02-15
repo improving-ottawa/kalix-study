@@ -1,23 +1,6 @@
 package app.improving.eventcontext.event
 
-import app.improving.eventcontext.event.EventAPI.{
-  JustMemberValidated,
-  ValidatedFields,
-  ValidatedFieldsWithEventInfo,
-  ValidatedFieldsWithEventUpdateInfo,
-  ValidatedFieldsWithReasonDurationAndReservation,
-  ValidatedFieldsWithReservation,
-  ValidatedFieldsWithStartAndEnd,
-  ValidationNeeded,
-  ValidationNeededWithApiReservation,
-  ValidationNeededWithEventInfo,
-  ValidationNeededWithEventUpdateInfo,
-  ValidationNeededWithJustMember,
-  ValidationNeededWithReasonDurationAndReservation,
-  ValidationNeededWithStartAndEnd,
-  ValidationNeededWithStateReservation,
-  validateApiEventInfo
-}
+import app.improving.eventcontext.event.EventAPI._
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.eventcontext.infrastructure.util._
@@ -34,8 +17,7 @@ import app.improving.eventcontext.{
   EventScheduled,
   EventStarted,
   EventStatus,
-  ReservationAddedToEvent,
-  ReservationId
+  ReservationAddedToEvent
 }
 import com.google.protobuf.duration.Duration
 import io.grpc.Status
@@ -50,144 +32,157 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def emptyState: EventState = EventState.defaultInstance
 
-  //It's possible to add a reservation to an update if you're the status is in the set of statuses in reservablestatuses, update the info if it's in updateableStatuses,
-  //reschedule if it's in reschedulableStatuses, etc. Note that status isn't the only constraint: the command fields must be validated, and for delay and start we verify that the reservation has been set.
-  val reservableStatuses: Set[EventStatus] = Set(EventStatus.SCHEDULED)
+  // It's possible to add a reservation to an update if you're the status is in the set of statuses in reservablestatuses, update the info if it's in updateableStatuses,
+  // reschedule if it's in reschedulableStatuses, etc. Note that status isn't the only constraint: the command fields must be validated, and for delay and start we verify that the reservation has been set.
+  val reservableStatuses: Set[EventStatus] = Set(
+    EventStatus.EVENT_STATUS_SCHEDULED
+  )
   val updateableStatuses: Set[EventStatus] =
-    Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
+    Set(EventStatus.EVENT_STATUS_CANCELLED, EventStatus.EVENT_STATUS_DELAYED)
   val reschedulableStatuses: Set[EventStatus] =
-    Set(EventStatus.SCHEDULED, EventStatus.DELAYED, EventStatus.CANCELLED)
+    Set(
+      EventStatus.EVENT_STATUS_SCHEDULED,
+      EventStatus.EVENT_STATUS_DELAYED,
+      EventStatus.EVENT_STATUS_CANCELLED
+    )
   val delayableStatuses: Set[EventStatus] =
-    Set(EventStatus.SCHEDULED, EventStatus.INPROGRESS)
+    Set(EventStatus.EVENT_STATUS_SCHEDULED, EventStatus.EVENT_STATUS_INPROGRESS)
   val startableStatuses: Set[EventStatus] =
-    Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
+    Set(EventStatus.EVENT_STATUS_CANCELLED, EventStatus.EVENT_STATUS_DELAYED)
   val cancellableStatuses: Set[EventStatus] =
-    Set(EventStatus.SCHEDULED, EventStatus.DELAYED)
-  val endableStatuses: Set[EventStatus] = Set(EventStatus.INPROGRESS)
+    Set(EventStatus.EVENT_STATUS_SCHEDULED, EventStatus.EVENT_STATUS_DELAYED)
+  val endableStatuses: Set[EventStatus] = Set(
+    EventStatus.EVENT_STATUS_INPROGRESS
+  )
 
   override def changeEventInfo(
       currentState: EventState,
       apiChangeEventInfo: ApiChangeEventInfo
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.event match {
-      case Some(event)
-          if event.eventId.contains(EventId(apiChangeEventInfo.eventId)) => {
-        errorOrReply(
-          event.status,
-          updateableStatuses,
-          "change event info",
-          ValidationNeededWithEventUpdateInfo(
-            apiChangeEventInfo.changingMember,
-            apiChangeEventInfo.info
-          )
-        ) { validatedFields =>
+  ): EventSourcedEntity.Effect[Empty] = currentState.event match {
+    case Some(event)
+        if event.eventId.contains(
+          apiChangeEventInfo.eventId
+            .map(id => EventId(id.eventId))
+            .getOrElse(EventId.defaultInstance)
+        ) =>
+      errorOrReply(
+        event.status,
+        updateableStatuses,
+        "change event info",
+        ValidationNeededWithEventUpdateInfo(
+          apiChangeEventInfo.changingMember,
+          apiChangeEventInfo.info
+        )
+      ) { validatedFields =>
 
-          val validatedFieldsWithEventUpdateInfo
-              : ValidatedFieldsWithEventUpdateInfo =
-            validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
-          val updatingMember: ApiMemberId =
-            validatedFieldsWithEventUpdateInfo.apiMemberId
-          val updatingInfo: ApiEventUpdateInfo =
-            validatedFieldsWithEventUpdateInfo.apiEventUpdateInfo
-          val newInfo: Option[EventInfo] =
-            event.info.map(buildEventInfoFromUpdateInfo(_, updatingInfo))
-          val infoChanged: EventInfoChanged = EventInfoChanged(
-            eventId = Some(EventId(apiChangeEventInfo.eventId)),
-            info = newInfo,
-            meta = event.meta.map(
-              _.copy(
-                actualStart = updatingInfo.expectedStart,
-                actualEnd = updatingInfo.expectedEnd,
-                lastModifiedBy =
-                  Some(convertApiMemberIdToMemberId(updatingMember)),
-                lastModifiedOn = Some(nowTs)
-              )
+        val validatedFieldsWithEventUpdateInfo
+            : ValidatedFieldsWithEventUpdateInfo =
+          validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
+        val updatingMember: ApiMemberId =
+          validatedFieldsWithEventUpdateInfo.apiMemberId
+        val updatingInfo: ApiEventUpdateInfo =
+          validatedFieldsWithEventUpdateInfo.apiEventUpdateInfo
+        val newInfo: Option[EventInfo] =
+          event.info.map(buildEventInfoFromUpdateInfo(_, updatingInfo))
+        val infoChanged: EventInfoChanged = EventInfoChanged(
+          eventId = apiChangeEventInfo.eventId.map(id => EventId(id.eventId)),
+          info = newInfo,
+          meta = event.meta.map(
+            _.copy(
+              actualStart = updatingInfo.expectedStart,
+              actualEnd = updatingInfo.expectedEnd,
+              lastModifiedBy =
+                Some(convertApiMemberIdToMemberId(updatingMember)),
+              lastModifiedOn = Some(nowTs)
             )
           )
-          effects.emitEvent(infoChanged).thenReply(_ => Empty.defaultInstance)
-        }
-
+        )
+        effects.emitEvent(infoChanged).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
-    }
+
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def scheduleEvent(
       currentState: EventState,
       apiScheduleEvent: ApiScheduleEvent
-  ): EventSourcedEntity.Effect[ApiEventId] = {
-    currentState.event match {
-      case Some(_) =>
-        effects.error(
-          s"Event is already scheduled with id ${apiScheduleEvent.eventId}"
-        )
-      case _ =>
-        val eventId = apiScheduleEvent.eventId
-        val event = EventScheduled(
-          eventId.map(apiId => EventId(apiId.eventId)),
-          apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
-          Some(
-            EventMetaInfo(
-              memberIdOpt,
-              Some(timestamp),
-              memberIdOpt,
-              Some(timestamp),
-              apiScheduleEvent.info.flatMap(_.expectedStart),
-              apiScheduleEvent.info.flatMap(_.expectedEnd),
-              EventStatus.EVENT_STATUS_SCHEDULED
-            )
-          )
-        )
-        effects
-          .emitEvent(event)
-          .thenReply(eventOpt =>
-            eventOpt.event
-              .flatMap(event => event.eventId.map(id => ApiEventId(id.id)))
-              .getOrElse(ApiEventId.defaultInstance)
-          )
+  ): EventSourcedEntity.Effect[ApiEventId] = currentState.event match {
+    case Some(_) =>
+      effects.error(
+        s"Event is already scheduled with id ${apiScheduleEvent.eventId}"
+      )
+    case _ =>
+      val eventId = apiScheduleEvent.eventId
 
-      case Some(_) => effects.reply(ApiEventId.defaultInstance)
-      case _ =>
-        errorOrReply(
-          EventStatus.SCHEDULED,
-          Set(EventStatus.SCHEDULED),
-          "schedule event",
-          ValidationNeededWithEventInfo(
-            apiScheduleEvent.schedulingMember,
-            apiScheduleEvent.info
+      val timestamp: Timestamp = nowTs
+      val event = EventScheduled(
+        eventId.map(apiId => EventId(apiId.eventId)),
+        apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
+        Some(
+          EventMetaInfo(
+            apiScheduleEvent.schedulingMember.map(id => MemberId(id.memberId)),
+            Some(timestamp),
+            apiScheduleEvent.schedulingMember.map(id => MemberId(id.memberId)),
+            Some(timestamp),
+            apiScheduleEvent.info.flatMap(_.expectedStart),
+            apiScheduleEvent.info.flatMap(_.expectedEnd),
+            EventStatus.EVENT_STATUS_SCHEDULED
           )
-        ) { validatedFields =>
-          {
-            val validatedFieldsWithEventInfo: ValidatedFieldsWithEventInfo =
-              validatedFields.asInstanceOf[ValidatedFieldsWithEventInfo]
-            val schedulingMember: MemberId = convertApiMemberIdToMemberId(
-              validatedFieldsWithEventInfo.apiMemberId
-            )
-            val apiEventInfo: ApiEventInfo =
-              validatedFieldsWithEventInfo.apiEventInfo
-            val timestamp: Timestamp = nowTs
+        )
+      )
+      effects
+        .emitEvent(event)
+        .thenReply(eventOpt =>
+          eventOpt.event
+            .flatMap(event => event.eventId.map(id => ApiEventId(id.id)))
+            .getOrElse(ApiEventId.defaultInstance)
+        )
 
-            val eventId: String = apiScheduleEvent.eventId
-            val event = EventScheduled(
-              eventId = Some(EventId(eventId)),
-              info = apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
-              meta = Some(
-                EventMetaInfo(
-                  Some(schedulingMember),
-                  Some(timestamp),
-                  Some(schedulingMember),
-                  Some(timestamp),
-                  apiEventInfo.expectedStart, // TODO: should we keep actualStart and actualEnd as None until the event is actually started/ended?
-                  apiEventInfo.expectedEnd,
-                  EventStatus.SCHEDULED
-                )
+    case Some(_) => effects.reply(ApiEventId.defaultInstance)
+    case _ =>
+      errorOrReply(
+        EventStatus.EVENT_STATUS_SCHEDULED,
+        Set(EventStatus.EVENT_STATUS_SCHEDULED),
+        "schedule event",
+        ValidationNeededWithEventInfo(
+          apiScheduleEvent.schedulingMember,
+          apiScheduleEvent.info
+        )
+      ) { validatedFields =>
+        {
+          val validatedFieldsWithEventInfo: ValidatedFieldsWithEventInfo =
+            validatedFields.asInstanceOf[ValidatedFieldsWithEventInfo]
+          val schedulingMember: MemberId = convertApiMemberIdToMemberId(
+            validatedFieldsWithEventInfo.apiMemberId
+          )
+          val apiEventInfo: ApiEventInfo =
+            validatedFieldsWithEventInfo.apiEventInfo
+          val timestamp: Timestamp = nowTs
+          val eventId = apiScheduleEvent.eventId.map(id => EventId(id.eventId))
+          val event = EventScheduled(
+            eventId = eventId,
+            info = apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
+            meta = Some(
+              EventMetaInfo(
+                Some(schedulingMember),
+                Some(timestamp),
+                Some(schedulingMember),
+                Some(timestamp),
+                apiEventInfo.expectedStart,
+                apiEventInfo.expectedEnd,
+                EventStatus.EVENT_STATUS_SCHEDULED
               )
             )
-            effects.emitEvent(event).thenReply(_ => ApiEventId(eventId))
-          }
+          )
+          effects
+            .emitEvent(event)
+            .thenReply(_ =>
+              eventId
+                .map(id => ApiEventId(id.id))
+                .getOrElse(ApiEventId.defaultInstance)
+            )
         }
-
-    }
+      }
 
   }
 
@@ -197,7 +192,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
-          if event.eventId.contains(EventId(apiCancelEvent.eventId)) =>
+          if event.eventId.contains(
+            apiCancelEvent.eventId
+              .map(id => EventId(id.eventId))
+              .getOrElse(EventId.defaultInstance)
+          ) =>
         errorOrReply(
           event.status,
           cancellableStatuses,
@@ -214,7 +213,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
                 )
               ),
               lastModifiedOn = Some(nowTs),
-              status = EventStatus.CANCELLED
+              status = EventStatus.EVENT_STATUS_CANCELLED
             )
           )
 
@@ -233,7 +232,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
       case Some(event)
-          if event.eventId.contains(EventId(apiRescheduleEvent.eventId)) => {
+          if event.eventId.contains(
+            apiRescheduleEvent.eventId
+              .map(id => EventId(id.eventId))
+              .getOrElse(EventId.defaultInstance)
+          ) =>
         errorOrReply(
           event.status,
           reschedulableStatuses,
@@ -244,36 +247,31 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             apiRescheduleEvent.end
           )
         ) { validatedFields =>
-          {
+          val validatedFieldsWithStartAndEnd: ValidatedFieldsWithStartAndEnd =
+            validatedFields.asInstanceOf[ValidatedFieldsWithStartAndEnd]
+          val reschedulingMember: ApiMemberId =
+            validatedFieldsWithStartAndEnd.apiMemberId
+          val start: Timestamp = validatedFieldsWithStartAndEnd.start
+          val end: Timestamp = validatedFieldsWithStartAndEnd.end
 
-            val validatedFieldsWithStartAndEnd: ValidatedFieldsWithStartAndEnd =
-              validatedFields.asInstanceOf[ValidatedFieldsWithStartAndEnd]
-            val reschedulingMember: ApiMemberId =
-              validatedFieldsWithStartAndEnd.apiMemberId
-            val start: Timestamp = validatedFieldsWithStartAndEnd.start
-            val end: Timestamp = validatedFieldsWithStartAndEnd.end
-
-            val rescheduled: EventRescheduled = EventRescheduled(
-              eventId = event.eventId,
-              info = event.info.map(
-                _.copy(
-                  expectedStart = Some(start),
-                  expectedEnd = Some(end)
-                )
-              ),
-              meta = event.meta.map(
-                _.copy(
-                  lastModifiedBy =
-                    Some(convertApiMemberIdToMemberId(reschedulingMember)),
-                  lastModifiedOn = Some(nowTs)
-                )
+          val rescheduled: EventRescheduled = EventRescheduled(
+            eventId = event.eventId,
+            info = event.info.map(
+              _.copy(
+                expectedStart = Some(start),
+                expectedEnd = Some(end)
+              )
+            ),
+            meta = event.meta.map(
+              _.copy(
+                lastModifiedBy =
+                  Some(convertApiMemberIdToMemberId(reschedulingMember)),
+                lastModifiedOn = Some(nowTs)
               )
             )
-            effects.emitEvent(rescheduled).thenReply(_ => Empty.defaultInstance)
-          }
+          )
+          effects.emitEvent(rescheduled).thenReply(_ => Empty.defaultInstance)
         }
-
-      }
       case _ => effects.reply(Empty.defaultInstance)
     }
 
@@ -281,236 +279,240 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def delayEvent(
       currentState: EventState,
       apiDelayEvent: ApiDelayEvent
-  ): EventSourcedEntity.Effect[Empty] =
-    currentState.event match {
-      case Some(event)
-          if event.eventId.contains(EventId(apiDelayEvent.eventId)) =>
-        errorOrReply(
-          event.status,
-          delayableStatuses,
-          "delay event",
-          ValidationNeededWithReasonDurationAndReservation(
-            maybeApiMemberId = apiDelayEvent.delayingMember,
-            maybeApiReason = Some(apiDelayEvent.reason),
-            maybeApiDuration = apiDelayEvent.expectedDuration,
-            maybeReservation = event.reservation
+  ): EventSourcedEntity.Effect[Empty] = currentState.event match {
+    case Some(event)
+        if event.eventId.contains(
+          apiDelayEvent.eventId
+            .map(id => EventId(id.eventId))
+            .getOrElse(EventId.defaultInstance)
+        ) =>
+      errorOrReply(
+        event.status,
+        delayableStatuses,
+        "delay event",
+        ValidationNeededWithReasonDurationAndReservation(
+          maybeApiMemberId = apiDelayEvent.delayingMember,
+          maybeApiReason = Some(apiDelayEvent.reason),
+          maybeApiDuration = apiDelayEvent.expectedDuration,
+          maybeReservation = Some(event.reservation)
+        )
+      ) { validatedFields =>
+        val validatedFieldsWithReasonDurationAndReservation
+            : ValidatedFieldsWithReasonDurationAndReservation =
+          validatedFields
+            .asInstanceOf[ValidatedFieldsWithReasonDurationAndReservation]
+        val metaOpt = event.meta.map(
+          _.copy(
+            lastModifiedBy = Some(
+              convertApiMemberIdToMemberId(
+                validatedFieldsWithReasonDurationAndReservation.apiMemberId
+              )
+            ),
+            lastModifiedOn = Some(nowTs),
+            status = EventStatus.EVENT_STATUS_DELAYED
           )
-        ) { validatedFields =>
-          val validatedFieldsWithReasonDurationAndReservation
-              : ValidatedFieldsWithReasonDurationAndReservation =
-            validatedFields
-              .asInstanceOf[ValidatedFieldsWithReasonDurationAndReservation]
-          val metaOpt = event.meta.map(
-            _.copy(
-              lastModifiedBy = Some(
-                convertApiMemberIdToMemberId(
-                  validatedFieldsWithReasonDurationAndReservation.apiMemberId
-                )
-              ),
-              lastModifiedOn = Some(nowTs),
-              status = EventStatus.DELAYED
-            )
-          )
+        )
 
-          val delayed = EventDelayed(
-            eventId = event.eventId,
-            reason = validatedFieldsWithReasonDurationAndReservation.apiReason,
-            meta = metaOpt,
-            expectedDuration =
-              Some(validatedFieldsWithReasonDurationAndReservation.apiDuration)
-          )
+        val delayed = EventDelayed(
+          eventId = event.eventId,
+          reason = validatedFieldsWithReasonDurationAndReservation.apiReason,
+          meta = metaOpt,
+          expectedDuration =
+            Some(validatedFieldsWithReasonDurationAndReservation.apiDuration)
+        )
 
-          effects.emitEvent(delayed).thenReply(_ => Empty.defaultInstance)
-        }
+        effects.emitEvent(delayed).thenReply(_ => Empty.defaultInstance)
+      }
 
-      case _ => effects.reply(Empty.defaultInstance)
-    }
+    case _ => effects.reply(Empty.defaultInstance)
+  }
 
   override def startEvent(
       currentState: EventState,
       apiStartEvent: ApiStartEvent
-  ): EventSourcedEntity.Effect[Empty] =
-    currentState.event match {
-      case Some(event)
-          if event.eventId.contains(EventId(apiStartEvent.eventId)) =>
-        errorOrReply(
-          event.status,
-          startableStatuses,
-          "start event",
-          ValidationNeededWithStateReservation(
-            apiStartEvent.startingMember,
-            event.reservation
+  ): EventSourcedEntity.Effect[Empty] = currentState.event match {
+    case Some(event)
+        if event.eventId.contains(
+          apiStartEvent.eventId
+            .map(id => EventId(id.eventId))
+            .getOrElse(EventId.defaultInstance)
+        ) =>
+      errorOrReply(
+        event.status,
+        startableStatuses,
+        "start event",
+        ValidationNeededWithStateReservation(
+          apiStartEvent.startingMember,
+          Some(event.reservation)
+        )
+      ) { validatedFields =>
+
+        val validatedFieldsWithReservation: ValidatedFieldsWithReservation =
+          validatedFields.asInstanceOf[ValidatedFieldsWithReservation]
+        val timestamp: Timestamp = nowTs
+
+        val metaOpt: Option[EventMetaInfo] = event.meta.map(
+          _.copy(
+            lastModifiedOn = Some(timestamp),
+            lastModifiedBy = Some(
+              convertApiMemberIdToMemberId(
+                validatedFieldsWithReservation.apiMemberId
+              )
+            ),
+            status = EventStatus.EVENT_STATUS_INPROGRESS,
+            actualStart = Some(timestamp)
           )
-        ) { validatedFields =>
+        )
 
-          val validatedFieldsWithReservation: ValidatedFieldsWithReservation =
-            validatedFields.asInstanceOf[ValidatedFieldsWithReservation]
-          val timestamp: Timestamp = nowTs
+        val started = EventStarted(
+          eventId = event.eventId,
+          meta = metaOpt
+        )
+        effects.emitEvent(started).thenReply(_ => Empty.defaultInstance)
 
-          val metaOpt: Option[EventMetaInfo] = event.meta.map(
-            _.copy(
-              lastModifiedOn = Some(timestamp),
-              lastModifiedBy = Some(
-                convertApiMemberIdToMemberId(
-                  validatedFieldsWithReservation.apiMemberId
-                )
-              ),
-              status = EventStatus.INPROGRESS,
-              actualStart = Some(timestamp)
-            )
-          )
-
-          val started = EventStarted(
-            eventId = event.eventId,
-            meta = metaOpt
-          )
-          effects.emitEvent(started).thenReply(_ => Empty.defaultInstance)
-
-        }
-      case _ => effects.reply(Empty.defaultInstance)
-    }
+      }
+    case _ => effects.reply(Empty.defaultInstance)
+  }
 
   override def endEvent(
       currentState: EventState,
       apiEndEvent: ApiEndEvent
-  ): EventSourcedEntity.Effect[Empty] =
-    currentState.event match {
-      case Some(event)
-          if event.eventId.contains(EventId(apiEndEvent.eventId)) =>
-        errorOrReply(
-          event.status,
-          endableStatuses,
-          "end event",
-          ValidationNeededWithJustMember(apiEndEvent.endingMember)
-        ) { validatedFields =>
-          val validatedFieldsWithJustMember: JustMemberValidated =
-            validatedFields.asInstanceOf[JustMemberValidated]
-          val endingMember: MemberId = convertApiMemberIdToMemberId(
-            validatedFieldsWithJustMember.apiMemberId
+  ): EventSourcedEntity.Effect[Empty] = currentState.event match {
+    case Some(event)
+        if event.eventId.contains(
+          apiEndEvent.eventId
+            .map(id => EventId(id.eventId))
+            .getOrElse(EventId.defaultInstance)
+        ) =>
+      errorOrReply(
+        event.status,
+        endableStatuses,
+        "end event",
+        ValidationNeededWithJustMember(apiEndEvent.endingMember)
+      ) { validatedFields =>
+        val validatedFieldsWithJustMember: JustMemberValidated =
+          validatedFields.asInstanceOf[JustMemberValidated]
+        val endingMember: MemberId = convertApiMemberIdToMemberId(
+          validatedFieldsWithJustMember.apiMemberId
+        )
+        val timestamp = nowTs
+        val metaOpt = event.meta.map(meta =>
+          meta.copy(
+            lastModifiedOn = Some(timestamp),
+            lastModifiedBy = Some(endingMember),
+            status = EventStatus.EVENT_STATUS_PAST,
+            actualEnd = Some(timestamp)
           )
-          val timestamp = nowTs
-          val metaOpt = event.meta.map(meta =>
-            meta.copy(
-              lastModifiedOn = Some(timestamp),
-              lastModifiedBy = Some(endingMember),
-              status = EventStatus.PAST,
-              actualEnd = Some(timestamp)
-            )
-          )
-          val ended = EventEnded(
-            eventId = event.eventId,
-            meta = metaOpt
-          )
-          effects.emitEvent(ended).thenReply(_ => Empty.defaultInstance)
+        )
+        val ended = EventEnded(
+          eventId = event.eventId,
+          meta = metaOpt
+        )
+        effects.emitEvent(ended).thenReply(_ => Empty.defaultInstance)
 
-        }
-      case _ => effects.reply(Empty.defaultInstance)
-    }
+      }
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def addReservationToEvent(
       currentState: EventState,
       apiAddReservationToEvent: ApiAddReservationToEvent
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.event match {
-      case Some(event)
-          if event.eventId.contains(
-            EventId(apiAddReservationToEvent.eventId)
-          ) =>
-        errorOrReply(
-          event.status,
-          reservableStatuses,
-          "add reservation to event",
-          ValidationNeededWithApiReservation(
-            apiAddReservationToEvent.reservingMember,
-            apiAddReservationToEvent.reservation
-          )
-        ) { validatedFields =>
-          val validatedFieldsWithReservation: ValidatedFieldsWithReservation =
-            validatedFields.asInstanceOf[ValidatedFieldsWithReservation]
-          val reservationAdded = ReservationAddedToEvent(
-            eventId = event.eventId,
-            reservation = Some(validatedFieldsWithReservation.reservation),
-            meta = event.meta.map(
-              _.copy(
-                lastModifiedBy = Some(
-                  convertApiMemberIdToMemberId(
-                    validatedFieldsWithReservation.apiMemberId
-                  )
-                ),
-                lastModifiedOn = Some(nowTs)
-              )
+  ): EventSourcedEntity.Effect[Empty] = currentState.event match {
+    case Some(event)
+        if event.eventId.contains(
+          EventId(apiAddReservationToEvent.eventId)
+        ) =>
+      errorOrReply(
+        event.status,
+        reservableStatuses,
+        "add reservation to event",
+        ValidationNeededWithApiReservation(
+          apiAddReservationToEvent.reservingMember,
+          Some(apiAddReservationToEvent.reservation)
+        )
+      ) { validatedFields =>
+        val validatedFieldsWithReservation: ValidatedFieldsWithReservation =
+          validatedFields.asInstanceOf[ValidatedFieldsWithReservation]
+        val reservationAdded = ReservationAddedToEvent(
+          eventId = event.eventId,
+          reservation = validatedFieldsWithReservation.reservation,
+          meta = event.meta.map(
+            _.copy(
+              lastModifiedBy = Some(
+                convertApiMemberIdToMemberId(
+                  validatedFieldsWithReservation.apiMemberId
+                )
+              ),
+              lastModifiedOn = Some(nowTs)
             )
           )
-          effects
-            .emitEvent(reservationAdded)
-            .thenReply(_ => Empty.defaultInstance)
-        }
-      case _ => effects.reply(Empty.defaultInstance)
-    }
+        )
+        effects
+          .emitEvent(reservationAdded)
+          .thenReply(_ => Empty.defaultInstance)
+      }
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def addLiveUpdate(
       currentState: EventState,
       apiAddLiveUpdate: ApiAddLiveUpdate
-  ): EventSourcedEntity.Effect[Empty] =
-    effects.error(
-      "The command handler for `AddLiveUpdate` is not implemented, yet"
-    )
+  ): EventSourcedEntity.Effect[Empty] = effects.error(
+    "The command handler for `AddLiveUpdate` is not implemented, yet"
+  )
 
   override def getEventById(
       currentState: EventState,
       apiGetEventById: ApiGetEventById
-  ): EventSourcedEntity.Effect[ApiEvent] = {
-    currentState.event match {
-      case Some(event) => effects.reply(convertEventToApiEvent(event))
+  ): EventSourcedEntity.Effect[ApiEvent] = currentState.event match {
+    case Some(event) => effects.reply(convertEventToApiEvent(event))
 
-      case _ =>
-        effects.error(
-          s"Event By ID ${apiGetEventById.eventId} IS NOT FOUND.",
-          Status.Code.NOT_FOUND
-        )
-    }
+    case _ =>
+      effects.error(
+        s"Event By ID ${apiGetEventById.eventId} IS NOT FOUND.",
+        Status.Code.NOT_FOUND
+      )
   }
 
   override def eventInfoChanged(
       currentState: EventState,
       eventInfoChanged: EventInfoChanged
-  ): EventState =
-    currentState.event match {
-      case Some(event) =>
-        currentState.withEvent(
-          event.copy(info = eventInfoChanged.info, meta = eventInfoChanged.meta)
-        )
-      case _ => currentState
-    }
+  ): EventState = currentState.event match {
+    case Some(event) =>
+      currentState.withEvent(
+        event.copy(info = eventInfoChanged.info, meta = eventInfoChanged.meta)
+      )
+    case _ => currentState
+  }
 
   override def eventScheduled(
       currentState: EventState,
       eventScheduled: EventScheduled
-  ): EventState =
-    currentState.event match {
-      case Some(_) => currentState // event was already scheduled.
-      case _ =>
-        currentState.withEvent(
-          Event(
-            eventScheduled.eventId,
-            eventScheduled.info,
-            None,
-            eventScheduled.meta,
-            EventStatus.EVENT_STATUS_SCHEDULED
-          )
+  ): EventState = currentState.event match {
+    case Some(_) => currentState // event was already scheduled.
+    case _ =>
+      currentState.withEvent(
+        Event(
+          eventScheduled.eventId,
+          eventScheduled.info,
+          "",
+          eventScheduled.meta,
+          EventStatus.EVENT_STATUS_SCHEDULED
         )
-    }
+      )
+  }
 
   override def eventCancelled(
       currentState: EventState,
       eventCancelled: EventCancelled
   ): EventState =
     currentState.event match {
-      case Some(event) if event.eventId == eventCancelled.eventId => {
+      case Some(event) if event.eventId == eventCancelled.eventId =>
         currentState.withEvent(
-          event.copy(meta = eventCancelled.meta, status = EventStatus.CANCELLED)
+          event.copy(
+            meta = eventCancelled.meta,
+            status = EventStatus.EVENT_STATUS_CANCELLED
+          )
         )
 
       case _ => currentState
@@ -616,6 +618,43 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
     }
   }
 
+  override def releaseEvent(
+      currentState: EventState,
+      apiReleaseEvent: ApiReleaseEvent
+  ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      EventReleased(
+        apiReleaseEvent.eventId.map(apiId => EventId(apiId.eventId)),
+        apiReleaseEvent.releasingMember.map(apiId => MemberId(apiId.memberId))
+      )
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def eventReleased(
+      currentState: EventState,
+      eventReleased: EventReleased
+  ): EventState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(event =
+      currentState.event.map(
+        _.copy(
+          status = EventStatus.EVENT_STATUS_RELEASED,
+          meta = currentState.event.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = eventReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+          )
+        )
+      )
+    )
+  }
+
   private def nowTs = {
     val now = java.time.Instant.now()
     Timestamp.of(now.getEpochSecond, now.getNano)
@@ -650,34 +689,30 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       }
     } else effects.error(s"You cannot $attemptedAction from state $eventStatus")
   }
-
 }
-
 object EventAPI {
 
   private def getMissingApiEventInfoFields(
       maybeApiEventInfo: Option[ApiEventInfo]
-  ): Set[String] = {
-    maybeApiEventInfo
-      .map(apiEventInfo => {
-        Map(
-          "ApiEventInfo.Name" -> Some(apiEventInfo.eventName).filterNot(
-            _.isEmpty
-          ),
-          "ApiEventInfo.Description" -> Some(apiEventInfo.description)
-            .filterNot(_.isEmpty),
-          "ApiEventInfo.EventUrl" -> Some(apiEventInfo.eventURL).filterNot(
-            _.isEmpty
-          ),
-          "ApiEventInfo.SponsoringOrg" -> apiEventInfo.sponsoringOrg,
-          "ApiEventInfo.ExpectedStart" -> apiEventInfo.expectedStart,
-          "ApiEventInfo.ExpectedEnd" -> apiEventInfo.expectedEnd
-        )
-          .filter(_._2.isEmpty)
-          .keySet
-      })
-      .getOrElse(Set.empty[String])
-  }
+  ): Set[String] = maybeApiEventInfo
+    .map(apiEventInfo => {
+      Map(
+        "ApiEventInfo.Name" -> Some(apiEventInfo.eventName).filterNot(
+          _.isEmpty
+        ),
+        "ApiEventInfo.Description" -> Some(apiEventInfo.description)
+          .filterNot(_.isEmpty),
+        "ApiEventInfo.EventUrl" -> Some(apiEventInfo.eventUrl).filterNot(
+          _.isEmpty
+        ),
+        "ApiEventInfo.SponsoringOrg" -> apiEventInfo.sponsoringOrg,
+        "ApiEventInfo.ExpectedStart" -> apiEventInfo.expectedStart,
+        "ApiEventInfo.ExpectedEnd" -> apiEventInfo.expectedEnd
+      )
+        .filter(_._2.isEmpty)
+        .keySet
+    })
+    .getOrElse(Set.empty[String])
 
   private def validateApiEventInfo(
       maybeApiEventInfo: Option[ApiEventInfo]
@@ -686,9 +721,11 @@ object EventAPI {
   }
 
   sealed trait ValidationNeeded
+
   case class ValidationNeededWithJustMember(
       maybeApiMemberId: Option[ApiMemberId]
   ) extends ValidationNeeded
+
   case class ValidationNeededWithEventInfo(
       maybeApiMemberId: Option[ApiMemberId],
       maybeApiEventInfo: Option[ApiEventInfo]
@@ -696,28 +733,30 @@ object EventAPI {
 
   case class ValidationNeededWithStateReservation(
       maybeApiMemberId: Option[ApiMemberId],
-      maybeReservation: Option[ReservationId]
+      maybeReservation: Option[String]
   ) extends ValidationNeeded
 
   case class ValidationNeededWithApiReservation(
       maybeApiMemberId: Option[ApiMemberId],
-      maybeApiReservation: Option[ApiReservationId]
+      maybeApiReservation: Option[String]
   ) extends ValidationNeeded
 
   case class ValidationNeededWithEventUpdateInfo(
       maybeApiMemberId: Option[ApiMemberId],
       maybeApiEventUpdateInfo: Option[ApiEventUpdateInfo]
   ) extends ValidationNeeded
+
   case class ValidationNeededWithStartAndEnd(
       maybeApiMemberId: Option[ApiMemberId],
       maybeStart: Option[Timestamp],
       maybeEnd: Option[Timestamp]
   ) extends ValidationNeeded
+
   case class ValidationNeededWithReasonDurationAndReservation(
       maybeApiMemberId: Option[ApiMemberId],
       maybeApiReason: Option[String],
       maybeApiDuration: Option[Duration],
-      maybeReservation: Option[ReservationId]
+      maybeReservation: Option[String]
   ) extends ValidationNeeded
 
   object ValidationNeeded {
@@ -757,7 +796,10 @@ object EventAPI {
             (maybeApiMemberId, maybeApiEventInfo) match {
               case (Some(apiMemberId), Some(apiEventInfo)) =>
                 Right(
-                  ValidatedFieldsWithEventUpdateInfo(apiMemberId, apiEventInfo)
+                  ValidatedFieldsWithEventUpdateInfo(
+                    apiMemberId,
+                    apiEventInfo
+                  )
                 )
               case _ =>
                 Left(
@@ -826,7 +868,9 @@ object EventAPI {
               ) =>
             (maybeApiMemberId, maybeReservation) match {
               case (Some(apiMemberId), Some(reservation)) =>
-                Right(ValidatedFieldsWithReservation(apiMemberId, reservation))
+                Right(
+                  ValidatedFieldsWithReservation(apiMemberId, reservation)
+                )
               case _ =>
                 Left(
                   Map(
@@ -844,7 +888,7 @@ object EventAPI {
                 Right(
                   ValidatedFieldsWithReservation(
                     apiMemberId,
-                    convertApiReservationIdToReservationId(apiReservation)
+                    apiReservation
                   )
                 )
               case _ =>
@@ -858,43 +902,6 @@ object EventAPI {
         }
       }
     }
-  }
-
-  override def releaseEvent(
-                             currentState: EventState,
-                             apiReleaseEvent: ApiReleaseEvent
-                           ): EventSourcedEntity.Effect[Empty] = effects
-    .emitEvent(
-      EventReleased(
-        apiReleaseEvent.eventId.map(apiId => EventId(apiId.eventId)),
-        apiReleaseEvent.releasingMember.map(apiId => MemberId(apiId.memberId))
-      )
-    )
-    .deleteEntity()
-    .thenReply(_ => Empty.defaultInstance)
-
-  override def eventReleased(
-                              currentState: EventState,
-                              eventReleased: EventReleased
-                            ): EventState = {
-    val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-
-    currentState.copy(event =
-      currentState.event.map(
-        _.copy(
-          status = EventStatus.EVENT_STATUS_RELEASED,
-          meta = currentState.event.flatMap(
-            _.meta.map(
-              _.copy(
-                lastModifiedBy = eventReleased.releasingMember,
-                lastModifiedOn = Some(timestamp)
-              )
-            )
-          )
-        )
-      )
-    )
   }
 
   abstract class ValidatedFields(apiMemberId: ApiMemberId)
@@ -922,11 +929,11 @@ object EventAPI {
       apiMemberId: ApiMemberId,
       apiReason: String,
       apiDuration: Duration,
-      reservation: ReservationId
+      reservation: String
   ) extends ValidatedFields(apiMemberId)
 
   case class ValidatedFieldsWithReservation(
       apiMemberId: ApiMemberId,
-      reservation: ReservationId
+      reservation: String
   ) extends ValidatedFields(apiMemberId)
 }

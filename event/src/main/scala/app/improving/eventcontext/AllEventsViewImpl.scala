@@ -54,8 +54,9 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       meta.copy(
         status = ApiEventStatus.API_EVENT_STATUS_CANCELLED,
         lastModifiedOn = Some(timestamp),
-        lastModifiedBy =
-          eventCancelled.cancellingMember.map(member => ApiMemberId(member.id))
+        lastModifiedBy = eventCancelled.meta
+          .flatMap(_.lastModifiedBy)
+          .map(id => ApiMemberId(id.id))
       )
     )
     effects.updateState(
@@ -146,9 +147,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
         meta = reservationAddedToEvent.meta.map(
           convertEventMetaInfoToApiEventMetaInfo
         ),
-        reservation = reservationAddedToEvent.reservation.map(
-          convertReservationIdToApiReservationId
-        )
+        reservation = reservationAddedToEvent.reservation
       )
     )
   }
