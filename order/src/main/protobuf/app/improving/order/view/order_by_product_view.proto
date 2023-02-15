@@ -23,7 +23,7 @@ import "kalix/annotations.proto";
  */
 
 message OrderByProductRequest {
-    repeated string skus = 1;
+    string sku = 1;
 }
 
 message OrderResponse {
@@ -81,69 +81,67 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessProductCreated(productcontext.product.ApiProductCreated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in.direct = {
-            service: "kalix-study-product"
-            event_stream_id: "event_products"
-        };
-        option (kalix.method).view.update = {
-            table: "order_by_product_product"
-            transform_updates: true
-        };
-    }
-
-    rpc ProcessProductInfoUpdated(productcontext.product.ApiProductInfoUpdated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in.direct = {
-            service: "kalix-study-product"
-            event_stream_id: "event_products"
-        };
-        option (kalix.method).view.update = {
-            table: "order_by_product_product"
-            transform_updates: true
-        };
-    }
-
-    rpc ProcessProductDeleted(productcontext.product.ApiProductDeleted) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in.direct = {
-            service: "kalix-study-product"
-            event_stream_id: "event_products"
-        };
-        option (kalix.method).view.update = {
-            table: "order_by_product_product"
-            transform_updates: true
-        };
-    }
-
-    rpc ProcessProductActivated(productcontext.product.ApiProductActivated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in.direct = {
-            service: "kalix-study-product"
-            event_stream_id: "event_products"
-        };
-        option (kalix.method).view.update = {
-            table: "order_by_product_product"
-            transform_updates: true
-        };
-    }
-
-    rpc ProcessProductInactivated(productcontext.product.ApiProductInactivated) returns (productcontext.product.ApiProduct) {
-        option (kalix.method).eventing.in.direct = {
-            service: "kalix-study-product"
-            event_stream_id: "event_products"
-        };
-        option (kalix.method).view.update = {
-            table: "order_by_product_product"
-            transform_updates: true
-        };
-    }
+//    rpc ProcessProductCreated(productcontext.product.ApiProductCreated) returns (productcontext.product.ApiProduct) {
+//        option (kalix.method).eventing.in.direct = {
+//            service: "kalix-study-product"
+//            event_stream_id: "event_products"
+//        };
+//        option (kalix.method).view.update = {
+//            table: "order_by_product_product"
+//            transform_updates: true
+//        };
+//    }
+//
+//    rpc ProcessProductInfoUpdated(productcontext.product.ApiProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+//        option (kalix.method).eventing.in.direct = {
+//            service: "kalix-study-product"
+//            event_stream_id: "event_products"
+//        };
+//        option (kalix.method).view.update = {
+//            table: "order_by_product_product"
+//            transform_updates: true
+//        };
+//    }
+//
+//    rpc ProcessProductDeleted(productcontext.product.ApiProductDeleted) returns (productcontext.product.ApiProduct) {
+//        option (kalix.method).eventing.in.direct = {
+//            service: "kalix-study-product"
+//            event_stream_id: "event_products"
+//        };
+//        option (kalix.method).view.update = {
+//            table: "order_by_product_product"
+//            transform_updates: true
+//        };
+//    }
+//
+//    rpc ProcessProductActivated(productcontext.product.ApiProductActivated) returns (productcontext.product.ApiProduct) {
+//        option (kalix.method).eventing.in.direct = {
+//            service: "kalix-study-product"
+//            event_stream_id: "event_products"
+//        };
+//        option (kalix.method).view.update = {
+//            table: "order_by_product_product"
+//            transform_updates: true
+//        };
+//    }
+//
+//    rpc ProcessProductInactivated(productcontext.product.ApiProductInactivated) returns (productcontext.product.ApiProduct) {
+//        option (kalix.method).eventing.in.direct = {
+//            service: "kalix-study-product"
+//            event_stream_id: "event_products"
+//        };
+//        option (kalix.method).view.update = {
+//            table: "order_by_product_product"
+//            transform_updates: true
+//        };
+//    }
 
     rpc FindOrdersByProducts(OrderByProductRequest) returns (OrderByProductResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "(order_by_product_order.order_id AS order_id, order_by_product_order.info AS info, order_by_product_order.meta AS meta) AS orders "
                     "FROM  order_by_product_order "
-                    "JOIN  order_by_product_product ON order_by_product_product.sku = order_by_product_order.info.line_items.product.product_id "
-                    "WHERE order_by_product_product.sku = ANY(:skus) "
-
+                    "WHERE :sku = ANY(order_by_product_order.info.line_items.product.product_id) "
         };
     }
 }

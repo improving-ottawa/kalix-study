@@ -163,7 +163,7 @@ class UIGatewayTestDriverSpec
         .handlePurchaseTickets(
           PurchaseTicketsRequest(
             Map(
-              memberId.toString -> OrdersForStores(
+              memberId.memberId -> OrdersForStores(
                 products.map { productId =>
                   storeId.storeId ->
                     ApiOrderInfo(

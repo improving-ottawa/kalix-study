@@ -5,11 +5,7 @@ import app.improving.membercontext.{
   MemberByMemberIdsQuery,
   MemberByMemberIdsRequest
 }
-import app.improving.ordercontext.{
-  OrderByProductQuery,
-  OrderByProductQueryClient,
-  OrderByProductRequest
-}
+import app.improving.ordercontext.{OrderByProductQuery, OrderByProductRequest}
 import app.improving.productcontext.{
   TicketByEventTimeQuery,
   TicketByEventTimeRequest
@@ -20,6 +16,7 @@ import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -105,22 +102,54 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       TicketByEventTimeRequest(givenTimeOpt)
     )
 
+    products.onComplete({
+      case Success(value) =>
+        log.info(
+          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
+        )
+      case Failure(exception) =>
+        log.info(
+          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
+        )
+    })
+
     val productIds = products.map(_.products.map(_.sku))
 
     effects.asyncReply(
       for {
-        productIds <- productIds
-        memberIds <- orderByProductView
-          .findOrdersByProducts(
-            OrderByProductRequest(productIds)
-          )
-          .map(response =>
-            response.orders
-              .map(_.meta.flatMap(_.memberId.map(_.memberId)))
-              .flatten
+        pids <- productIds
+        memberIds <- Future
+          .sequence(
+            pids
+              .map(productId => {
+                log.info(
+                  s"in MemberActionServiceImpl findMembersByEventTime productId ${productId}"
+                )
+                val result = orderByProductView
+                  .findOrdersByProducts(
+                    OrderByProductRequest(productId)
+                  )
+                  .map(response =>
+                    response.orders
+                      .map(_.meta.flatMap(_.memberId.map(_.memberId)))
+                      .flatten
+                  )
+                result.onComplete({
+                  case Success(value) =>
+                    log.info(
+                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
+                    )
+                  case Failure(exception) =>
+                    log.info(
+                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
+                    )
+                })
+
+                result
+              })
           )
         members <- memberByMemberIdsView.findMembersByMemberIds(
-          MemberByMemberIdsRequest(memberIds)
+          MemberByMemberIdsRequest(memberIds.flatten)
         )
       } yield {
         MembersByEventTimeResponse(members.members)
