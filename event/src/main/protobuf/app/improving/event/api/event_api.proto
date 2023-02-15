@@ -1,9 +1,7 @@
 syntax = "proto3";
 
-
 package app.improving.eventcontext.event;
 
-import "app/improving/event/domain/event_context_domain.proto";
 import "common_api.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
