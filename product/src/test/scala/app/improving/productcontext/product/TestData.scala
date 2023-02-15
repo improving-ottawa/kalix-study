@@ -16,6 +16,42 @@ object TestData {
   val testEventId = "test-event-id"
   val testEventId2 = "test-event-id2"
   val testEventId3 = "test-event-id3"
+  val testProductDetails = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId))
+        )
+      )
+    )
+  )
+  val testProductDetails2 = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId2))
+        )
+      )
+    )
+  )
+  val testProductDetails3 = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId3))
+        )
+      )
+    )
+  )
   val testImages = Seq[String]("test-image")
   val testPrice = 10.0
   val testCost = 3.0
@@ -28,10 +64,7 @@ object TestData {
     testSku,
     testName,
     testDescription,
-    testSection,
-    testRow,
-    testSeat,
-    Some(ApiEventId(testEventId)),
+    testProductDetails,
     testImages,
     testPrice,
     testCost,
@@ -41,10 +74,7 @@ object TestData {
     testSku2,
     testName,
     testDescription,
-    testSection,
-    testRow,
-    testSeat,
-    Some(ApiEventId(testEventId2)),
+    testProductDetails2,
     testImages,
     testPrice,
     testCost,
@@ -54,10 +84,7 @@ object TestData {
     testSku3,
     testName,
     testDescription,
-    testSection,
-    testRow,
-    testSeat,
-    Some(ApiEventId(testEventId3)),
+    testProductDetails3,
     testImages,
     testPrice,
     testCost,
@@ -75,18 +102,22 @@ object TestData {
   val testStoreIdUpdate = "test-store-id-update"
   val testMemberIdUpdate = "test-member-id-update"
   val testMemberId1Update = "test-member-id1-update"
-  val apiProductInfoUpdate = ApiProductInfo(
-    testSku,
-    testNameUpdate,
-    testDescriptionUpdate,
-    testSectionUpdate,
-    testRowUpdate,
-    testSeatUpdate,
-    Some(ApiEventId(testEventIdUpdate)),
+  val apiProductInfoUpdate = ApiProductInfoUpdate(
+    Option(testNameUpdate),
+    Option(testDescriptionUpdate),
+    None,
     testImagesUpdate,
-    testPriceUpdate,
-    testCostUpdate,
+    None,
+    Option(testCostUpdate),
     Some(ApiStoreId(testStoreIdUpdate))
+  )
+
+  val apiProductInfoAfterUpdate = apiProductInfo.copy(
+    name = testNameUpdate,
+    description = testDescriptionUpdate,
+    image = testImagesUpdate,
+    cost = testCostUpdate,
+    store = Some(ApiStoreId(testStoreIdUpdate))
   )
 
   val apiProductMetaInfo = ApiProductMetaInfo(

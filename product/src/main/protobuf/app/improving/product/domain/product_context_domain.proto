@@ -6,38 +6,56 @@ import "google/protobuf/timestamp.proto";
 package app.improving.productcontext;
 
 enum ProductStatus {
-    ACTIVE = 0;
+    DRAFT = 0;
+    ACTIVE = 1;
     INACTIVE = 2;
     DELETED = 3;
     UNKNOWN = 4;
+}
+
+message ReservedTicket {
+    string section = 1;
+    string row = 2;
+    string set = 3;
+    EventId event = 4;
+}
+
+message RestrictedTicket {
+    string section = 1;
+    EventId event = 2;
+}
+
+message OpenTicket {
+    EventId event = 1;
+}
+
+message ProductDetails {
+    oneof ticket {
+        ReservedTicket reservedTicket = 1;
+        RestrictedTicket restrictedTicket = 2;
+        OpenTicket openTicket = 3;
+    }
 }
 
 message ProductInfo {
     ProductId sku = 1;
     string  name = 2;
     string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    EventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    StoreId store = 11;
+    ProductDetails productDetails = 4;
+    repeated string image = 5;
+    double price = 6;
+    double cost = 7;
+    StoreId store = 8;
 }
 
 message ProductInfoUpdate {
-    ProductId sku = 1;
-    string  name = 2;
-    string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    EventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    StoreId store = 11;
+    optional string name = 1;
+    optional string description = 2;
+    optional ProductDetails productDetails = 3;
+    repeated string image = 4;
+    optional double price = 5;
+    optional double cost = 6;
+    StoreId store = 7;
 }
 
 message ProductMetaInfo {

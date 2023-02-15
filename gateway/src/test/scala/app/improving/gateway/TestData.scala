@@ -5,7 +5,7 @@ import app.improving.membercontext.member.{
   ApiNotificationPreference,
   ApiInfo => MemberApiInfo
 }
-import app.improving.eventcontext.event.{ApiEventInfo, ApiReservationId}
+import app.improving.eventcontext.event.ApiEventInfo
 import app.improving.organizationcontext.organization.{
   ApiOrganizationStatus,
   ApiParent,
@@ -17,6 +17,7 @@ import app.improving.storecontext.store.ApiStoreInfo
 import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
 import app.improving.tenantcontext.tenant.{ApiInfo => TenantInfo, _}
 import app.improving.ordercontext.order._
+import app.improving.productcontext.product.TestData.testProductDetails
 import com.google.protobuf.timestamp.Timestamp
 
 import java.time.Instant
@@ -221,10 +222,7 @@ object TestData {
       testSku,
       testName,
       testDescription,
-      testSection,
-      testRow,
-      testSeat,
-      Some(ApiEventId(testEventId)),
+      testProductDetails,
       testImages,
       testPrice,
       testCost,

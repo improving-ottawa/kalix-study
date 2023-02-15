@@ -55,7 +55,7 @@ object util {
           else currentInfo.flatMap(_.address),
         isPrivate = updateInfo.isPrivate.getOrElse(info.isPrivate),
         url =
-          if (updateInfo.url.isDefined) updateInfo.url.orElse(info.url)
+          if (updateInfo.url.isDefined) updateInfo.url
           else info.url,
         logo = if (updateInfo.logo.isDefined) updateInfo.logo else info.logo,
         tenant =

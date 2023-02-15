@@ -5,16 +5,25 @@ package app.improving.productcontext;
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/domain/product_context_domain.proto";
 import "kalix/annotations.proto";
+import "common_domain.proto";
 
 message TicketByEventRequest {
     string eventId = 1;
 }
 
 message TicketByEventResponse {
-    string sku = 1;
-    product.ApiProductInfo info = 2;
-    product.ApiProductMetaInfo meta = 3;
-    product.ApiProductStatus status = 4;
+    ProductId sku = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+    string status = 4;
+}
+
+message TicketEventCorrTableRow {
+    ProductId sku = 1;
+    ProductInfo info = 2;
+    ProductMetaInfo meta = 3;
+    string status = 4;
+    EventId event = 5;
 }
 
 
@@ -22,7 +31,7 @@ service TicketByEventView {
     option (kalix.codegen) = {
         view: {}
     };
-    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductCreated(productcontext.ProductCreated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
@@ -32,7 +41,7 @@ service TicketByEventView {
         };
     }
 
-    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
@@ -42,7 +51,7 @@ service TicketByEventView {
         };
     }
 
-    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
@@ -52,7 +61,7 @@ service TicketByEventView {
         };
     }
 
-    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductActivated(productcontext.ProductActivated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
@@ -62,7 +71,7 @@ service TicketByEventView {
         };
     }
 
-    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
@@ -75,9 +84,9 @@ service TicketByEventView {
     rpc FindMembersByEventTime(TicketByEventRequest) returns (stream TicketByEventResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "* "
+                    "ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status "
                     "FROM ticket_by_event_product "
-                    "WHERE ticket_by_event_product.info.event.event_id = :eventId "
+                    "WHERE ticket_by_event_product.event.id = :eventId"
         };
     }
 
