@@ -768,11 +768,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         Some(
           organization.ApiInfo(
             r.nextString(10),
-            r.nextString(5),
+            Some(r.nextString(5)),
             Some(genAddress(r)),
-            r.nextBoolean(),
-            r.nextString(15),
-            r.nextString(15),
+            Some(r.nextBoolean()),
+            Some(r.nextString(15)),
+            Some(r.nextString(15)),
             Some(tenantIds.toArray.apply(r.nextInt(tenantIds.size)))
           )
         ),
@@ -786,17 +786,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             members
           )
         ),
-        owners.headOption,
-        Some(
-          ApiMetaInfo(
-            Some(timestamp),
-            owners.headOption,
-            Some(timestamp),
-            owners.headOption,
-            ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-            Seq.empty[ApiOrganizationId]
-          )
-        )
+        owners.headOption
       )
     })
     val subOrgs = (1 to maxOrgWidth).map(n => {
@@ -827,11 +817,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         Some(
           organization.ApiInfo(
             r.nextString(10),
-            r.nextString(5),
+            Some(r.nextString(5)),
             Some(genAddress(r)),
-            r.nextBoolean(),
-            r.nextString(15),
-            r.nextString(15),
+            Some(r.nextBoolean()),
+            Some(r.nextString(15)),
+            Some(r.nextString(15)),
             Some(tenantIds.toArray.apply(r.nextInt(tenantIds.size)))
           )
         ),
@@ -847,17 +837,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             members
           )
         ),
-        owners.headOption,
-        Some(
-          ApiMetaInfo(
-            Some(timestamp),
-            owners.headOption,
-            Some(timestamp),
-            owners.headOption,
-            ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-            Seq.empty[ApiOrganizationId]
-          )
-        )
+        owners.headOption
       )
     })
     val subsubOrgs = (1 to maxOrgDepth).map(n => {
@@ -883,11 +863,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         Some(
           organization.ApiInfo(
             r.nextString(10),
-            r.nextString(5),
+            Some(r.nextString(5)),
             Some(genAddress(r)),
-            r.nextBoolean(),
-            r.nextString(15),
-            r.nextString(15),
+            Some(r.nextBoolean()),
+            Some(r.nextString(15)),
+            Some(r.nextString(15)),
             Some(tenantIds.toArray.apply(r.nextInt(tenantIds.size)))
           )
         ),
@@ -903,17 +883,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             members
           )
         ),
-        owners.headOption,
-        Some(
-          ApiMetaInfo(
-            Some(timestamp),
-            owners.headOption,
-            Some(timestamp),
-            owners.headOption,
-            ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-            Seq.empty[ApiOrganizationId]
-          )
-        )
+        owners.headOption
       )
     })
 

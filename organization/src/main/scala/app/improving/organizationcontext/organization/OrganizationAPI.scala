@@ -1,9 +1,21 @@
 package app.improving.organizationcontext.organization
 
+import app.improving.organizationcontext.OrganizationStatus.{
+  ORGANIZATION_STATUS_DRAFT,
+  ORGANIZATION_STATUS_TERMINATED
+}
 import app.improving.organizationcontext.infrastructure.util._
+import app.improving.organizationcontext.organization.OrganizationAPI.{
+  getMissingApiInfoFields,
+  getMissingBasicStateFields,
+  getMissingFieldsError,
+  verifyApiInfo,
+  verifyStatusDirectionChange,
+  verifyStatusStateBeforeStatusChange
+}
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiOrganizationId, MemberId, OrganizationId}
+import app.improving.{ApiMemberId, ApiOrganizationId, MemberId, OrganizationId}
 import app.improving.organizationcontext.{
   ContactList,
   Contacts,
@@ -37,6 +49,8 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class OrganizationAPI(context: EventSourcedEntityContext)
     extends AbstractOrganizationAPI {
   override def emptyState: OrganizationState = OrganizationState.defaultInstance
+
+  // TODO: there's an UpdateOrganizationContacts listed in the riddl but not present
 
   override def getOrganization(
       currentState: OrganizationState,
@@ -88,28 +102,45 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         )
     }
   }
+
+  // TODO why does MembersAddedToOrganization have a MetaInfo field, while MembersRemovedFromOrganization just have the updating member?
   override def removeMembersFromOrganization(
       currentState: OrganizationState,
       apiRemoveMembersFromOrganization: ApiRemoveMembersFromOrganization
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == Some(
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid.contains(
             OrganizationId(apiRemoveMembersFromOrganization.orgId)
-          ) => {
-        val event = MembersRemovedFromOrganization(
-          Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
-          apiRemoveMembersFromOrganization.membersToRemove.map(member =>
-            MemberId(member.memberId)
-          ),
-          apiRemoveMembersFromOrganization.updatingMember.map(member =>
-            MemberId(member.memberId)
-          )
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
+          ) =>
+        updateListIfValidItemsToAddAndUpdatingMember(
+          apiRemoveMembersFromOrganization.updatingMember,
+          apiRemoveMembersFromOrganization.membersToRemove,
+          "MembersToRemove"
+        ) { (updatingApiMember, membersToRemove) =>
+          {
+            val updatingMember = convertApiMemberIdToMemberId(updatingApiMember)
+
+            val event = MembersRemovedFromOrganization(
+              orgId =
+                Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
+              removedMembers =
+                membersToRemove.map(convertApiMemberIdToMemberId),
+              meta = org.orgMeta.map(
+                _.copy(
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy = Some(updatingMember)
+                )
+              )
+            )
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          }
+
+        }
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
@@ -120,33 +151,34 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == Some(
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid.contains(
             OrganizationId(apiRemoveOwnersFromOrganization.orgId)
           ) =>
-        val now = java.time.Instant.now()
-        val updatingMember =
-          apiRemoveOwnersFromOrganization.updatingMember.map(member =>
-            MemberId(member.memberId)
-          )
-        val event = OwnersRemovedFromOrganization(
-          Some(OrganizationId(apiRemoveOwnersFromOrganization.orgId)),
-          apiRemoveOwnersFromOrganization.ownersToRemove.map(member =>
-            MemberId(member.memberId)
-          ),
-          Some(
-            MetaInfo(
-              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
-              updatingMember,
-              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
-              updatingMember,
-              org.status,
-              Seq.empty[OrganizationId]
+        updateListIfValidItemsToAddAndUpdatingMember(
+          apiRemoveOwnersFromOrganization.updatingMember,
+          apiRemoveOwnersFromOrganization.ownersToRemove,
+          "OwnersToRemove"
+        ) { (updatingMember, ownersToRemove) =>
+          {
+            val event = OwnersRemovedFromOrganization(
+              orgId =
+                Some(OrganizationId(apiRemoveOwnersFromOrganization.orgId)),
+              removedOwners = ownersToRemove.map(convertApiMemberIdToMemberId),
+              meta = org.orgMeta.map(
+                _.copy(
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy =
+                    Some(convertApiMemberIdToMemberId(updatingMember))
+                )
+              )
             )
-          )
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          }
+        }
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
@@ -157,33 +189,35 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == Some(
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid.contains(
             OrganizationId(apiAddMembersToOrganization.orgId)
           ) =>
-        val now = java.time.Instant.now()
-        val updatingMember =
-          apiAddMembersToOrganization.updatingMember.map(member =>
-            MemberId(member.memberId)
-          )
-        val event = MembersAddedToOrganization(
-          Some(OrganizationId(apiAddMembersToOrganization.orgId)),
-          apiAddMembersToOrganization.membersToAdd.map(member =>
-            MemberId(member.memberId)
-          ),
-          Some(
-            MetaInfo(
-              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
-              updatingMember,
-              Some(Timestamp.of(now.getEpochSecond, now.getNano)),
-              updatingMember,
-              org.status,
-              Seq.empty[OrganizationId]
+        updateListIfValidItemsToAddAndUpdatingMember(
+          apiAddMembersToOrganization.updatingMember,
+          apiAddMembersToOrganization.membersToAdd,
+          "MembersToAdd"
+        ) { (apiUpdatingMember, apiMembersToAdd) =>
+          {
+            val updatingMember = convertApiMemberIdToMemberId(apiUpdatingMember)
+            val newMeta = org.orgMeta.map(
+              _.copy(
+                lastUpdated = Some(nowTs),
+                lastUpdatedBy = Some(updatingMember)
+              )
             )
-          )
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+
+            val event = MembersAddedToOrganization(
+              orgId = Some(OrganizationId(apiAddMembersToOrganization.orgId)),
+              newMembers = apiMembersToAdd.map(convertApiMemberIdToMemberId),
+              meta = newMeta
+            )
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          }
+        }
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
@@ -194,34 +228,34 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == Some(
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid.contains(
             OrganizationId(apiAddOwnersToOrganization.orgId)
           ) =>
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val updatingMember =
-          apiAddOwnersToOrganization.updatingMember.map(member =>
-            MemberId(member.memberId)
-          )
-        val event = OwnersAddedToOrganization(
-          Some(OrganizationId(apiAddOwnersToOrganization.orgId)),
-          apiAddOwnersToOrganization.ownersToAdd.map(member =>
-            MemberId(member.memberId)
-          ),
-          Some(
-            MetaInfo(
-              Some(timestamp),
-              updatingMember,
-              Some(timestamp),
-              updatingMember,
-              org.status,
-              Seq.empty[OrganizationId]
+        updateListIfValidItemsToAddAndUpdatingMember(
+          apiAddOwnersToOrganization.updatingMember,
+          apiAddOwnersToOrganization.ownersToAdd,
+          "OwnersToAdd"
+        ) { (updatingMember, ownersToAdd) =>
+          {
+            val event = OwnersAddedToOrganization(
+              orgId = Some(OrganizationId(apiAddOwnersToOrganization.orgId)),
+              newOwners = ownersToAdd.map(convertApiMemberIdToMemberId),
+              meta = org.orgMeta.map(
+                _.copy(
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy =
+                    Some(convertApiMemberIdToMemberId(updatingMember))
+                )
+              )
             )
-          )
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          }
+        }
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
@@ -232,18 +266,38 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE => {
-        org.copy(info =
-          apiEditOrganizationInfo.newInfo.map(convertApiUpdateInfoToInfo(_))
-        )
+          if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE =>
+        val maybeUpdateInfo = apiEditOrganizationInfo.newInfo
+        val maybeMember = apiEditOrganizationInfo.editingMember
+        (maybeUpdateInfo, maybeMember) match {
+          case (Some(updateInfo), Some(editingMember)) =>
+            val newInfo = buildNewInfoFromApiUpdateInfo(updateInfo, org.info)
 
-        val event =
-          OrganizationInfoUpdated(org.oid, org.info, org.orgMeta)
+            val newMeta = org.orgMeta.map(meta =>
+              meta.copy(
+                lastUpdated = Some(nowTs),
+                lastUpdatedBy =
+                  Some(convertApiMemberIdToMemberId(editingMember))
+              )
+            )
 
-        effects
-          .emitEvent(event)
-          .thenReply(_ => Empty.defaultInstance)
-      }
+            val event =
+              OrganizationInfoUpdated(org.oid, newInfo, newMeta)
+
+            effects
+              .emitEvent(event)
+              .thenReply(_ => Empty.defaultInstance)
+          case _ =>
+            effects.error(
+              getMissingFieldsError(
+                Map(
+                  "NewInfo" -> apiEditOrganizationInfo.newInfo,
+                  "EditingMember" -> maybeMember
+                )
+              )
+            )
+        }
+
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
@@ -257,64 +311,79 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         effects.error(
           s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
         )
-      case _ => {
-        val orgId = apiEstablishOrganization.orgId
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val event = OrganizationEstablished(
-          Some(OrganizationId(orgId)),
-          apiEstablishOrganization.info.map(convertApiInfoToInfo(_)),
-          apiEstablishOrganization.parent.map(convertApiParentToParent(_)),
-          Some(
-            MemberList(
-              apiEstablishOrganization.members.map(member =>
-                MemberId(member.memberId)
-              )
+      case _ =>
+        val maybeInfo = apiEstablishOrganization.info
+        val maybeMember = apiEstablishOrganization.establishingMember
+
+        (maybeInfo, maybeMember) match {
+          case (Some(apiInfo), Some(apiEstablishingMember))
+              if verifyApiInfo(apiInfo) =>
+            val orgId = apiEstablishOrganization.orgId
+            val establishingMember = convertApiMemberIdToMemberId(
+              apiEstablishingMember
             )
-          ),
-          Some(
-            OwnerList(
-              apiEstablishOrganization.owners.map(owner =>
-                MemberId(owner.memberId)
-              )
-            )
-          ),
-          Some(
-            ContactList(
-              apiEstablishOrganization.contacts.map(contact =>
-                Contacts(
-                  contact.primaryContacts.map(contact =>
-                    MemberId(contact.memberId)
-                  ),
-                  contact.billingContacts.map(contact =>
-                    MemberId(contact.memberId)
-                  ),
-                  contact.distributionContacts.map(contact =>
-                    MemberId(contact.memberId)
+            val event = OrganizationEstablished(
+              orgId = Some(OrganizationId(orgId)),
+              info = Some(convertApiInfoToInfo(apiInfo)),
+              parent =
+                apiEstablishOrganization.parent.map(convertApiParentToParent),
+              members = Some(
+                MemberList(
+                  apiEstablishOrganization.members.map(member =>
+                    MemberId(member.memberId)
                   )
+                )
+              ),
+              owners = Some(
+                OwnerList(
+                  apiEstablishOrganization.owners.map(owner =>
+                    MemberId(owner.memberId)
+                  )
+                )
+              ),
+              contacts = Some(
+                ContactList(
+                  apiEstablishOrganization.contacts.map(contact =>
+                    Contacts(
+                      contact.primaryContacts.map(contact =>
+                        MemberId(contact.memberId)
+                      ),
+                      contact.billingContacts.map(contact =>
+                        MemberId(contact.memberId)
+                      ),
+                      contact.distributionContacts.map(contact =>
+                        MemberId(contact.memberId)
+                      )
+                    )
+                  )
+                )
+              ),
+              meta = Some(
+                MetaInfo(
+                  createdOn = Some(nowTs),
+                  createdBy = Some(establishingMember),
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy = Some(establishingMember),
+                  currentStatus = OrganizationStatus.ORGANIZATION_STATUS_DRAFT
                 )
               )
             )
-          ),
-          apiEstablishOrganization.meta.map(meta => {
-            convertApiMetaInfoToMetaInfo(
-              meta.copy(
-                createdOn = Some(timestamp),
-                createdBy = apiEstablishOrganization.establishingMember,
-                lastUpdated = Some(timestamp),
-                lastUpdatedBy = apiEstablishOrganization.establishingMember,
-                currentStatus =
-                  ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
+
+            effects.emitEvent(event).thenReply(_ => ApiOrganizationId(orgId))
+          case (_, _) =>
+            effects.error(
+              getMissingFieldsError(
+                Map(
+                  "Info" -> maybeInfo,
+                  "Members" -> maybeMember
+                ) ++ getMissingApiInfoFields(maybeInfo)
               )
             )
-          })
-        )
-
-        effects.emitEvent(event).thenReply(_ => ApiOrganizationId(orgId))
-      }
+        }
     }
   }
 
+  // TODO we can't provide a lastUpdatedBy for the meta; we don't have a member id. Should it be added to the ApiUpdateParent message? Alternately, should it be marked as optional for MetaInfo?
   override def updateParent(
       currentState: OrganizationState,
       apiUpdateParent: ApiUpdateParent
@@ -322,37 +391,85 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid
-            == Some(OrganizationId(apiUpdateParent.orgId)) => {
+            .contains(OrganizationId(apiUpdateParent.orgId)) => {
 
-        val event = ParentUpdated(
-          Some(OrganizationId(apiUpdateParent.orgId)),
-          apiUpdateParent.newParent.map(parent =>
-            OrganizationId(parent.organizationId)
-          )
-        )
+        (apiUpdateParent.newParent, apiUpdateParent.updatingMember) match {
+          case (Some(parent), Some(updatingMember)) =>
+            val event = ParentUpdated(
+              orgId = Some(OrganizationId(apiUpdateParent.orgId)),
+              newParent = Some(OrganizationId(parent.organizationId)),
+              meta = org.orgMeta.map(
+                _.copy(
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy =
+                    Some(convertApiMemberIdToMemberId(updatingMember))
+                )
+              )
+            )
 
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          case _ =>
+            effects.error(
+              getMissingFieldsError(Map("Parent" -> apiUpdateParent.newParent))
+            )
+        }
+
       }
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
 
+  // TODO: in riddl, the UpdateOrganizationStatus has an updatingMember, but the OrganizationStatusUpdated doesn't have an updatingMember or a MetaInfo. Should we add one there + here?
   override def updateOrganizationStatus(
       currentState: OrganizationState,
       apiOrganizationStatusUpdated: ApiOrganizationStatusUpdated
   ): EventSourcedEntity.Effect[Empty] =
     currentState.organization match {
       case Some(org)
-          if org.oid == Some(
+          if org.oid.contains(
             OrganizationId(apiOrganizationStatusUpdated.orgId)
           ) => {
-        val event = OrganizationStatusUpdated(
-          org.oid,
-          convertApiOrganizationStatusToOrganizationStatus(
-            apiOrganizationStatusUpdated.newStatus
-          )
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+
+        val maybeUpdatingMember = apiOrganizationStatusUpdated.updatingMember
+        (maybeUpdatingMember) match {
+          case (Some(apiUpdatingMember)) =>
+            val newStatus = convertApiOrganizationStatusToOrganizationStatus(
+              apiOrganizationStatusUpdated.newStatus
+            )
+
+            val statusDirectionOkayOrError: Either[String, Unit] =
+              verifyStatusDirectionChange(org.status, newStatus)
+            val statusChangeOkayOrError: Either[String, Unit] =
+              if (org.status == newStatus) Right(())
+              else verifyStatusStateBeforeStatusChange(org.status, currentState)
+
+            statusDirectionOkayOrError.flatMap(_ =>
+              statusChangeOkayOrError
+            ) match {
+              case Left(error) => effects.error(error)
+              case Right(_) =>
+                val event = OrganizationStatusUpdated(
+                  orgId = org.oid,
+                  newStatus = newStatus,
+                  meta = org.orgMeta.map(
+                    _.copy(
+                      lastUpdated = Some(nowTs),
+                      lastUpdatedBy =
+                        Some(convertApiMemberIdToMemberId(apiUpdatingMember))
+                    )
+                  )
+                )
+                effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+            }
+
+          case _ =>
+            effects.error(
+              getMissingFieldsError(
+                Map("UpdatingMember" -> maybeUpdatingMember)
+              )
+            )
+        }
+
       }
       case _ => effects.reply(Empty.defaultInstance)
     }
@@ -394,9 +511,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == membersAddedToOrganization.orgId =>
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid == membersAddedToOrganization.orgId =>
         currentState.withOrganization(
           org.copy(
             members =
@@ -412,25 +531,20 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       currentState: OrganizationState,
       membersRemovedFromOrganization: MembersRemovedFromOrganization
   ): OrganizationState = {
-    val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == membersRemovedFromOrganization.orgId => {
-        val meta = org.orgMeta.map(meta => {
-          meta.copy(
-            lastUpdated = Some(timestamp),
-            lastUpdatedBy = membersRemovedFromOrganization.updatingMember
-          )
-        })
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid == membersRemovedFromOrganization.orgId => {
+
         currentState.withOrganization(
           org.copy(
             members = org.members.filterNot(
               membersRemovedFromOrganization.removedMembers.contains(_)
             ),
-            orgMeta = meta
+            orgMeta = membersRemovedFromOrganization.meta
           )
         )
       }
@@ -490,21 +604,22 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       }
       case _ => {
         val organization = Organization(
-          organizationEstablished.orgId,
-          organizationEstablished.info,
-          organizationEstablished.parent.flatMap(_.orgId),
-          organizationEstablished.members.toSeq.flatMap(member =>
+          oid = organizationEstablished.orgId,
+          info = organizationEstablished.info,
+          parent = organizationEstablished.parent.flatMap(_.orgId),
+          members = organizationEstablished.members.toSeq.flatMap(member =>
             member.memberId
           ),
-          organizationEstablished.owners.toSeq.flatMap(owner => owner.owners),
-          organizationEstablished.contacts.toSeq.flatMap(contacts =>
+          owners =
+            organizationEstablished.owners.toSeq.flatMap(owner => owner.owners),
+          contacts = organizationEstablished.contacts.toSeq.flatMap(contacts =>
             contacts.contacts
           ),
-          organizationEstablished.meta,
-          organizationEstablished.info
+          orgMeta = organizationEstablished.meta,
+          name = organizationEstablished.info
             .map(_.name)
             .getOrElse("Name is not available."),
-          OrganizationStatus.ORGANIZATION_STATUS_DRAFT
+          status = OrganizationStatus.ORGANIZATION_STATUS_DRAFT
         )
 
         currentState.withOrganization(organization)
@@ -519,7 +634,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     currentState.organization match {
       case Some(org)
           if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE => {
-        org.copy(info = organizationInfoUpdated.info)
+        org.copy(
+          info = organizationInfoUpdated.info,
+          orgMeta = organizationInfoUpdated.meta
+        )
         currentState.withOrganization(org)
       }
       case _ => currentState
@@ -532,14 +650,16 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = currentState.organization match {
     case Some(org)
         if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid == organizationStatusUpdated.orgId => {
-      val now = java.time.Instant.now()
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
       currentState.withOrganization(
         org.copy(
           orgMeta = org.orgMeta.map(
             _.copy(
               currentStatus = organizationStatusUpdated.newStatus,
-              lastUpdated = Some(timestamp)
+              lastUpdated =
+                organizationStatusUpdated.meta.flatMap(_.lastUpdated),
+              lastUpdatedBy =
+                organizationStatusUpdated.meta.flatMap(_.lastUpdatedBy)
             )
           ),
           status = organizationStatusUpdated.newStatus
@@ -555,9 +675,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == ownersAddedToOrganization.orgId => {
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid == ownersAddedToOrganization.orgId => {
         currentState.withOrganization(
           org.copy(
             owners =
@@ -576,9 +698,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = {
     currentState.organization match {
       case Some(org)
-          if currentState.organization.map(_.status) != Some(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) && org.oid == ownersRemovedFromOrganization.orgId => {
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) && org.oid == ownersRemovedFromOrganization.orgId => {
         currentState.withOrganization(
           org.copy(
             owners = org.owners.filterNot(
@@ -599,9 +723,146 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     case Some(org)
         if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED && org.oid == parentUpdated.orgId => {
       currentState.withOrganization(
-        org.copy(parent = parentUpdated.newParent)
+        org.copy(parent = parentUpdated.newParent, orgMeta = parentUpdated.meta)
       )
     }
     case _ => currentState
   }
+
+  private def updateListIfValidItemsToAddAndUpdatingMember[A](
+      maybeUpdatingMember: Option[ApiMemberId],
+      itemsToAdd: Seq[A],
+      label: String
+  )(
+      block: (ApiMemberId, Seq[A]) => EventSourcedEntity.Effect[Empty]
+  ): EventSourcedEntity.Effect[Empty] = {
+    (maybeUpdatingMember, itemsToAdd.headOption) match {
+      case (Some(updatingMember), Some(_)) => block(updatingMember, itemsToAdd)
+      case _ =>
+        effects.error(
+          getMissingFieldsError(
+            Map(
+              "UpdatingMember" -> maybeUpdatingMember,
+              label -> itemsToAdd.headOption
+            )
+          )
+        )
+    }
+  }
+
+  private def nowTs: Timestamp = {
+    val now = java.time.Instant.now()
+    Timestamp.of(now.getEpochSecond, now.getNano)
+  }
+
+}
+
+object OrganizationAPI {
+  private def getMissingFieldsError(
+      requiredFields: Map[String, Option[Any]]
+  ): String = {
+    val missingFields = requiredFields.filter(_._2.isEmpty)
+    s"Message is missing the following fields: ${missingFields.keySet.mkString(", ")}"
+  }
+
+  def verifyApiInfo(apiInfo: ApiInfo): Boolean = {
+    getMissingApiInfoFields(Some(apiInfo)).isEmpty
+  }
+  private def getMissingApiInfoFields(
+      maybeApiInfo: Option[ApiInfo]
+  ): Map[String, Option[Any]] = {
+    maybeApiInfo
+      .map(apiInfo =>
+        Map(
+          "Info.Tenant" -> apiInfo.tenant,
+          "Info.Name" -> Some(apiInfo.name).filter(_.nonEmpty)
+        )
+      )
+      .getOrElse(Map.empty[String, Option[Any]])
+      .filter(_._2.isEmpty)
+  }
+
+  private def getMissingContactsFields(
+      maybeContacts: Option[Contacts]
+  ): Map[String, Option[Any]] = {
+    maybeContacts
+      .map(contacts =>
+        Map("Concats.PrimaryContact" -> contacts.primaryContacts.headOption)
+      )
+      .getOrElse(Map.empty[String, Option[Any]])
+      .filter(_._2.isEmpty)
+  }
+
+  private def getMissingMetaFields(
+      maybeMetaInfo: Option[MetaInfo]
+  ): Map[String, Option[Any]] = {
+    maybeMetaInfo
+      .map(meta =>
+        Map(
+          "Meta.CreatedOn" -> meta.createdOn,
+          "Meta.CreatedBy" -> meta.createdBy,
+          "Meta.LastUpdated" -> meta.lastUpdated,
+          "Meta.LastUpdatedBy" -> meta.lastUpdatedBy
+        )
+          .filter(_._2.isEmpty)
+      )
+      .getOrElse(Map.empty[String, Option[Any]])
+  }
+
+  private def getMissingBasicStateFields(
+      currentOrganization: Organization
+  ): Map[String, Option[Any]] = {
+    Map(
+      "Info" -> currentOrganization.info,
+      "Contacts" -> currentOrganization.contacts.headOption,
+      "Members" -> currentOrganization.members.headOption,
+      "Owners" -> currentOrganization.owners.headOption,
+      "Meta" -> currentOrganization.orgMeta
+    )
+      .filter(_._2.isEmpty) ++
+      getMissingApiInfoFields(
+        currentOrganization.info.map(convertInfoToApiInfo)
+      ) ++ getMissingMetaFields(
+        currentOrganization.orgMeta
+      ) ++ getMissingContactsFields(currentOrganization.contacts.headOption)
+  }
+
+  private def verifyStatusDirectionChange(
+      oldStatus: OrganizationStatus,
+      newStatus: OrganizationStatus
+  ): Either[String, Unit] = {
+    (oldStatus, newStatus) match {
+      case (ORGANIZATION_STATUS_TERMINATED, _)
+          if newStatus != ORGANIZATION_STATUS_TERMINATED =>
+        Left("You cannot exit Terminated state.")
+      case (_, ORGANIZATION_STATUS_DRAFT)
+          if oldStatus != ORGANIZATION_STATUS_DRAFT =>
+        Left(
+          "You cannot return to Draft state once Draft state has been exited."
+        )
+      case (_, _) => Right(())
+    }
+  }
+
+  private def verifyStatusStateBeforeStatusChange(
+      oldStatus: OrganizationStatus,
+      currentState: OrganizationState
+  ): Either[String, Unit] = {
+    val missingFields: Map[String, Option[Any]] = oldStatus match {
+      case ORGANIZATION_STATUS_TERMINATED => Map.empty[String, Option[Any]]
+      case _ =>
+        currentState.organization
+          .map(getMissingBasicStateFields)
+          .getOrElse(
+            Map.empty[String, Option[Any]]
+          ) // all three of them have the same required fields
+    }
+    if (missingFields.isEmpty) Right(())
+    else
+      Left(
+        s"Cannot leave state $oldStatus without required fields. The state is missing: ${missingFields.keySet
+            .mkString(", ")}"
+      )
+  }
+
 }

@@ -28,11 +28,11 @@ enum ApiOrganizationStatus {
 
 message ApiInfo {
         string name = 1;
-        string shortName = 2;
+        optional string shortName = 2;
         ApiAddress address = 3;
-        bool isPrivate = 4;
-        string url = 5; // URL type?
-        string logo = 6; // URL type?
+        optional bool isPrivate = 4;
+        optional string url = 5; // URL type?
+        optional string logo = 6; // URL type?
         ApiTenantId tenant = 7;
 }
 
@@ -64,18 +64,19 @@ message ApiContacts {
 }
 
 message ApiUpdateInfo {
-    string name = 1;
-    string shortName = 2;
-    ApiAddress address = 3;
-    bool isPrivate = 4;
-    string url = 5; // URL type?
-    string logo = 6; // URL type?
-    ApiTenantId tenant = 7;
+    optional string name = 1;
+    optional string shortName = 2;
+    optional ApiAddress address = 3;
+    optional bool isPrivate = 4;
+    optional string url = 5; // URL type?
+    optional string logo = 6; // URL type?
+    optional ApiTenantId tenant = 7;
 }
 
 message ApiUpdateParent {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiOrganizationId newParent = 2;
+    ApiMemberId updatingMember = 3;
 }
 
 message ApiAddMembersToOrganization {
@@ -99,12 +100,11 @@ message ApiEditOrganizationInfo {
 message ApiEstablishOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiInfo info = 2;
-    ApiParent parent = 3;
+    optional ApiParent parent = 3;
     repeated ApiMemberId members = 4;
     repeated ApiMemberId owners = 5;
     repeated ApiContacts contacts = 6;
     ApiMemberId establishingMember = 7;
-    ApiMetaInfo meta = 8;
 }
 
 message ApiRemoveOwnersFromOrganization {
@@ -123,6 +123,7 @@ message ApiRemoveMembersFromOrganization {
 message ApiOrganizationStatusUpdated {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiOrganizationStatus newStatus = 2;
+    ApiMemberId updatingMember = 3;
 }
 
 message ApiOrganizationListByMember {

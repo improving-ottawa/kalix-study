@@ -31,26 +31,49 @@ import app.improving.organizationcontext.{
 import app.improving.organizationcontext.organization._
 object util {
 
-  def convertApiUpdateInfoToInfo(
-      updateInfo: ApiUpdateInfo
-  ): Info = {
-    Info(
-      updateInfo.name,
-      updateInfo.shortName,
-      updateInfo.address.map(convertApiAddressToAddress(_)),
-      updateInfo.isPrivate,
-      updateInfo.url,
-      updateInfo.logo,
-      updateInfo.tenant.map(tenant => TenantId(tenant.tenantId))
-    )
+  // private def
+
+  def convertApiMemberIdToMemberId(memberId: ApiMemberId) = MemberId(
+    memberId.memberId
+  )
+
+  def buildNewInfoFromApiUpdateInfo(
+      updateInfo: ApiUpdateInfo,
+      currentInfo: Option[Info]
+  ): Option[Info] = {
+
+    currentInfo.map(info => {
+      Info(
+        name = updateInfo.name.getOrElse(info.name),
+        shortName =
+          if (updateInfo.shortName.isDefined) updateInfo.shortName
+          else info.shortName,
+        address =
+          if (updateInfo.address.isDefined)
+            updateInfo.address
+              .map(convertApiAddressToAddress)
+          else currentInfo.flatMap(_.address),
+        isPrivate = updateInfo.isPrivate.getOrElse(info.isPrivate),
+        url =
+          if (updateInfo.url.isDefined) updateInfo.url.orElse(info.url)
+          else info.url,
+        logo = if (updateInfo.logo.isDefined) updateInfo.logo else info.logo,
+        tenant =
+          if (updateInfo.tenant.isDefined)
+            updateInfo.tenant
+              .map(tenant => TenantId(tenant.tenantId))
+          else info.tenant
+      )
+    })
+
   }
 
   def convertApiInfoToInfo(apiInfo: ApiInfo): Info = {
     Info(
       apiInfo.name,
       apiInfo.shortName,
-      apiInfo.address.map(convertApiAddressToAddress(_)),
-      apiInfo.isPrivate,
+      apiInfo.address.map(convertApiAddressToAddress),
+      apiInfo.isPrivate.getOrElse(true),
       apiInfo.url,
       apiInfo.logo,
       apiInfo.tenant.map(tenant => TenantId(tenant.tenantId))
@@ -64,7 +87,7 @@ object util {
       info.address.map(addr => {
         convertAddressToApiAddress(addr)
       }),
-      info.isPrivate,
+      Some(info.isPrivate),
       info.url,
       info.logo,
       info.tenant.map(tenant => ApiTenantId(tenant.id))

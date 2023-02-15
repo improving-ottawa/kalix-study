@@ -20,7 +20,7 @@ object TestData {
     Some(
       ApiInfo(
         "name-test",
-        "shortname-test",
+        Some("shortname-test"),
         Some(
           ApiAddress(
             "line1",
@@ -33,9 +33,9 @@ object TestData {
             )
           )
         ),
-        true,
-        "www.test.com",
-        "N/A",
+        Some(true),
+        Some("www.test.com"),
+        Some("N/A"),
         Some(ApiTenantId(testTenantId))
       )
     ),
@@ -50,17 +50,9 @@ object TestData {
       ApiMemberId("member11"),
       ApiMemberId("member12")
     ),
-    Seq.empty,
-    Some(ApiMemberId(establishingMemberId)),
-    Some(
-      ApiMetaInfo(
-        Some(timestamp),
-        Some(ApiMemberId(establishingMemberId)),
-        Some(timestamp),
-        Some(ApiMemberId(establishingMemberId)),
-        ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-        Seq.empty[ApiOrganizationId]
-      )
-    )
+    Seq[ApiContacts](
+      ApiContacts(primaryContacts = Seq(ApiMemberId("member81")))
+    ),
+    Some(ApiMemberId(establishingMemberId))
   )
 }
