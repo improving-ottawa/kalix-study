@@ -3,16 +3,7 @@ package app.improving.storecontext.store
 import TestData._
 import app.improving.storecontext.infrastructure.util._
 import app.improving.{ApiMemberId, MemberId, ProductId}
-import app.improving.storecontext.{
-  ProductsAddedToStore,
-  ProductsRemovedFromStore,
-  StoreClosed,
-  StoreCreated,
-  StoreDeleted,
-  StoreOpened,
-  StoreStatus,
-  StoreUpdated
-}
+import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreOpened, StoreStatus, StoreUpdated}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -71,7 +62,15 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       storeUpdated.info shouldBe Some(
         convertApiStoreInfoToStoreInfo(
-          apiStoreInfoUpdate
+          apiStoreInfo.copy(
+            name = testNameUpdate,
+            description = testDescriptionUpdate,
+            products = testProductsUpdate,
+            event = Some(testEventUpdate),
+            venue = Some(testVenueUpdate),
+            location = Some(testLocaltionUpdate),
+            sponsoringOrg = Some(testOrgUpdate)
+          )
         )
       )
       storeUpdated.meta.flatMap(_.lastModifiedBy) shouldBe Some(
@@ -121,6 +120,45 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
     }
 
+    "correctly process commands of type MakeStoreReady" in {
+      val testKit = StoreAPITestKit(new StoreAPI(_))
+      val createStoreResult =
+        testKit.createStore(apiCreateStore)
+
+      createStoreResult.events should have size 1
+
+      val storeCreated =
+        createStoreResult.nextEvent[StoreCreated]
+
+      storeCreated.storeId.isDefined shouldBe true
+      storeCreated.meta.map(_.status) shouldBe Some(StoreStatus.DRAFT)
+
+      val nullApiOpenStore = ApiOpenStore(
+        "other-id",
+        Some(ApiMemberId(testMember2))
+      )
+
+      val nullApiOpenStoreResult = testKit.openStore(nullApiOpenStore)
+
+      nullApiOpenStoreResult.events should have size 0
+      val storeId = testKit.currentState.store
+        .flatMap(_.storeId)
+        .map(_.id)
+        .getOrElse("StoreId is not found.")
+      val apiMakeStoreReady = ApiReadyStore(
+        storeId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiMakeStoreReadyResult = testKit.makeStoreReady(apiMakeStoreReady)
+
+      apiMakeStoreReadyResult.events should have size 1
+
+      val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
+
+      storeMadeReady.meta.map(_.status) shouldBe Some(StoreStatus.READY)
+    }
+
     "correctly process commands of type OpenStore" in {
       val testKit = StoreAPITestKit(new StoreAPI(_))
       val createStoreResult =
@@ -146,6 +184,19 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .flatMap(_.storeId)
         .map(_.id)
         .getOrElse("StoreId is not found.")
+      val apiMakeStoreReady = ApiReadyStore(
+        storeId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiMakeStoreReadyResult = testKit.makeStoreReady(apiMakeStoreReady)
+
+      apiMakeStoreReadyResult.events should have size 1
+
+      val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
+
+      storeMadeReady.meta.map(_.status) shouldBe Some(StoreStatus.READY)
+
       val apiOpenStore = ApiOpenStore(
         storeId,
         Some(ApiMemberId(testMember2))
@@ -188,6 +239,19 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .flatMap(_.storeId)
         .map(_.id)
         .getOrElse("StoreId is not found.")
+      val apiMakeStoreReady = ApiReadyStore(
+        storeId,
+        Some(ApiMemberId(testMember2))
+      )
+
+      val apiMakeStoreReadyResult = testKit.makeStoreReady(apiMakeStoreReady)
+
+      apiMakeStoreReadyResult.events should have size 1
+
+      val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
+
+      storeMadeReady.meta.map(_.status) shouldBe Some(StoreStatus.READY)
+
       val apiOpenStore = ApiOpenStore(
         storeId,
         Some(ApiMemberId(testMember2))

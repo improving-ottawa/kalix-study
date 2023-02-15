@@ -38,14 +38,13 @@ message ApiStoreMetaInfo {
 }
 
 message ApiStoreUpdateInfo {
-    string store_id = 1 [(kalix.field).entity_key = true];
-    string  name = 2;
-    string  description = 3;
-    repeated ProductId products = 4;
-    ApiEventId  event = 5;
-    ApiVenueId venue = 6;
-    ApiLocationId location = 7;
-    ApiOrganizationId sponsoringOrg = 8;
+    optional string name = 1;
+    optional string description = 2;
+    repeated ApiProductId products = 3;
+    optional ApiEventId event = 4;
+    optional ApiVenueId venue = 5;
+    optional ApiLocationId location = 6;
+    optional ApiOrganizationId sponsoringOrg = 7;
 }
 
 message ApiStore {
@@ -62,12 +61,16 @@ message ApiCreateStore {
 }
 message ApiUpdateStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    ApiStoreInfo info = 2;
+    ApiStoreUpdateInfo info = 2;
     ApiStoreMetaInfo meta = 3;
 }
 message ApiDeleteStore {
     string store_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId deletingMember = 3;
+}
+message ApiReadyStore {
+    string store_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId readyingMember = 3;
 }
 message ApiOpenStore {
     string store_id = 1 [(kalix.field).entity_key = true];

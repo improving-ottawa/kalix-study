@@ -4,7 +4,7 @@ import app.improving.{ApiAddress, ApiContact, ApiEmailAddress, ApiEventId, ApiGe
 import app.improving.membercontext.member.{ApiInfo, ApiMemberIds, ApiMemberMap, ApiMemberStatus, ApiNotificationPreference, ApiRegisterMember, ApiRegisterMemberList, ApiUpdateMemberStatus, MemberActionService, MemberService}
 import app.improving.eventcontext.event.{ApiEventInfo, ApiGetEventById, ApiReservationId, ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{ApiContacts, ApiEstablishOrganization, ApiMetaInfo, ApiOrganizationStatus, ApiOrganizationStatusUpdated, ApiParent, OrganizationService}
-import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiUpdateStore, StoreService}
+import app.improving.storecontext.store.{ApiCreateStore, ApiStoreInfo, ApiStoreUpdateInfo, ApiUpdateStore, StoreService}
 import app.improving.productcontext.product.{ApiCreateProduct, ApiProductInfo, ProductService}
 import app.improving.tenantcontext.tenant.{ApiActivateTenant, ApiEstablishTenant, TenantService}
 import app.improving.gateway.util.util.{genAddress, genContact, genEmailAddressForName, genMobileNumber}
@@ -405,8 +405,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     ApiUpdateStore(
                       storeId,
                       Some(
-                        ApiStoreInfo(
-                          storeId = storeId,
+                        ApiStoreUpdateInfo(
                           products = products.skus,
                           event = Some(ApiEventId(event.eventId)),
                           venue = Some(ApiVenueId("test-venue-id")),

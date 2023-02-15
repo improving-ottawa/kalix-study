@@ -26,14 +26,13 @@ message StoreInfo {
 }
 
 message StoreUpdateInfo {
-    string storeId = 1;
-    string  name = 2;
-    string  description = 3;
-    repeated ProductId products = 4;
-    EventId  event = 5;
-    VenueId venue = 6;
-    LocationId location = 7;
-    OrganizationId sponsoringOrg = 8;
+    optional string  name = 1;
+    optional string description = 2;
+    repeated ProductId products = 3;
+    optional EventId event = 4;
+    optional VenueId venue = 5;
+    optional LocationId location = 6;
+    optional OrganizationId sponsoringOrg = 7;
 }
 
 message StoreMetaInfo {
@@ -57,6 +56,11 @@ message StoreUpdated {
 message StoreDeleted {
     StoreId storeId = 1;
     StoreMetaInfo meta = 2;
+}
+message StoreMadeReady {
+    StoreId storeId = 1;
+    StoreInfo info = 2;
+    StoreMetaInfo meta = 3;
 }
 message StoreOpened {
     StoreId storeId = 1;

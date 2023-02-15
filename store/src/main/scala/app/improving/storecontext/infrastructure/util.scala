@@ -1,26 +1,8 @@
 package app.improving.storecontext.infrastructure
 
-import app.improving.{
-  ApiEventId,
-  ApiLocationId,
-  ApiMemberId,
-  ApiOrganizationId,
-  ApiProductId,
-  ApiVenueId,
-  EventId,
-  LocationId,
-  MemberId,
-  OrganizationId,
-  ProductId,
-  StoreId,
-  VenueId
-}
-import app.improving.storecontext.{StoreInfo, StoreMetaInfo, StoreStatus}
-import app.improving.storecontext.store.{
-  ApiStoreInfo,
-  ApiStoreMetaInfo,
-  ApiStoreStatus
-}
+import app.improving.{ApiEventId, ApiLocationId, ApiMemberId, ApiOrganizationId, ApiProductId, ApiVenueId, EventId, LocationId, MemberId, OrganizationId, ProductId, StoreId, VenueId}
+import app.improving.storecontext.{StoreInfo, StoreMetaInfo, StoreStatus, StoreUpdateInfo}
+import app.improving.storecontext.store.{ApiStoreInfo, ApiStoreMetaInfo, ApiStoreStatus, ApiStoreUpdateInfo}
 
 object util {
 
@@ -34,6 +16,18 @@ object util {
       apiStoreInfo.venue.map(venue => VenueId(venue.venueId)),
       apiStoreInfo.location.map(location => LocationId(location.locationId)),
       apiStoreInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId))
+    )
+  }
+
+  def convertApiStoreUpdateInfoToStoreUpdateInfo(apiStoreUpdateInfo: ApiStoreUpdateInfo): StoreUpdateInfo = {
+    StoreUpdateInfo(
+      name = apiStoreUpdateInfo.name,
+      description = apiStoreUpdateInfo.description,
+      products = apiStoreUpdateInfo.products.map(product => ProductId(product.productId)),
+      event = apiStoreUpdateInfo.event.map(event => EventId(event.eventId)),
+      venue = apiStoreUpdateInfo.venue.map(venue => VenueId(venue.venueId)),
+      location = apiStoreUpdateInfo.location.map(location => LocationId(location.locationId)),
+      sponsoringOrg = apiStoreUpdateInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId))
     )
   }
 
