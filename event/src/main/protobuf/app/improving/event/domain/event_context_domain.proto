@@ -21,7 +21,7 @@ message ReservationId {
 
 message EventCancelled {
     EventId eventId = 1;
-    MemberId cancellingMember = 2;
+    EventMetaInfo meta = 2;
 }
 
 message EventDelayed {
@@ -42,7 +42,6 @@ message EventInfo {
     string eventURL = 3; // URL type?
     OrganizationId sponsoringOrg = 4;
     GeoLocation geoLocation = 5;
-    ReservationId reservation = 6;
     google.protobuf.Timestamp expectedStart = 7;
     google.protobuf.Timestamp expectedEnd = 8;
     bool isPrivate = 9;
@@ -84,11 +83,16 @@ message EventScheduled {
 
 message EventStarted {
     EventId  eventId = 1;
-    EventInfo info = 2;
-    EventMetaInfo meta = 3;
+    EventMetaInfo meta = 2;
 }
 
 message LiveUpdate {
     string from = 1;
     string to = 2;
+}
+
+message ReservationAddedToEvent {
+    EventId eventId = 1;
+    ReservationId reservation = 2;
+    EventMetaInfo meta = 3;
 }

@@ -23,11 +23,11 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     if (state != emptyState) effects.ignore()
     else
       effects.updateState(
-        ApiEvent(
-          eventInfoChanged.eventId.map(_.id).getOrElse("EventId is NOT FOUND."),
-          eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
-          eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-          ApiEventStatus.SCHEDULED
+        state.copy(
+          info = eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
+          meta =
+            eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          status = ApiEventStatus.SCHEDULED
         )
       )
   }
@@ -36,7 +36,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       eventScheduled: EventScheduled
   ): UpdateEffect[ApiEvent] = {
     effects.updateState(
-      state.copy(
+      ApiEvent(
         info = eventScheduled.info.map(convertEventInfoToApiEventInfo),
         meta = eventScheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.SCHEDULED
@@ -48,19 +48,9 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state: ApiEvent,
       eventCancelled: EventCancelled
   ): UpdateEffect[ApiEvent] = {
-    val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-    val metaOpt = state.meta.map(meta =>
-      meta.copy(
-        status = ApiEventStatus.CANCELLED,
-        lastModifiedOn = Some(timestamp),
-        lastModifiedBy =
-          eventCancelled.cancellingMember.map(member => ApiMemberId(member.id))
-      )
-    )
     effects.updateState(
       state.copy(
-        meta = metaOpt,
+        meta = eventCancelled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.CANCELLED
       )
     )
@@ -123,7 +113,6 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
     effects.updateState(
       state.copy(
-        info = eventStarted.info.map(convertEventInfoToApiEventInfo),
         meta = eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.INPROGRESS
       )
@@ -138,6 +127,22 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state.copy(
         meta = eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.PAST
+      )
+    )
+  }
+
+  override def processReservationAddedToEvent(
+      state: ApiEvent,
+      reservationAddedToEvent: ReservationAddedToEvent
+  ): UpdateEffect[ApiEvent] = {
+    effects.updateState(
+      state.copy(
+        meta = reservationAddedToEvent.meta.map(
+          convertEventMetaInfoToApiEventMetaInfo
+        ),
+        reservation = reservationAddedToEvent.reservation.map(
+          convertReservationIdToApiReservationId
+        )
       )
     )
   }

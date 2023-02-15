@@ -151,7 +151,6 @@ object TestData {
       "www.nowhere.com",
       Some(ApiOrganizationId("test-organization-id")),
       Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-      Some(ApiReservationId("reserve-1")),
       Some(start),
       Some(end),
       false
@@ -162,7 +161,6 @@ object TestData {
       "www.nowhere.com",
       Some(ApiOrganizationId("test-organization-id")),
       Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-      Some(ApiReservationId("reserve-1")),
       Some(start),
       Some(end),
       true

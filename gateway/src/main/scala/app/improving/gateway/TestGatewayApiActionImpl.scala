@@ -569,7 +569,6 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             Some(
               ApiGeoLocation(r.nextDouble(), r.nextDouble(), r.nextDouble())
             ),
-            Some(ApiReservationId(r.nextString(15))),
             Some(timestamp),
             Some(
               Timestamp.of(

@@ -19,10 +19,11 @@ service AllEventsView {
         view: {}
     };
 
+    option (kalix.service).eventing.in = {
+        event_sourced_entity: "events"
+    };
+
     rpc ProcessEventInfoChanged(EventInfoChanged) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
-        };
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -30,9 +31,6 @@ service AllEventsView {
     }
 
     rpc ProcessEventScheduled(EventScheduled) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
-        };
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -40,9 +38,6 @@ service AllEventsView {
     }
 
     rpc ProcessEventCancelled(EventCancelled) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
-        };
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -50,9 +45,13 @@ service AllEventsView {
     }
 
     rpc ProcessEventRescheduled(EventRescheduled) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
         };
+    }
+
+    rpc ProcessReservationAddedToEvent(ReservationAddedToEvent) returns (event.ApiEvent) {
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -60,9 +59,6 @@ service AllEventsView {
     }
 
     rpc ProcessEventDelayed(EventDelayed) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
-        };
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -70,9 +66,6 @@ service AllEventsView {
     }
 
     rpc ProcessEventStarted(EventStarted) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
-        };
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -80,9 +73,6 @@ service AllEventsView {
     }
 
     rpc ProcessEventEnded(EventEnded) returns (event.ApiEvent) {
-        option (kalix.method).eventing.in = {
-            event_sourced_entity: "events"
-        };
         option (kalix.method).view.update = {
             table: "all_events"
             transform_updates: true
@@ -91,7 +81,7 @@ service AllEventsView {
 
     rpc GetAllEvents(AllEventsRequest) returns (AllEventsResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * AS events FROM all_events "
+            query: "SELECT * AS events FROM all_events"
         };
     }
 }

@@ -5,6 +5,7 @@ import app.improving.{
   ApiMemberId,
   ApiOrganizationId,
   GeoLocation,
+  MemberId,
   OrganizationId
 }
 import app.improving.eventcontext.event._
@@ -19,6 +20,35 @@ import app.improving.eventcontext.{
 
 object util {
 
+  def buildEventInfoFromUpdateInfo(
+      eventInfo: EventInfo,
+      updatingInfo: ApiEventUpdateInfo
+  ): EventInfo = {
+    EventInfo(
+      eventName = updatingInfo.eventName
+        .filter(_.nonEmpty)
+        .getOrElse(eventInfo.eventName),
+      description = updatingInfo.description
+        .filter(_.nonEmpty)
+        .getOrElse(eventInfo.description),
+      eventURL = updatingInfo.eventURL
+        .filter(_.nonEmpty)
+        .getOrElse(eventInfo.eventURL),
+      sponsoringOrg = updatingInfo.sponsoringOrg
+        .map(org => OrganizationId(org.organizationId))
+        .orElse(eventInfo.sponsoringOrg),
+      geoLocation = updatingInfo.geoLocation
+        .map(location =>
+          GeoLocation(location.latitude, location.longitude, location.elevation)
+        )
+        .orElse(eventInfo.geoLocation),
+      expectedStart =
+        updatingInfo.expectedStart.orElse(eventInfo.expectedStart),
+      expectedEnd = updatingInfo.expectedEnd.orElse(eventInfo.expectedEnd),
+      updatingInfo.isPrivate.getOrElse(eventInfo.isPrivate)
+    )
+  }
+
   def convertApiEventInfoToEventInfo(
       apiEventInfo: ApiEventInfo
   ): EventInfo = {
@@ -29,9 +59,6 @@ object util {
       apiEventInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId)),
       apiEventInfo.geoLocation.map(location =>
         GeoLocation(location.latitude, location.longitude, location.elevation)
-      ),
-      apiEventInfo.reservation.map(reservation =>
-        ReservationId(reservation.reservationId)
       ),
       apiEventInfo.expectedStart,
       apiEventInfo.expectedEnd,
@@ -51,9 +78,6 @@ object util {
           location.longitude,
           location.elevation
         )
-      ),
-      eventInfo.reservation.map(reservation =>
-        ApiReservationId(reservation.id)
       ),
       eventInfo.expectedStart,
       eventInfo.expectedEnd,
@@ -88,36 +112,24 @@ object util {
   def convertEventToApiEvent(event: Event): ApiEvent = {
     ApiEvent(
       event.eventId.map(_.id).getOrElse("Event ID Not Found!"),
-      event.info.map(info => convertEventInfoToApiEventInfo(info)),
-      event.meta.map(meta => convertEventMetaInfoToApiEventMetaInfo(meta)),
+      event.info.map(convertEventInfoToApiEventInfo),
+      event.reservation.map(convertReservationIdToApiReservationId),
+      event.meta.map(convertEventMetaInfoToApiEventMetaInfo),
       convertEventStatusToApiEventStatus(event.status)
     )
   }
 
-  def convertEventScheduledToApiEvent(
-      eventScheduled: EventScheduled
-  ): ApiEvent = {
-    ApiEvent(
-      eventScheduled.eventId.map(_.id).getOrElse("Event ID Not Found!"),
-      eventScheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
-      eventScheduled.meta.map(meta =>
-        convertEventMetaInfoToApiEventMetaInfo(meta)
-      ),
-      ApiEventStatus.SCHEDULED
-    )
+  def convertApiMemberIdToMemberId(apiMemberId: ApiMemberId): MemberId =
+    MemberId(apiMemberId.memberId)
+
+  def convertApiReservationIdToReservationId(
+      apiReservationId: ApiReservationId
+  ): ReservationId = {
+    ReservationId(apiReservationId.reservationId)
   }
 
-  def convertEventReScheduledToApiEvent(
-      eventRescheduled: EventRescheduled
-  ): ApiEvent = {
-    ApiEvent(
-      eventRescheduled.eventId.map(_.id).getOrElse("Event ID Not Found!"),
-      eventRescheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
-      eventRescheduled.meta.map(meta =>
-        convertEventMetaInfoToApiEventMetaInfo(meta)
-      ),
-      ApiEventStatus.SCHEDULED
-    )
-  }
+  def convertReservationIdToApiReservationId(
+                                            reservationId: ReservationId
+                                            ): ApiReservationId = ApiReservationId(reservationId.id)
 
 }
