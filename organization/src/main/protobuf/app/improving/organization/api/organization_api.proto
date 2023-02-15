@@ -66,11 +66,11 @@ message ApiContacts {
 message ApiUpdateInfo {
     optional string name = 1;
     optional string shortName = 2;
-    ApiAddress address = 3;
+    optional ApiAddress address = 3;
     optional bool isPrivate = 4;
     optional string url = 5; // URL type?
     optional string logo = 6; // URL type?
-    ApiTenantId tenant = 7;
+    optional ApiTenantId tenant = 7;
 }
 
 message ApiUpdateParent {

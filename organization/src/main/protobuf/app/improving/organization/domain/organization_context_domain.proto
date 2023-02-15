@@ -65,6 +65,7 @@ message UpdateInfo {
     optional bool isPrivate = 4;
     optional string url = 5; // URL type?
     optional string logo = 6; // URL type?
+    optional TenantId tenant_id = 7;
 }
 
 message FindOrganizationsByMember {
