@@ -33,11 +33,6 @@ message OrderInfoUpdate {
     optional string special_instructions = 2;
 }
 
-message OrderInfoUpdate {
-    repeated LineItem lineItems = 1;
-    optional string specialInstructions = 2;
-}
-
 message OrderMetaInfo  {
     MemberId member_id = 2;
     StoreId store_id = 3;
