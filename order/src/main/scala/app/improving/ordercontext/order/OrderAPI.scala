@@ -37,7 +37,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
           .map(convertApiOrderInfoToOrderInfo)
           .map(calculateOrderTotal)
         val event = OrderCreated(
-          orderIdOpt.map(id => OrderId(id.orderId)),
+          Some(OrderId(orderIdOpt)),
           orderInfoOpt,
           Some(
             OrderMetaInfo(
@@ -52,11 +52,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         )
         effects
           .emitEvent(event)
-          .thenReply(_ =>
-            orderId
-              .map(id => ApiOrderId(id.orderId))
-              .getOrElse(ApiOrderId.defaultInstance)
-          )
+          .thenReply(_ => ApiOrderId(orderId))
     }
 
   override def updateOrderStatus(
@@ -106,12 +102,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
     currentState.order match {
       case Some(order)
           if order.info.isDefined &&
-            (order.status.isOrderStatusDraft || order.status.isOrderStatusPending) &&
-            order.orderId.contains(
-              apiUpdateOrderInfo.orderId
-                .map(id => OrderId(id.orderId))
-                .getOrElse(ApiOrderId.defaultInstance)
-            ) =>
+            (order.status.isOrderStatusDraft || order.status.isOrderStatusPending) =>
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val orderInfoUpdateOpt = apiUpdateOrderInfo.update
@@ -190,14 +181,9 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       apiGetOrderInfo: ApiGetOrderInfo
   ): EventSourcedEntity.Effect[ApiOrderInfoResult] =
     currentState.order match {
-      case Some(order)
-          if order.orderId.contains(
-            apiGetOrderInfo.orderId
-              .map(id => OrderId(id.orderId))
-              .getOrElse(OrderId.defaultInstance)
-          ) =>
+      case Some(order) =>
         val result = ApiOrderInfoResult(
-          apiGetOrderInfo.orderId.map(id => ApiOrderId(id.orderId)),
+          Some(ApiOrderId(apiGetOrderInfo.orderId)),
           order.info.map(convertOrderInfoToApiOrderInfo)
         )
         effects.reply(result)

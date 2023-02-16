@@ -42,21 +42,20 @@ message ApiProductDetails {
 }
 
 message ApiProduct {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfo info = 2;
     ApiProductMetaInfo meta = 3;
     ApiProductStatus status = 4;
 }
 
 message ApiProductInfo {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
-    string name = 2;
-    string description = 3;
-    ApiProductDetails product_details = 4;
-    repeated string image = 5;
-    double price = 6;
-    double cost = 7;
-    ApiStoreId store = 8;
+    string name = 1;
+    string description = 2;
+    ApiProductDetails product_details = 3;
+    repeated string image = 4;
+    double price = 5;
+    double cost = 6;
+    ApiStoreId store = 7;
 }
 
 message ApiProductInfoUpdate {
@@ -77,36 +76,36 @@ message ApiProductMetaInfo {
 }
 
 message ApiCreateProduct {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfo info = 2;
     ApiProductMetaInfo meta = 3;
 }
 message ApiUpdateProductInfo {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfoUpdate info = 2;
     ApiMemberId updating_member = 3;
 }
 message ApiDeleteProduct {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId deleting_member = 2;
 }
 message ApiReleaseProduct {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }
 message ApiActivateProduct {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId activating_member = 2;
 }
 message ApiInactivateProduct {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId inactivating_member = 2;
 }
 message ApiGetProductInfo {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
 }
 message ApiProductInfoResult {
-    ApiProductId sku = 1 [(kalix.field).entity_key = true];
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfo info = 2;
 }
 
@@ -115,5 +114,5 @@ message ApiGetTicketsForEvent {
 }
 message ApiTicketsForEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
-    repeated ProductId tickets  = 2;
+    repeated Sku tickets  = 2;
 }

@@ -1,6 +1,5 @@
 package app.improving.tenantcontext.tenant
 
-import app.improving._
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures

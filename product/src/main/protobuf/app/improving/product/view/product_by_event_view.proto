@@ -12,14 +12,14 @@ message TicketByEventRequest {
 }
 
 message TicketByEventResponse {
-    ProductId sku = 1;
+    Sku sku = 1;
     ProductInfo info = 2;
     ProductMetaInfo meta = 3;
     string status = 4;
 }
 
 message TicketEventCorrTableRow {
-    ProductId sku = 1;
+    Sku sku = 1;
     ProductInfo info = 2;
     ProductMetaInfo meta = 3;
     string status = 4;

@@ -20,7 +20,7 @@ message ApiOrder {
 }
 
 message ApiLineItem {
-    ApiProductId product = 1;
+    ApiSku product = 1;
     int32     quantity = 2;
     double    line_total = 3;
 }

@@ -72,7 +72,7 @@ message StoreId {
     string id = 1;
 }
 
-message ProductId {
+message Sku {
     string id = 1;
 }
 

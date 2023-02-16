@@ -17,7 +17,7 @@ enum OrderStatus {
 }
 
 message LineItem {
-        ProductId product = 1;
+        Sku product = 1;
         int32     quantity = 2;
         double    line_total = 3;
 }

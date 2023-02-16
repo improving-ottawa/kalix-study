@@ -214,7 +214,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val storeMadeReady = apiMakeStoreReadyResult.nextEvent[StoreMadeReady]
 
       storeMadeReady.meta.map(_.status) shouldBe Some(
-        StoreStatus.STORE_STATUS_RELEASED
+        StoreStatus.STORE_STATUS_READY
       )
 
       val apiOpenStore = ApiOpenStore(

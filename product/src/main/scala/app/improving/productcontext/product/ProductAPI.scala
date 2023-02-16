@@ -1,7 +1,7 @@
 package app.improving.productcontext.product
 
 import app.improving.productcontext.infrastructure.util._
-import app.improving.{ApiProductId, MemberId, ProductId}
+import app.improving.{ApiSku, MemberId, Sku}
 import app.improving.productcontext.{
   ProductActivated,
   ProductCreated,
@@ -29,15 +29,15 @@ class ProductAPI(context: EventSourcedEntityContext)
   override def createProduct(
       currentState: ProductState,
       apiCreateProduct: ApiCreateProduct
-  ): EventSourcedEntity.Effect[ApiProductId] = {
-    if (apiCreateProduct.sku.isDefined) {
-      val productId = apiCreateProduct.sku.map(id => ProductId(id.productId))
+  ): EventSourcedEntity.Effect[ApiSku] = {
+    if (apiCreateProduct.sku != ApiSku.defaultInstance.sku) {
+      val productId = Sku(apiCreateProduct.sku)
       currentState.product match {
         case Some(_) =>
           effects.error(s"Product is already created with id $productId")
         case _ =>
           val event = ProductCreated(
-            productId,
+            Some(productId),
             apiCreateProduct.info.map(convertApiProductInfoToProductInfo),
             apiCreateProduct.meta.map(
               convertApiProductMetaInfoToProductMetaInfo
@@ -45,9 +45,7 @@ class ProductAPI(context: EventSourcedEntityContext)
           )
           effects
             .emitEvent(event)
-            .thenReply(_ =>
-              apiCreateProduct.sku.getOrElse(ApiProductId.defaultInstance)
-            )
+            .thenReply(_ => ApiSku(apiCreateProduct.sku))
       }
     } else effects.error("CreateProduct request provides None for ProductId")
   }
@@ -71,6 +69,9 @@ class ProductAPI(context: EventSourcedEntityContext)
               description = productInfoUpdate.description.getOrElse(
                 productInfo.description
               ),
+              productDetails = productInfoUpdate.productDetails.orElse(
+                productInfo.productDetails
+              ),
               image =
                 if (productInfoUpdate.image.nonEmpty) productInfoUpdate.image
                 else productInfo.image,
@@ -83,7 +84,7 @@ class ProductAPI(context: EventSourcedEntityContext)
           }
         })
         val event = ProductInfoUpdated(
-          apiUpdateProductInfo.sku.map(id => ProductId(id.productId)),
+          Some(Sku(apiUpdateProductInfo.sku)),
           updatedProductInfo,
           product.meta.map(
             _.copy(
@@ -274,7 +275,7 @@ class ProductAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = effects
     .emitEvent(
       ProductReleased(
-        apiReleaseProduct.sku.map(apiSku => ProductId(apiSku.productId)),
+        Some(Sku(apiReleaseProduct.sku)),
         apiReleaseProduct.releasingMember.map(apiId => MemberId(apiId.memberId))
       )
     )

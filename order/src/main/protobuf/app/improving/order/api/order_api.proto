@@ -18,14 +18,14 @@ enum ApiOrderStatus {
 }
 
 message ApiOrder {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiOrderMetaInfo meta = 3;
     ApiOrderStatus status = 4;
 }
 
 message ApiLineItem {
-    ApiProductId product = 1;
+    ApiSku product = 1;
     int32     quantity = 2;
     double    line_total = 3;
 }
@@ -49,28 +49,28 @@ message ApiOrderInfoUpdate {
         optional string special_instructions = 3;
 }
 message ApiCreateOrder {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiMemberId creating_member = 3;
     ApiStoreId store_id = 4;
 }
 
 message ApiUpdateOrderStatus {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderStatus new_status = 2;
     ApiMemberId updating_member = 3;
 }
 message ApiUpdateOrderInfo {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfoUpdate update = 2;
     ApiMemberId updating_member = 3;
 }
 message ApiCancelOrder {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId cancelling_member = 2;
 }
 message ApiGetOrderInfo {
-    ApiOrderId order_id = 1 [(kalix.field).entity_key = true];
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId requesting_member = 2;
 }
 message ApiOrderInfoResult {

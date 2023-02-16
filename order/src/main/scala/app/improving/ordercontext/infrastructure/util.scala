@@ -24,7 +24,7 @@ object util {
 
   def convertApiLineItemToLineItem(apiLineItem: ApiLineItem): LineItem = {
     LineItem(
-      apiLineItem.product.map(product => ProductId(product.productId)),
+      apiLineItem.product.map(product => Sku(product.sku)),
       apiLineItem.quantity,
       apiLineItem.lineTotal
     )
@@ -32,7 +32,7 @@ object util {
 
   def convertLineItemToApiLineItem(lineItem: LineItem): ApiLineItem = {
     ApiLineItem(
-      lineItem.product.map(product => ApiProductId(product.id)),
+      lineItem.product.map(product => ApiSku(product.id)),
       lineItem.quantity,
       lineItem.lineTotal
     )
@@ -116,7 +116,8 @@ object util {
   def convertOrderCreatedToApiOrder(orderCreated: OrderCreated): ApiOrder = {
     ApiOrder(
       orderCreated.orderId
-        .map(id => ApiOrderId(id.id)),
+        .getOrElse(OrderId.defaultInstance)
+        .id,
       orderCreated.info.map(convertOrderInfoToApiOrderInfo),
       orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
       ApiOrderStatus.API_ORDER_STATUS_DRAFT
@@ -127,7 +128,7 @@ object util {
       orderInfoUpdated: OrderInfoUpdated
   ): ApiOrder = {
     ApiOrder(
-      orderInfoUpdated.orderId.map(id => ApiOrderId(id.id)),
+      orderInfoUpdated.orderId.getOrElse(OrderId.defaultInstance).id,
       orderInfoUpdated.info.map(convertOrderInfoToApiOrderInfo),
       orderInfoUpdated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
       orderInfoUpdated.meta
@@ -140,7 +141,7 @@ object util {
       orderCanceled: OrderCanceled
   ): ApiOrder = {
     ApiOrder(
-      orderCanceled.orderId.map(id => ApiOrderId(id.id)),
+      orderCanceled.orderId.getOrElse(OrderId.defaultInstance).id,
       orderCanceled.info.map(convertOrderInfoToApiOrderInfo),
       orderCanceled.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
       ApiOrderStatus.API_ORDER_STATUS_CANCELLED

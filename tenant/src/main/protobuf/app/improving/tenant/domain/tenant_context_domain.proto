@@ -6,55 +6,55 @@ import "google/protobuf/timestamp.proto";
 package app.improving.tenantcontext;
 
 enum TenantStatus {
-    DRAFT = 0;
-    ACTIVE = 1;
-    SUSPENDED = 2;
+    TENANT_STATUS_DRAFT = 0;
+    TENANT_STATUS_ACTIVE = 1;
+    TENANT_STATUS_SUSPENDED = 2;
 }
 
 message Info {
     string name = 1;
-    Contact primaryContact = 2;
+    Contact primary_contact = 2;
     Address address = 3;
 }
 
 message MetaInfo {
-    google.protobuf.Timestamp createdOn = 1;
-    Contact createdBy = 2;
-    google.protobuf.Timestamp lastUpdated = 3;
-    MemberId lastUpdatedBy = 4;
-    TenantStatus currentStatus = 5;
+    google.protobuf.Timestamp created_on = 1;
+    Contact created_by = 2;
+    google.protobuf.Timestamp last_updated = 3;
+    MemberId last_updated_by = 4;
+    TenantStatus current_status = 5;
 }
 
 message PrimaryContactUpdated {
-    TenantId tenantId = 1;
-    Contact oldContact = 2;
-    Contact newContact = 3;
+    TenantId tenant_id = 1;
+    Contact old_contact = 2;
+    Contact new_contact = 3;
     MetaInfo meta = 4;
 }
 
 message TenantActivated {
-    TenantId tenantId = 1;
+    TenantId tenant_id = 1;
     string name = 2;
     MetaInfo meta = 3;
 }
 
 message TenantEstablished {
-    TenantId tenantId = 1;
+    TenantId tenant_id = 1;
     Info info = 2;
     MetaInfo meta = 3;
     string name = 4;
-    Contact primaryContact = 5;
+    Contact primary_contact = 5;
 }
 
 message TenantNameChanged {
-    TenantId tenantId = 1;
-    string oldName = 2;
-    string newName = 3;
+    TenantId tenant_id = 1;
+    string old_name = 2;
+    string new_name = 3;
     MetaInfo meta = 4;
 }
 
 message TenantSuspended {
-    TenantId tenantId = 1;
+    TenantId tenant_id = 1;
     string name = 2;
     MetaInfo meta = 3;
 }

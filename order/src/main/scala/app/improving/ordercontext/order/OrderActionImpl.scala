@@ -1,8 +1,11 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiEventId, ApiOrderId}
+import app.improving.{ApiOrderId, ApiSku}
 import app.improving.eventcontext.event.{ApiGetEventById, EventService}
-import app.improving.organizationcontext.organization.{ApiGetOrganizationById, OrganizationService}
+import app.improving.organizationcontext.organization.{
+  ApiGetOrganizationById,
+  OrganizationService
+}
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.productcontext.product.{ApiGetProductInfo, ProductService}
 import kalix.scalasdk.action.Action
@@ -36,9 +39,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
   override def purchaseTicket(
       order: ApiCreateOrder
   ): Action.Effect[ApiOrderId] = {
-
-    log.info(s"in purchaseTicket - ${order} : ApiCreateOrder")
-
+    log.info(s"in purchaseTicket - $order : ApiCreateOrder")
     val event =
       creationContext.getGrpcClient(classOf[EventService], "kalix-study-event")
     val product =
@@ -61,15 +62,17 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       val eventIdFut =
         (for {
           apiProductInfo <- product
-            .getProductInfo(ApiGetProductInfo(sku))
+            .getProductInfo(
+              ApiGetProductInfo(sku.getOrElse(ApiSku.defaultInstance).sku)
+            )
         } yield apiProductInfo.info
           .flatMap(
             _.productDetails.flatMap(
               _.apiTicket match {
-                case ApiTicket.ReservedTicket(value) => value.event
+                case ApiTicket.ReservedTicket(value)   => value.event
                 case ApiTicket.RestrictedTicket(value) => value.event
-                case ApiTicket.OpenTicket(value) => value.event
-                case ApiTicket.Empty => None
+                case ApiTicket.OpenTicket(value)       => value.event
+                case ApiTicket.Empty                   => None
               }
             )
           )
@@ -82,7 +85,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
             )
             Future.failed(
               new IllegalStateException(
-                exception.getMessage + s" product.getProductInfo for ${sku} failed"
+                exception.getMessage + s" product.getProductInfo for $sku failed"
               )
             )
         }
@@ -90,7 +93,9 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       val tupleFut = (for {
         eventId <- eventIdFut
         event <- event
-          .getEventById(ApiGetEventById(Some(ApiEventId(eventId))))
+          .getEventById(
+            ApiGetEventById(eventId)
+          )
       } yield {
         (
           !event.info.forall(_.isPrivate),
@@ -99,7 +104,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
         )
       }).transformWith {
         case Success(result) => Future.successful(result)
-        case Failure(exception) => {
+        case Failure(exception) =>
           log.error(
             s"Error in OrderActionImpl - event.getEventById - Error: ${exception.getMessage}"
           )
@@ -108,7 +113,6 @@ class OrderActionImpl(creationContext: ActionCreationContext)
               exception.getMessage + s" and event.getEventById failed"
             )
           )
-        }
       }
 
       // true -> event is not private (private is false)
@@ -118,7 +122,7 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           for {
             organization <- organization
               .getOrganization(
-                ApiGetOrganizationById(Some(orgId))
+                ApiGetOrganizationById(orgId.organizationId)
               )
           } yield {
             if (organization.memberIds.contains(memberId)) {
@@ -140,16 +144,15 @@ class OrderActionImpl(creationContext: ActionCreationContext)
       orderValidFut.transform(
         {
           case true => effects.forward(call)
-          case false => {
+          case false =>
             log.error(
               "The purchase is not allowed - The event is private and the buyer is not a member of the organizer. " +
-                s"Please make sure you provide the correct record for the order - ${order}"
+                s"Please make sure you provide the correct record for the order - $order"
             )
             effects.error(
               "The purchase is not allowed - The event is private and the buyer is not a member of the organizer. " +
-                s"Please make sure you provide the correct record for the order - ${order}"
+                s"Please make sure you provide the correct record for the order - $order"
             )
-          }
         },
         error => {
           log.error(
@@ -157,16 +160,14 @@ class OrderActionImpl(creationContext: ActionCreationContext)
           )
           throw new IllegalStateException(error.getMessage)
         }
-      ) recover ({
-        case throwable: Throwable => {
-          log.error(
-            s"Error in OrderActionImpl - orderValidFut.transform - Error: ${throwable.getMessage}"
-          )
-          effects.error(
-            s"The purchase is not allowed - Errors: ${throwable.getMessage}"
-          )
-        }
-      })
+      ) recover { case throwable: Throwable =>
+        log.error(
+          s"Error in OrderActionImpl - orderValidFut.transform - Error: ${throwable.getMessage}"
+        )
+        effects.error(
+          s"The purchase is not allowed - Errors: ${throwable.getMessage}"
+        )
+      }
     )
   }
 }

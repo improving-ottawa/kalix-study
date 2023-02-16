@@ -18,11 +18,11 @@ enum ApiEventStatus {
 }
 
 message ApiGetEventById {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
     string reservation = 5;
     ApiEventMetaInfo meta = 3;
@@ -62,53 +62,53 @@ message ApiEventMetaInfo {
 }
 
 message ApiChangeEventInfo {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventUpdateInfo info = 2;
     ApiMemberId changing_member = 3;
 }
 
 message ApiScheduleEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
     ApiMemberId scheduling_member = 3;
 }
 
 message ApiCancelEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId cancelling_member = 2;
 }
 
 message ApiRescheduleEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     google.protobuf.Timestamp start = 2;
     google.protobuf.Timestamp end = 3;
     ApiMemberId rescheduling_member = 4;
 }
 
 message ApiDelayEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     string reason = 2;
     google.protobuf.Duration expected_duration = 3;
     ApiMemberId delaying_member = 4;
 }
 
 message ApiStartEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId starting_member = 2;
 }
 
 message ApiEndEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId ending_member = 2;
 }
 
 message ApiReleaseEvent {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }
 
 message ApiAddLiveUpdate {
-    ApiEventId event_id = 1 [(kalix.field).entity_key = true];
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiLiveUpdate update = 2;
 }
 

@@ -5,15 +5,13 @@ import app.improving.{
   ApiLocationId,
   ApiMemberId,
   ApiOrganizationId,
-  ApiProductId,
-  ApiStoreId,
+  ApiSku,
   ApiVenueId,
   EventId,
   LocationId,
   MemberId,
   OrganizationId,
-  ProductId,
-  StoreId,
+  Sku,
   VenueId
 }
 import app.improving.storecontext.{
@@ -33,10 +31,9 @@ object util {
 
   def convertApiStoreInfoToStoreInfo(apiStoreInfo: ApiStoreInfo): StoreInfo = {
     StoreInfo(
-      apiStoreInfo.storeId.map(apiId => StoreId(apiId.storeId)),
       apiStoreInfo.name,
       apiStoreInfo.description,
-      apiStoreInfo.products.map(product => ProductId(product.productId)),
+      apiStoreInfo.products.map(product => Sku(product.sku)),
       apiStoreInfo.event.map(event => EventId(event.eventId)),
       apiStoreInfo.venue.map(venue => VenueId(venue.venueId)),
       apiStoreInfo.location.map(location => LocationId(location.locationId)),
@@ -50,9 +47,7 @@ object util {
     StoreUpdateInfo(
       name = apiStoreUpdateInfo.name,
       description = apiStoreUpdateInfo.description,
-      products = apiStoreUpdateInfo.products.map(product =>
-        ProductId(product.productId)
-      ),
+      products = apiStoreUpdateInfo.products.map(product => Sku(product.sku)),
       event = apiStoreUpdateInfo.event.map(event => EventId(event.eventId)),
       venue = apiStoreUpdateInfo.venue.map(venue => VenueId(venue.venueId)),
       location = apiStoreUpdateInfo.location.map(location =>
@@ -66,10 +61,9 @@ object util {
 
   def convertStoreInfoToApiStoreInfo(storeInfo: StoreInfo): ApiStoreInfo = {
     ApiStoreInfo(
-      storeInfo.storeId.map(id => ApiStoreId(id.id)),
       storeInfo.name,
       storeInfo.description,
-      storeInfo.products.map(product => ApiProductId(product.id)),
+      storeInfo.products.map(product => ApiSku(product.id)),
       storeInfo.event.map(event => ApiEventId(event.id)),
       storeInfo.venue.map(venue => ApiVenueId(venue.id)),
       storeInfo.location.map(location => ApiLocationId(location.id)),

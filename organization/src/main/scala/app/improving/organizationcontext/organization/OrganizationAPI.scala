@@ -80,9 +80,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) =>
         val event = GetOrganizationInfo(
-          apiGetOrganizationInfo.orgId.map(id =>
-            OrganizationId(id.organizationId)
-          )
+          Some(OrganizationId(apiGetOrganizationInfo.orgId))
         )
         effects
           .emitEvent(event)
@@ -120,9 +118,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             val updatingMember = convertApiMemberIdToMemberId(updatingApiMember)
 
             val event = MembersRemovedFromOrganization(
-              orgId = apiRemoveMembersFromOrganization.orgId.map(id =>
-                OrganizationId(id.organizationId)
-              ),
+              orgId =
+                Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
               removedMembers =
                 membersToRemove.map(convertApiMemberIdToMemberId),
               meta = org.orgMeta.map(
@@ -158,9 +155,8 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         ) { (updatingMember, ownersToRemove) =>
           {
             val event = OwnersRemovedFromOrganization(
-              orgId = apiRemoveOwnersFromOrganization.orgId.map(id =>
-                OrganizationId(id.organizationId)
-              ),
+              orgId =
+                Some(OrganizationId(apiRemoveOwnersFromOrganization.orgId)),
               removedOwners = ownersToRemove.map(convertApiMemberIdToMemberId),
               meta = org.orgMeta.map(
                 _.copy(
@@ -203,9 +199,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             )
 
             val event = MembersAddedToOrganization(
-              orgId = apiAddMembersToOrganization.orgId.map(id =>
-                OrganizationId(id.organizationId)
-              ),
+              orgId = Some(OrganizationId(apiAddMembersToOrganization.orgId)),
               newMembers = apiMembersToAdd.map(convertApiMemberIdToMemberId),
               meta = newMeta
             )
@@ -234,9 +228,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         ) { (updatingMember, ownersToAdd) =>
           {
             val event = OwnersAddedToOrganization(
-              orgId = apiAddOwnersToOrganization.orgId.map(id =>
-                OrganizationId(id.organizationId)
-              ),
+              orgId = Some(OrganizationId(apiAddOwnersToOrganization.orgId)),
               newOwners = ownersToAdd.map(convertApiMemberIdToMemberId),
               meta = org.orgMeta.map(
                 _.copy(
@@ -319,7 +311,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               apiEstablishingMember
             )
             val event = OrganizationEstablished(
-              orgId = orgId.map(id => OrganizationId(id.organizationId)),
+              orgId = Some(OrganizationId(orgId)),
               info = Some(convertApiInfoToInfo(apiInfo)),
               parent =
                 apiEstablishOrganization.parent.map(convertApiParentToParent),
@@ -367,9 +359,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
             effects
               .emitEvent(event)
-              .thenReply(_ =>
-                orgId.getOrElse(ApiOrganizationId.defaultInstance)
-              )
+              .thenReply(_ => ApiOrganizationId(orgId))
           case (_, _) =>
             effects.error(
               getMissingFieldsError(
@@ -394,9 +384,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         (apiUpdateParent.newParent, apiUpdateParent.updatingMember) match {
           case (Some(parent), Some(updatingMember)) =>
             val event = ParentUpdated(
-              orgId = apiUpdateParent.orgId.map(id =>
-                OrganizationId(id.organizationId)
-              ),
+              orgId = Some(OrganizationId(apiUpdateParent.orgId)),
               newParent = Some(OrganizationId(parent.organizationId)),
               meta = org.orgMeta.map(
                 _.copy(
@@ -758,14 +746,16 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       currentState: OrganizationState,
       organizationReleased: OrganizationReleased
   ): OrganizationState = {
-    val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-
     currentState.copy(organization =
       currentState.organization.map(
         _.copy(
           status = OrganizationStatus.ORGANIZATION_STATUS_RELEASED,
-          orgMeta = organizationReleased.meta
+          orgMeta = organizationReleased.meta.map(meta =>
+            meta.copy(
+              lastUpdated = meta.lastUpdated,
+              lastUpdatedBy = meta.lastUpdatedBy
+            )
+          )
         )
       )
     )

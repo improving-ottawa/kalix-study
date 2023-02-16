@@ -2,6 +2,7 @@
 syntax = "proto3";
 
 import "common_api.proto";
+import "common_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
@@ -47,15 +48,15 @@ message ApiMetaInfo {
 }
 
 message ApiParent {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    ApiOrganizationId org_id = 1;
 }
 
 message ApiGetOrganizationInfo {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiGetOrganizationById {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiContacts {
@@ -75,31 +76,31 @@ message ApiUpdateInfo {
 }
 
 message ApiUpdateParent {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     ApiOrganizationId new_parent = 2;
     ApiMemberId updating_member = 3;
 }
 
 message ApiAddMembersToOrganization {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     repeated ApiMemberId members_to_add = 2;
     ApiMemberId updating_member = 3;
 }
 
 message ApiAddOwnersToOrganization {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     repeated ApiMemberId owners_to_add = 2;
     ApiMemberId updating_member = 3;
 }
 
 message ApiEditOrganizationInfo {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     ApiUpdateInfo new_info = 2;
     ApiMemberId editing_member = 3;
 }
 
 message ApiEstablishOrganization {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     ApiInfo info = 2;
     optional ApiParent parent = 3;
     repeated ApiMemberId members = 4;
@@ -109,20 +110,20 @@ message ApiEstablishOrganization {
 }
 
 message ApiRemoveOwnersFromOrganization {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     repeated ApiMemberId owners_to_remove = 2;
     ApiMemberId updating_member = 3;
 
 }
 
 message ApiRemoveMembersFromOrganization {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     repeated ApiMemberId members_to_remove = 2;
     ApiMemberId updating_member = 3;
 }
 
 message ApiOrganizationStatusUpdated {
-    ApiOrganizationId org_id = 1 [(kalix.field).entity_key = true];
+    string org_id = 1 [(kalix.field).entity_key = true];
     ApiOrganizationStatus new_status = 2;
     ApiMemberId updating_member = 3;
 }

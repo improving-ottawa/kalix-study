@@ -85,10 +85,10 @@ class ProductAPISpec extends AnyWordSpec with Matchers {
         )
       )
 
-      val nullUppdateProductInfoResult =
+      val nullUpdateProductInfoResult =
         testKit.updateProductInfo(anotherApiUpdateProductInfo)
 
-      nullUppdateProductInfoResult.events should have size 0
+      nullUpdateProductInfoResult.events should have size 0
     }
 
     "correctly process commands of type DeleteProduct" in {

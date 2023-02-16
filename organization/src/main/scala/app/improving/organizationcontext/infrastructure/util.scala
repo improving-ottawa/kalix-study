@@ -95,7 +95,7 @@ object util {
   }
   def convertApiParentToParent(apiParent: ApiParent): Parent = {
     Parent(
-      apiParent.orgId.map(apiId => OrganizationId(apiId.organizationId))
+      apiParent.orgId.map(id => OrganizationId(id.organizationId))
     )
   }
 

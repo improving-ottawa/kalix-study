@@ -25,7 +25,7 @@ service ProductService {
         }
     };
 
-    rpc CreateProduct(ApiCreateProduct) returns (ApiProductId) {
+    rpc CreateProduct(ApiCreateProduct) returns (ApiSku) {
         option (google.api.http) = {
             post: "/product/create"
             body: "*"

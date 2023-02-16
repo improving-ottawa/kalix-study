@@ -3,7 +3,6 @@ package app.improving.ordercontext.order
 import TestData._
 import app.improving.{ApiOrderId, MemberId}
 import app.improving.ordercontext.infrastructure.util.{
-  convertApiOrderInfoToOrderInfo,
   convertApiOrderStatusToOrderStatus,
   convertLineItemToApiLineItem
 }
@@ -200,7 +199,6 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
-
       nullCancelOrderResult.events should have size 0
     }
 

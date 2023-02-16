@@ -1,7 +1,7 @@
 package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
-import app.improving.{ApiProductId, ApiStoreId, MemberId, ProductId, StoreId}
+import app.improving.{ApiSku, ApiStoreId, MemberId, Sku, StoreId}
 import app.improving.storecontext.{
   ProductsAddedToStore,
   ProductsRemovedFromStore,
@@ -42,7 +42,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       }
       val storeId = apiCreateStore.storeId
       val event = StoreCreated(
-        storeId.map(apiId => StoreId(apiId.storeId)),
+        Some(StoreId(apiCreateStore.storeId)),
         apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
         Some(
           StoreMetaInfo(
@@ -56,14 +56,15 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       )
       effects
         .emitEvent(event)
-        .thenReply(_ => storeId.getOrElse(ApiStoreId.defaultInstance))
+        .thenReply(_ => ApiStoreId(storeId))
   }
 
   override def updateStore(
       currentState: StoreState,
       apiUpdateStore: ApiUpdateStore
   ): EventSourcedEntity.Effect[Empty] = currentState.store match {
-    case Some(store) if !store.status.isStoreStatusDeleted =>
+    case Some(store)
+        if currentState != StoreState.defaultInstance && !store.status.isStoreStatusDeleted =>
       val updateInfoOpt =
         apiUpdateStore.info.map(convertApiStoreUpdateInfoToStoreUpdateInfo)
       val updatedInfoOpt = store.info.map { storeInfo =>
@@ -91,7 +92,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         }
       }
       val event = StoreUpdated(
-        apiUpdateStore.storeId.map(id => StoreId(id.storeId)),
+        Some(StoreId(apiUpdateStore.storeId)),
         updatedInfoOpt,
         apiUpdateStore.meta.map(convertApiStoreMetaInfoToStoreMetaInfo)
       )
@@ -108,7 +109,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val event = StoreDeleted(
-        apiDeleteStore.storeId.map(id => StoreId(id.storeId)),
+        Some(StoreId(apiDeleteStore.storeId)),
         store.meta.map(
           _.copy(
             lastModifiedBy = apiDeleteStore.deletingMember.map(member =>
@@ -127,11 +128,12 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       currentState: StoreState,
       apiReadyStore: ApiReadyStore
   ): EventSourcedEntity.Effect[Empty] = currentState.store match {
-    case Some(store) if store.status.isStoreStatusDraft =>
+    case Some(store)
+        if currentState != StoreState.defaultInstance && store.status.isStoreStatusDraft =>
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val event = StoreMadeReady(
-        apiReadyStore.storeId.map(id => StoreId(id.storeId)),
+        Some(StoreId(apiReadyStore.storeId)),
         store.info,
         store.meta.map(
           _.copy(
@@ -156,7 +158,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val event = StoreOpened(
-        apiOpenStore.storeId.map(id => StoreId(id.storeId)),
+        Some(StoreId(apiOpenStore.storeId)),
         store.info,
         store.meta.map(
           _.copy(
@@ -181,7 +183,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val event = StoreClosed(
-        apiCloseStore.storeId.map(id => StoreId(id.storeId)),
+        Some(StoreId(apiCloseStore.storeId)),
         store.info,
         store.meta.map(
           _.copy(
@@ -201,17 +203,18 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       currentState: StoreState,
       apiAddProductToStore: ApiAddProductsToStore
   ): EventSourcedEntity.Effect[Empty] = currentState.store match {
-    case Some(store) if !store.status.isStoreStatusDeleted =>
+    case Some(store)
+        if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance =>
       val now = java.time.Instant.now()
       val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
       val event = ProductsAddedToStore(
-        apiAddProductToStore.storeId.map(id => StoreId(id.storeId)),
+        Some(StoreId(apiAddProductToStore.storeId)),
         store.info.map(
           _.copy(
             products =
               currentProducts ++ apiAddProductToStore.products.map(product =>
-                ProductId(product.productId)
+                Sku(product.sku)
               )
           )
         ),
@@ -231,46 +234,49 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   override def removeProductsFromStore(
       currentState: StoreState,
       apiRemoveProductFromStore: ApiRemoveProductsFromStore
-  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
-    case Some(store) if !store.status.isStoreStatusDeleted =>
-      val now = java.time.Instant.now()
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-      val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
-      val productsToRemove = apiRemoveProductFromStore.products.map(product =>
-        ProductId(product.productId)
-      )
-      val event = ProductsRemovedFromStore(
-        apiRemoveProductFromStore.storeId.map(id => StoreId(id.storeId)),
-        store.info.map(
-          _.copy(
-            products = currentProducts.filterNot(productId =>
-              productsToRemove.contains(productId)
+  ): EventSourcedEntity.Effect[Empty] =
+    currentState.store match {
+      case Some(store)
+          if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance =>
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+        val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
+        val productsToRemove = apiRemoveProductFromStore.products.map(product =>
+          Sku(product.sku)
+        )
+        val event = ProductsRemovedFromStore(
+          Some(StoreId(apiRemoveProductFromStore.storeId)),
+          store.info.map(
+            _.copy(
+              products = currentProducts.filterNot(productId =>
+                productsToRemove.contains(productId)
+              )
+            )
+          ),
+          store.meta.map(
+            _.copy(
+              lastModifiedBy =
+                apiRemoveProductFromStore.removingMember.map(member =>
+                  MemberId(member.memberId)
+                ),
+              lastModifiedOn = Some(timestamp)
             )
           )
-        ),
-        store.meta.map(
-          _.copy(
-            lastModifiedBy =
-              apiRemoveProductFromStore.removingMember.map(member =>
-                MemberId(member.memberId)
-              ),
-            lastModifiedOn = Some(timestamp)
-          )
         )
-      )
-      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-    case _ => effects.reply(Empty.defaultInstance)
-  }
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      case _ => effects.reply(Empty.defaultInstance)
+    }
 
   override def getProductsInStore(
       currentState: StoreState,
       apiGetProductsInStore: ApiGetProductsInStore
   ): EventSourcedEntity.Effect[ApiProductsInStore] = currentState.store match {
-    case Some(store) if !store.status.isStoreStatusDeleted =>
+    case Some(store)
+        if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance =>
       val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
       val result = ApiProductsInStore(
         apiGetProductsInStore.storeId,
-        currentProducts.map(productId => ApiProductId(productId.id))
+        currentProducts.map(productId => ApiSku(productId.id))
       )
       effects.reply(result)
     case _ => effects.reply(ApiProductsInStore.defaultInstance)
@@ -403,7 +409,7 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   ): EventSourcedEntity.Effect[Empty] = effects
     .emitEvent(
       StoreReleased(
-        apiReleaseStore.storeId.map(apiId => StoreId(apiId.storeId)),
+        Some(StoreId(apiReleaseStore.storeId)),
         apiReleaseStore.releasingMember.map(apiId => MemberId(apiId.memberId))
       )
     )

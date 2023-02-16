@@ -207,7 +207,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 .establishTenant(establishTenant)
                 .map { tenantId =>
                   log.info(
-                    s"in handleStartScenario tenantIds - establishTenant - tenantId $tenantId"
+                    s"in handleStartScenario tenantIds - establishTenant - tenant_id $tenantId"
                   )
                   tenantService.activateTenant(
                     ApiActivateTenant(

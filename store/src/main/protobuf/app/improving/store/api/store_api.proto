@@ -18,14 +18,13 @@ enum ApiStoreStatus {
 }
 
 message ApiStoreInfo {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
-    string name = 2;
-    string description = 3;
-    repeated ApiProductId products = 4;
-    ApiEventId  event = 5;
-    ApiVenueId venue = 6;
-    ApiLocationId location = 7;
-    ApiOrganizationId sponsoring_org = 8;
+    string name = 1;
+    string description = 2;
+    repeated ApiSku products = 3;
+    ApiEventId  event = 4;
+    ApiVenueId venue = 5;
+    ApiLocationId location = 6;
+    ApiOrganizationId sponsoring_org = 7;
 }
 
 message ApiStoreMetaInfo {
@@ -39,7 +38,7 @@ message ApiStoreMetaInfo {
 message ApiStoreUpdateInfo {
     optional string name = 1;
     optional string description = 2;
-    repeated ApiProductId products = 3;
+    repeated ApiSku products = 3;
     optional ApiEventId event = 4;
     optional ApiVenueId venue = 5;
     optional ApiLocationId location = 6;
@@ -47,58 +46,58 @@ message ApiStoreUpdateInfo {
 }
 
 message ApiStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiStoreInfo info = 2;
     ApiStoreMetaInfo meta = 3;
     ApiStoreStatus status = 4;
 }
 
 message ApiCreateStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiStoreInfo info = 2;
     ApiMemberId creating_member = 3;
 }
 message ApiUpdateStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiStoreUpdateInfo info = 2;
     ApiStoreMetaInfo meta = 3;
 }
 message ApiDeleteStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId deleting_member = 3;
 }
 message ApiReadyStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId readying_member = 3;
 }
 message ApiOpenStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId opening_member = 3;
 }
 message ApiCloseStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId closing_member = 3;
 }
 message ApiReleaseStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 3;
 }
 message ApiAddProductsToStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiProductId products = 2;
+    string store_id = 1 [(kalix.field).entity_key = true];
+    repeated ApiSku products = 2;
     ApiMemberId adding_member = 3;
 }
 message ApiRemoveProductsFromStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiProductId products = 2;
+    string store_id = 1 [(kalix.field).entity_key = true];
+    repeated ApiSku products = 2;
     ApiMemberId removing_member = 3;
 }
 
 message ApiGetProductsInStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
+    string store_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiProductsInStore {
-    ApiStoreId store_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiProductId products = 2;
+    string store_id = 1 [(kalix.field).entity_key = true];
+    repeated ApiSku products = 2;
 }

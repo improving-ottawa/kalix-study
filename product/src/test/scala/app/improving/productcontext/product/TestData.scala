@@ -107,7 +107,7 @@ object TestData {
   val apiProductInfoUpdate = ApiProductInfoUpdate(
     Option(testNameUpdate),
     Option(testDescriptionUpdate),
-    None,
+    testProductDetails3,
     testImagesUpdate,
     None,
     Option(testCostUpdate),
@@ -117,6 +117,7 @@ object TestData {
   val apiProductInfoAfterUpdate = apiProductInfo.copy(
     name = testNameUpdate,
     description = testDescriptionUpdate,
+    productDetails = testProductDetails3,
     image = testImagesUpdate,
     cost = testCostUpdate,
     store = Some(ApiStoreId(testStoreIdUpdate))

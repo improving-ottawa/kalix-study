@@ -48,7 +48,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   val delayableStatuses: Set[EventStatus] =
     Set(EventStatus.EVENT_STATUS_SCHEDULED, EventStatus.EVENT_STATUS_INPROGRESS)
   val startableStatuses: Set[EventStatus] =
-    Set(EventStatus.EVENT_STATUS_CANCELLED, EventStatus.EVENT_STATUS_DELAYED)
+    Set(
+      EventStatus.EVENT_STATUS_SCHEDULED,
+      EventStatus.EVENT_STATUS_CANCELLED,
+      EventStatus.EVENT_STATUS_DELAYED
+    )
   val cancellableStatuses: Set[EventStatus] =
     Set(EventStatus.EVENT_STATUS_SCHEDULED, EventStatus.EVENT_STATUS_DELAYED)
   val endableStatuses: Set[EventStatus] = Set(
@@ -59,12 +63,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       currentState: EventState,
       apiChangeEventInfo: ApiChangeEventInfo
   ): EventSourcedEntity.Effect[Empty] = currentState.event match {
-    case Some(event)
-        if event.eventId.contains(
-          apiChangeEventInfo.eventId
-            .map(id => EventId(id.eventId))
-            .getOrElse(EventId.defaultInstance)
-        ) =>
+    case Some(event) =>
       errorOrReply(
         event.status,
         updateableStatuses,
@@ -74,7 +73,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           apiChangeEventInfo.info
         )
       ) { validatedFields =>
-
+        println("validating")
         val validatedFieldsWithEventUpdateInfo
             : ValidatedFieldsWithEventUpdateInfo =
           validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
@@ -85,7 +84,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         val newInfo: Option[EventInfo] =
           event.info.map(buildEventInfoFromUpdateInfo(_, updatingInfo))
         val infoChanged: EventInfoChanged = EventInfoChanged(
-          eventId = apiChangeEventInfo.eventId.map(id => EventId(id.eventId)),
+          eventId = Some(EventId(apiChangeEventInfo.eventId)),
           info = newInfo,
           meta = event.meta.map(
             _.copy(
@@ -112,34 +111,6 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
         s"Event is already scheduled with id ${apiScheduleEvent.eventId}"
       )
     case _ =>
-      val eventId = apiScheduleEvent.eventId
-
-      val timestamp: Timestamp = nowTs
-      val event = EventScheduled(
-        eventId.map(apiId => EventId(apiId.eventId)),
-        apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
-        Some(
-          EventMetaInfo(
-            apiScheduleEvent.schedulingMember.map(id => MemberId(id.memberId)),
-            Some(timestamp),
-            apiScheduleEvent.schedulingMember.map(id => MemberId(id.memberId)),
-            Some(timestamp),
-            apiScheduleEvent.info.flatMap(_.expectedStart),
-            apiScheduleEvent.info.flatMap(_.expectedEnd),
-            EventStatus.EVENT_STATUS_SCHEDULED
-          )
-        )
-      )
-      effects
-        .emitEvent(event)
-        .thenReply(eventOpt =>
-          eventOpt.event
-            .flatMap(event => event.eventId.map(id => ApiEventId(id.id)))
-            .getOrElse(ApiEventId.defaultInstance)
-        )
-
-    case Some(_) => effects.reply(ApiEventId.defaultInstance)
-    case _ =>
       errorOrReply(
         EventStatus.EVENT_STATUS_SCHEDULED,
         Set(EventStatus.EVENT_STATUS_SCHEDULED),
@@ -149,39 +120,37 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           apiScheduleEvent.info
         )
       ) { validatedFields =>
-        {
-          val validatedFieldsWithEventInfo: ValidatedFieldsWithEventInfo =
-            validatedFields.asInstanceOf[ValidatedFieldsWithEventInfo]
-          val schedulingMember: MemberId = convertApiMemberIdToMemberId(
-            validatedFieldsWithEventInfo.apiMemberId
-          )
-          val apiEventInfo: ApiEventInfo =
-            validatedFieldsWithEventInfo.apiEventInfo
-          val timestamp: Timestamp = nowTs
-          val eventId = apiScheduleEvent.eventId.map(id => EventId(id.eventId))
-          val event = EventScheduled(
-            eventId = eventId,
-            info = apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
-            meta = Some(
-              EventMetaInfo(
-                Some(schedulingMember),
-                Some(timestamp),
-                Some(schedulingMember),
-                Some(timestamp),
-                apiEventInfo.expectedStart,
-                apiEventInfo.expectedEnd,
-                EventStatus.EVENT_STATUS_SCHEDULED
-              )
+        val validatedFieldsWithEventInfo: ValidatedFieldsWithEventInfo =
+          validatedFields.asInstanceOf[ValidatedFieldsWithEventInfo]
+        val schedulingMember: MemberId = convertApiMemberIdToMemberId(
+          validatedFieldsWithEventInfo.apiMemberId
+        )
+        val apiEventInfo: ApiEventInfo =
+          validatedFieldsWithEventInfo.apiEventInfo
+        val timestamp: Timestamp = nowTs
+        val eventId = Some(EventId(apiScheduleEvent.eventId))
+        val event = EventScheduled(
+          eventId = eventId,
+          info = apiScheduleEvent.info.map(convertApiEventInfoToEventInfo),
+          meta = Some(
+            EventMetaInfo(
+              Some(schedulingMember),
+              Some(timestamp),
+              Some(schedulingMember),
+              Some(timestamp),
+              apiEventInfo.expectedStart,
+              apiEventInfo.expectedEnd,
+              EventStatus.EVENT_STATUS_SCHEDULED
             )
           )
-          effects
-            .emitEvent(event)
-            .thenReply(_ =>
-              eventId
-                .map(id => ApiEventId(id.id))
-                .getOrElse(ApiEventId.defaultInstance)
-            )
-        }
+        )
+        effects
+          .emitEvent(event)
+          .thenReply(_ =>
+            eventId
+              .map(id => ApiEventId(id.id))
+              .getOrElse(ApiEventId.defaultInstance)
+          )
       }
 
   }
@@ -191,12 +160,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       apiCancelEvent: ApiCancelEvent
   ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
-      case Some(event)
-          if event.eventId.contains(
-            apiCancelEvent.eventId
-              .map(id => EventId(id.eventId))
-              .getOrElse(EventId.defaultInstance)
-          ) =>
+      case Some(event) =>
         errorOrReply(
           event.status,
           cancellableStatuses,
@@ -231,12 +195,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       apiRescheduleEvent: ApiRescheduleEvent
   ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
-      case Some(event)
-          if event.eventId.contains(
-            apiRescheduleEvent.eventId
-              .map(id => EventId(id.eventId))
-              .getOrElse(EventId.defaultInstance)
-          ) =>
+      case Some(event) =>
         errorOrReply(
           event.status,
           reschedulableStatuses,
@@ -275,17 +234,11 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       case _ => effects.reply(Empty.defaultInstance)
     }
 
-  // TODO if we're setting meta's actualStart and actualEnd to the expected start and end on scheduleEvent and rescheduleEvent, shouldn't we do the same for delayEvent?
   override def delayEvent(
       currentState: EventState,
       apiDelayEvent: ApiDelayEvent
   ): EventSourcedEntity.Effect[Empty] = currentState.event match {
-    case Some(event)
-        if event.eventId.contains(
-          apiDelayEvent.eventId
-            .map(id => EventId(id.eventId))
-            .getOrElse(EventId.defaultInstance)
-        ) =>
+    case Some(event) =>
       errorOrReply(
         event.status,
         delayableStatuses,
@@ -294,7 +247,8 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           maybeApiMemberId = apiDelayEvent.delayingMember,
           maybeApiReason = Some(apiDelayEvent.reason),
           maybeApiDuration = apiDelayEvent.expectedDuration,
-          maybeReservation = Some(event.reservation)
+          maybeReservation =
+            if (event.reservation.nonEmpty) Some(event.reservation) else None
         )
       ) { validatedFields =>
         val validatedFieldsWithReasonDurationAndReservation
@@ -331,19 +285,14 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       currentState: EventState,
       apiStartEvent: ApiStartEvent
   ): EventSourcedEntity.Effect[Empty] = currentState.event match {
-    case Some(event)
-        if event.eventId.contains(
-          apiStartEvent.eventId
-            .map(id => EventId(id.eventId))
-            .getOrElse(EventId.defaultInstance)
-        ) =>
+    case Some(event) =>
       errorOrReply(
         event.status,
         startableStatuses,
         "start event",
         ValidationNeededWithStateReservation(
           apiStartEvent.startingMember,
-          Some(event.reservation)
+          if (event.reservation.nonEmpty) Some(event.reservation) else None
         )
       ) { validatedFields =>
 
@@ -378,12 +327,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       currentState: EventState,
       apiEndEvent: ApiEndEvent
   ): EventSourcedEntity.Effect[Empty] = currentState.event match {
-    case Some(event)
-        if event.eventId.contains(
-          apiEndEvent.eventId
-            .map(id => EventId(id.eventId))
-            .getOrElse(EventId.defaultInstance)
-        ) =>
+    case Some(event) =>
       errorOrReply(
         event.status,
         endableStatuses,
@@ -624,7 +568,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   ): EventSourcedEntity.Effect[Empty] = effects
     .emitEvent(
       EventReleased(
-        apiReleaseEvent.eventId.map(apiId => EventId(apiId.eventId)),
+        Some(EventId(apiReleaseEvent.eventId)),
         apiReleaseEvent.releasingMember.map(apiId => MemberId(apiId.memberId))
       )
     )

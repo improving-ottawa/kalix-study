@@ -5,6 +5,7 @@ import app.improving.{
   ApiGeoLocation,
   ApiMemberId,
   ApiOrganizationId,
+  EventId,
   GeoLocation,
   MemberId,
   OrganizationId
@@ -124,7 +125,7 @@ object util {
 
   def convertEventToApiEvent(event: Event): ApiEvent =
     ApiEvent(
-      event.eventId.map(id => ApiEventId(id.id)),
+      event.eventId.map(_.id).getOrElse(ApiEventId.defaultInstance.eventId),
       event.info.map(convertEventInfoToApiEventInfo),
       event.reservation,
       event.meta.map(convertEventMetaInfoToApiEventMetaInfo),
@@ -138,7 +139,7 @@ object util {
       eventScheduled: EventScheduled
   ): ApiEvent =
     ApiEvent(
-      eventScheduled.eventId.map(id => ApiEventId(id.id)),
+      eventScheduled.eventId.getOrElse(EventId.defaultInstance).id,
       eventScheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
       "",
       eventScheduled.meta.map(meta =>

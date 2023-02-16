@@ -2,16 +2,6 @@ package app.improving.productcontext.infrastructure
 
 import app.improving.productcontext.ProductDetails.Ticket
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
-import app.improving.{
-  ApiEventId,
-  ApiMemberId,
-  ApiProductId,
-  ApiStoreId,
-  EventId,
-  MemberId,
-  ProductId,
-  StoreId
-}
 import app.improving.productcontext.{
   OpenTicket,
   ProductCreated,
@@ -35,6 +25,15 @@ import app.improving.productcontext.product.{
   ApiReservedTicket,
   ApiRestrictedTicket
 }
+import app.improving.{
+  ApiEventId,
+  ApiMemberId,
+  ApiSku,
+  ApiStoreId,
+  EventId,
+  MemberId,
+  StoreId
+}
 
 object util {
 
@@ -42,7 +41,6 @@ object util {
       apiProductInfo: ApiProductInfo
   ): ProductInfo = {
     ProductInfo(
-      apiProductInfo.sku.map(apiSku => ProductId(apiSku.productId)),
       apiProductInfo.name,
       apiProductInfo.description,
       apiProductInfo.productDetails.map(
@@ -95,7 +93,6 @@ object util {
       productInfo: ProductInfo
   ): ApiProductInfo = {
     ApiProductInfo(
-      productInfo.sku.map(sku => ApiProductId(sku.id)),
       productInfo.name,
       productInfo.description,
       productInfo.productDetails.map(convertProductDetailsToApiProductDetails),
@@ -110,7 +107,7 @@ object util {
       productCreated: ProductCreated
   ): ApiProduct =
     ApiProduct(
-      productCreated.sku.map(sku => ApiProductId(sku.id)),
+      productCreated.sku.getOrElse(ApiSku.defaultInstance).toString,
       productCreated.info.map(convertProductInfoToApiProductInfo),
       productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
       ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
@@ -120,11 +117,7 @@ object util {
       productCreated: ProductCreated
   ): TicketEventCorrTableRow = {
     TicketEventCorrTableRow(
-      sku = Some(
-        ProductId(
-          productCreated.sku.map(_.id).getOrElse("Product is not found")
-        )
-      ),
+      sku = productCreated.sku,
       info = productCreated.info,
       meta = productCreated.meta,
       status = ProductStatus.PRODUCT_STATUS_ACTIVE.toString(),

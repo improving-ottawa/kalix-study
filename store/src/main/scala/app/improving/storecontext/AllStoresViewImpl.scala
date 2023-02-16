@@ -1,6 +1,6 @@
 package app.improving.storecontext
 
-import app.improving.ApiStoreId
+import app.improving.{ApiStoreId, StoreId}
 import app.improving.storecontext.infrastructure.util._
 import app.improving.storecontext.store.{ApiStore, ApiStoreStatus}
 import kalix.scalasdk.view.View.UpdateEffect
@@ -23,7 +23,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
     else
       effects.updateState(
         ApiStore(
-          storeCreated.storeId.map(id => ApiStoreId(id.id)),
+          storeCreated.storeId.getOrElse(StoreId.defaultInstance).id,
           storeCreated.info.map(convertStoreInfoToApiStoreInfo),
           storeCreated.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
           ApiStoreStatus.API_STORE_STATUS_DRAFT
@@ -41,7 +41,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
     effects.updateState(
       ApiStore(
-        storeOpened.storeId.map(id => ApiStoreId(id.id)),
+        storeOpened.storeId.getOrElse(StoreId.defaultInstance).id,
         storeOpened.info.map(convertStoreInfoToApiStoreInfo),
         storeOpened.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
         ApiStoreStatus.API_STORE_STATUS_OPEN
@@ -55,7 +55,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
     effects.updateState(
       ApiStore(
-        storeUpdated.storeId.map(id => ApiStoreId(id.id)),
+        storeUpdated.storeId.getOrElse(StoreId.defaultInstance).id,
         storeUpdated.info.map(convertStoreInfoToApiStoreInfo),
         storeUpdated.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
         storeUpdated.meta
@@ -70,7 +70,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] =
     effects.updateState(
       ApiStore(
-        storeClosed.storeId.map(id => ApiStoreId(id.id)),
+        storeClosed.storeId.getOrElse(StoreId.defaultInstance).id,
         storeClosed.info.map(convertStoreInfoToApiStoreInfo),
         storeClosed.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
         ApiStoreStatus.API_STORE_STATUS_CLOSED
@@ -83,7 +83,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] =
     effects.updateState(
       ApiStore(
-        productsAddedToStore.storeId.map(id => ApiStoreId(id.id)),
+        productsAddedToStore.storeId.getOrElse(StoreId.defaultInstance).id,
         productsAddedToStore.info.map(convertStoreInfoToApiStoreInfo),
         productsAddedToStore.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
         ApiStoreStatus.API_STORE_STATUS_CLOSED
@@ -95,7 +95,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] =
     effects.updateState(
       ApiStore(
-        productsRemovedFromStore.storeId.map(id => ApiStoreId(id.id)),
+        productsRemovedFromStore.storeId.getOrElse(StoreId.defaultInstance).id,
         productsRemovedFromStore.info.map(convertStoreInfoToApiStoreInfo),
         productsRemovedFromStore.meta.map(
           convertStoreMetaInfoToApiStoreMetaInfo
