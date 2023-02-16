@@ -33,7 +33,7 @@ object util {
     StoreInfo(
       apiStoreInfo.name,
       apiStoreInfo.description,
-      apiStoreInfo.products.map(product => Sku(product.sku)),
+      apiStoreInfo.products.map(id => Sku(id.sku)),
       apiStoreInfo.event.map(event => EventId(event.eventId)),
       apiStoreInfo.venue.map(venue => VenueId(venue.venueId)),
       apiStoreInfo.location.map(location => LocationId(location.locationId)),
@@ -84,6 +84,8 @@ object util {
         StoreStatus.STORE_STATUS_CLOSED
       case ApiStoreStatus.API_STORE_STATUS_DELETED =>
         StoreStatus.STORE_STATUS_DELETED
+      case ApiStoreStatus.API_STORE_STATUS_RELEASED =>
+        StoreStatus.STORE_STATUS_RELEASED
       case ApiStoreStatus.API_STORE_STATUS_UNKNOWN =>
         StoreStatus.STORE_STATUS_UNKNOWN
       case ApiStoreStatus.Unrecognized(unrecognizedValue) =>
@@ -104,6 +106,8 @@ object util {
         ApiStoreStatus.API_STORE_STATUS_CLOSED
       case StoreStatus.STORE_STATUS_DELETED =>
         ApiStoreStatus.API_STORE_STATUS_DELETED
+      case StoreStatus.STORE_STATUS_RELEASED =>
+        ApiStoreStatus.API_STORE_STATUS_RELEASED
       case StoreStatus.STORE_STATUS_UNKNOWN =>
         ApiStoreStatus.API_STORE_STATUS_UNKNOWN
       case StoreStatus.Unrecognized(unrecognizedValue) =>

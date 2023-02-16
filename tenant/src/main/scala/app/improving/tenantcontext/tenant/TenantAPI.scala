@@ -8,6 +8,7 @@ import app.improving.tenantcontext.{
   TenantActivated,
   TenantEstablished,
   TenantNameChanged,
+  TenantReleased,
   TenantStatus,
   TenantSuspended
 }
@@ -78,7 +79,8 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           _.copy(
             currentStatus = TenantStatus.TENANT_STATUS_ACTIVE,
             lastUpdated = Some(timestamp),
-            lastUpdatedBy = Some(MemberId(apiActivateTenant.updatingUser))
+            lastUpdatedBy =
+              apiActivateTenant.updatingUser.map(id => MemberId(id.memberId))
           )
         )
       )
@@ -100,7 +102,8 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           _.copy(
             currentStatus = TenantStatus.TENANT_STATUS_SUSPENDED,
             lastUpdated = Some(timestamp),
-            lastUpdatedBy = Some(MemberId(apiSuspendTenant.updatingUser))
+            lastUpdatedBy =
+              apiSuspendTenant.updatingUser.map(id => MemberId(id.memberId))
           )
         )
       )
@@ -122,7 +125,9 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         tenant.meta.map(
           _.copy(
             lastUpdated = Some(timestamp),
-            lastUpdatedBy = Some(MemberId(apiUpdatePrimaryContact.updatingUser))
+            lastUpdatedBy = apiUpdatePrimaryContact.updatingUser.map(id =>
+              MemberId(id.memberId)
+            )
           )
         )
       )
@@ -144,7 +149,8 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         tenant.meta.map(
           _.copy(
             lastUpdated = Some(timestamp),
-            lastUpdatedBy = Some(MemberId(apiChangeTenantName.updatingUser))
+            lastUpdatedBy =
+              apiChangeTenantName.updatingUser.map(id => MemberId(id.memberId))
           )
         )
       )
@@ -240,5 +246,34 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         )
       case _ => currentState
     }
+  }
+
+  override def releaseTenant(
+      currentState: TenantState,
+      apiReleaseTenant: ApiReleaseTenant
+  ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      TenantReleased(
+        Some(TenantId(apiReleaseTenant.tenantId)),
+        apiReleaseTenant.releasingUser
+          .getOrElse(ApiMemberId.defaultInstance)
+          .memberId
+      )
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def tenantReleased(
+      currentState: TenantState,
+      tenantReleased: TenantReleased
+  ): TenantState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(tenant =
+      currentState.tenant.map(
+        _.copy(meta = tenantReleased.meta)
+      )
+    )
   }
 }

@@ -1,42 +1,36 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiMemberId, ApiOrderId, ApiProductId}
+import app.improving.{ApiMemberId, ApiSku}
 
 object TestData {
 
-  val testOrderId: Option[ApiOrderId] = Some(ApiOrderId("test-order-id"))
-  val testOrderId2: Option[ApiOrderId] = Some(ApiOrderId("test-order-id2"))
-  val testOrderId3: Option[ApiOrderId] = Some(ApiOrderId("test-order-id3"))
-  val testProductId: Option[ApiProductId] = Some(
-    ApiProductId("test-product-id")
-  )
-  val testProductId2: Option[ApiProductId] = Some(
-    ApiProductId("test-product-id2")
-  )
-  val testProductId3: Option[ApiProductId] = Some(
-    ApiProductId("test-product-id3")
-  )
+  val testOrderId = "test-order-id"
+  val testOrderId2 = "test-order-id2"
+  val testOrderId3 = "test-order-id3"
+  val testProductId = "test-product-id"
+  val testProductId2 = "test-product-id2"
+  val testProductId3 = "test-product-id3"
   val testQuantity = 10
   val testLineTotal = 20
   val testQuantity2 = 13
   val testLineTotal2 = 26
   val testLineItem1: ApiLineItem = ApiLineItem(
-    testProductId.map(id => ApiProductId(id.productId)),
+    Some(ApiSku(testProductId)),
     testQuantity,
     testLineTotal
   )
   val testLineItem2: ApiLineItem = ApiLineItem(
-    testProductId.map(id => ApiProductId(id.productId)),
+    Some(ApiSku(testProductId)),
     testQuantity2,
     testLineTotal2
   )
   val testLineItem3: ApiLineItem = ApiLineItem(
-    testProductId2.map(id => ApiProductId(id.productId)),
+    Some(ApiSku(testProductId2)),
     testQuantity2,
     testLineTotal2
   )
   val testLineItem4: ApiLineItem = ApiLineItem(
-    testProductId3.map(id => ApiProductId(id.productId)),
+    Some(ApiSku(testOrderId3)),
     testQuantity2,
     testLineTotal2
   )
@@ -67,12 +61,12 @@ object TestData {
     Some(ApiMemberId(testCreatingMemberId))
   )
   val apiCreateOrderPrivateEvent: ApiCreateOrder = ApiCreateOrder(
-    testOrderId2.map(id => ApiOrderId(id.orderId)),
+    testOrderId2,
     Some(testOrderInfoPrivateEvent),
     Some(ApiMemberId(testCreatingMemberId))
   )
   val apiCreateOrderPrivateFailedEvent: ApiCreateOrder = ApiCreateOrder(
-    testOrderId3.map(id => ApiOrderId(id.orderId)),
+    testOrderId3,
     Some(testOrderInfoPrivateFailedEvent),
     Some(ApiMemberId(testCreatingMemberId1))
   )
@@ -87,7 +81,7 @@ object TestData {
     Some(ApiMemberId(testUpdatingMemberId))
   )
   val nullApiUpdateOrderStatus: ApiUpdateOrderStatus = ApiUpdateOrderStatus(
-    Some(ApiOrderId("other-id")),
+    "other-id",
     testNewOrderStatus
   )
   val testProductIdUpdate = "test-product-id-update"
@@ -96,12 +90,12 @@ object TestData {
   val testQuantity2Update = 12
   val testLineTotal2Update = 200
   val testLineItem1Update: ApiLineItem = ApiLineItem(
-    Some(ApiProductId(testProductIdUpdate)),
+    Some(ApiSku(testProductIdUpdate)),
     testQuantityUpdate,
     testLineTotalUpdate
   )
   val testLineItem2Update: ApiLineItem = ApiLineItem(
-    Some(ApiProductId(testProductIdUpdate)),
+    Some(ApiSku(testProductIdUpdate)),
     testQuantity2Update,
     testLineTotal2Update
   )
@@ -117,7 +111,7 @@ object TestData {
     Some(ApiMemberId(testUpdatingMemberId))
   )
   val nullApiUpdateOrderInfo: ApiUpdateOrderInfo = ApiUpdateOrderInfo(
-    Some(ApiOrderId("other-id")),
+    "other-id",
     Some(apiOrderInfoUpdate),
     Some(ApiMemberId(testUpdatingMemberId))
   )
@@ -127,7 +121,7 @@ object TestData {
     Some(ApiMemberId(testCancellingMemberId))
   )
   val nullApiCancelOrder: ApiCancelOrder = ApiCancelOrder(
-    Some(ApiOrderId("other-id")),
+    "other-id",
     Some(ApiMemberId(testCancellingMemberId))
   )
   val requestingMemberId = "requesting-member-id"

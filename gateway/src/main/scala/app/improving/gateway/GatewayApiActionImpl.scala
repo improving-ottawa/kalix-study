@@ -1,12 +1,6 @@
 package app.improving.gateway
 
-import app.improving.{
-  ApiEventId,
-  ApiOrderId,
-  ApiOrganizationId,
-  ApiSku,
-  ApiStoreId
-}
+import app.improving.OrganizationId
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -226,7 +220,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       organizationService
         .establishOrganization(
           ApiEstablishOrganization(
-            Some(ApiOrganizationId(UUID.randomUUID().toString)),
+            UUID.randomUUID().toString,
             createOrganization.establishOrganization.flatMap(_.info),
             createOrganization.establishOrganization.flatMap(_.parent),
             createOrganization.establishOrganization
@@ -246,7 +240,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             )
           )
         )
-        .map(id => OrganizationCreated(Some(id)))
+        .map(id => OrganizationCreated(Some(OrganizationId(id.organizationId))))
     )
   }
 
@@ -263,7 +257,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               organizationService
                 .establishOrganization(
                   ApiEstablishOrganization(
-                    Some(ApiOrganizationId(UUID.randomUUID().toString)),
+                    UUID.randomUUID().toString,
                     establishOrganization.info,
                     establishOrganization.parent,
                     establishOrganization.members,
@@ -288,7 +282,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       eventService
         .scheduleEvent(
           ApiScheduleEvent(
-            Some(ApiEventId(UUID.randomUUID().toString)),
+            UUID.randomUUID().toString,
             createEvent.info,
             createEvent.schedulingMember
           )
@@ -310,7 +304,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             .map(info => {
               eventService.scheduleEvent(
                 ApiScheduleEvent(
-                  Some(ApiEventId(UUID.randomUUID().toString)),
+                  UUID.randomUUID().toString,
                   Some(info),
                   createEvents.schedulingMember
                 )
@@ -332,12 +326,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       storeService
         .createStore(
           ApiCreateStore(
-            Some(ApiStoreId(storeId)),
-            createStore.info.map(
-              _.copy(
-                storeId = Some(ApiStoreId(storeId))
-              )
-            ),
+            storeId,
+            createStore.info,
             createStore.creatingMember
           )
         )
@@ -356,12 +346,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .sequence(createStores.infos.map(info => {
           storeService.createStore(
             ApiCreateStore(
-              Some(ApiStoreId(storeId)),
-              Some(
-                info.copy(
-                  storeId = Some(ApiStoreId(storeId))
-                )
-              ),
+              storeId,
+              Some(info),
               createStores.creatingMember
             )
           )
@@ -381,11 +367,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       productService
         .createProduct(
           ApiCreateProduct(
-            Some(ApiSku(sku)),
-            createProduct.establishProduct
-              .flatMap(
-                _.info.map(_.copy(sku = Some(ApiSku(sku))))
-              ),
+            sku,
+            createProduct.establishProduct.flatMap(_.info),
             createProduct.establishProduct.flatMap(_.meta)
           )
         )
@@ -407,9 +390,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               productService
                 .createProduct(
                   ApiCreateProduct(
-                    Some(ApiSku(sku)),
-                    establishProduct.info
-                      .map(_.copy(sku = Some(ApiSku(sku)))),
+                    sku,
+                    establishProduct.info,
                     establishProduct.meta
                   )
                 )
@@ -477,7 +459,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
       orderAction
         .purchaseTicket(
           ApiCreateOrder(
-            Some(ApiOrderId(orderId)),
+            orderId,
             createOrder.establishOrder.flatMap(_.info),
             createOrder.establishOrder.flatMap(_.creatingMember),
             createOrder.establishOrder.flatMap(_.storeId)
@@ -501,7 +483,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             orderAction
               .purchaseTicket(
                 ApiCreateOrder(
-                  Some(ApiOrderId(orderId)),
+                  orderId,
                   establishOrder.info,
                   establishOrder.creatingMember,
                   establishOrder.storeId

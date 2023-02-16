@@ -32,11 +32,11 @@ class OrderActionImplSpec
       val service = OrderActionImplTestKit(new OrderActionImpl(_), mockRegistry)
 
       val apiCreateOrder = ApiCreateOrder(
-        Some(ApiOrderId("test-id")),
+        "test-id",
         Some(
           ApiOrderInfo(
             Seq[ApiLineItem](
-              ApiLineItem(Some(ApiProductId("pro-id-1")), 10, 100.0)
+              ApiLineItem(Some(ApiSku("pro-id-1")), 10, 100.0)
             ),
             "special instruction"
           )

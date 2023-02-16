@@ -12,11 +12,11 @@ object TestData {
   val newParentId: ApiOrganizationId = ApiOrganizationId("new-parent-id")
   val testTenantId = "test-tenant-id"
   val establishingMemberId = "establishing-member-id"
-  val now = Instant.now()
-  val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  val now: Instant = Instant.now()
+  val timestamp: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
-  val apiEstablishOrganization = ApiEstablishOrganization(
-    Some(testOrgId),
+  val apiEstablishOrganization: ApiEstablishOrganization = ApiEstablishOrganization(
+    testOrgId.organizationId,
     Some(
       ApiInfo(
         "name-test",

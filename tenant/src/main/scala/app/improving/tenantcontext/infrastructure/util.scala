@@ -72,6 +72,8 @@ object util {
         ApiTenantStatus.API_TENANT_STATUS_ACTIVE
       case TenantStatus.TENANT_STATUS_SUSPENDED =>
         ApiTenantStatus.API_TENANT_STATUS_SUSPENDED
+      case TenantStatus.TENANT_STATUS_RELEASED =>
+        ApiTenantStatus.API_TENANT_STATUS_RELEASED
       case TenantStatus.Unrecognized(unrecognizedValue) =>
         ApiTenantStatus.Unrecognized(unrecognizedValue)
     }
@@ -79,17 +81,17 @@ object util {
 
   def convertApiTenantStatusToTenantStatus(
       apiStatus: ApiTenantStatus
-  ): TenantStatus = {
-    apiStatus match {
-      case ApiTenantStatus.API_TENANT_STATUS_DRAFT =>
-        TenantStatus.TENANT_STATUS_DRAFT
-      case ApiTenantStatus.API_TENANT_STATUS_ACTIVE =>
-        TenantStatus.TENANT_STATUS_ACTIVE
-      case ApiTenantStatus.API_TENANT_STATUS_SUSPENDED =>
-        TenantStatus.TENANT_STATUS_SUSPENDED
-      case ApiTenantStatus.Unrecognized(unrecognizedValue) =>
-        TenantStatus.Unrecognized(unrecognizedValue)
-    }
+  ): TenantStatus = apiStatus match {
+    case ApiTenantStatus.API_TENANT_STATUS_DRAFT =>
+      TenantStatus.TENANT_STATUS_DRAFT
+    case ApiTenantStatus.API_TENANT_STATUS_ACTIVE =>
+      TenantStatus.TENANT_STATUS_ACTIVE
+    case ApiTenantStatus.API_TENANT_STATUS_SUSPENDED =>
+      TenantStatus.TENANT_STATUS_SUSPENDED
+    case ApiTenantStatus.API_TENANT_STATUS_RELEASED =>
+      TenantStatus.TENANT_STATUS_RELEASED
+    case ApiTenantStatus.Unrecognized(unrecognizedValue) =>
+      TenantStatus.Unrecognized(unrecognizedValue)
   }
   def convertTenantToApiTenant(tenant: Tenant): ApiTenant = {
     ApiTenant(

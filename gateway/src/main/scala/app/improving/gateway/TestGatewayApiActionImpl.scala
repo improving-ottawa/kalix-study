@@ -9,7 +9,7 @@ import app.improving.{
   ApiMemberId,
   ApiMobileNumber,
   ApiOrganizationId,
-  ApiProductId,
+  ApiSku,
   ApiStoreId,
   ApiTenantId,
   ApiVenueId
@@ -212,7 +212,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   tenantService.activateTenant(
                     ApiActivateTenant(
                       tenantId.tenantId,
-                      initialMemberId.memberId
+                      Some(initialMemberId)
                     )
                   )
                   tenantId
@@ -285,7 +285,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               organizationService
                 .updateOrganizationStatus(
                   ApiOrganizationStatusUpdated(
-                    Some(orgId),
+                    orgId.organizationId,
                     ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
                   )
                 )
@@ -530,18 +530,18 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             for {
               event <- eventService.getEventById(
                 ApiGetEventById(
-                  Some(eventIds.toArray.apply(r.nextInt(eventIds.size)))
+                  eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
                 )
               )
               temp <- Future
                 .sequence(result.map { case (storeId, products) =>
                   storeService.updateStore(
                     ApiUpdateStore(
-                      Some(storeId),
+                      storeId.storeId,
                       Some(
                         ApiStoreUpdateInfo(
                           products = products.skus,
-                          event = event.eventId,
+                          event = Some(ApiEventId(event.eventId)),
                           venue = Some(ApiVenueId("test-venue-id")),
                           location = Some(ApiLocationId("test-location-id"))
                         )
@@ -589,15 +589,17 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       _.orderIds.map(id => orderService.releaseOrder(ApiReleaseOrder(Some(id))))
     )
     endScenario.products.map(
-      _.skus.map(id =>
-        productService.releaseProduct(ApiReleaseProduct(Some(id)))
-      )
+      _.skus.map(id => productService.releaseProduct(ApiReleaseProduct(id.sku)))
     )
     endScenario.stores.map(
-      _.storeIds.map(id => storeService.releaseStore(ApiReleaseStore(Some(id))))
+      _.storeIds.map(id =>
+        storeService.releaseStore(ApiReleaseStore(id.storeId))
+      )
     )
     endScenario.events.map(
-      _.eventIds.map(id => eventService.releaseEvent(ApiReleaseEvent(Some(id))))
+      _.eventIds.map(id =>
+        eventService.releaseEvent(ApiReleaseEvent(id.eventId))
+      )
     )
     endScenario.members.map(
       _.memberIds.map(id =>
@@ -651,10 +653,9 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             .map { _ =>
               val sku = UUID.randomUUID().toString
               storeId -> ApiCreateProduct(
-                Some(ApiProductId(sku)),
+                sku,
                 Some(
                   ApiProductInfo(
-                    Some(ApiProductId(sku)),
                     r.nextString(15),
                     r.nextString(15),
                     Some(
@@ -698,13 +699,12 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     ownersByOrg.keys.map { orgId =>
       ApiCreateStore(
-        Some(ApiStoreId(UUID.randomUUID().toString)),
+        UUID.randomUUID().toString,
         Some(
           ApiStoreInfo(
-            Some(ApiStoreId(r.nextString(15))),
             r.nextString(15),
             r.nextString(15),
-            Seq.empty[ApiProductId],
+            Seq.empty[ApiSku],
             None,
             None,
             None,
@@ -736,7 +736,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             now.getNano
           )
           ApiScheduleEvent(
-            Some(ApiEventId(UUID.randomUUID().toString)),
+            UUID.randomUUID().toString,
             Some(
               ApiEventInfo(
                 r.nextString(15),
@@ -943,7 +943,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       val topParent = UUID.randomUUID().toString
       establishOrgs = establishOrgs ++ Seq(
         ApiEstablishOrganization(
-          Some(ApiOrganizationId(topParent)),
+          topParent,
           Some(
             organization.ApiInfo(
               r.nextString(10),
@@ -990,7 +990,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               val id = UUID.randomUUID().toString
               establishOrgs = establishOrgs ++ Seq(
                 ApiEstablishOrganization(
-                  Some(ApiOrganizationId(id)),
+                  id,
                   Some(
                     organization.ApiInfo(
                       r.nextString(10),

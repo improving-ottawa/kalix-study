@@ -35,7 +35,7 @@ class ProductServiceIntegrationSpec
     "create product correctly" in {
 
       val apiGetProductInfo = ApiGetProductInfo(
-        Some(testSku)
+        testSku
       )
       val createdProductInfo =
         client.getProductInfo(apiGetProductInfo).futureValue
@@ -45,14 +45,14 @@ class ProductServiceIntegrationSpec
 
     "activate product correctly" in {
       val apiActivateProduct = ApiActivateProduct(
-        Some(testSku),
+        testSku,
         Some(ApiMemberId(testMemberId1))
       )
 
       client.activateProduct(apiActivateProduct).futureValue
 
       val apiGetProductInfo = ApiGetProductInfo(
-        Some(testSku)
+        testSku
       )
       val createdProductInfo =
         client.getProductInfo(apiGetProductInfo).futureValue
@@ -62,14 +62,14 @@ class ProductServiceIntegrationSpec
 
     "delete product correctly" in {
       val apiDeleteProduct = ApiDeleteProduct(
-        Some(testSku),
+        testSku,
         Some(ApiMemberId(testMemberId1))
       )
 
       client.deleteProduct(apiDeleteProduct).futureValue
 
       val apiGetProductInfo = ApiGetProductInfo(
-        Some(testSku)
+        testSku
       )
 
       intercept[Exception] {

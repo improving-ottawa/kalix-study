@@ -131,7 +131,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             MemberId(member.memberId)
           )
         val event = OrderInfoUpdated(
-          order.orderId,
+          Some(OrderId(context.entityId)),
           updatedInfo,
           order.meta.map(
             _.copy(

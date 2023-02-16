@@ -62,7 +62,7 @@ class OrganizationServiceIntegrationSpec
 
       val organization =
         client
-          .getOrganization(ApiGetOrganizationById(Some(id)))
+          .getOrganization(ApiGetOrganizationById(id.organizationId))
           .futureValue
 
       organization.status shouldBe ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT
@@ -71,24 +71,22 @@ class OrganizationServiceIntegrationSpec
         ApiOrganizationId(id.organizationId)
       )
 
-      client
-        .updateOrganizationStatus(
-          ApiOrganizationStatusUpdated(
-            Some(id),
-            ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
-            Some(ApiMemberId("member81"))
-          )
+      client.updateOrganizationStatus(
+        ApiOrganizationStatusUpdated(
+          id.organizationId,
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
         )
+      )
 
       val activeOrganization =
         client
-          .getOrganization(ApiGetOrganizationById(Some(id)))
+          .getOrganization(ApiGetOrganizationById(id.organizationId))
           .futureValue
 
       activeOrganization.status shouldBe ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
 
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
-        Some(id),
+        id.organizationId,
         Seq[ApiMemberId](
           ApiMemberId("member20"),
           ApiMemberId("member22"),
@@ -101,7 +99,7 @@ class OrganizationServiceIntegrationSpec
 
       val addedMemberOrganization =
         client
-          .getOrganization(ApiGetOrganizationById(Some(testOrgId)))
+          .getOrganization(ApiGetOrganizationById(testOrgId.organizationId))
           .futureValue
 
       addedMemberOrganization.memberIds should contain("member20")

@@ -9,6 +9,7 @@ enum TenantStatus {
     TENANT_STATUS_DRAFT = 0;
     TENANT_STATUS_ACTIVE = 1;
     TENANT_STATUS_SUSPENDED = 2;
+    TENANT_STATUS_RELEASED = 3;
 }
 
 message Info {
@@ -54,6 +55,12 @@ message TenantNameChanged {
 }
 
 message TenantSuspended {
+    TenantId tenant_id = 1;
+    string name = 2;
+    MetaInfo meta = 3;
+}
+
+message TenantReleased {
     TenantId tenant_id = 1;
     string name = 2;
     MetaInfo meta = 3;

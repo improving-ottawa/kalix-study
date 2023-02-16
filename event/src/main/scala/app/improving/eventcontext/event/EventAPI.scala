@@ -38,7 +38,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
     EventStatus.EVENT_STATUS_SCHEDULED
   )
   val updateableStatuses: Set[EventStatus] =
-    Set(EventStatus.EVENT_STATUS_CANCELLED, EventStatus.EVENT_STATUS_DELAYED)
+    Set(EventStatus.EVENT_STATUS_SCHEDULED, EventStatus.EVENT_STATUS_DELAYED)
   val reschedulableStatuses: Set[EventStatus] =
     Set(
       EventStatus.EVENT_STATUS_SCHEDULED,
@@ -50,7 +50,6 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   val startableStatuses: Set[EventStatus] =
     Set(
       EventStatus.EVENT_STATUS_SCHEDULED,
-      EventStatus.EVENT_STATUS_CANCELLED,
       EventStatus.EVENT_STATUS_DELAYED
     )
   val cancellableStatuses: Set[EventStatus] =
@@ -73,7 +72,6 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           apiChangeEventInfo.info
         )
       ) { validatedFields =>
-        println("validating")
         val validatedFieldsWithEventUpdateInfo
             : ValidatedFieldsWithEventUpdateInfo =
           validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
@@ -108,7 +106,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   ): EventSourcedEntity.Effect[ApiEventId] = currentState.event match {
     case Some(_) =>
       effects.error(
-        s"Event is already scheduled with id ${apiScheduleEvent.eventId}"
+        s"Event already exists with id ${apiScheduleEvent.eventId}"
       )
     case _ =>
       errorOrReply(
@@ -160,7 +158,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       apiCancelEvent: ApiCancelEvent
   ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
-      case Some(event) =>
+      case Some(event) if currentState.event.exists(_.reservation.nonEmpty) =>
         errorOrReply(
           event.status,
           cancellableStatuses,
@@ -187,7 +185,8 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           )
           effects.emitEvent(cancelled).thenReply(_ => Empty.defaultInstance)
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      case _ =>
+        effects.error("State is missing the following fields: Reservation")
     }
 
   override def rescheduleEvent(
@@ -195,7 +194,10 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       apiRescheduleEvent: ApiRescheduleEvent
   ): EventSourcedEntity.Effect[Empty] =
     currentState.event match {
-      case Some(event) =>
+      case Some(event)
+          if currentState.event
+            .map(_.reservation)
+            .exists(_.nonEmpty) =>
         errorOrReply(
           event.status,
           reschedulableStatuses,
@@ -231,6 +233,8 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           )
           effects.emitEvent(rescheduled).thenReply(_ => Empty.defaultInstance)
         }
+      case Some(_) =>
+        effects.error("State is missing the following fields: Reservation")
       case _ => effects.reply(Empty.defaultInstance)
     }
 

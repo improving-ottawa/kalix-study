@@ -39,11 +39,10 @@ class TenantServiceIntegrationSpec
 
       tenant.name shouldBe apiInfo.name
 
-      tenant.status shouldBe ApiTenantStatus.DRAFT
+      tenant.status shouldBe ApiTenantStatus.API_TENANT_STATUS_DRAFT
 
       val apiActivateTenant = ApiActivateTenant(
-        testTenantId,
-        testTenantId2
+        testTenantId
       )
 
       client.activateTenant(apiActivateTenant).futureValue
@@ -52,14 +51,14 @@ class TenantServiceIntegrationSpec
         .getTenantById(ApiGetTenantById(testTenantId))
         .futureValue
 
-      activatedTenant.status shouldBe ApiTenantStatus.ACTIVE
+      activatedTenant.status shouldBe ApiTenantStatus.API_TENANT_STATUS_ACTIVE
     }
 
     "deactivate tenant correctly" in {
 
       val apiSuspendTenant = ApiSuspendTenant(
         testTenantId,
-        testTenantId2
+        Some(testMemberId)
       )
       client.suspendTenant(apiSuspendTenant).futureValue
 
@@ -67,7 +66,7 @@ class TenantServiceIntegrationSpec
         .getTenantById(ApiGetTenantById(testTenantId))
         .futureValue
 
-      suspendedTenant.status shouldBe ApiTenantStatus.SUSPENDED
+      suspendedTenant.status shouldBe ApiTenantStatus.API_TENANT_STATUS_SUSPENDED
     }
 
     "updatePrimaryContact correctly" in {
@@ -75,7 +74,7 @@ class TenantServiceIntegrationSpec
       val apiUpdatePrimaryContact = ApiUpdatePrimaryContact(
         testTenantId,
         Some(newApiContact),
-        testTenantId2
+        Some(testMemberId)
       )
       client.updatePrimaryContact(apiUpdatePrimaryContact).futureValue
 
@@ -90,7 +89,7 @@ class TenantServiceIntegrationSpec
       val apiChangeTenantName = ApiChangeTenantName(
         testTenantId,
         testNewName,
-        testTenantId2
+        Some(testMemberId)
       )
 
       client.changeTenantName(apiChangeTenantName).futureValue

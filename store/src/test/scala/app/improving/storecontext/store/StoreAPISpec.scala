@@ -2,7 +2,7 @@ package app.improving.storecontext.store
 
 import TestData._
 import app.improving.storecontext.infrastructure.util._
-import app.improving.{ApiMemberId, ApiStoreId, MemberId, ProductId}
+import app.improving.{ApiMemberId, MemberId, Sku, StoreId}
 import app.improving.storecontext.{
   ProductsAddedToStore,
   ProductsRemovedFromStore,
@@ -59,7 +59,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val storeId = testKit.currentState.store
         .flatMap(_.storeId)
       val apiUpdateStore = ApiUpdateStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        storeId.getOrElse(StoreId.defaultInstance).id,
         Some(apiStoreInfoUpdate),
         Some(apiStoreMetaInfo)
       )
@@ -78,7 +78,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
             products = testProductsUpdate,
             event = Some(testEventUpdate),
             venue = Some(testVenueUpdate),
-            location = Some(testLocaltionUpdate),
+            location = Some(testLocationUpdate),
             sponsoringOrg = Some(testOrgUpdate)
           )
         )
@@ -104,7 +104,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiDeleteStore = ApiDeleteStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         Some(ApiMemberId(testMember2))
       )
 
@@ -114,7 +114,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val storeId = testKit.currentState.store
         .flatMap(_.storeId)
       val apiDeleteStore = ApiDeleteStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        storeId.getOrElse(StoreId.defaultInstance).id,
         Some(ApiMemberId(testMember2))
       )
 
@@ -148,7 +148,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiOpenStore = ApiOpenStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         Some(ApiMemberId(testMember2))
       )
 
@@ -160,7 +160,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("StoreId is not found.")
       val apiMakeStoreReady = ApiReadyStore(
-        Some(ApiStoreId(storeId)),
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -191,7 +191,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiOpenStore = ApiOpenStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         Some(ApiMemberId(testMember2))
       )
 
@@ -203,7 +203,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("StoreId is not found.")
       val apiMakeStoreReady = ApiReadyStore(
-        Some(ApiStoreId(storeId)),
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -218,7 +218,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val apiOpenStore = ApiOpenStore(
-        Some(ApiStoreId(storeId)),
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -252,7 +252,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiOpenStore = ApiOpenStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         Some(ApiMemberId(testMember2))
       )
 
@@ -264,7 +264,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
         .map(_.id)
         .getOrElse("StoreId is not found.")
       val apiMakeStoreReady = ApiReadyStore(
-        Some(ApiStoreId(storeId)),
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -279,7 +279,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val apiOpenStore = ApiOpenStore(
-        Some(ApiStoreId(storeId)),
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -297,7 +297,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiCloseStore = ApiCloseStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         Some(ApiMemberId(testMember2))
       )
 
@@ -306,7 +306,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       nullApiCloseStoreResult.events should have size 0
 
       val apiCloseStore = ApiCloseStore(
-        Some(ApiStoreId(storeId)),
+        storeId,
         Some(ApiMemberId(testMember2))
       )
 
@@ -340,7 +340,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiAddProductToStore = ApiAddProductsToStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -352,7 +352,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val storeId = testKit.currentState.store
         .flatMap(_.storeId)
       val apiAddProductToStore = ApiAddProductsToStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        storeId.getOrElse(StoreId.defaultInstance).id,
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -367,7 +367,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       productsAddedToStore.info.map(_.products) shouldBe Some(
         testProducts ++ testProductsUpdate
-      ).map(_.map(product => ProductId(product.productId)))
+      ).map(_.map(product => Sku(product.sku)))
       productsAddedToStore.meta.flatMap(_.lastModifiedBy) shouldBe Some(
         MemberId(testMember2)
       )
@@ -389,7 +389,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiAddProductToStore = ApiAddProductsToStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -401,7 +401,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val storeId = testKit.currentState.store
         .flatMap(_.storeId)
       val apiAddProductToStore = ApiAddProductsToStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        storeId.getOrElse(StoreId.defaultInstance).id,
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -416,13 +416,13 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       productsAddedToStore.info.map(_.products) shouldBe Some(
         testProducts ++ testProductsUpdate
-      ).map(_.map(product => ProductId(product.productId)))
+      ).map(_.map(product => Sku(product.sku)))
       productsAddedToStore.meta.flatMap(_.lastModifiedBy) shouldBe Some(
         MemberId(testMember2)
       )
 
       val nullApiRemoveProductsFromStore = ApiRemoveProductsFromStore(
-        Some(ApiStoreId("other-id")),
+        "other-id",
         testProductsUpdate,
         Some(ApiMemberId(testMember2))
       )
@@ -433,7 +433,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       nullApiRemoveProductsFromStoreResult.events should have size 0
 
       val apiRemoveProductsFromStore = ApiRemoveProductsFromStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        storeId.getOrElse(StoreId.defaultInstance).id,
         testProductsUpdate,
         Some(ApiMemberId(testMember3))
       )
@@ -448,7 +448,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
 
       removeProductsFromStore.info.map(_.products) shouldBe Some(
         testProducts
-      ).map(_.map(product => ProductId(product.productId)))
+      ).map(_.map(product => Sku(product.sku)))
       removeProductsFromStore.meta.flatMap(_.lastModifiedBy) shouldBe Some(
         MemberId(testMember3)
       )
@@ -470,7 +470,7 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullApiGetProductInStore = ApiGetProductsInStore(
-        Some(ApiStoreId("other-id"))
+        "other-id"
       )
 
       val nullApiGetProductInStoreResult =
@@ -480,14 +480,14 @@ class StoreAPISpec extends AnyWordSpec with Matchers {
       val storeId = testKit.currentState.store
         .flatMap(_.storeId)
       val apiGetProductInStore = ApiGetProductsInStore(
-        storeId.map(id => ApiStoreId(id.id))
+        storeId.getOrElse(StoreId.defaultInstance).id
       )
 
       val apiGetProductInStoreResult =
         testKit.getProductsInStore(apiGetProductInStore)
 
       apiGetProductInStoreResult.reply shouldBe ApiProductsInStore(
-        storeId.map(id => ApiStoreId(id.id)),
+        storeId.getOrElse(StoreId.defaultInstance).id,
         testProducts
       )
     }

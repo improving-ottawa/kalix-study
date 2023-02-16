@@ -1,6 +1,6 @@
 package app.improving.storecontext
 
-import app.improving.{ApiStoreId, StoreId}
+import app.improving.StoreId
 import app.improving.storecontext.infrastructure.util._
 import app.improving.storecontext.store.{ApiStore, ApiStoreStatus}
 import kalix.scalasdk.view.View.UpdateEffect

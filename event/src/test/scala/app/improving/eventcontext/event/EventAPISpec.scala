@@ -51,7 +51,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         testKit.currentState.event.flatMap(_.eventId)
 
       val changeEventInfo: ApiChangeEventInfo = ApiChangeEventInfo(
-        eventIdOpt.map(id => ApiEventId(id.id)),
+        eventIdOpt.getOrElse(EventId.defaultInstance).id,
         Some(
           ApiEventUpdateInfo(
             Some("postponed-try-out"),
@@ -69,7 +69,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val changeEventInfoResult: EventSourcedResult[Empty] =
         testKit.changeEventInfo(changeEventInfo)
-      println(changeEventInfoResult.errorStatusCode)
+
       changeEventInfoResult.events should have size 1
 
       val infoOpt: Option[EventInfo] =
@@ -100,7 +100,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
           changingMember = Some(ApiMemberId("member 25"))
         )
       )
-      println(result.errorStatusCode)
+
       result.isReply shouldBe true
       result.reply shouldBe Empty.defaultInstance
 
@@ -259,7 +259,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       val event: ReservationAddedToEvent =
         result.nextEvent[ReservationAddedToEvent]
-      event.eventId shouldBe apiScheduleEvent.eventId
+      event.eventId shouldBe Some(EventId(apiScheduleEvent.eventId))
       event.meta.get.lastModifiedBy.get shouldBe convertApiMemberIdToMemberId(
         apiAddReservationToEvent.reservingMember.get
       )
@@ -278,7 +278,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         testKit.currentState.event.flatMap(_.eventId)
 
       val started: ApiStartEvent = ApiStartEvent(
-        eventIdOpt.map(id => ApiEventId(id.id)),
+        eventIdOpt.getOrElse(EventId.defaultInstance).id,
         Some(ApiMemberId("2"))
       )
 
@@ -327,11 +327,11 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val cancelResult: EventSourcedResult[Empty] =
         testKit.cancelEvent(apiCancelEvent)
 
-      scheduleResult.errorDescription shouldBe "You cannot schedule event from state CANCELLED"
-      cancelResult.errorDescription shouldBe "You cannot cancel event from state CANCELLED"
-      delayResult.errorDescription shouldBe "You cannot delay event from state CANCELLED"
-      startResult.errorDescription shouldBe "You cannot start event from state CANCELLED"
-      endResult.errorDescription shouldBe "You cannot end event from state CANCELLED"
+      scheduleResult.errorDescription shouldBe s"Event already exists with id ${apiScheduleEvent.eventId}"
+      cancelResult.errorDescription shouldBe "You cannot cancel event from state EVENT_STATUS_CANCELLED"
+      delayResult.errorDescription shouldBe "You cannot delay event from state EVENT_STATUS_CANCELLED"
+      startResult.errorDescription shouldBe "You cannot start event from state EVENT_STATUS_CANCELLED"
+      endResult.errorDescription shouldBe "You cannot end event from state EVENT_STATUS_CANCELLED"
 
       val rescheduleResult: EventSourcedResult[Empty] =
         testKit.rescheduleEvent(apiRescheduleEvent)
@@ -351,10 +351,10 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val cancelResult: EventSourcedResult[Empty] =
         testKit.cancelEvent(apiCancelEvent)
 
-      scheduleResult.errorDescription shouldBe "You cannot schedule event from state INPROGRESS"
-      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state INPROGRESS"
-      cancelResult.errorDescription shouldBe "You cannot cancel event from state INPROGRESS"
-      startResult.errorDescription shouldBe "You cannot start event from state INPROGRESS"
+      scheduleResult.errorDescription shouldBe s"Event already exists with id ${apiScheduleEvent.eventId}"
+      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state EVENT_STATUS_INPROGRESS"
+      cancelResult.errorDescription shouldBe "You cannot cancel event from state EVENT_STATUS_INPROGRESS"
+      startResult.errorDescription shouldBe "You cannot start event from state EVENT_STATUS_INPROGRESS"
 
       val delayResult: EventSourcedResult[Empty] =
         testKit.delayEvent(apiDelayEvent)
@@ -384,12 +384,12 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         testKit.startEvent(apiStartEvent)
       val endResult: EventSourcedResult[Empty] = testKit.endEvent(apiEndEvent)
 
-      scheduleResult.reply shouldBe ApiEventId.defaultInstance
-      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state PAST"
-      delayResult.errorDescription shouldBe "You cannot delay event from state PAST"
-      cancelResult.errorDescription shouldBe "You cannot cancel event from state PAST"
-      startResult.errorDescription shouldBe "You cannot start event from state PAST"
-      endResult.errorDescription shouldBe "You cannot end event from state PAST"
+      scheduleResult.errorDescription shouldBe s"Event already exists with id ${apiScheduleEvent.eventId}"
+      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state EVENT_STATUS_PAST"
+      delayResult.errorDescription shouldBe "You cannot delay event from state EVENT_STATUS_PAST"
+      cancelResult.errorDescription shouldBe "You cannot cancel event from state EVENT_STATUS_PAST"
+      startResult.errorDescription shouldBe "You cannot start event from state EVENT_STATUS_PAST"
+      endResult.errorDescription shouldBe "You cannot end event from state EVENT_STATUS_PAST"
     }
 
     "correctly process commands of type EndEvent" in new ScheduledAndReserved {
@@ -467,8 +467,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         testKit.scheduleEvent(apiScheduleEvent.copy(info = missingGeo))
 
       missingGeoResult.isReply shouldBe true
-      Some(missingGeoResult.reply.eventId) shouldBe apiScheduleEvent.eventId
-        .map(_.eventId)
+      missingGeoResult.reply.eventId shouldBe apiScheduleEvent.eventId
 
     }
 

@@ -64,6 +64,7 @@ class ProductAPI(context: EventSourcedEntityContext)
         )
         val updatedProductInfo = product.info.map(productInfo => {
           productInfoUpdateOpt.fold(productInfo) { productInfoUpdate =>
+            println(productInfoUpdate.name.getOrElse(productInfo.name))
             productInfo.copy(
               name = productInfoUpdate.name.getOrElse(productInfo.name),
               description = productInfoUpdate.description.getOrElse(
@@ -121,7 +122,7 @@ class ProductAPI(context: EventSourcedEntityContext)
       case Some(product)
           if product.status != ProductStatus.PRODUCT_STATUS_DELETED =>
         val event = ProductActivated(
-          product.sku,
+          Some(Sku(apiActivateProduct.sku)),
           apiActivateProduct.activatingMember.map(member =>
             MemberId(member.memberId)
           )
