@@ -2,9 +2,9 @@
              " members.info AS member"
              "FROM members "
              "JOIN orders ON orders.meta.member_id = members.member_id "
-             "JOIN products ON products.product_id = ANY(orders.lineItems.product.id) "
+             "JOIN products ON products.product_id = ANY(orders.line_items.product.id) "
              "JOIN events ON products.info.event.id = events.event_id "
-             "WHERE :given_time >= events.info.expectedStart AND :given_time < events.info.expectedEnd "
+             "WHERE :given_time >= events.info.expected_start AND :given_time < events.info.expected_end "
 
 message ApiMemberData  {
     ApiMemberId member_id = 1;
@@ -20,22 +20,22 @@ message ApiOrder {
 }
 
 message ApiLineItem {
-    ApiProductId product = 1;
+    ApiSku product = 1;
     int32     quantity = 2;
-    double    lineTotal = 3;
+    double    line_total = 3;
 }
 
 message ApiOrderInfo {
     string order_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiLineItem lineItems = 2;
-    string specialInstructions = 3;
-    double orderTotal = 4;
+    repeated ApiLineItem line_items = 2;
+    string special_instructions = 3;
+    double order_total = 4;
 }
 
 message ApiOrderMetaInfo  {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId member_id = 2;
-    ApiStoreId storeId = 3;
+    ApiStoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;
     ApiMemberId last_modified_by = 5;
     google.protobuf.Timestamp last_modified_on = 6;
@@ -71,24 +71,24 @@ message ApiEvent {
 }
 
 message ApiEventInfo {
-    string eventName = 1;
+    string event_name = 1;
     string description = 2;
-    string eventURL = 3;
-    ApiOrganizationId sponsoringOrg = 4;
-    ApiGeoLocation geoLocation = 5;
+    string event_url = 3;
+    ApiOrganizationId sponsoring_org = 4;
+    ApiGeoLocation geo_location = 5;
     ApiReservationId reservation = 6;
-    google.protobuf.Timestamp expectedStart = 7;
-    google.protobuf.Timestamp expectedEnd = 8;
-    bool isPrivate = 9;
+    google.protobuf.Timestamp expected_start = 7;
+    google.protobuf.Timestamp expected_end = 8;
+    bool is_private = 9;
 }
 
 message ApiEventMetaInfo {
-    ApiMemberId scheduledBy = 1;
-    google.protobuf.Timestamp scheduledOn = 2;
+    ApiMemberId scheduled_by = 1;
+    google.protobuf.Timestamp scheduled_on = 2;
     ApiMemberId last_modified_by = 3;
     google.protobuf.Timestamp last_modified_on = 4;
-    google.protobuf.Timestamp actualStart = 5;
-    google.protobuf.Timestamp actualEnd = 6;
+    google.protobuf.Timestamp actual_start = 5;
+    google.protobuf.Timestamp actual_end = 6;
     ApiEventStatus status = 7;
 }
 
@@ -99,9 +99,9 @@ message ApiEventMetaInfo {
                     "members.meta.member_status AS status "
                     "FROM members "
                     "JOIN orders ON orders.meta.member_id.member_id = members.member_id.member_id "
-                    "JOIN products ON products.sku = ANY(orders.lineItems.product.product_id) "
-                    "JOIN events ON products.info.event.eventId = events.eventId "
-                    "WHERE :eventTime = events.info.expectedEnd"
+                    "JOIN products ON products.sku = ANY(orders.line_items.product.product_id) "
+                    "JOIN events ON products.info.event.event_id = events.event_id "
+                    "WHERE :eventTime = events.info.expected_end"
 
 
 Error reported from Kalix system: KLX-00107 Incompatible types in View app.improving.membercontext.MemberByEventQuery.FindMembersByEventTime. View cannot be projected into result type:
@@ -123,7 +123,7 @@ Error reported from Kalix system: KLX-00107 Incompatible types in View app.impro
                     "JOIN member_by_event_product ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
                     "JOIN member_by_event_order ON member_by_event_product.sku = member_by_event_order.order_id "
                     "JOIN member_by_event_member ON member_by_event_order.meta.member_id.member_id = member_by_event_member.member_id.member_id "
-                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+                    "WHERE :eventTime >= member_by_event_event.info.expected_start AND :eventTime < member_by_event_event.info.expected_end "
 
 
                 "SELECT * "
@@ -131,14 +131,14 @@ Error reported from Kalix system: KLX-00107 Incompatible types in View app.impro
                                     "JOIN member_by_event_product ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
                                     "JOIN member_by_event_order ON member_by_event_product.sku = member_by_event_order.order_id "
                                     "JOIN member_by_event_event ON member_by_event_order.meta.member_id.member_id = member_by_event_member.member_id.member_id "
-                                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+                                    "WHERE :eventTime >= member_by_event_event.info.expected_start AND :eventTime < member_by_event_event.info.expected_end "
 
 "SELECT * "
                     "FROM  member_by_event_member "
                     "JOIN member_by_event_order ON member_by_event_order.meta.member_id.member_id = member_by_event_member.member_id.member_id "
-                    "JOIN member_by_event_product ON member_by_event_product.sku = ANY(member_by_event_order.lineItems.product.product_id) "
+                    "JOIN member_by_event_product ON member_by_event_product.sku = ANY(member_by_event_order.line_items.product.product_id) "
                     "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
-                    "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+                    "WHERE :eventTime >= member_by_event_event.info.expected_start AND :eventTime < member_by_event_event.info.expected_end "
 
 
                     "SELECT "
@@ -149,5 +149,5 @@ Error reported from Kalix system: KLX-00107 Incompatible types in View app.impro
                                         "JOIN member_by_event_order ON member_by_event_order.meta.member_id.member_id = member_by_event_member.member_id "
                                         "JOIN member_by_event_product ON member_by_event_product.sku = member_by_event_order.order_id "
                                         "JOIN member_by_event_event ON member_by_event_product.info.event.event_id = member_by_event_event.event_id "
-                                        "WHERE :eventTime >= member_by_event_event.info.expectedStart AND :eventTime < member_by_event_event.info.expectedEnd "
+                                        "WHERE :eventTime >= member_by_event_event.info.expected_start AND :eventTime < member_by_event_event.info.expected_end "
 

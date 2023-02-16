@@ -1,9 +1,11 @@
 package app.improving.eventcontext.infrastructure
 
 import app.improving.{
+  ApiEventId,
   ApiGeoLocation,
   ApiMemberId,
   ApiOrganizationId,
+  EventId,
   GeoLocation,
   MemberId,
   OrganizationId
@@ -12,10 +14,8 @@ import app.improving.eventcontext.event._
 import app.improving.eventcontext.{
   EventInfo,
   EventMetaInfo,
-  EventRescheduled,
   EventScheduled,
-  EventStatus,
-  ReservationId
+  EventStatus
 }
 
 object util {
@@ -31,9 +31,9 @@ object util {
       description = updatingInfo.description
         .filter(_.nonEmpty)
         .getOrElse(eventInfo.description),
-      eventURL = updatingInfo.eventURL
+      eventUrl = updatingInfo.eventUrl
         .filter(_.nonEmpty)
-        .getOrElse(eventInfo.eventURL),
+        .getOrElse(eventInfo.eventUrl),
       sponsoringOrg = updatingInfo.sponsoringOrg
         .map(org => OrganizationId(org.organizationId)),
       geoLocation =
@@ -64,7 +64,7 @@ object util {
     EventInfo(
       apiEventInfo.eventName,
       apiEventInfo.description,
-      apiEventInfo.eventURL,
+      apiEventInfo.eventUrl,
       apiEventInfo.sponsoringOrg.map(org => OrganizationId(org.organizationId)),
       apiEventInfo.geoLocation.map(location =>
         GeoLocation(location.latitude, location.longitude, location.elevation)
@@ -79,7 +79,7 @@ object util {
     ApiEventInfo(
       eventInfo.eventName,
       eventInfo.description,
-      eventInfo.eventURL,
+      eventInfo.eventUrl,
       eventInfo.sponsoringOrg.map(org => ApiOrganizationId(org.id)),
       eventInfo.geoLocation.map(location =>
         ApiGeoLocation(
@@ -108,37 +108,44 @@ object util {
 
   def convertEventStatusToApiEventStatus(status: EventStatus): ApiEventStatus =
     status match {
-      case EventStatus.SCHEDULED  => ApiEventStatus.SCHEDULED
-      case EventStatus.INPROGRESS => ApiEventStatus.INPROGRESS
-      case EventStatus.PAST       => ApiEventStatus.PAST
-      case EventStatus.CANCELLED  => ApiEventStatus.CANCELLED
-      case EventStatus.DELAYED    => ApiEventStatus.DELAYED
-      case EventStatus.UNKNOWN    => ApiEventStatus.UNKNOWN
+      case EventStatus.EVENT_STATUS_SCHEDULED =>
+        ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+      case EventStatus.EVENT_STATUS_INPROGRESS =>
+        ApiEventStatus.API_EVENT_STATUS_INPROGRESS
+      case EventStatus.EVENT_STATUS_PAST => ApiEventStatus.API_EVENT_STATUS_PAST
+      case EventStatus.EVENT_STATUS_CANCELLED =>
+        ApiEventStatus.API_EVENT_STATUS_CANCELLED
+      case EventStatus.EVENT_STATUS_DELAYED =>
+        ApiEventStatus.API_EVENT_STATUS_DELAYED
+      case EventStatus.EVENT_STATUS_UNKNOWN =>
+        ApiEventStatus.API_EVENT_STATUS_UNKNOWN
       case EventStatus.Unrecognized(unrecognizedValue) =>
         ApiEventStatus.Unrecognized(unrecognizedValue)
     }
 
-  def convertEventToApiEvent(event: Event): ApiEvent = {
+  def convertEventToApiEvent(event: Event): ApiEvent =
     ApiEvent(
-      event.eventId.map(_.id).getOrElse("Event ID Not Found!"),
+      event.eventId.map(_.id).getOrElse(ApiEventId.defaultInstance.eventId),
       event.info.map(convertEventInfoToApiEventInfo),
-      event.reservation.map(convertReservationIdToApiReservationId),
+      event.reservation,
       event.meta.map(convertEventMetaInfoToApiEventMetaInfo),
       convertEventStatusToApiEventStatus(event.status)
     )
-  }
 
   def convertApiMemberIdToMemberId(apiMemberId: ApiMemberId): MemberId =
     MemberId(apiMemberId.memberId)
 
-  def convertApiReservationIdToReservationId(
-      apiReservationId: ApiReservationId
-  ): ReservationId = {
-    ReservationId(apiReservationId.reservationId)
-  }
-
-  def convertReservationIdToApiReservationId(
-      reservationId: ReservationId
-  ): ApiReservationId = ApiReservationId(reservationId.id)
+  def convertEventScheduledToApiEvent(
+      eventScheduled: EventScheduled
+  ): ApiEvent =
+    ApiEvent(
+      eventScheduled.eventId.getOrElse(EventId.defaultInstance).id,
+      eventScheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
+      "",
+      eventScheduled.meta.map(meta =>
+        convertEventMetaInfoToApiEventMetaInfo(meta)
+      ),
+      ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+    )
 
 }

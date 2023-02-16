@@ -3,13 +3,30 @@ package app.improving.eventcontext.event
 import com.google.protobuf.duration.Duration
 import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiEventId, ApiGeoLocation, ApiMemberId, ApiOrganizationId, MemberId, OrganizationId}
-import app.improving.eventcontext.{EventInfo, EventScheduled, EventStatus, ReservationAddedToEvent, ReservationId}
+import app.improving.{
+  ApiEventId,
+  ApiGeoLocation,
+  ApiMemberId,
+  ApiOrganizationId,
+  EventId,
+  MemberId,
+  OrganizationId
+}
+import app.improving.eventcontext.{
+  EventInfo,
+  EventMetaInfo,
+  EventScheduled,
+  EventStatus,
+  ReservationAddedToEvent
+}
 import kalix.scalasdk.testkit.EventSourcedResult
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import TestData._
-import app.improving.eventcontext.infrastructure.util.{convertApiEventInfoToEventInfo, convertApiMemberIdToMemberId, convertApiReservationIdToReservationId}
+import app.improving.eventcontext.infrastructure.util.{
+  convertApiEventInfoToEventInfo,
+  convertApiMemberIdToMemberId
+}
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -30,10 +47,11 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "correctly process commands of type ChangeEventInfo" in new ScheduledAndReserved {
 
-      val eventIdOpt = testKit.currentState.event.flatMap(_.eventId)
+      val eventIdOpt: Option[EventId] =
+        testKit.currentState.event.flatMap(_.eventId)
 
-      val changeEventInfo = ApiChangeEventInfo(
-        eventIdOpt.map(_.id).getOrElse("id not found"),
+      val changeEventInfo: ApiChangeEventInfo = ApiChangeEventInfo(
+        eventIdOpt.getOrElse(EventId.defaultInstance).id,
         Some(
           ApiEventUpdateInfo(
             Some("postponed-try-out"),
@@ -49,20 +67,24 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         Some(ApiMemberId("2"))
       )
 
-      val changeEventInfoResult = testKit.changeEventInfo(changeEventInfo)
+      val changeEventInfoResult: EventSourcedResult[Empty] =
+        testKit.changeEventInfo(changeEventInfo)
 
       changeEventInfoResult.events should have size 1
 
-      val infoOpt = testKit.currentState.event.flatMap(_.info)
+      val infoOpt: Option[EventInfo] =
+        testKit.currentState.event.flatMap(_.info)
 
-      infoOpt.map(_.eventName) shouldBe changeEventInfo.info.flatMap(_.eventName)
+      infoOpt.map(_.eventName) shouldBe changeEventInfo.info.flatMap(
+        _.eventName
+      )
 
     }
 
     "only overwrite fields filled in on ChangeEventInfo" in new ScheduledAndReserved {
       val newInfo: ApiEventUpdateInfo = ApiEventUpdateInfo(
         eventName = Some(""),
-        eventURL = Some(""),
+        eventUrl = Some(""),
         description = None,
         sponsoringOrg = Some(ApiOrganizationId("organization 121")),
         geoLocation = None,
@@ -87,7 +109,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val updatedInfo: EventInfo =
         result.updatedState.asInstanceOf[EventState].event.get.info.get
       updatedInfo.eventName shouldBe oldInfo.eventName
-      updatedInfo.eventURL shouldBe oldInfo.eventURL
+      updatedInfo.eventUrl shouldBe oldInfo.eventUrl
       updatedInfo.description shouldBe oldInfo.description
       updatedInfo.sponsoringOrg shouldBe Some(
         OrganizationId("organization 121")
@@ -99,16 +121,23 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     }
 
-    "refuse to start or delay an event without a reservation" in new WithTestKit {
+    "refuse to delay, reschedule, or cancel an event without a reservation" in new WithTestKit {
       testKit.scheduleEvent(apiScheduleEvent)
 
-      val delayResult: EventSourcedResult[Empty] = testKit.delayEvent(apiDelayEvent)
+      val delayResult: EventSourcedResult[Empty] =
+        testKit.delayEvent(apiDelayEvent)
       delayResult.isError shouldBe true
       delayResult.errorDescription shouldBe "State is missing the following fields: Reservation"
 
-      val startResult: EventSourcedResult[Empty] = testKit.startEvent(apiStartEvent)
-      startResult.isError shouldBe true
-      startResult.errorDescription shouldBe "State is missing the following fields: Reservation"
+      val rescheduleResult: EventSourcedResult[Empty] =
+        testKit.rescheduleEvent(apiRescheduleEvent)
+      rescheduleResult.isError shouldBe true
+      rescheduleResult.errorDescription shouldBe "State is missing the following fields: Reservation"
+
+      val cancelResult: EventSourcedResult[Empty] =
+        testKit.cancelEvent(apiCancelEvent)
+      cancelResult.isError shouldBe true
+      cancelResult.errorDescription shouldBe "State is missing the following fields: Reservation"
     }
 
     "correctly process commands of type ScheduleEvent" in new WithTestKit {
@@ -118,128 +147,157 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
       result.events should have size 1
 
-      val next = result.nextEvent[EventScheduled]
+      val next: EventScheduled = result.nextEvent[EventScheduled]
 
       next.info.map(_.eventName) shouldBe apiScheduleEvent.info.map(_.eventName)
 
-      val eventIdOpt = testKit.currentState.event.flatMap(_.eventId)
+      val eventIdOpt: Option[EventId] =
+        testKit.currentState.event.flatMap(_.eventId)
 
       eventIdOpt.isDefined shouldBe true
     }
 
     "correctly process commands of type CancelEvent" in new ScheduledAndReserved {
 
-      val cancelled = apiCancelEvent
+      val cancelled: ApiCancelEvent = apiCancelEvent
 
-      val cancelledEventInfoResult = testKit.cancelEvent(cancelled)
+      val cancelledEventInfoResult: EventSourcedResult[Empty] =
+        testKit.cancelEvent(cancelled)
 
       cancelledEventInfoResult.events should have size 1
 
-      val statusOpt = testKit.currentState.event.map(_.status)
+      val statusOpt: Option[EventStatus] =
+        testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.CANCELLED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_CANCELLED)
 
-      val metaOpt = testKit.currentState.event.flatMap(_.meta)
+      val metaOpt: Option[EventMetaInfo] =
+        testKit.currentState.event.flatMap(_.meta)
 
       metaOpt.flatMap(_.lastModifiedBy) shouldBe Some(MemberId("2"))
     }
 
     "correctly process commands of type RescheduleEvent" in new ScheduledAndReserved {
-      val newStart = apiRescheduleEvent.start.get
-      val newEnd = apiRescheduleEvent.end.get
+      val newStart: Timestamp = apiRescheduleEvent.start.get
+      val newEnd: Timestamp = apiRescheduleEvent.end.get
 
-      val rescheduled = apiRescheduleEvent
+      val rescheduled: ApiRescheduleEvent = apiRescheduleEvent
 
-      val rescheduledEventInfoResult = testKit.rescheduleEvent(rescheduled)
+      val rescheduledEventInfoResult: EventSourcedResult[Empty] =
+        testKit.rescheduleEvent(rescheduled)
 
       rescheduledEventInfoResult.events should have size 1
 
-      val statusOpt = testKit.currentState.event.map(_.status)
+      val statusOpt: Option[EventStatus] =
+        testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.SCHEDULED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_SCHEDULED)
 
-      val rescheduledStart =
+      val rescheduledStart: Option[Timestamp] =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
 
       rescheduledStart shouldEqual Some(newStart)
 
-      val rescheduledEnd =
+      val rescheduledEnd: Option[Timestamp] =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedEnd)
 
       rescheduledEnd shouldEqual Some(newEnd)
 
-      val metaOpt = testKit.currentState.event.flatMap(_.meta)
+      val metaOpt: Option[EventMetaInfo] =
+        testKit.currentState.event.flatMap(_.meta)
 
       metaOpt.flatMap(_.lastModifiedBy) shouldBe Some(MemberId("2"))
     }
 
     "correctly process commands of type DelayEvent" in new ScheduledAndReserved {
 
-      val delayed = apiDelayEvent
+      val delayed: ApiDelayEvent = apiDelayEvent
 
-      val delayedEventInfoResult = testKit.delayEvent(delayed)
+      val delayedEventInfoResult: EventSourcedResult[Empty] =
+        testKit.delayEvent(delayed)
 
       delayedEventInfoResult.events should have size 1
 
-      val statusOpt = testKit.currentState.event.map(_.status)
+      val statusOpt: Option[EventStatus] =
+        testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.DELAYED)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_DELAYED)
 
-      val delayedStart =
+      val delayedStart: Option[Timestamp] =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
 
-      val newStart = Timestamp.of(start.seconds + durationDelayed, start.nanos)
-      val newEnd = Timestamp.of(end.seconds + durationDelayed, end.nanos)
+      val newStart: Timestamp =
+        Timestamp.of(start.seconds + durationDelayed, start.nanos)
+      val newEnd: Timestamp =
+        Timestamp.of(end.seconds + durationDelayed, end.nanos)
 
       delayedStart shouldEqual Some(newStart)
 
-      val delayedEnd =
+      val delayedEnd: Option[Timestamp] =
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedEnd)
 
       delayedEnd shouldEqual Some(newEnd)
 
-      val metaOpt = testKit.currentState.event.flatMap(_.meta)
+      val metaOpt: Option[EventMetaInfo] =
+        testKit.currentState.event.flatMap(_.meta)
 
       metaOpt.flatMap(_.lastModifiedBy) shouldBe Some(MemberId("2"))
     }
 
     "correctly process commands of type AddReservationToEvent" in new WithTestKit {
-      val startResult: EventSourcedResult[ApiEventId] = testKit.scheduleEvent(apiScheduleEvent)
-      startResult.updatedState.asInstanceOf[EventState].event.get.reservation shouldBe None
+      val startResult: EventSourcedResult[ApiEventId] =
+        testKit.scheduleEvent(apiScheduleEvent)
+      startResult.updatedState
+        .asInstanceOf[EventState]
+        .event
+        .get
+        .reservation shouldBe ""
 
-      val result: EventSourcedResult[Empty] = testKit.addReservationToEvent(apiAddReservationToEvent)
+      val result: EventSourcedResult[Empty] =
+        testKit.addReservationToEvent(apiAddReservationToEvent)
       result.reply shouldBe Empty.defaultInstance
 
-      val event: ReservationAddedToEvent = result.nextEvent[ReservationAddedToEvent]
-      event.eventId.get.id shouldBe apiScheduleEvent.eventId
-      event.meta.get.lastModifiedBy.get shouldBe convertApiMemberIdToMemberId(apiAddReservationToEvent.reservingMember.get)
-      event.reservation shouldBe apiAddReservationToEvent.reservation.map(convertApiReservationIdToReservationId)
+      val event: ReservationAddedToEvent =
+        result.nextEvent[ReservationAddedToEvent]
+      event.eventId shouldBe Some(EventId(apiScheduleEvent.eventId))
+      event.meta.get.lastModifiedBy.get shouldBe convertApiMemberIdToMemberId(
+        apiAddReservationToEvent.reservingMember.get
+      )
+      event.reservation shouldBe apiAddReservationToEvent.reservation
 
-      result.updatedState.asInstanceOf[EventState].event.get.reservation shouldBe apiAddReservationToEvent.reservation.map(convertApiReservationIdToReservationId)
+      result.updatedState
+        .asInstanceOf[EventState]
+        .event
+        .get
+        .reservation shouldBe apiAddReservationToEvent.reservation
     }
 
     "correctly process commands of type StartEvent" in new ScheduledAndReserved {
 
-      val eventIdOpt = testKit.currentState.event.flatMap(_.eventId)
+      val eventIdOpt: Option[EventId] =
+        testKit.currentState.event.flatMap(_.eventId)
 
-      val started = ApiStartEvent(
-        eventIdOpt.map(_.id).getOrElse("eventId not found"),
+      val started: ApiStartEvent = ApiStartEvent(
+        eventIdOpt.getOrElse(EventId.defaultInstance).id,
         Some(ApiMemberId("2"))
       )
 
-      val startedEventInfoResult = testKit.startEvent(started)
+      val startedEventInfoResult: EventSourcedResult[Empty] =
+        testKit.startEvent(started)
 
       startedEventInfoResult.events should have size 1
 
-      val statusOpt = testKit.currentState.event.map(_.status)
+      val statusOpt: Option[EventStatus] =
+        testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.INPROGRESS)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_INPROGRESS)
 
-      val metaOpt = testKit.currentState.event.flatMap(_.meta)
+      val metaOpt: Option[EventMetaInfo] =
+        testKit.currentState.event.flatMap(_.meta)
 
       metaOpt.flatMap(_.lastModifiedBy) shouldBe Some(MemberId("2"))
 
-      val actualStart =
+      val actualStart: Timestamp =
         metaOpt.flatMap(_.actualStart).getOrElse(Timestamp.defaultInstance)
 
       ((actualStart.seconds * 1000000000) + actualStart.nanos > (start.seconds * 1000000000) + start.nanos) shouldBe true
@@ -247,13 +305,13 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     "if event status is scheduled, reject an end event command" in new ScheduledAndReserved {
       val result: EventSourcedResult[Empty] = testKit.endEvent(apiEndEvent)
-      result.errorDescription shouldBe "You cannot end event from state SCHEDULED"
+      result.errorDescription shouldBe "You cannot end event from state EVENT_STATUS_SCHEDULED"
     }
 
     "if event status is delayed, reject an end event command" in new ScheduledAndReserved {
       testKit.delayEvent(apiDelayEvent)
       val result: EventSourcedResult[Empty] = testKit.endEvent(apiEndEvent)
-      result.errorDescription shouldBe "You cannot end event from state DELAYED"
+      result.errorDescription shouldBe "You cannot end event from state EVENT_STATUS_DELAYED"
     }
 
     "if event status is cancelled, reject all commands other than reschedule" in new ScheduledAndReserved {
@@ -269,14 +327,14 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val cancelResult: EventSourcedResult[Empty] =
         testKit.cancelEvent(apiCancelEvent)
 
-      scheduleResult.reply shouldBe ApiEventId.defaultInstance
-      cancelResult.errorDescription shouldBe "You cannot cancel event from state CANCELLED"
-      delayResult.errorDescription shouldBe "You cannot delay event from state CANCELLED"
-      startResult.errorDescription shouldBe "You cannot start event from state CANCELLED"
-      endResult.errorDescription shouldBe "You cannot end event from state CANCELLED"
+      scheduleResult.errorDescription shouldBe s"Event already exists with id ${apiScheduleEvent.eventId}"
+      cancelResult.errorDescription shouldBe "You cannot cancel event from state EVENT_STATUS_CANCELLED"
+      delayResult.errorDescription shouldBe "You cannot delay event from state EVENT_STATUS_CANCELLED"
+      startResult.errorDescription shouldBe "You cannot start event from state EVENT_STATUS_CANCELLED"
+      endResult.errorDescription shouldBe "You cannot end event from state EVENT_STATUS_CANCELLED"
 
-
-      val rescheduleResult: EventSourcedResult[Empty] = testKit.rescheduleEvent(apiRescheduleEvent)
+      val rescheduleResult: EventSourcedResult[Empty] =
+        testKit.rescheduleEvent(apiRescheduleEvent)
       rescheduleResult.isReply shouldBe true
       rescheduleResult.reply shouldBe Empty.defaultInstance
     }
@@ -293,12 +351,13 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val cancelResult: EventSourcedResult[Empty] =
         testKit.cancelEvent(apiCancelEvent)
 
-      scheduleResult.reply shouldBe ApiEventId.defaultInstance
-      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state INPROGRESS"
-      cancelResult.errorDescription shouldBe "You cannot cancel event from state INPROGRESS"
-      startResult.errorDescription shouldBe "You cannot start event from state INPROGRESS"
+      scheduleResult.errorDescription shouldBe s"Event already exists with id ${apiScheduleEvent.eventId}"
+      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state EVENT_STATUS_INPROGRESS"
+      cancelResult.errorDescription shouldBe "You cannot cancel event from state EVENT_STATUS_INPROGRESS"
+      startResult.errorDescription shouldBe "You cannot start event from state EVENT_STATUS_INPROGRESS"
 
-      val delayResult: EventSourcedResult[Empty] = testKit.delayEvent(apiDelayEvent)
+      val delayResult: EventSourcedResult[Empty] =
+        testKit.delayEvent(apiDelayEvent)
       delayResult.isReply shouldBe true
       delayResult.reply shouldBe Empty.defaultInstance
 
@@ -325,27 +384,30 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         testKit.startEvent(apiStartEvent)
       val endResult: EventSourcedResult[Empty] = testKit.endEvent(apiEndEvent)
 
-      scheduleResult.reply shouldBe ApiEventId.defaultInstance
-      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state PAST"
-      delayResult.errorDescription shouldBe "You cannot delay event from state PAST"
-      cancelResult.errorDescription shouldBe "You cannot cancel event from state PAST"
-      startResult.errorDescription shouldBe "You cannot start event from state PAST"
-      endResult.errorDescription shouldBe "You cannot end event from state PAST"
+      scheduleResult.errorDescription shouldBe s"Event already exists with id ${apiScheduleEvent.eventId}"
+      rescheduleResult.errorDescription shouldBe "You cannot reschedule event from state EVENT_STATUS_PAST"
+      delayResult.errorDescription shouldBe "You cannot delay event from state EVENT_STATUS_PAST"
+      cancelResult.errorDescription shouldBe "You cannot cancel event from state EVENT_STATUS_PAST"
+      startResult.errorDescription shouldBe "You cannot start event from state EVENT_STATUS_PAST"
+      endResult.errorDescription shouldBe "You cannot end event from state EVENT_STATUS_PAST"
     }
 
     "correctly process commands of type EndEvent" in new ScheduledAndReserved {
 
       testKit.startEvent(apiStartEvent)
 
-      val endedEventInfoResult = testKit.endEvent(apiEndEvent)
+      val endedEventInfoResult: EventSourcedResult[Empty] =
+        testKit.endEvent(apiEndEvent)
 
       endedEventInfoResult.events should have size 1
 
-      val statusOpt = testKit.currentState.event.map(_.status)
+      val statusOpt: Option[EventStatus] =
+        testKit.currentState.event.map(_.status)
 
-      statusOpt shouldBe Some(EventStatus.PAST)
+      statusOpt shouldBe Some(EventStatus.EVENT_STATUS_PAST)
 
-      val metaOpt = testKit.currentState.event.flatMap(_.meta)
+      val metaOpt: Option[EventMetaInfo] =
+        testKit.currentState.event.flatMap(_.meta)
 
       metaOpt.flatMap(_.lastModifiedBy) shouldBe Some(MemberId("2"))
 
@@ -365,7 +427,7 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       val missingName = apiScheduleEvent.info.map(_.copy(eventName = ""))
       val missingDescription =
         apiScheduleEvent.info.map(_.copy(description = ""))
-      val missingUrl = apiScheduleEvent.info.map(_.copy(eventURL = ""))
+      val missingUrl = apiScheduleEvent.info.map(_.copy(eventUrl = ""))
       val missingSponsor =
         apiScheduleEvent.info.map(_.copy(sponsoringOrg = None))
       val missingStart = apiScheduleEvent.info.map(_.copy(expectedStart = None))
@@ -400,9 +462,9 @@ class EventAPISpec extends AnyWordSpec with Matchers {
       missingThreeFieldsResult.errorDescription shouldBe "Message is missing the following fields: ApiEventInfo.ExpectedEnd, ApiEventInfo.ExpectedStart, ApiEventInfo.SponsoringOrg"
       missingInfoResult.errorDescription shouldBe "Message is missing the following fields: ApiEventInfo"
 
-
       val missingGeo = apiScheduleEvent.info.map(_.copy(geoLocation = None))
-      val missingGeoResult = testKit.scheduleEvent(apiScheduleEvent.copy(info = missingGeo))
+      val missingGeoResult =
+        testKit.scheduleEvent(apiScheduleEvent.copy(info = missingGeo))
 
       missingGeoResult.isReply shouldBe true
       missingGeoResult.reply.eventId shouldBe apiScheduleEvent.eventId

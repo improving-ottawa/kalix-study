@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
+import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 import "app/improving/gateway/domain/testgateway_domain.proto";
@@ -11,10 +12,16 @@ service TestGatewayApiAction {
         action: { }
     };
 
-
     rpc HandleStartScenario(StartScenario) returns (ScenarioResults) {
         option (google.api.http) = {
-            post: "/member/register-members"
+            post: "start-scenario"
+            body: "*"
+        };
+    }
+
+    rpc HandleEndScenario(EndScenario) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "end-scenario"
             body: "*"
         };
     }

@@ -19,7 +19,8 @@ enum ApiMemberStatus {
     API_MEMBER_STATUS_INACTIVE = 2;
     API_MEMBER_STATUS_SUSPENDED = 3;
     API_MEMBER_STATUS_TERMINATED = 4;
-    API_MEMBER_STATUS_UNKNOWN = 5;
+    API_MEMBER_STATUS_RELEASED = 5;
+    API_MEMBER_STATUS_UNKNOWN = 6;
 }
 
 message ApiInfo {
@@ -52,6 +53,11 @@ message ApiUpdateMemberInfo {
     string member_id = 1 [(kalix.field).entity_key = true];
     ApiUpdateInfo info = 2;
     ApiMemberId acting_member = 3;
+}
+
+message ApiReleaseMember {
+    ApiMemberId member_id = 1;
+    ApiMemberId deleting_member_id = 2;
 }
 
 message ApiUpdateMemberStatus {

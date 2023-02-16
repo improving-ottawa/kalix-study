@@ -23,6 +23,7 @@ object Dependencies {
     val sttp = "3.8.5"
     val testcontainers = "1.17.6"
     val cats = "2.9.0"
+    val circe = "0.14.1"
   }
 
   import Versions._
@@ -63,7 +64,10 @@ object Dependencies {
 
   val jsonDependencies: Seq[ModuleID] = Seq(
     "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core" % jsoniterScala,
-    "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % jsoniterScala
+    "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % jsoniterScala,
+    "io.circe" %% "circe-core" % circe,
+    "io.circe" %% "circe-generic" % circe,
+    "io.circe" %% "circe-parser" % circe
   )
 
   val integrationTestDependencies: Seq[ModuleID] = Seq(
@@ -84,7 +88,7 @@ object Dependencies {
   val scalaPbValidationDependencies: Seq[ModuleID] = Seq(
     "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
     "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
-    // "com.thesamet.scalapb" %% "scalapb-validate-core" % scalapb.validate.compiler.BuildInfo.version % "protobuf",
+    "com.thesamet.scalapb" %% "scalapb-validate-core" % scalapb.validate.compiler.BuildInfo.version % "protobuf",
     "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
   )
 }

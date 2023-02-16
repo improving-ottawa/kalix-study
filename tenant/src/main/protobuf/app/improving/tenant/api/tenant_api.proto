@@ -7,15 +7,16 @@ import "kalix/annotations.proto";
 package app.improving.tenantcontext.tenant;
 
 enum ApiTenantStatus {
-    DRAFT = 0;
-    ACTIVE = 1;
-    SUSPENDED = 2;
+    API_TENANT_STATUS_DRAFT = 0;
+    API_TENANT_STATUS_ACTIVE = 1;
+    API_TENANT_STATUS_SUSPENDED = 2;
+    API_TENANT_STATUS_RELEASED = 3;
 }
 
 message ApiTenant {
     string tenant_id = 1 [(kalix.field).entity_key = true];
     string name =  2;
-    ApiContact primaryContact = 3;
+    ApiContact primary_contact = 3;
     ApiInfo info = 4;
     ApiMetaInfo meta = 5;
     ApiTenantStatus status = 6;
@@ -23,22 +24,22 @@ message ApiTenant {
 
 message ApiInfo {
     string name = 1;
-    ApiContact primaryContact = 2;
+    ApiContact primary_contact = 2;
     ApiAddress address = 3;
 }
 
 message ApiMetaInfo {
-    google.protobuf.Timestamp createdOn = 1;
-    ApiContact createdBy = 2;
-    google.protobuf.Timestamp lastUpdated = 3;
-    ApiMemberId lastUpdatedBy = 4;
-    ApiTenantStatus currentStatus = 5;
+    google.protobuf.Timestamp created_on = 1;
+    ApiContact created_by = 2;
+    google.protobuf.Timestamp last_updated = 3;
+    ApiMemberId last_updated_by = 4;
+    ApiTenantStatus current_status = 5;
 }
 
 message ApiPrimaryContactUpdated {
     string tenant_id = 1 [(kalix.field).entity_key = true];
-    ApiContact oldContact = 2;
-    ApiContact newContact = 3;
+    ApiContact old_contact = 2;
+    ApiContact new_contact = 3;
     ApiMetaInfo meta = 4;
 }
 
@@ -53,13 +54,13 @@ message ApiTenantEstablished {
     ApiInfo info = 2;
     ApiMetaInfo meta = 3;
     string name = 4;
-    ApiContact primaryContact = 5;
+    ApiContact primary_contact = 5;
 }
 
 message ApiTenantNameChanged {
     string tenant_id = 1 [(kalix.field).entity_key = true];
-    string oldName = 2;
-    string newName = 3;
+    string old_name = 2;
+    string new_name = 3;
     ApiMetaInfo meta = 4;
 }
 
@@ -70,24 +71,29 @@ message ApiEstablishTenant {
 
 message ApiActivateTenant {
     string tenant_id = 1 [(kalix.field).entity_key = true];
-    string updatingUser = 2;
+    ApiMemberId updating_user = 2;
 }
 
 message ApiSuspendTenant {
     string tenant_id = 1 [(kalix.field).entity_key = true];
-    string updatingUser = 2;
+    ApiMemberId updating_user = 2;
+}
+
+message ApiReleaseTenant {
+    string tenant_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_user = 2;
 }
 
 message ApiUpdatePrimaryContact {
     string tenant_id = 1 [(kalix.field).entity_key = true];
-    ApiContact newContact = 2;
-    string updatingUser = 3;
+    ApiContact new_contact = 2;
+    ApiMemberId updating_user = 3;
 }
 
 message ApiChangeTenantName {
     string tenant_id = 1 [(kalix.field).entity_key = true];
-    string newName = 2;
-    string updatingUser = 3;
+    string new_name = 2;
+    ApiMemberId updating_user = 3;
 }
 
 message ApiGetTenantById {

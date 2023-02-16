@@ -7,9 +7,9 @@ import "common_domain.proto";
 package app.improving.tenantcontext.tenant;
 
 message Tenant {
-    TenantId tenantId = 1;
+    TenantId tenant_id = 1;
     string name =  2;
-    Contact primaryContact = 3;
+    Contact primary_contact = 3;
     Info info = 4;
     MetaInfo meta = 5;
     TenantStatus status = 6;

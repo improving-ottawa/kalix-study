@@ -18,7 +18,8 @@ enum MemberStatus {
     MEMBER_STATUS_INACTIVE = 2;
     MEMBER_STATUS_SUSPENDED = 3;
     MEMBER_STATUS_TERMINATED = 4;
-    MEMBER_STATUS_UNKNOWN = 5;
+    MEMBER_STATUS_RELEASED = 5;
+    MEMBER_STATUS_UNKNOWN = 6;
 }
 
 message Info {
@@ -62,6 +63,11 @@ message MemberRegistered {
 message MemberStatusUpdated {
     MemberId member_id = 1;
     MetaInfo meta = 2;
+}
+
+message MemberReleased {
+    MemberId member_id = 1;
+    MemberId releasing_member = 2;
 }
 
 message MetaInfo {

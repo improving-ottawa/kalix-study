@@ -49,6 +49,11 @@ object Compilation {
           FlatPackage,
           SingleLineToProtoString,
           RetainSourceCodeInfo
+        ) -> (Compile / sourceManaged).value / "scalapb",
+        scalapb.validate.gen(
+          FlatPackage,
+          SingleLineToProtoString,
+          RetainSourceCodeInfo
         ) -> (Compile / sourceManaged).value / "scalapb"
       ),
       libraryDependencies += scalaPbCompilerPlugin
@@ -62,7 +67,7 @@ object Testing {
       Test / parallelExecution := false,
       Test / testOptions += Tests.Argument("-oDF"),
       Test / logBuffered := false,
-      libraryDependencies ++= basicTestingDependencies
+      libraryDependencies ++= basicTestingDependencies ++ jsonDependencies
     )
   }
 }
@@ -128,8 +133,8 @@ object Kalix {
       .settings(
         name := componentName,
         run / fork := true,
-        run / javaOptions += s"-Dkalix.user-function-port=${port}",
-        libraryDependencies ++= utilityDependencies ++ loggingDependencies,
+        run / javaOptions += s"-Dkalix.user-function-port=$port",
+        libraryDependencies ++= utilityDependencies ++ loggingDependencies ++ scalaPbDependencies ++ scalaPbValidationDependencies,
         Compile / managedSourceDirectories ++= Seq(
           target.value / "scala-2.13" / "akka-grpc",
           target.value / "scala-2.13" / "src_managed"

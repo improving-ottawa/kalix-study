@@ -15,7 +15,7 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.storecontext.store.ApiStoreInfo
 import app.improving.productcontext.product.{ApiProductInfo, ApiProductMetaInfo}
-import app.improving.tenantcontext.tenant.{ApiInfo => TenantInfo, _}
+import app.improving.tenantcontext.tenant.{ApiInfo => TenantInfo}
 import app.improving.ordercontext.order._
 import app.improving.productcontext.product.TestData.testProductDetails
 import com.google.protobuf.timestamp.Timestamp
@@ -53,10 +53,10 @@ object TestData {
     val newParentId = "new-parent-id"
     val testTenantId = "test-tenant-id"
     val establishingMemberId = "establishing-member-id"
-    val now = Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    val now: Instant = Instant.now()
+    val timestamp: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
-    val establishOrganization = EstablishOrganization(
+    val establishOrganization: EstablishOrganization = EstablishOrganization(
       Some(
         OrgInfo(
           "name-test",
@@ -79,7 +79,7 @@ object TestData {
           Some(ApiTenantId(testTenantId))
         )
       ),
-      Some(ApiParent(parentIdTest)),
+      Some(ApiParent(Some(ApiOrganizationId(parentIdTest)))),
       Seq[ApiMemberId](
         ApiMemberId("test-member-id"),
         ApiMemberId("member2"),
@@ -104,59 +104,60 @@ object TestData {
       )
     )
 
-    val apiEstablishOrganization = ApiEstablishOrganization(
-      testOrgId,
-      Some(
-        OrgInfo(
-          "name-test",
-          Some("shortname-test"),
-          Some(
-            ApiAddress(
-              "line1",
-              "line2",
-              "city",
-              "state",
-              "canada",
-              ApiAddress.PostalCode.CaPostalCode(
-                ApiCAPostalCode.defaultInstance
+    val apiEstablishOrganization: ApiEstablishOrganization =
+      ApiEstablishOrganization(
+        Some(ApiOrganizationId(testOrgId)),
+        Some(
+          OrgInfo(
+            "name-test",
+            Some("shortname-test"),
+            Some(
+              ApiAddress(
+                "line1",
+                "line2",
+                "city",
+                "state",
+                "canada",
+                ApiAddress.PostalCode.CaPostalCode(
+                  ApiCAPostalCode.defaultInstance
+                )
               )
-            )
-          ),
-          Some(true),
-          Some("www.test.com"),
-          Some("N/A"),
-          Some(ApiTenantId(testTenantId))
-        )
-      ),
-      Some(ApiParent(parentIdTest)),
-      Seq[ApiMemberId](
-        ApiMemberId("test-member-id"),
-        ApiMemberId("member2"),
-        ApiMemberId("member3")
-      ),
-      Seq[ApiMemberId](
-        ApiMemberId("member10"),
-        ApiMemberId("member11"),
-        ApiMemberId("member12")
-      ),
-      Seq.empty,
-      Some(ApiMemberId(establishingMemberId))
-    )
+            ),
+            Some(true),
+            Some("www.test.com"),
+            Some("N/A"),
+            Some(ApiTenantId(testTenantId))
+          )
+        ),
+        Some(ApiParent(Some(ApiOrganizationId(parentIdTest)))),
+        Seq[ApiMemberId](
+          ApiMemberId("test-member-id"),
+          ApiMemberId("member2"),
+          ApiMemberId("member3")
+        ),
+        Seq[ApiMemberId](
+          ApiMemberId("member10"),
+          ApiMemberId("member11"),
+          ApiMemberId("member12")
+        ),
+        Seq.empty,
+        Some(ApiMemberId(establishingMemberId))
+      )
 
-    val start = Timestamp.of(now.getEpochSecond, now.getNano)
-    val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
+    val start: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    val end: Timestamp =
+      Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
     val testMember = "test-member-id"
-    val apiEventInfo = ApiEventInfo(
+    val apiEventInfo: ApiEventInfo = ApiEventInfo(
       "try-out-event",
       "School footbal try out",
       "www.nowhere.com",
       Some(ApiOrganizationId("test-organization-id")),
       Some(ApiGeoLocation(0.12, 0.438, 4.322)),
       Some(start),
-      Some(end),
-      false
+      Some(end)
     )
-    val apiEventInfoPrivate = ApiEventInfo(
+    val apiEventInfoPrivate: ApiEventInfo = ApiEventInfo(
       "another-try-out-event",
       "School footbal try out",
       "www.nowhere.com",
@@ -164,77 +165,77 @@ object TestData {
       Some(ApiGeoLocation(0.12, 0.438, 4.322)),
       Some(start),
       Some(end),
-      true
+      isPrivate = true
     )
-    val scheduleEvent = CreateEvent(
+    val scheduleEvent: CreateEvent = CreateEvent(
       Some(apiEventInfo),
       Some(ApiMemberId(testMember))
     )
-    val scheduleEventPrivate = CreateEvent(
+    val scheduleEventPrivate: CreateEvent = CreateEvent(
       Some(apiEventInfoPrivate),
       Some(ApiMemberId(testMember))
     )
-    val testStoreId = "test-store-id"
+    val testStoreId: ApiStoreId = ApiStoreId("test-store-id")
     val testName = "test-name"
     val testDescription = "test-description"
     val testProductId1 = "test-product-id1"
     val testProductId2 = "test-product-id2"
     val testEventId = "test-event-id"
-    val testEvent = ApiEventId(testEventId)
+    val testEvent: ApiEventId = ApiEventId(testEventId)
     val testVenueId = "test-venue-id"
-    val testVenue = ApiVenueId(testVenueId)
+    val testVenue: ApiVenueId = ApiVenueId(testVenueId)
     val testLocationId = "test-location-id"
-    val testLocaltion = ApiLocationId(testLocationId)
-    val testProducts = Seq[ApiProductId](
+    val testLocation: ApiLocationId = ApiLocationId(testLocationId)
+    val testProducts: Seq[ApiProductId] = Seq[ApiProductId](
       ApiProductId(testProductId1),
       ApiProductId(testProductId2)
     )
-    val testOrg = ApiOrganizationId(testOrgId)
+    val testOrg: ApiOrganizationId = ApiOrganizationId(testOrgId)
     val testMember1 = "test-member1"
     val testMember2 = "test-member2"
     val testMember3 = "test-member3"
-    val apiStoreInfo = ApiStoreInfo(
-      testStoreId,
+    val apiStoreInfo: ApiStoreInfo = ApiStoreInfo(
+      Some(testStoreId),
       testName,
       testDescription,
       testProducts,
       Some(testEvent),
       Some(testVenue),
-      Some(testLocaltion),
+      Some(testLocation),
       Some(testOrg)
     )
 
-    val testSku = "test-product-id"
-    val testSku2 = "test-product-id2"
-    val testSku3 = "test-product-id3"
+    val testSku: ApiProductId = ApiProductId("test-product-id")
+    val testSku2: ApiProductId = ApiProductId("test-product-id2")
+    val testSku3: ApiProductId = ApiProductId("test-product-id3")
     val testRow = "test-row"
     val testSeat = "test-seat"
     val testSection = "test-section"
     val testEventId2 = "test-event-id2"
     val testEventId3 = "test-event-id3"
-    val testImages = Seq[String]("test-image")
+    val testImages: Seq[String] = Seq[String]("test-image")
     val testPrice = 10.0
     val testCost = 3.0
     val testMemberId = "test-member-id"
     val testMemberId1 = "test-member-id1"
-    val testTimestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-    val apiProductInfo = ApiProductInfo(
-      testSku,
+    val testTimestamp: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    val apiProductInfo: ApiProductInfo = ApiProductInfo(
+      Some(testSku),
       testName,
       testDescription,
       testProductDetails,
       testImages,
       testPrice,
       testCost,
-      Some(ApiStoreId(testStoreId))
+      Some(testStoreId)
     )
-    val apiProductMetaInfo = ApiProductMetaInfo(
+    val apiProductMetaInfo: ApiProductMetaInfo = ApiProductMetaInfo(
       Some(ApiMemberId(testMemberId)),
       Some(testTimestamp),
       Some(ApiMemberId(testMemberId1)),
       Some(testTimestamp)
     )
-    val establishProduct = EstablishProduct(
+    val establishProduct: EstablishProduct = EstablishProduct(
       Some(apiProductInfo),
       Some(apiProductMetaInfo)
     )
@@ -242,14 +243,14 @@ object TestData {
     val testMemberId2 = "test-member-id2"
     val testOrganizationId = "test-organization-id"
     val testTenantId1 = "test-tenant-id1"
-    val apiContact = ApiContact(
+    val apiContact: ApiContact = ApiContact(
       "member-first-name",
       "member-last-name",
       Some(ApiEmailAddress("member@memberapi.com")),
       Some(ApiMobileNumber("987-878-0987")),
       "user-name"
     )
-    val memberApiInfo = MemberApiInfo(
+    val memberApiInfo: MemberApiInfo = MemberApiInfo(
       Some(apiContact),
       "handle",
       "avartar",
@@ -260,53 +261,52 @@ object TestData {
       Some(ApiTenantId(testTenantId))
     )
 
-    val testOrderId = "test-order-id"
-    val testOrderId2 = "test-order-id2"
-    val testOrderId3 = "test-order-id3"
+    val testOrderId: ApiOrderId = ApiOrderId("test-order-id")
+    val testOrderId2: ApiOrderId = ApiOrderId("test-order-id2")
+    val testOrderId3: ApiOrderId = ApiOrderId("test-order-id3")
     val testProductId = "test-product-id"
     val testProductId3 = "test-product-id3"
     val testQuantity = 10
     val testLineTotal = 20
     val testQuantity2 = 13
     val testLineTotal2 = 26
-    val testLineItem1 = ApiLineItem(
+    val testLineItem1: ApiLineItem = ApiLineItem(
       Some(ApiProductId(testProductId)),
       testQuantity,
       testLineTotal
     )
-    val testLineItem2 = ApiLineItem(
+    val testLineItem2: ApiLineItem = ApiLineItem(
       Some(ApiProductId(testProductId)),
       testQuantity2,
       testLineTotal2
     )
-    val testLineItem3 = ApiLineItem(
+    val testLineItem3: ApiLineItem = ApiLineItem(
       Some(ApiProductId(testProductId2)),
       testQuantity2,
       testLineTotal2
     )
-    val testLineItem4 = ApiLineItem(
+    val testLineItem4: ApiLineItem = ApiLineItem(
       Some(ApiProductId(testProductId3)),
       testQuantity2,
       testLineTotal2
     )
     val testSpecialInstruction = "test-special-instruction"
     val testOrderTotal = 100.0
-    val testLineItems = Seq[ApiLineItem](testLineItem1, testLineItem2)
-    val testLineItemsPrivateEvent = Seq[ApiLineItem](testLineItem3)
-    val testLineItemsPrivateFailedEvent =
+    val testLineItems: Seq[ApiLineItem] =
+      Seq[ApiLineItem](testLineItem1, testLineItem2)
+    val testLineItemsPrivateEvent: Seq[ApiLineItem] =
+      Seq[ApiLineItem](testLineItem3)
+    val testLineItemsPrivateFailedEvent: Seq[ApiLineItem] =
       Seq[ApiLineItem](testLineItem3, testLineItem4)
-    val testOrderInfo = ApiOrderInfo(
-      testOrderId,
+    val testOrderInfo: ApiOrderInfo = ApiOrderInfo(
       testLineItems,
       testSpecialInstruction
     )
-    val testOrderInfoPrivateEvent = ApiOrderInfo(
-      testOrderId,
+    val testOrderInfoPrivateEvent: ApiOrderInfo = ApiOrderInfo(
       testLineItemsPrivateEvent,
       testSpecialInstruction
     )
-    val testOrderInfoPrivateFailedEvent = ApiOrderInfo(
-      testOrderId3,
+    val testOrderInfoPrivateFailedEvent: ApiOrderInfo = ApiOrderInfo(
       testLineItemsPrivateFailedEvent,
       testSpecialInstruction
     )

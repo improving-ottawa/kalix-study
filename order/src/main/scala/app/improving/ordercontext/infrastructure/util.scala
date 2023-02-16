@@ -8,7 +8,6 @@ object util {
 
   def convertApiOrderInfoToOrderInfo(apiOrderInfo: ApiOrderInfo): OrderInfo = {
     OrderInfo(
-      Some(OrderId(apiOrderInfo.orderId)),
       apiOrderInfo.lineItems.map(convertApiLineItemToLineItem),
       apiOrderInfo.specialInstructions
     )
@@ -25,7 +24,7 @@ object util {
 
   def convertApiLineItemToLineItem(apiLineItem: ApiLineItem): LineItem = {
     LineItem(
-      apiLineItem.product.map(product => ProductId(product.productId)),
+      apiLineItem.product.map(product => Sku(product.sku)),
       apiLineItem.quantity,
       apiLineItem.lineTotal
     )
@@ -33,7 +32,7 @@ object util {
 
   def convertLineItemToApiLineItem(lineItem: LineItem): ApiLineItem = {
     ApiLineItem(
-      lineItem.product.map(product => ApiProductId(product.id)),
+      lineItem.product.map(product => ApiSku(product.id)),
       lineItem.quantity,
       lineItem.lineTotal
     )
@@ -50,13 +49,20 @@ object util {
       apiOrderStatus: ApiOrderStatus
   ): OrderStatus = {
     apiOrderStatus match {
-      case ApiOrderStatus.DRAFT     => OrderStatus.DRAFT
-      case ApiOrderStatus.PENDING   => OrderStatus.PENDING
-      case ApiOrderStatus.INPROCESS => OrderStatus.INPROCESS
-      case ApiOrderStatus.READY     => OrderStatus.READY
-      case ApiOrderStatus.DELIVERED => OrderStatus.DELIVERED
-      case ApiOrderStatus.CANCELLED => OrderStatus.CANCELLED
-      case ApiOrderStatus.UNKNOWN   => OrderStatus.UNKNOWN
+      case ApiOrderStatus.API_ORDER_STATUS_DRAFT =>
+        OrderStatus.ORDER_STATUS_DRAFT
+      case ApiOrderStatus.API_ORDER_STATUS_PENDING =>
+        OrderStatus.ORDER_STATUS_PENDING
+      case ApiOrderStatus.API_ORDER_STATUS_INPROCESS =>
+        OrderStatus.ORDER_STATUS_INPROCESS
+      case ApiOrderStatus.API_ORDER_STATUS_READY =>
+        OrderStatus.ORDER_STATUS_READY
+      case ApiOrderStatus.API_ORDER_STATUS_DELIVERED =>
+        OrderStatus.ORDER_STATUS_DELIVERED
+      case ApiOrderStatus.API_ORDER_STATUS_CANCELLED =>
+        OrderStatus.ORDER_STATUS_CANCELLED
+      case ApiOrderStatus.API_ORDER_STATUS_UNKNOWN =>
+        OrderStatus.ORDER_STATUS_UNKNOWN
       case ApiOrderStatus.Unrecognized(unrecognizedValue) =>
         OrderStatus.Unrecognized(unrecognizedValue)
     }
@@ -66,13 +72,22 @@ object util {
       orderStatus: OrderStatus
   ): ApiOrderStatus = {
     orderStatus match {
-      case OrderStatus.DRAFT     => ApiOrderStatus.DRAFT
-      case OrderStatus.PENDING   => ApiOrderStatus.PENDING
-      case OrderStatus.INPROCESS => ApiOrderStatus.INPROCESS
-      case OrderStatus.READY     => ApiOrderStatus.READY
-      case OrderStatus.DELIVERED => ApiOrderStatus.DELIVERED
-      case OrderStatus.CANCELLED => ApiOrderStatus.CANCELLED
-      case OrderStatus.UNKNOWN   => ApiOrderStatus.UNKNOWN
+      case OrderStatus.ORDER_STATUS_DRAFT =>
+        ApiOrderStatus.API_ORDER_STATUS_DRAFT
+      case OrderStatus.ORDER_STATUS_PENDING =>
+        ApiOrderStatus.API_ORDER_STATUS_PENDING
+      case OrderStatus.ORDER_STATUS_INPROCESS =>
+        ApiOrderStatus.API_ORDER_STATUS_INPROCESS
+      case OrderStatus.ORDER_STATUS_READY =>
+        ApiOrderStatus.API_ORDER_STATUS_READY
+      case OrderStatus.ORDER_STATUS_DELIVERED =>
+        ApiOrderStatus.API_ORDER_STATUS_DELIVERED
+      case OrderStatus.ORDER_STATUS_CANCELLED =>
+        ApiOrderStatus.API_ORDER_STATUS_CANCELLED
+      case OrderStatus.ORDER_STATUS_RELEASED =>
+        ApiOrderStatus.Unrecognized(0)
+      case OrderStatus.ORDER_STATUS_UNKNOWN =>
+        ApiOrderStatus.API_ORDER_STATUS_UNKNOWN
       case OrderStatus.Unrecognized(unrecognizedValue) =>
         ApiOrderStatus.Unrecognized(unrecognizedValue)
     }
@@ -80,7 +95,6 @@ object util {
 
   def convertOrderInfoToApiOrderInfo(orderInfo: OrderInfo): ApiOrderInfo = {
     ApiOrderInfo(
-      orderInfo.orderId.map(_.id).getOrElse("OrderId is not set."),
       orderInfo.lineItems.map(convertLineItemToApiLineItem),
       orderInfo.specialInstructions
     )
@@ -90,7 +104,6 @@ object util {
       orderMetaInfo: OrderMetaInfo
   ): ApiOrderMetaInfo = {
     ApiOrderMetaInfo(
-      orderMetaInfo.orderId.map(_.id).getOrElse("OrderId is not found."),
       orderMetaInfo.memberId.map(member => ApiMemberId(member.id)),
       orderMetaInfo.storeId.map(store => ApiStoreId(store.id)),
       orderMetaInfo.createdOn,
@@ -102,10 +115,12 @@ object util {
 
   def convertOrderCreatedToApiOrder(orderCreated: OrderCreated): ApiOrder = {
     ApiOrder(
-      orderCreated.orderId.map(_.id).getOrElse("OrderId is not found."),
+      orderCreated.orderId
+        .getOrElse(OrderId.defaultInstance)
+        .id,
       orderCreated.info.map(convertOrderInfoToApiOrderInfo),
       orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
-      ApiOrderStatus.DRAFT
+      ApiOrderStatus.API_ORDER_STATUS_DRAFT
     )
   }
 
@@ -113,12 +128,12 @@ object util {
       orderInfoUpdated: OrderInfoUpdated
   ): ApiOrder = {
     ApiOrder(
-      orderInfoUpdated.orderId.map(_.id).getOrElse("OrderId is not found."),
+      orderInfoUpdated.orderId.getOrElse(OrderId.defaultInstance).id,
       orderInfoUpdated.info.map(convertOrderInfoToApiOrderInfo),
       orderInfoUpdated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
       orderInfoUpdated.meta
         .map(meta => convertOrderStatusToApiOrderStatus(meta.status))
-        .getOrElse(ApiOrderStatus.UNKNOWN)
+        .getOrElse(ApiOrderStatus.API_ORDER_STATUS_UNKNOWN)
     )
   }
 
@@ -126,10 +141,10 @@ object util {
       orderCanceled: OrderCanceled
   ): ApiOrder = {
     ApiOrder(
-      orderCanceled.orderId.map(_.id).getOrElse("OrderId is not found."),
+      orderCanceled.orderId.getOrElse(OrderId.defaultInstance).id,
       orderCanceled.info.map(convertOrderInfoToApiOrderInfo),
       orderCanceled.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
-      ApiOrderStatus.CANCELLED
+      ApiOrderStatus.API_ORDER_STATUS_CANCELLED
     )
   }
 }

@@ -1,6 +1,6 @@
 package app.improving.ordercontext
 
-import app.improving.ApiMemberId
+import app.improving.{ApiMemberId, ApiOrderId, OrderId, StoreId}
 import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -24,10 +24,10 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
     else
       effects.updateState(
         ApiOrder(
-          orderCreated.orderId.map(_.id).getOrElse("OrderId is NOT FOUND."),
+          orderCreated.orderId.getOrElse(OrderId.defaultInstance).id,
           orderCreated.info.map(convertOrderInfoToApiOrderInfo),
           orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
-          ApiOrderStatus.DRAFT
+          ApiOrderStatus.API_ORDER_STATUS_DRAFT
         )
       )
   }
@@ -85,14 +85,14 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     effects.updateState(
       state.copy(
-        status = ApiOrderStatus.CANCELLED,
+        status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED,
         meta = state.meta.map(
           _.copy(
             lastModifiedBy = orderCanceled.cancellingMember.map(member =>
               ApiMemberId(member.id)
             ),
             lastModifiedOn = Some(timestamp),
-            status = ApiOrderStatus.CANCELLED
+            status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED
           )
         )
       )

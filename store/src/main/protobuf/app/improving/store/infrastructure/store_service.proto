@@ -22,7 +22,8 @@ service StoreService {
                 "app.improving.storecontext.StoreUpdated",
                 "app.improving.storecontext.StoreClosed",
                 "app.improving.storecontext.ProductsAddedToStore",
-                "app.improving.storecontext.ProductsRemovedFromStore"]
+                "app.improving.storecontext.ProductsRemovedFromStore",
+                "app.improving.storecontext.StoreReleased"]
         }
     };
 
@@ -61,6 +62,12 @@ service StoreService {
     rpc CloseStore(ApiCloseStore) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/store/{store_id}/close-store"
+        };
+    }
+
+    rpc ReleaseStore(ApiReleaseStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/release"
         };
     }
 

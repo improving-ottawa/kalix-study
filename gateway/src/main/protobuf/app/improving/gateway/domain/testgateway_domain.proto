@@ -4,16 +4,21 @@ package app.improving.gateway;
 
 import "common_api.proto";
 import "app/improving/gateway/domain/gateway_domain.proto";
+import "scalapb/scalapb.proto";
+import "validate/validate.proto";
+
+option (scalapb.options) = {
+    no_default_values_in_constructor: true
+    preserve_unknown_fields: false
+};
 
 message ScenarioInfo {
-    uint32 num_tenants = 1;
-    uint32 num_orgs_per_tenant = 2;
-    uint32 max_orgs_depth = 3;
-    uint32 max_orgs_width = 4;
-    uint32 num_members_per_org = 5;
-    uint32 num_events_per_org = 6;
-    uint32 num_stores = 7;
-    uint32 num_tickets_per_event = 8;
+    uint32 num_tenants = 1 [(validate.rules) = {int32: {gt: 0}}];
+    uint32 max_orgs_depth = 2 [(validate.rules) = {int32: {gt: 2}}];
+    uint32 max_orgs_width = 3 [(validate.rules) = {int32: {gt: 2}}];
+    uint32 num_members_per_org = 4 [(validate.rules) = {int32: {gt: 1}}];
+    uint32 num_events_per_org = 5 [(validate.rules) = {int32: {gt: 1}}];
+    uint32 num_tickets_per_event = 7 [(validate.rules) = {int32: {gt: 1}}];
 }
 
 message StartScenario {
@@ -27,4 +32,14 @@ message ScenarioResults {
     map<string, EventIds> events_for_orgs = 4;
     StoreIds store_ids = 6;
     map<string, Skus> products_for_stores = 7;
+}
+
+message EndScenario {
+    repeated ApiTenantId tenants = 1;
+    repeated OrganizationIds orgs = 2;
+    repeated MemberIds members = 3;
+    repeated EventIds events = 4;
+    repeated StoreIds stores = 6;
+    repeated Skus products = 7;
+    repeated OrderIds orders = 8;
 }

@@ -6,70 +6,73 @@ import "google/protobuf/timestamp.proto";
 package app.improving.ordercontext;
 
 enum OrderStatus {
-    DRAFT = 0;
-    PENDING = 2;
-    INPROCESS = 3;
-    READY = 4;
-    DELIVERED = 5;
-    CANCELLED = 6;
-    UNKNOWN = 7;
+    ORDER_STATUS_DRAFT = 0;
+    ORDER_STATUS_PENDING = 2;
+    ORDER_STATUS_INPROCESS = 3;
+    ORDER_STATUS_READY = 4;
+    ORDER_STATUS_DELIVERED = 5;
+    ORDER_STATUS_CANCELLED = 6;
+    ORDER_STATUS_RELEASED = 7;
+    ORDER_STATUS_UNKNOWN = 8;
 }
 
 message LineItem {
-        ProductId product = 1;
+        Sku product = 1;
         int32     quantity = 2;
-        double    lineTotal = 3;
+        double    line_total = 3;
 }
 
 message OrderInfo {
-        OrderId orderId = 1;
-        repeated LineItem lineItems = 2;
-        string specialInstructions = 3;
-        double orderTotal = 4;
+        repeated LineItem line_items = 2;
+        string special_instructions = 3;
+        double order_total = 4;
 }
 
 message OrderInfoUpdate {
-    repeated LineItem lineItems = 1;
-    optional string specialInstructions = 2;
+    repeated LineItem line_items = 1;
+    optional string special_instructions = 2;
 }
 
 message OrderMetaInfo  {
-    OrderId orderId = 1;
-    MemberId memberId = 2;
-    StoreId storeId = 3;
-    google.protobuf.Timestamp createdOn = 4;
-    MemberId lastModifiedBy = 5;
-    google.protobuf.Timestamp lastModifiedOn = 6;
+    MemberId member_id = 2;
+    StoreId store_id = 3;
+    google.protobuf.Timestamp created_on = 4;
+    MemberId last_modified_by = 5;
+    google.protobuf.Timestamp last_modified_on = 6;
     OrderStatus status = 7;
 }
 
 message OrderCreated {
-    OrderId orderId = 1;
+    OrderId order_id = 1;
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
 }
 message OrderStatusUpdated {
-    OrderId orderId = 1;
-    OrderStatus newStatus = 2;
-    MemberId updatingMember = 3;
+    OrderId order_id = 1;
+    OrderStatus new_status = 2;
+    MemberId updating_member = 3;
 }
 message OrderInfoUpdated {
-    OrderId orderId = 1;
+    OrderId order_id = 1;
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
-    MemberId updatingMember = 4;
+    MemberId updating_member = 4;
 }
 message OrderCanceled {
-    OrderId orderId = 1;
+    OrderId order_id = 1;
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
-    MemberId cancellingMember = 4;
+    MemberId cancelling_member = 4;
 }
 message GetOrderInfo {
-    OrderId orderId = 1;
-    MemberId requestingMember = 2;
+    OrderId order_id = 1;
+    MemberId requesting_member = 2;
 }
 message OrderInfoResult {
-    OrderId orderId = 1;
+    OrderId order_id = 1;
     OrderInfo info = 2;
+}
+message OrderReleased {
+    OrderId order_id = 1;
+    MemberId releasing_member = 2;
 }

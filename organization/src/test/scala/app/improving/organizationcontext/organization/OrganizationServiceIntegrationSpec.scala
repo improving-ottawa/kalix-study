@@ -100,7 +100,9 @@ class OrganizationServiceIntegrationSpec
       client.addMembersToOrganization(apiAddMembersToOrganization).futureValue
 
       val addedMemberOrganization =
-        client.getOrganization(ApiGetOrganizationById(testOrgId)).futureValue
+        client
+          .getOrganization(ApiGetOrganizationById(testOrgId.organizationId))
+          .futureValue
 
       addedMemberOrganization.memberIds should contain("member20")
       addedMemberOrganization.memberIds should have size 6

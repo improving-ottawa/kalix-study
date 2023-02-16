@@ -1,9 +1,18 @@
 package app.improving.ordercontext.order
 
 import TestData._
-import app.improving.MemberId
-import app.improving.ordercontext.infrastructure.util.{convertApiOrderInfoToOrderInfo, convertApiOrderStatusToOrderStatus, convertLineItemToApiLineItem}
-import app.improving.ordercontext.{OrderCanceled, OrderCreated, OrderInfoUpdated, OrderStatus, OrderStatusUpdated}
+import app.improving.{ApiOrderId, MemberId}
+import app.improving.ordercontext.infrastructure.util.{
+  convertApiOrderStatusToOrderStatus,
+  convertLineItemToApiLineItem
+}
+import app.improving.ordercontext.{
+  OrderCanceled,
+  OrderCreated,
+  OrderInfoUpdated,
+  OrderStatus,
+  OrderStatusUpdated
+}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -28,7 +37,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCreated.info shouldBe defined
       orderCreated.meta shouldBe defined
 
-      orderCreated.info.map(_.lineItems).map(lineItemSeq => lineItemSeq.map(convertLineItemToApiLineItem)).get shouldBe testLineItems
+      orderCreated.info
+        .map(_.lineItems)
+        .map(lineItemSeq => lineItemSeq.map(convertLineItemToApiLineItem))
+        .get shouldBe testLineItems
 
       val nullCreateOrderResult = testKit.createOrder(apiCreateOrder)
 
@@ -46,15 +58,9 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       orderCreated.orderId shouldBe defined
 
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
       val updateOrderStatusResult =
         testKit.updateOrderStatus(
-          apiUpdateOrderStatus.copy(
-            orderId = orderId
-          )
+          apiUpdateOrderStatus
         )
 
       updateOrderStatusResult.events should have size 1
@@ -87,12 +93,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       orderCreated.orderId shouldBe defined
 
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
       val updateOrderInfoResult =
-        testKit.updateOrderInfo(apiUpdateOrderInfo.copy(orderId = orderId))
+        testKit.updateOrderInfo(
+          apiUpdateOrderInfo
+        )
 
       updateOrderInfoResult.events should have size 1
 
@@ -123,9 +127,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       val updateOrderStatusResultToPending =
         testKit.updateOrderStatus(
-          apiUpdateOrderStatus.copy(
-            orderId = orderId
-          )
+          apiUpdateOrderStatus
         )
 
       updateOrderStatusResultToPending.events should have size 1
@@ -133,7 +135,6 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       val updateOrderStatusResultToInProcess =
         testKit.updateOrderStatus(
           apiUpdateOrderStatus.copy(
-            orderId = orderId,
             newStatus = testNewOrderStatusToInProcess
           )
         )
@@ -141,7 +142,9 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       updateOrderStatusResultToInProcess.events should have size 1
 
       val updateInProcessOrderInfoResult =
-        testKit.updateOrderInfo(apiUpdateOrderInfo.copy(orderId = orderId))
+        testKit.updateOrderInfo(
+          apiUpdateOrderInfo
+        )
 
       updateInProcessOrderInfoResult.events should have size 0
     }
@@ -157,13 +160,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       orderCreated.orderId shouldBe defined
 
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
-
       val cancelOrderResult =
-        testKit.cancelOrder(apiCancelOrder.copy(orderId = orderId))
+        testKit.cancelOrder(
+          apiCancelOrder
+        )
 
       cancelOrderResult.events should have size 1
 
@@ -173,13 +173,14 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCancelled.info shouldBe defined
       orderCancelled.meta shouldBe defined
 
-      orderCancelled.meta.map(_.status) shouldBe Some(OrderStatus.CANCELLED)
+      orderCancelled.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_CANCELLED
+      )
       orderCancelled.meta.flatMap(_.lastModifiedBy) shouldBe Some(
         MemberId(testCancellingMemberId)
       )
 
       val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
-
       nullCancelOrderResult.events should have size 0
     }
 
@@ -189,14 +190,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       val createOrderResult = testKit.createOrder(apiCreateOrder)
 
       createOrderResult.events should have size 1
-
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
-
       val getOrderInfoResult =
-        testKit.getOrderInfo(apiGetOrderInfo.copy(orderId = orderId))
+        testKit.getOrderInfo(
+          apiGetOrderInfo
+        )
 
       val result = getOrderInfoResult.reply
 

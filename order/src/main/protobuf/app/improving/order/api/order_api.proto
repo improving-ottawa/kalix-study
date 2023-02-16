@@ -8,13 +8,13 @@ import "kalix/annotations.proto";
 package app.improving.ordercontext.order;
 
 enum ApiOrderStatus {
-    DRAFT = 0;
-    PENDING = 1;
-    INPROCESS = 2;
-    READY = 3;
-    DELIVERED = 4;
-    CANCELLED = 5;
-    UNKNOWN = 6;
+    API_ORDER_STATUS_DRAFT = 0;
+    API_ORDER_STATUS_PENDING = 1;
+    API_ORDER_STATUS_INPROCESS = 2;
+    API_ORDER_STATUS_READY = 3;
+    API_ORDER_STATUS_DELIVERED = 4;
+    API_ORDER_STATUS_CANCELLED = 5;
+    API_ORDER_STATUS_UNKNOWN = 7;
 }
 
 message ApiOrder {
@@ -25,57 +25,59 @@ message ApiOrder {
 }
 
 message ApiLineItem {
-    ApiProductId product = 1;
+    ApiSku product = 1;
     int32     quantity = 2;
-    double    lineTotal = 3;
+    double    line_total = 3;
 }
 
 message ApiOrderInfo {
-    string order_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiLineItem lineItems = 2;
-    string specialInstructions = 3;
+    repeated ApiLineItem line_items = 2;
+    string special_instructions = 3;
 }
 
 message ApiOrderMetaInfo  {
-    string order_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId memberId = 2;
-    ApiStoreId storeId = 3;
-    google.protobuf.Timestamp createdOn = 4;
-    ApiMemberId lastModifiedBy = 5;
-    google.protobuf.Timestamp lastModifiedOn = 6;
+    ApiMemberId member_id = 2;
+    ApiStoreId store_id = 3;
+    google.protobuf.Timestamp created_on = 4;
+    ApiMemberId last_modified_by = 5;
+    google.protobuf.Timestamp last_modified_on = 6;
     ApiOrderStatus status = 7;
 }
 
 message ApiOrderInfoUpdate {
-        repeated ApiLineItem lineItems = 2;
-        optional string specialInstructions = 3;
+    repeated ApiLineItem line_items = 2;
+    optional string special_instructions = 3;
 }
 message ApiCreateOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
-    ApiMemberId creatingMember = 3;
-    ApiStoreId storeId = 4;
+    ApiMemberId creating_member = 3;
+    ApiStoreId store_id = 4;
 }
 
 message ApiUpdateOrderStatus {
     string order_id = 1 [(kalix.field).entity_key = true];
-    ApiOrderStatus newStatus = 2;
-    ApiMemberId updatingMember = 3;
+    ApiOrderStatus new_status = 2;
+    ApiMemberId updating_member = 3;
 }
 message ApiUpdateOrderInfo {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfoUpdate update = 2;
-    ApiMemberId updatingMember = 3;
+    ApiMemberId updating_member = 3;
 }
 message ApiCancelOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId cancellingMember = 2;
+    ApiMemberId cancelling_member = 2;
 }
 message ApiGetOrderInfo {
     string order_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId requestingMember = 2;
+    ApiMemberId requesting_member = 2;
 }
 message ApiOrderInfoResult {
-    ApiOrderId orderId = 1;
+    ApiOrderId order_id = 1;
     ApiOrderInfo info = 2;
+}
+message ApiReleaseOrder {
+    ApiOrderId order_id = 1;
+    ApiMemberId releasing_member = 2;
 }

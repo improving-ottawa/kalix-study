@@ -1,8 +1,7 @@
 package app.improving.productcontext
 
-import app.improving.productcontext.ProductDetails.Ticket
 import app.improving.productcontext.infrastructure.util._
-import app.improving.productcontext.product.{ApiProduct, ApiProductStatus}
+import app.improving.productcontext.product.ApiProductStatus
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 
@@ -14,7 +13,8 @@ import kalix.scalasdk.view.ViewContext
 class TicketByEventViewImpl(context: ViewContext)
     extends AbstractTicketByEventView {
 
-  override def emptyState: TicketEventCorrTableRow = TicketEventCorrTableRow.defaultInstance
+  override def emptyState: TicketEventCorrTableRow =
+    TicketEventCorrTableRow.defaultInstance
 
   override def processProductCreated(
       state: TicketEventCorrTableRow,
@@ -51,7 +51,7 @@ class TicketByEventViewImpl(context: ViewContext)
   ): UpdateEffect[TicketEventCorrTableRow] = {
     effects.updateState(
       state.copy(
-        status = ProductStatus.ACTIVE.toString()
+        status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE.toString()
       )
     )
   }
@@ -62,7 +62,7 @@ class TicketByEventViewImpl(context: ViewContext)
   ): UpdateEffect[TicketEventCorrTableRow] = {
     effects.updateState(
       state.copy(
-        status = ProductStatus.INACTIVE.toString()
+        status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE.toString()
       )
     )
   }

@@ -12,7 +12,7 @@ message Organization {
     repeated MemberId members = 4;
     repeated MemberId owners = 5;
     repeated organizationcontext.Contacts contacts = 6;
-    organizationcontext.MetaInfo orgMeta = 7;
+    organizationcontext.MetaInfo org_meta = 7;
     string name = 8;
     OrganizationStatus status = 9;
 }
