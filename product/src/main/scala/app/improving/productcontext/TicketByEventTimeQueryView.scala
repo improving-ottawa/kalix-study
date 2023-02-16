@@ -52,7 +52,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
       } else {
 
         log.info(
-          s"TicketByEventTimeQueryView in processProductCreated - productCreated ${productCreated}"
+          s"TicketByEventTimeQueryView in processProductCreated - productCreated $productCreated"
         )
 
         effects.updateState(
@@ -67,7 +67,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiProduct] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processProductInfoUpdated - productInfoUpdated ${productInfoUpdated}"
+        s"TicketByEventTimeQueryView in processProductInfoUpdated - productInfoUpdated $productInfoUpdated"
       )
 
       effects.updateState(
@@ -87,7 +87,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiProduct] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processProductDeleted - productDeleted ${productDeleted}"
+        s"TicketByEventTimeQueryView in processProductDeleted - productDeleted $productDeleted"
       )
 
       effects.deleteState()
@@ -99,7 +99,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiProduct] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processProductActivated - productActivated ${productActivated}"
+        s"TicketByEventTimeQueryView in processProductActivated - productActivated $productActivated"
       )
 
       val now = java.time.Instant.now()
@@ -126,7 +126,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiProduct] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processProductInactivated - productInactivated ${productInactivated}"
+        s"TicketByEventTimeQueryView in processProductInactivated - productInactivated $productInactivated"
       )
 
       val now = java.time.Instant.now()
@@ -168,7 +168,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
       } else {
 
         log.info(
-          s"TicketByEventTimeQueryView in processEventScheduled - eventScheduled ${eventScheduled}"
+          s"TicketByEventTimeQueryView in processEventScheduled - eventScheduled $eventScheduled"
         )
 
         effects.updateState(
@@ -177,6 +177,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
               .map(_.eventId)
               .getOrElse("EventId is NOT FOUND."),
             eventScheduled.info,
+            state.reservation,
             eventScheduled.meta,
             ApiEventStatus.API_EVENT_STATUS_SCHEDULED
           )
@@ -190,7 +191,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiEvent] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processEventRescheduled - eventRescheduled ${eventRescheduled}"
+        s"TicketByEventTimeQueryView in processEventRescheduled - eventRescheduled $eventRescheduled"
       )
 
       effects.updateState(
@@ -199,6 +200,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
             .map(_.eventId)
             .getOrElse("EventId is NOT FOUND."),
           eventRescheduled.info,
+          state.reservation,
           eventRescheduled.meta,
           ApiEventStatus.API_EVENT_STATUS_SCHEDULED
         )
@@ -211,7 +213,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiEvent] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processEventStarted - eventStarted ${eventStarted}"
+        s"TicketByEventTimeQueryView in processEventStarted - eventStarted $eventStarted"
       )
 
       effects.updateState(
@@ -229,7 +231,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiEvent] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processEventEnded - eventEnded ${eventEnded}"
+        s"TicketByEventTimeQueryView in processEventEnded - eventEnded $eventEnded"
       )
 
       effects.updateState(
@@ -246,7 +248,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiEvent] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processEventDelayed - eventDelayed ${eventDelayed}"
+        s"TicketByEventTimeQueryView in processEventDelayed - eventDelayed $eventDelayed"
       )
 
       val infoOpt = state.info.map(info =>
@@ -255,21 +257,17 @@ class TicketByEventTimeQueryView(context: ViewContext)
             for {
               timestamp <- info.expectedStart
               duration <- eventDelayed.expectedDuration
-            } yield (
-              Timestamp.of(
-                timestamp.seconds + duration.seconds,
-                timestamp.nanos + duration.nanos
-              )
+            } yield Timestamp.of(
+              timestamp.seconds + duration.seconds,
+              timestamp.nanos + duration.nanos
             ),
           expectedEnd =
             for {
               timestamp <- info.expectedEnd
               duration <- eventDelayed.expectedDuration
-            } yield (
-              Timestamp.of(
-                timestamp.seconds + duration.seconds,
-                timestamp.nanos + duration.nanos
-              )
+            } yield Timestamp.of(
+              timestamp.seconds + duration.seconds,
+              timestamp.nanos + duration.nanos
             )
         )
       )
@@ -288,7 +286,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
     ): UpdateEffect[ApiEvent] = {
 
       log.info(
-        s"TicketByEventTimeQueryView in processEventCancelled - eventCancelled ${eventCancelled}"
+        s"TicketByEventTimeQueryView in processEventCancelled - eventCancelled $eventCancelled"
       )
 
       val now = java.time.Instant.now()

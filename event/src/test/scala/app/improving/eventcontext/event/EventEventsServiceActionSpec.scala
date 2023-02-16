@@ -80,7 +80,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
           eventMetaInfo
         )
       )
-      result.reply.expectedDuration shouldBe expectedDuration
+      result.reply.expectedDuration shouldBe Some(expectedDuration)
     }
 
     "handle command TransformEventStarted" in {

@@ -1,8 +1,5 @@
 package app.improving.gateway
 
-import app.improving.ApiOrderId
-import kalix.scalasdk.action.Action
-import kalix.scalasdk.testkit.ActionResult
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

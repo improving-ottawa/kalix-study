@@ -2,7 +2,6 @@ package app.improving.gateway
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.{ApiOrderId, ApiProductId}
 import app.improving.gateway.TestData.Fixture
 import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -12,14 +11,12 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import org.slf4j.LoggerFactory
 
-import scala.concurrent.{Await, ExecutionContextExecutor}
+import scala.concurrent.ExecutionContextExecutor
 import scala.io.Source
 import io.circe._
 import io.circe.syntax._
 
-import scala.collection.immutable
 import scala.util.Random
 
 class UIGatewayTestDriverSpec
@@ -34,8 +31,6 @@ class UIGatewayTestDriverSpec
 
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
-
-  private val log = LoggerFactory.getLogger(this.getClass)
 
   lazy val config: Config = ConfigFactory.load()
 
@@ -167,7 +162,6 @@ class UIGatewayTestDriverSpec
                 products.map { productId =>
                   storeId.storeId ->
                     ApiOrderInfo(
-                      ApiOrderId.defaultInstance.orderId,
                       Seq[ApiLineItem](
                         ApiLineItem(Some(productId), 1)
                       )

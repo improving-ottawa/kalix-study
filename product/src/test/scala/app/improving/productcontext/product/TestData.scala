@@ -1,5 +1,7 @@
 package app.improving.productcontext.product
 
+import app.improving.productcontext.infrastructure._
+import app.improving.productcontext.infrastructure.util.convertApiProductDetailsToProductDetails
 import app.improving.productcontext.{
   ProductActivated,
   ProductCreated,
@@ -15,7 +17,7 @@ import app.improving.{
   ApiStoreId,
   EventId,
   MemberId,
-  ProductId,
+  Sku,
   StoreId
 }
 import com.google.protobuf.timestamp.Timestamp
@@ -186,45 +188,43 @@ object TestData {
     Some(apiProductMetaInfo)
   )
 
-  val productInfo = ProductInfo(
-    Some(ProductId(testSku)),
+  val productInfo: ProductInfo = ProductInfo(
     testName,
     testDescription,
-    testSection,
-    testRow,
-    testSeat,
-    Some(EventId(testEventId)),
+    testProductDetails.map(details =>
+      convertApiProductDetailsToProductDetails(details)
+    ),
     testImages,
     testPrice,
     testCost,
     Some(StoreId(testStoreId))
   )
-  val productMetaInfo = ProductMetaInfo(
+  val productMetaInfo: ProductMetaInfo = ProductMetaInfo(
     Some(MemberId(testMemberId)),
     Some(testTimestamp),
     Some(MemberId(testMemberId1)),
     Some(testTimestamp)
   )
-  val productCreated = ProductCreated(
-    Some(ProductId(testSku)),
+  val productCreated: ProductCreated = ProductCreated(
+    Some(Sku(testSku)),
     Some(productInfo),
     Some(productMetaInfo)
   )
-  val productInfoUpdated = ProductInfoUpdated(
-    Some(ProductId(testSku)),
+  val productInfoUpdated: ProductInfoUpdated = ProductInfoUpdated(
+    Some(Sku(testSku)),
     Some(productInfo),
     Some(productMetaInfo)
   )
-  val productDeleted = ProductDeleted(
-    Some(ProductId(testSku)),
+  val productDeleted: ProductDeleted = ProductDeleted(
+    Some(Sku(testSku)),
     Some(MemberId(testMemberId))
   )
-  val productActivated = ProductActivated(
-    Some(ProductId(testSku)),
+  val productActivated: ProductActivated = ProductActivated(
+    Some(Sku(testSku)),
     Some(MemberId(testMemberId))
   )
-  val productInactivated = ProductInactivated(
-    Some(ProductId(testSku)),
+  val productInactivated: ProductInactivated = ProductInactivated(
+    Some(Sku(testSku)),
     Some(MemberId(testMemberId))
   )
 }

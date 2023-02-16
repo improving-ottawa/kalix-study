@@ -32,7 +32,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
     } else {
 
       log.info(
-        s"AllStoresViewImpl in processStoreCreated - storeCreated - ${storeCreated}"
+        s"AllStoresViewImpl in processStoreCreated - storeCreated - $storeCreated"
       )
 
       effects.updateState(
@@ -52,7 +52,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
 
     log.info(
-      s"AllStoresViewImpl in processStoreDeleted - storeDeleted - ${storeDeleted}"
+      s"AllStoresViewImpl in processStoreDeleted - storeDeleted - $storeDeleted"
     )
 
     effects.deleteState()
@@ -64,7 +64,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
 
     log.info(
-      s"AllStoresViewImpl in processStoreOpened - storeOpened - ${storeOpened}"
+      s"AllStoresViewImpl in processStoreOpened - storeOpened - $storeOpened"
     )
 
     effects.updateState(
@@ -83,7 +83,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
 
     log.info(
-      s"AllStoresViewImpl in processStoreUpdated - storeUpdated - ${storeUpdated}"
+      s"AllStoresViewImpl in processStoreUpdated - storeUpdated - $storeUpdated"
     )
 
     effects.updateState(
@@ -103,7 +103,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
 
     log.info(
-      s"AllStoresViewImpl in processStoreClosed - storeClosed - ${storeClosed}"
+      s"AllStoresViewImpl in processStoreClosed - storeClosed - $storeClosed"
     )
 
     effects.updateState(
@@ -114,6 +114,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
         ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
+  }
 
   override def processProductsAddedToStore(
       state: ApiStore,
@@ -121,7 +122,7 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
   ): UpdateEffect[ApiStore] = {
 
     log.info(
-      s"AllStoresViewImpl in processProductsAddedToStore - productsAddedToStore - ${productsAddedToStore}"
+      s"AllStoresViewImpl in processProductsAddedToStore - productsAddedToStore - $productsAddedToStore"
     )
 
     effects.updateState(
@@ -132,13 +133,15 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
         ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
+  }
+
   override def processProductsRemovedFromStore(
       state: ApiStore,
       productsRemovedFromStore: ProductsRemovedFromStore
   ): UpdateEffect[ApiStore] = {
 
     log.info(
-      s"AllStoresViewImpl in processProductsRemovedFromStore - productsRemovedFromStore - ${productsRemovedFromStore}"
+      s"AllStoresViewImpl in processProductsRemovedFromStore - productsRemovedFromStore - $productsRemovedFromStore"
     )
 
     effects.updateState(
@@ -151,4 +154,5 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
         ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
+  }
 }

@@ -26,6 +26,7 @@ import app.improving.eventcontext.infrastructure.util.{
   convertApiEventInfoToEventInfo,
   convertApiMemberIdToMemberId
 }
+import com.google.protobuf.empty.Empty
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -226,9 +227,9 @@ class EventAPISpec extends AnyWordSpec with Matchers {
         testKit.currentState.event.flatMap(_.info).flatMap(_.expectedStart)
 
       val newStart: Timestamp =
-        Timestamp.of(start.seconds + durationDelayed, start.nanos)
+        Timestamp.of(start.seconds + expectedDuration.seconds, start.nanos)
       val newEnd: Timestamp =
-        Timestamp.of(end.seconds + durationDelayed, end.nanos)
+        Timestamp.of(end.seconds + expectedDuration.seconds, end.nanos)
 
       delayedStart shouldEqual Some(newStart)
 

@@ -234,29 +234,29 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       currentState: OrderState,
       orderCreated: OrderCreated
   ): OrderState = currentState.order match {
-      case Some(order) =>
-        log.info(
-          s"OrderAPI in orderCreated - order already existed - $order"
+    case Some(order) =>
+      log.info(
+        s"OrderAPI in orderCreated - order already existed - $order"
+      )
+      currentState
+    case _ =>
+      log.info(
+        s"OrderAPI in orderCreated - orderCreated - $orderCreated"
+      )
+      currentState.withOrder(
+        Order(
+          orderCreated.orderId,
+          orderCreated.info,
+          orderCreated.meta,
+          OrderStatus.ORDER_STATUS_DRAFT
         )
-        currentState
-      case _ =>
-        log.info(
-          s"OrderAPI in orderCreated - orderCreated - $orderCreated"
-        )
-        currentState.withOrder(
-          Order(
-            orderCreated.orderId,
-            orderCreated.info,
-            orderCreated.meta,
-            OrderStatus.ORDER_STATUS_DRAFT
-          )
-        )
+      )
   }
 
   override def orderStatusUpdated(
       currentState: OrderState,
       orderStatusUpdated: OrderStatusUpdated
-  ): OrderState = {
+  ): OrderState =
     currentState.order match {
       case Some(order) =>
         log.info(
@@ -284,7 +284,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
 
       case other =>
         log.info(
-          s"OrderAPI in orderStatusUpdated - other - ${other}"
+          s"OrderAPI in orderStatusUpdated - other - $other"
         )
         currentState
     }
@@ -292,7 +292,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   override def orderInfoUpdated(
       currentState: OrderState,
       orderInfoUpdated: OrderInfoUpdated
-  ): OrderState = {
+  ): OrderState =
     currentState.order match {
       case Some(order) =>
         log.info(
@@ -310,7 +310,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         )
         currentState
     }
-  }
+
   override def orderCanceled(
       currentState: OrderState,
       orderCanceled: OrderCanceled
