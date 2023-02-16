@@ -17,6 +17,7 @@ import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 import com.google.protobuf.timestamp.Timestamp
+import org.slf4j.LoggerFactory
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -25,13 +26,27 @@ import com.google.protobuf.timestamp.Timestamp
 class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   override def emptyState: StoreState = StoreState.defaultInstance
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def createStore(
       currentState: StoreState,
       apiCreateStore: ApiCreateStore
   ): EventSourcedEntity.Effect[ApiStoreId] = {
     currentState.store match {
-      case Some(_) => effects.reply(ApiStoreId.defaultInstance)
+      case Some(store) => {
+
+        log.info(
+          s"StoreAPI in createStore - existing store ${store}"
+        )
+
+        effects.reply(ApiStoreId.defaultInstance)
+      }
       case _ => {
+
+        log.info(
+          s"StoreAPI in createStore - apiCreateStore ${apiCreateStore}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = {
@@ -65,6 +80,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId.contains(
             StoreId(apiUpdateStore.storeId)
           ) && !store.meta.map(_.status).contains(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in updateStore - apiUpdateStore ${apiUpdateStore}"
+        )
+
         val event = StoreUpdated(
           Some(StoreId(apiUpdateStore.storeId)),
           apiUpdateStore.info.map(convertApiStoreInfoToStoreInfo),
@@ -72,7 +92,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in updateStore - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -85,6 +112,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == Some(
             StoreId(apiDeleteStore.storeId)
           ) && store.meta.map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in deleteStore - apiDeleteStore ${apiDeleteStore}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = StoreDeleted(
@@ -101,7 +133,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in deleteStore - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -113,6 +152,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       case Some(store)
           if store.storeId == Some(StoreId(apiOpenStore.storeId)) && store.meta
             .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in openStore - apiOpenStore ${apiOpenStore}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = StoreOpened(
@@ -130,7 +174,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in openStore - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -142,6 +193,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       case Some(store)
           if store.storeId == Some(StoreId(apiCloseStore.storeId)) && store.meta
             .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in closeStore - apiCloseStore ${apiCloseStore}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = StoreClosed(
@@ -159,7 +215,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in closeStore - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -173,6 +236,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             StoreId(apiAddProductToStore.storeId)
           ) && store.meta
             .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in addProductsToStore - apiAddProductToStore ${apiAddProductToStore}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
@@ -197,7 +265,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in addProductsToStore - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -211,6 +286,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             StoreId(apiRemoveProductFromStore.storeId)
           ) && store.meta
             .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in removeProductsFromStore - apiRemoveProductFromStore ${apiRemoveProductFromStore}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
@@ -238,7 +318,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in removeProductsFromStore - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -251,6 +338,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == Some(StoreId(apiGetProductsInStore.storeId))
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in getProductsInStore - apiGetProductsInStore ${apiGetProductsInStore}"
+        )
+
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
         val result = ApiProductsInStore(
           apiGetProductsInStore.storeId,
@@ -258,7 +350,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         )
         effects.reply(result)
       }
-      case _ => effects.reply(ApiProductsInStore.defaultInstance)
+      case other => {
+
+        log.info(
+          s"StoreAPI in getProductsInStore - other ${other}"
+        )
+
+        effects.reply(ApiProductsInStore.defaultInstance)
+      }
     }
   }
 
@@ -267,8 +366,20 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
       storeCreated: StoreCreated
   ): StoreState = {
     currentState.store match {
-      case Some(_) => currentState
+      case Some(store) => {
+
+        log.info(
+          s"StoreAPI in storeCreated - existing store ${store}"
+        )
+
+        currentState
+      }
       case _ => {
+
+        log.info(
+          s"StoreAPI in storeCreated - storeCreated ${storeCreated}"
+        )
+
         currentState.withStore(
           Store(
             storeCreated.storeId,
@@ -290,13 +401,25 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == storeDeleted.storeId
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in storeDeleted - storeDeleted ${storeDeleted}"
+        )
+
         currentState.withStore(
           store.copy(
             meta = storeDeleted.meta
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"StoreAPI in storeDeleted - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -309,6 +432,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == storeOpened.storeId
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in storeOpened - storeOpened ${storeOpened}"
+        )
+
         currentState.withStore(
           store.copy(
             info = storeOpened.info,
@@ -316,7 +444,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"StoreAPI in storeOpened - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -329,6 +464,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == storeClosed.storeId
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in storeClosed - storeClosed ${storeClosed}"
+        )
+
         currentState.withStore(
           store.copy(
             info = storeClosed.info,
@@ -336,47 +476,78 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"StoreAPI in storeClosed - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
   override def productsAddedToStore(
       currentState: StoreState,
-      productAddedToStore: ProductsAddedToStore
+      productsAddedToStore: ProductsAddedToStore
   ): StoreState = {
     currentState.store match {
       case Some(store)
-          if store.storeId == productAddedToStore.storeId
+          if store.storeId == productsAddedToStore.storeId
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in productsAddedToStore - productsAddedToStore ${productsAddedToStore}"
+        )
+
         currentState.withStore(
           store.copy(
-            info = productAddedToStore.info,
-            meta = productAddedToStore.meta
+            info = productsAddedToStore.info,
+            meta = productsAddedToStore.meta
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"StoreAPI in productsAddedToStore - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
   override def productsRemovedFromStore(
       currentState: StoreState,
-      productRemovedFromStore: ProductsRemovedFromStore
+      productsRemovedFromStore: ProductsRemovedFromStore
   ): StoreState = {
     currentState.store match {
       case Some(store)
-          if store.storeId == productRemovedFromStore.storeId
+          if store.storeId == productsRemovedFromStore.storeId
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in productsRemovedFromStore - productsRemovedFromStore ${productsRemovedFromStore}"
+        )
+
         currentState.withStore(
           store.copy(
-            info = productRemovedFromStore.info,
-            meta = productRemovedFromStore.meta
+            info = productsRemovedFromStore.info,
+            meta = productsRemovedFromStore.meta
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"StoreAPI in productsRemovedFromStore - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -389,6 +560,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           if store.storeId == storeUpdated.storeId
             && store.meta
               .map(_.status) != Some(StoreStatus.DELETED) => {
+
+        log.info(
+          s"StoreAPI in storeUpdated - storeUpdated ${storeUpdated}"
+        )
+
         currentState.withStore(
           store.copy(
             info = storeUpdated.info,
@@ -396,7 +572,14 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"StoreAPI in storeUpdated - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 }

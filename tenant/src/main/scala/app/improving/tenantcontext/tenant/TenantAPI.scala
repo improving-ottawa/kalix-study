@@ -34,11 +34,15 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
   ): EventSourcedEntity.Effect[ApiTenantId] = {
     currentState.tenant match {
       case Some(tenant) => {
-        log.info(s"in establishTenant - tenant already existed - ${tenant}")
+        log.info(
+          s"TenantAPI in establishTenant - tenant already existed - ${tenant}"
+        )
         effects.reply(ApiTenantId.defaultInstance)
       }
       case _ => {
-        log.info("in establishTenant")
+        log.info(
+          s"TenantAPI in establishTenant - apiEstablishTenant ${apiEstablishTenant}"
+        )
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val tenandId = apiEstablishTenant.tenantId
@@ -73,6 +77,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == Some(TenantId(apiActivateTenant.tenantId)) => {
+
+        log.info(
+          s"TenantAPI in activateTenant - apiActivateTenant ${apiActivateTenant}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = TenantActivated(
@@ -88,7 +97,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"TenantAPI in activateTenant - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -99,6 +115,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == Some(TenantId(apiSuspendTenant.tenantId)) => {
+
+        log.info(
+          s"TenantAPI in suspendTenant - apiSuspendTenant ${apiSuspendTenant}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = TenantSuspended(
@@ -114,7 +135,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"TenantAPI in suspendTenant - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -127,6 +155,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           if tenant.tenantId == Some(
             TenantId(apiUpdatePrimaryContact.tenantId)
           ) => {
+
+        log.info(
+          s"TenantAPI in updatePrimaryContact - apiUpdatePrimaryContact ${apiUpdatePrimaryContact}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = PrimaryContactUpdated(
@@ -143,7 +176,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"TenantAPI in updatePrimaryContact - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -156,6 +196,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           if tenant.tenantId == Some(
             TenantId(apiChangeTenantName.tenantId)
           ) => {
+
+        log.info(
+          s"TenantAPI in changeTenantName - apiChangeTenantName ${apiChangeTenantName}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = TenantNameChanged(
@@ -171,7 +216,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"TenantAPI in changeTenantName - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -182,14 +234,25 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == Some(TenantId(apiGetTenantById.tenantId)) => {
+
+        log.info(
+          s"TenantAPI in getTenantById - apiGetTenantById ${apiGetTenantById}"
+        )
+
         effects.reply(convertTenantToApiTenant(tenant))
 
       }
-      case _ =>
+      case other => {
+
+        log.info(
+          s"TenantAPI in getTenantById - other ${other}"
+        )
+
         effects.error(
           s"Tenant By ID ${apiGetTenantById.tenantId} Is Not Found!",
           Status.Code.NOT_FOUND
         )
+      }
     }
   }
 
@@ -198,8 +261,20 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
       tenantEstablished: TenantEstablished
   ): TenantState = {
     currentState.tenant match {
-      case Some(_) => currentState
+      case Some(tenant) => {
+
+        log.info(
+          s"TenantAPI in tenantEstablished - existing tenant ${tenant}"
+        )
+
+        currentState
+      }
       case _ => {
+
+        log.info(
+          s"TenantAPI in tenantEstablished - tenantEstablished ${tenantEstablished}"
+        )
+
         currentState.withTenant(
           Tenant(
             tenantEstablished.tenantId,
@@ -220,6 +295,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
   ): TenantState = {
     currentState.tenant match {
       case Some(tenant) if tenant.tenantId == tenantActivated.tenantId => {
+
+        log.info(
+          s"TenantAPI in tenantActivated - tenantActivated ${tenantActivated}"
+        )
+
         currentState.withTenant(
           tenant.copy(
             meta = tenantActivated.meta,
@@ -227,7 +307,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"TenantAPI in tenantActivated - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -237,6 +324,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
   ): TenantState = {
     currentState.tenant match {
       case Some(tenant) if tenant.tenantId == tenantSuspended.tenantId => {
+
+        log.info(
+          s"TenantAPI in tenantSuspended - tenantSuspended ${tenantSuspended}"
+        )
+
         currentState.withTenant(
           tenant.copy(
             meta = tenantSuspended.meta,
@@ -244,7 +336,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"TenantAPI in tenantSuspended - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -255,6 +354,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == primaryContactUpdated.tenantId && tenant.primaryContact == primaryContactUpdated.oldContact => {
+
+        log.info(
+          s"TenantAPI in primaryContactUpdated - primaryContactUpdated ${primaryContactUpdated}"
+        )
+
         currentState.withTenant(
           tenant.copy(
             meta = primaryContactUpdated.meta,
@@ -262,7 +366,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"TenantAPI in primaryContactUpdated - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -273,6 +384,11 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
     currentState.tenant match {
       case Some(tenant)
           if tenant.tenantId == tenantNameChanged.tenantId && tenant.name == tenantNameChanged.oldName => {
+
+        log.info(
+          s"TenantAPI in tenantNameChanged - tenantNameChanged ${tenantNameChanged}"
+        )
+
         currentState.withTenant(
           tenant.copy(
             meta = tenantNameChanged.meta,
@@ -280,7 +396,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"TenantAPI in tenantNameChanged - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 }

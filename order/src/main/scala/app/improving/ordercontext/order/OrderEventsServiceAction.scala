@@ -8,6 +8,7 @@ import app.improving.ordercontext.OrderStatusUpdated
 import app.improving.ordercontext.infrastructure.util._
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -17,9 +18,16 @@ import kalix.scalasdk.action.ActionCreationContext
 class OrderEventsServiceAction(creationContext: ActionCreationContext)
     extends AbstractOrderEventsServiceAction {
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def transformOrderCreated(
       orderCreated: OrderCreated
   ): Action.Effect[ApiOrderCreated] = {
+
+    log.info(
+      s"OrderEventsServiceAction in transformOrderCreated - orderCreated - ${orderCreated}"
+    )
+
     effects.reply(
       ApiOrderCreated(
         orderCreated.orderId.map(order => ApiOrderId(order.id)),
@@ -31,6 +39,11 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
   override def transformOrderStatusUpdated(
       orderStatusUpdated: OrderStatusUpdated
   ): Action.Effect[ApiOrderStatusUpdated] = {
+
+    log.info(
+      s"OrderEventsServiceAction in transformOrderStatusUpdated - orderStatusUpdated - ${orderStatusUpdated}"
+    )
+
     effects.reply(
       ApiOrderStatusUpdated(
         orderStatusUpdated.orderId.map(order => ApiOrderId(order.id)),
@@ -42,6 +55,11 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
   override def transformOrderInfoUpdated(
       orderInfoUpdated: OrderInfoUpdated
   ): Action.Effect[ApiOrderInfoUpdated] = {
+
+    log.info(
+      s"OrderEventsServiceAction in transformOrderInfoUpdated - orderInfoUpdated - ${orderInfoUpdated}"
+    )
+
     effects.reply(
       ApiOrderInfoUpdated(
         orderInfoUpdated.orderId.map(order => ApiOrderId(order.id)),
@@ -54,6 +72,11 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
   override def transformOrderCanceled(
       orderCanceled: OrderCanceled
   ): Action.Effect[ApiOrderCanceled] = {
+
+    log.info(
+      s"OrderEventsServiceAction in transformOrderCanceled - orderCanceled - ${orderCanceled}"
+    )
+
     effects.reply(
       ApiOrderCanceled(
         orderCanceled.orderId.map(order => ApiOrderId(order.id)),

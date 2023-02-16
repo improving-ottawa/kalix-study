@@ -9,6 +9,7 @@ import app.improving.productcontext.ProductInfoUpdated
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import app.improving.productcontext.infrastructure.util._
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -18,9 +19,16 @@ import app.improving.productcontext.infrastructure.util._
 class ProductEventsServiceAction(creationContext: ActionCreationContext)
     extends AbstractProductEventsServiceAction {
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def transformProductCreated(
       productCreated: ProductCreated
   ): Action.Effect[ApiProductCreated] = {
+
+    log.info(
+      s"ProductEventsServiceAction in transformProductCreated - productCreated - ${productCreated}"
+    )
+
     effects.reply(
       ApiProductCreated(
         productCreated.sku.map(sku => ApiProductId(sku.id)),
@@ -32,6 +40,11 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   override def transformProductInfoUpdated(
       productInfoUpdated: ProductInfoUpdated
   ): Action.Effect[ApiProductInfoUpdated] = {
+
+    log.info(
+      s"ProductEventsServiceAction in transformProductInfoUpdated - productInfoUpdated - ${productInfoUpdated}"
+    )
+
     effects.reply(
       ApiProductInfoUpdated(
         productInfoUpdated.sku.map(sku => ApiProductId(sku.id)),
@@ -43,6 +56,11 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   override def transformProductDeleted(
       productDeleted: ProductDeleted
   ): Action.Effect[ApiProductDeleted] = {
+
+    log.info(
+      s"ProductEventsServiceAction in transformProductDeleted - productDeleted - ${productDeleted}"
+    )
+
     effects.reply(
       ApiProductDeleted(
         productDeleted.sku.map(sku => ApiProductId(sku.id)),
@@ -53,6 +71,11 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   override def transformProductActivated(
       productActivated: ProductActivated
   ): Action.Effect[ApiProductActivated] = {
+
+    log.info(
+      s"ProductEventsServiceAction in transformProductActivated - productActivated - ${productActivated}"
+    )
+
     effects.reply(
       ApiProductActivated(
         productActivated.sku.map(sku => ApiProductId(sku.id)),
@@ -63,6 +86,11 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   override def transformProductInactivated(
       productInactivated: ProductInactivated
   ): Action.Effect[ApiProductInactivated] = {
+
+    log.info(
+      s"ProductEventsServiceAction in transformProductInactivated - productInactivated - ${productInactivated}"
+    )
+
     effects.reply(
       ApiProductInactivated(
         productInactivated.sku.map(sku => ApiProductId(sku.id)),

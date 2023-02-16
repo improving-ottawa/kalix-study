@@ -5,6 +5,7 @@ import app.improving.membercontext.membermap
 import kalix.scalasdk.replicatedentity.ReplicatedEntity
 import kalix.scalasdk.replicatedentity.ReplicatedEntityContext
 import kalix.scalasdk.replicatedentity.ReplicatedRegisterMap
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -13,10 +14,17 @@ import kalix.scalasdk.replicatedentity.ReplicatedRegisterMap
 
 class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   def set(
       currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       setValue: SetValue
   ): ReplicatedEntity.Effect[Empty] = {
+
+    log.info(
+      s"MemberMap in set - setValue ${setValue}"
+    )
+
     val key = MapMemberId(setValue.getKey.id)
     val value = MapMemberInfo(
       setValue.getValue.contact,
@@ -39,6 +47,11 @@ class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
       currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       removeValue: RemoveValue
   ): ReplicatedEntity.Effect[Empty] = {
+
+    log.info(
+      s"MemberMap in remove - removeValue ${removeValue}"
+    )
+
     val key = MapMemberId(removeValue.getKey.id)
     effects
       .update(currentData.remove(key))
@@ -49,6 +62,11 @@ class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
       currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       getValue: GetValue
   ): ReplicatedEntity.Effect[CurrentValue] = {
+
+    log.info(
+      s"MemberMap in get - getValue ${getValue}"
+    )
+
     val key = MapMemberId(getValue.getKey.id)
     val maybeValue = currentData.get(key)
     val currentValue = membermap.CurrentValue(
@@ -75,6 +93,11 @@ class MemberMap(context: ReplicatedEntityContext) extends AbstractMemberMap {
       currentData: ReplicatedRegisterMap[MapMemberId, MapMemberInfo],
       getAllValues: GetAllValues
   ): ReplicatedEntity.Effect[CurrentValues] = {
+
+    log.info(
+      s"MemberMap in getAll - getAllValues ${getAllValues}"
+    )
+
     val allData =
       currentData.keySet.map { key =>
         val value = currentData

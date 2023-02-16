@@ -14,6 +14,7 @@ import app.improving.membercontext.infrastructure.util._
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -23,16 +24,29 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   override def emptyState: MemberState = MemberState.defaultInstance
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def registerMember(
       currentState: MemberState,
       apiRegisterMember: ApiRegisterMember
   ): EventSourcedEntity.Effect[ApiMemberId] = {
     currentState.member match {
-      case Some(_) =>
+      case Some(member) => {
+
+        log.info(
+          s"MemberAPI in registerMember - member already existed - ${member}"
+        )
+
         effects.reply(
           ApiMemberId.defaultInstance
         ) // already registered so just return.
-      case _ =>
+      }
+      case _ => {
+
+        log.info(
+          s"MemberAPI in registerMember - apiRegisterMember - ${apiRegisterMember}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = apiRegisterMember.registeringMember.map(member =>
@@ -53,6 +67,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           )
         )
         effects.emitEvent(event).thenReply(_ => ApiMemberId(memberId))
+      }
     }
   }
 
@@ -64,7 +79,12 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       case Some(state)
           if state.memberId.contains(
             MemberId(apiUpdateMemberStatus.memberId)
-          ) =>
+          ) => {
+
+        log.info(
+          s"MemberAPI in updateMemberStatus - apiUpdateMemberStatus - ${apiUpdateMemberStatus}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val event = MemberStatusUpdated(
@@ -82,7 +102,15 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           )
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+
+        log.info(
+          s"MemberAPI in updateMemberStatus - other - ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -95,6 +123,11 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           if state.memberId.contains(
             MemberId(apiUpdateMemberInfo.memberId)
           ) => {
+
+        log.info(
+          s"MemberAPI in updateMemberInfo - apiUpdateMemberInfo - ${apiUpdateMemberInfo}"
+        )
+
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val memberIdOpt = apiUpdateMemberInfo.actingMember.map(member =>
@@ -117,7 +150,14 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case _ => effects.reply(Empty.defaultInstance)
+      case other => {
+
+        log.info(
+          s"MemberAPI in updateMemberInfo - other - ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -169,19 +209,30 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): EventSourcedEntity.Effect[ApiMemberData] = {
     currentState.member match {
       case Some(state)
-          if state.memberId.contains(MemberId(apiGetMemberData.memberId)) =>
+          if state.memberId.contains(MemberId(apiGetMemberData.memberId)) => {
+
+        log.info(
+          s"MemberAPI in getMemberData - apiGetMemberData - ${apiGetMemberData}"
+        )
+
         val apiMemberData = ApiMemberData(
           apiGetMemberData.memberId,
           state.info.map(convertInfoToApiUpdateInfo),
           state.meta.map(convertMetaInfoToApiMetaInfo)
         )
         effects.reply(apiMemberData)
+      }
+      case other => {
 
-      case _ =>
+        log.info(
+          s"MemberAPI in getMemberData - other - ${other}"
+        )
+
         effects.error(
           s"MemberData ID ${apiGetMemberData.memberId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
         )
+      }
     }
   }
 
@@ -190,14 +241,27 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       memberInfoUpdated: MemberInfoUpdated
   ): MemberState = {
     currentState.member match {
-      case Some(state) if state.memberId == memberInfoUpdated.memberId =>
+      case Some(state) if state.memberId == memberInfoUpdated.memberId => {
+
+        log.info(
+          s"MemberAPI in memberInfoUpdated - memberInfoUpdated - ${memberInfoUpdated}"
+        )
+
         currentState.withMember(
           state.copy(
             info = memberInfoUpdated.info,
             meta = memberInfoUpdated.meta
           )
         )
-      case _ => currentState
+      }
+      case other => {
+
+        log.info(
+          s"MemberAPI in memberInfoUpdated - other - ${other}"
+        )
+
+        currentState
+      }
     }
   }
 
@@ -243,8 +307,20 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       memberRegistered: MemberRegistered
   ): MemberState = {
     currentState.member match {
-      case Some(_) => currentState // already registered so just return.
+      case Some(member) => {
+
+        log.info(
+          s"MemberAPI in memberRegistered - member already existed - ${member}"
+        )
+
+        currentState
+      } // already registered so just return.
       case _ => {
+
+        log.info(
+          s"MemberAPI in memberRegistered - memberRegistered - ${memberRegistered}"
+        )
+
         val member = Member(
           memberRegistered.memberId,
           memberRegistered.info,
@@ -261,6 +337,11 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   ): MemberState = {
     currentState.member match {
       case Some(state) if state.memberId == memberStatusUpdated.memberId => {
+
+        log.info(
+          s"MemberAPI in memberStatusUpdated - memberStatusUpdated - ${memberStatusUpdated}"
+        )
+
         currentState.withMember(
           state.copy(
             status = memberStatusUpdated.meta
@@ -270,7 +351,14 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           )
         )
       }
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"MemberAPI in memberStatusUpdated - other - ${other}"
+        )
+
+        currentState
+      }
     }
   }
 }

@@ -52,11 +52,13 @@ import app.improving.storecontext.store.{
 import app.improving.productcontext.product.{
   ApiCreateProduct,
   ApiProductInfo,
+  ApiProductMetaInfo,
   ProductService
 }
 import app.improving.tenantcontext.tenant.{
   ApiActivateTenant,
   ApiEstablishTenant,
+  ApiMetaInfo,
   TenantService
 }
 import app.improving.gateway.util.util.{
@@ -676,6 +678,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           (1 to numProducts)
             .map { _ =>
               val sku = UUID.randomUUID().toString
+              val now = java.time.Instant.now()
+              val timestamp = Timestamp.of(
+                now.getEpochSecond,
+                now.getNano
+              )
               storeId -> ApiCreateProduct(
                 sku,
                 Some(
@@ -693,6 +700,14 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     Some(
                       storeId
                     )
+                  )
+                ),
+                Some(
+                  ApiProductMetaInfo(
+                    None,
+                    Some(timestamp),
+                    None,
+                    Some(timestamp)
                   )
                 )
               )
