@@ -1,51 +1,48 @@
 // This is the public API offered by your entity.
 syntax = "proto3";
 
-
 import "common_api.proto";
-import "common_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
 package app.improving.storecontext.store;
 
 enum ApiStoreStatus {
-    DRAFT = 0;
-    READY = 1;
-    OPEN = 2;
-    CLOSED = 3;
-    DELETED = 4;
-    UNKNOWN = 5;
+    API_STORE_STATUS_DRAFT = 0;
+    API_STORE_STATUS_READY = 1;
+    API_STORE_STATUS_OPEN = 2;
+    API_STORE_STATUS_CLOSED = 3;
+    API_STORE_STATUS_DELETED = 4;
+    API_STORE_STATUS_RELEASED = 5;
+    API_STORE_STATUS_UNKNOWN = 6;
 }
 
 message ApiStoreInfo {
-    string store_id = 1 [(kalix.field).entity_key = true];
-    string  name = 2;
-    string  description = 3;
-    repeated ApiProductId products = 4;
-    ApiEventId  event = 5;
-    ApiVenueId venue = 6;
-    ApiLocationId location = 7;
-    ApiOrganizationId sponsoringOrg = 8;
+    string name = 1;
+    string description = 2;
+    repeated ApiSku products = 3;
+    ApiEventId  event = 4;
+    ApiVenueId venue = 5;
+    ApiLocationId location = 6;
+    ApiOrganizationId sponsoring_org = 7;
 }
 
 message ApiStoreMetaInfo {
-    ApiMemberId createdBy = 1;
-    google.protobuf.Timestamp createdOn = 2;
-    ApiMemberId lastModifiedBy = 3;
-    google.protobuf.Timestamp lastModifiedOn = 4;
+    ApiMemberId created_by = 1;
+    google.protobuf.Timestamp created_on = 2;
+    ApiMemberId last_modified_by = 3;
+    google.protobuf.Timestamp last_modified_on = 4;
     ApiStoreStatus status = 5;
 }
 
 message ApiStoreUpdateInfo {
-    string store_id = 1 [(kalix.field).entity_key = true];
-    string  name = 2;
-    string  description = 3;
-    repeated ProductId products = 4;
-    ApiEventId  event = 5;
-    ApiVenueId venue = 6;
-    ApiLocationId location = 7;
-    ApiOrganizationId sponsoringOrg = 8;
+    optional string name = 1;
+    optional string description = 2;
+    repeated ApiSku products = 3;
+    optional ApiEventId event = 4;
+    optional ApiVenueId venue = 5;
+    optional ApiLocationId location = 6;
+    optional ApiOrganizationId sponsoring_org = 7;
 }
 
 message ApiStore {
@@ -58,34 +55,42 @@ message ApiStore {
 message ApiCreateStore {
     string store_id = 1 [(kalix.field).entity_key = true];
     ApiStoreInfo info = 2;
-    ApiMemberId creatingMember = 3;
+    ApiMemberId creating_member = 3;
 }
 message ApiUpdateStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    ApiStoreInfo info = 2;
+    ApiStoreUpdateInfo info = 2;
     ApiStoreMetaInfo meta = 3;
 }
 message ApiDeleteStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId deletingMember = 3;
+    ApiMemberId deleting_member = 3;
+}
+message ApiReadyStore {
+    string store_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId readying_member = 3;
 }
 message ApiOpenStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId openingMember = 3;
+    ApiMemberId opening_member = 3;
 }
 message ApiCloseStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId closingMember = 3;
+    ApiMemberId closing_member = 3;
+}
+message ApiReleaseStore {
+    string store_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 3;
 }
 message ApiAddProductsToStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiProductId products = 2;
-    ApiMemberId addingMember = 3;
+    repeated ApiSku products = 2;
+    ApiMemberId adding_member = 3;
 }
 message ApiRemoveProductsFromStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiProductId products = 2;
-    ApiMemberId removingMember = 3;
+    repeated ApiSku products = 2;
+    ApiMemberId removing_member = 3;
 }
 
 message ApiGetProductsInStore {
@@ -94,5 +99,5 @@ message ApiGetProductsInStore {
 
 message ApiProductsInStore {
     string store_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiProductId products = 2;
+    repeated ApiSku products = 2;
 }

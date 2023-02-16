@@ -57,7 +57,7 @@
 //  "OrderService" must {
 //
 //    "purchase public order correctly" in {
-//      val eventId = event.scheduleEvent(apiScheduleEvent).futureValue
+//      val event_id = event.scheduleEvent(apiScheduleEvent).futureValue
 //
 //      val productId = product.createProduct(apiCreateProduct).futureValue
 //
@@ -66,17 +66,17 @@
 //      val purchased = action.purchaseTicket(apiCreateOrder).futureValue
 //
 //      println(purchased + " purchased")
-//      purchased.orderId shouldBe "test-order-id"
+//      purchased.order_id shouldBe "test-order-id"
 //    }
 //
 //    "purchase public order fails as expected" in {
 //
-//      action.purchaseTicket(apiCreateOrder).futureValue.orderId shouldBe ""
+//      action.purchaseTicket(apiCreateOrder).futureValue.order_id shouldBe ""
 //
 //    }
 //
 //    "purchase private order correctly" in {
-//      val eventId = event.scheduleEvent(apiSchedulePrivateEvent).futureValue
+//      val event_id = event.scheduleEvent(apiSchedulePrivateEvent).futureValue
 //
 //      val productId =
 //        product.createProduct(apiCreateProductPrivateEvent).futureValue
@@ -88,11 +88,11 @@
 //        action.purchaseTicket(apiCreateOrderPrivateEvent).futureValue
 //
 //      println(purchased + " purchased")
-//      purchased.orderId shouldBe "test-order-id2"
+//      purchased.order_id shouldBe "test-order-id2"
 //    }
 //
 //    "purchase private order fails as expected" in {
-//      val eventId =
+//      val event_id =
 //        event.scheduleEvent(apiSchedulePrivateFailedEvent).futureValue
 //
 //      val productId =

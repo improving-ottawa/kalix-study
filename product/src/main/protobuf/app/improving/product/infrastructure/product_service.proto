@@ -19,12 +19,13 @@ service ProductService {
                 "app.improving.productcontext.ProductInfoUpdated",
                 "app.improving.productcontext.ProductDeleted",
                 "app.improving.productcontext.ProductActivated",
-                "app.improving.productcontext.ProductInactivated"
+                "app.improving.productcontext.ProductInactivated",
+                "app.improving.productcontext.ProductReleased"
             ]
         }
     };
 
-    rpc CreateProduct(ApiCreateProduct) returns (ApiProductId) {
+    rpc CreateProduct(ApiCreateProduct) returns (ApiSku) {
         option (google.api.http) = {
             post: "/product/create"
             body: "*"
@@ -53,6 +54,12 @@ service ProductService {
     rpc InactivateProduct(ApiInactivateProduct) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/product/{sku}/inactivate"
+        };
+    }
+
+    rpc ReleaseProduct(ApiReleaseProduct) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/product/{sku}/release"
         };
     }
 

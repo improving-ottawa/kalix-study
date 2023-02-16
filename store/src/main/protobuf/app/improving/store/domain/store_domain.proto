@@ -7,7 +7,7 @@ import "common_domain.proto";
 package app.improving.storecontext.store;
 
 message Store {
-    StoreId storeId = 1;
+    StoreId store_id = 1;
     StoreInfo info = 2;
     StoreMetaInfo meta = 3;
     StoreStatus status = 4;

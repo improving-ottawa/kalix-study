@@ -17,11 +17,13 @@ service StoreService {
             events: [
                 "app.improving.storecontext.StoreCreated",
                 "app.improving.storecontext.StoreDeleted",
+                "app.improving.storecontext.StoreMadeReady",
                 "app.improving.storecontext.StoreOpened",
                 "app.improving.storecontext.StoreUpdated",
                 "app.improving.storecontext.StoreClosed",
                 "app.improving.storecontext.ProductsAddedToStore",
-                "app.improving.storecontext.ProductsRemovedFromStore"]
+                "app.improving.storecontext.ProductsRemovedFromStore",
+                "app.improving.storecontext.StoreReleased"]
         }
     };
 
@@ -45,6 +47,12 @@ service StoreService {
         };
     }
 
+    rpc MakeStoreReady(ApiReadyStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/ready-store"
+        };
+    }
+
     rpc OpenStore(ApiOpenStore) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/store/{store_id}/open-store"
@@ -54,6 +62,12 @@ service StoreService {
     rpc CloseStore(ApiCloseStore) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/store/{store_id}/close-store"
+        };
+    }
+
+    rpc ReleaseStore(ApiReleaseStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/{store_id}/release"
         };
     }
 

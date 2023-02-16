@@ -24,8 +24,8 @@ message ApiStoreId {
     string store_id = 1 [(kalix.field).entity_key = true];
 }
 
-message ApiProductId {
-    string product_id = 1 [(kalix.field).entity_key = true];
+message ApiSku {
+    string sku = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiOrderId {

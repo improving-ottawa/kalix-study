@@ -23,7 +23,9 @@ service EventService {
                 "app.improving.eventcontext.EventRescheduled",
                 "app.improving.eventcontext.EventDelayed",
                 "app.improving.eventcontext.EventStarted",
-                "app.improving.eventcontext.EventEnded"]
+                "app.improving.eventcontext.EventEnded",
+                "app.improving.eventcontext.ReservationAddedToEvent",
+                "app.improving.eventcontext.EventReleased"]
         }
     };
 
@@ -44,7 +46,7 @@ service EventService {
     rpc CancelEvent(event.ApiCancelEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/event/{event_id}/cancel-event"
-            body: "cancelling_member"
+            body: "*"
         };
     }
 
@@ -65,14 +67,21 @@ service EventService {
     rpc StartEvent(event.ApiStartEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/event/{event_id}/start-event"
-            body: "starting_member"
+            body: "*"
         };
     }
 
     rpc EndEvent(event.ApiEndEvent) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/event/{event_id}/end-event"
-            body: "ending_member"
+            body: "*"
+        };
+    }
+
+    rpc ReleaseEvent(event.ApiReleaseEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/release-event"
+            body: "*"
         };
     }
 
@@ -86,6 +95,13 @@ service EventService {
     rpc GetEventById(event.ApiGetEventById) returns (event.ApiEvent) {
         option (google.api.http) = {
             get: "/event/{event_id}"
+        };
+    }
+
+    rpc AddReservationToEvent(event.ApiAddReservationToEvent) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/event/{event_id}/add-reservation-to-event"
+            body: "*"
         };
     }
 }

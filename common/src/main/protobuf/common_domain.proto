@@ -6,25 +6,25 @@ package app.improving;
  * Pattern of: \d{5}(-\d{4})?
  */
 message USPostalCode {
-    string postalCode = 1;
+    string postal_code = 1;
 }
 
 /**
  * Pattern of: [A-Z]\d[A-Z]\d[A-Z]\d
  */
 message CAPostalCode {
-    string postalCode = 1;
+    string postal_code = 1;
 }
 
 message Address {
     string line1 = 1;
     string line2 = 2;
     string city = 3;
-    string stateProvince = 4;
+    string state_province = 4;
     string country = 5;
     oneof postalCode {
-        USPostalCode usPostalCode = 6;
-        CAPostalCode caPostalCode = 7;
+        USPostalCode us_postal_code = 6;
+        CAPostalCode ca_postal_code = 7;
     }
 }
 
@@ -45,11 +45,11 @@ message MobileNumber {
 }
 
 message Contact {
-    string firstName = 1;
-    string lastName = 2;
-    EmailAddress emailAddress = 3;
+    string first_name = 1;
+    string last_name = 2;
+    EmailAddress email_address = 3;
     MobileNumber phone = 4;
-    string userName = 5;
+    string user_name = 5;
 }
 
 message EventId {
@@ -72,7 +72,7 @@ message StoreId {
     string id = 1;
 }
 
-message ProductId {
+message Sku {
     string id = 1;
 }
 

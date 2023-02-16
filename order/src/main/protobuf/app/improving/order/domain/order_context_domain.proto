@@ -12,24 +12,28 @@ enum OrderStatus {
     ORDER_STATUS_READY = 4;
     ORDER_STATUS_DELIVERED = 5;
     ORDER_STATUS_CANCELLED = 6;
-    ORDER_STATUS_UNKNOWN = 7;
+    ORDER_STATUS_RELEASED = 7;
+    ORDER_STATUS_UNKNOWN = 8;
 }
 
 message LineItem {
-        ProductId product = 1;
+        Sku product = 1;
         int32     quantity = 2;
         double    line_total = 3;
 }
 
 message OrderInfo {
-        OrderId order_id = 1;
         repeated LineItem line_items = 2;
         string special_instructions = 3;
         double order_total = 4;
 }
 
+message OrderInfoUpdate {
+    repeated LineItem line_items = 1;
+    optional string special_instructions = 2;
+}
+
 message OrderMetaInfo  {
-    OrderId order_id = 1;
     MemberId member_id = 2;
     StoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;
@@ -67,4 +71,8 @@ message GetOrderInfo {
 message OrderInfoResult {
     OrderId order_id = 1;
     OrderInfo info = 2;
+}
+message OrderReleased {
+    OrderId order_id = 1;
+    MemberId releasing_member = 2;
 }

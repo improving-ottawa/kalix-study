@@ -18,7 +18,7 @@ import org.scalatest.wordspec.AnyWordSpec
 class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
   var result: EventSourcedResult[ApiTenantId] = null
-  val testKit = TenantAPITestKit(new TenantAPI(_))
+  val testKit: TenantAPITestKit = TenantAPITestKit(new TenantAPI(_))
 
   "The TenantAPI" should {
 
@@ -27,7 +27,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       result.events should have size 1
 
       testKit.currentState.tenant.map(_.status) shouldBe Some(
-        TenantStatus.DRAFT
+        TenantStatus.TENANT_STATUS_DRAFT
       )
 
       testKit.currentState.tenant.flatMap(_.info).map(_.name) shouldBe Some(
@@ -48,7 +48,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
 
       testKit.currentState.tenant
         .flatMap(_.meta)
-        .map(_.currentStatus) shouldBe Some(TenantStatus.DRAFT)
+        .map(_.currentStatus) shouldBe Some(TenantStatus.TENANT_STATUS_DRAFT)
     }
 
     "correctly process commands of type ActivateTenant" in {
@@ -61,7 +61,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
         .getOrElse("TenantId is not found.")
       val activateTenantEvent = ApiActivateTenant(
         tenantId,
-        testTenantId2
+        Some(testMemberId)
       )
 
       val activateTenantResult = testKit.activateTenant(activateTenantEvent)
@@ -69,12 +69,12 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       activateTenantResult.events should have size 1
 
       testKit.currentState.tenant.map(_.status) shouldBe Some(
-        TenantStatus.ACTIVE
+        TenantStatus.TENANT_STATUS_ACTIVE
       )
 
       testKit.currentState.tenant
         .flatMap(_.meta)
-        .map(_.currentStatus) shouldBe Some(TenantStatus.ACTIVE)
+        .map(_.currentStatus) shouldBe Some(TenantStatus.TENANT_STATUS_ACTIVE)
     }
 
     "correctly process commands of type SuspendTenant" in {
@@ -86,7 +86,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
         .getOrElse("TenantId is not found.")
       val suspendTenantEvent = ApiSuspendTenant(
         tenantId,
-        testTenantId2
+        Some(testMemberId)
       )
 
       val activateTenantResult = testKit.suspendTenant(suspendTenantEvent)
@@ -94,12 +94,14 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       activateTenantResult.events should have size 1
 
       testKit.currentState.tenant.map(_.status) shouldBe Some(
-        TenantStatus.SUSPENDED
+        TenantStatus.TENANT_STATUS_SUSPENDED
       )
 
       testKit.currentState.tenant
         .flatMap(_.meta)
-        .map(_.currentStatus) shouldBe Some(TenantStatus.SUSPENDED)
+        .map(_.currentStatus) shouldBe Some(
+        TenantStatus.TENANT_STATUS_SUSPENDED
+      )
     }
 
     "correctly process commands of type UpdatePrimaryContact" in {
@@ -112,7 +114,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       val updatePrimaryContactEvent = ApiUpdatePrimaryContact(
         tenantId,
         Some(newApiContact),
-        testTenantId2
+        Some(testMemberId)
       )
 
       val updatePrimaryContactResult =
@@ -136,7 +138,7 @@ class TenantAPISpec extends AnyWordSpec with Matchers with BeforeAndAfterAll {
       val changeTenantNameEvent = ApiChangeTenantName(
         tenantId,
         testNewName,
-        testTenantId2
+        Some(testMemberId)
       )
 
       val changeTenantNameResult =

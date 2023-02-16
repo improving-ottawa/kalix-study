@@ -1,12 +1,9 @@
 syntax = "proto3";
 
-
 package app.improving.tenantcontext;
-
 
 import "app/improving/tenant/api/tenant_api.proto";
 import "app/improving/tenant/domain/tenant_context_domain.proto";
-import "common_api.proto";
 import "kalix/annotations.proto";
 
 message GetAllTenantRequest {}

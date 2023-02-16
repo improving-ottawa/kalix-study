@@ -126,7 +126,7 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val updatedMetaOpt = state.meta.map(
 //        _.copy(
-//          last_modified_by = orderStatusUpdated.updatingMember.map(member =>
+//          last_modified_by = orderStatusUpdated.updating_member.map(member =>
 //            ApiMemberId(member.id)
 //          ),
 //          last_modified_on = Some(timestamp),
@@ -194,7 +194,7 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val metaOpt = state.meta.map(
 //        _.copy(
-//          last_modified_by = productActivated.activatingMember.map(member =>
+//          last_modified_by = productActivated.activating_member.map(member =>
 //            ApiMemberId(member.id)
 //          ),
 //          last_modified_on = Some(timestamp)
@@ -216,7 +216,7 @@
 //      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 //      val metaOpt = state.meta.map(
 //        _.copy(
-//          last_modified_by = productInactivated.inactivatingMember.map(member =>
+//          last_modified_by = productInactivated.inactivating_member.map(member =>
 //            ApiMemberId(member.id)
 //          ),
 //          last_modified_on = Some(timestamp)
@@ -284,20 +284,20 @@
 //    ): UpdateEffect[ApiEvent] = {
 //      val infoOpt = state.info.map(info =>
 //        info.copy(
-//          expectedStart =
+//          expected_start =
 //            for {
-//              timestamp <- info.expectedStart
-//              duration <- eventDelayed.expectedDuration
+//              timestamp <- info.expected_start
+//              duration <- eventDelayed.expected_duration
 //            } yield (
 //              Timestamp.of(
 //                timestamp.seconds + duration.seconds,
 //                timestamp.nanos + duration.nanos
 //              )
 //            ),
-//          expectedEnd =
+//          expected_end =
 //            for {
-//              timestamp <- info.expectedEnd
-//              duration <- eventDelayed.expectedDuration
+//              timestamp <- info.expected_end
+//              duration <- eventDelayed.expected_duration
 //            } yield (
 //              Timestamp.of(
 //                timestamp.seconds + duration.seconds,
@@ -325,7 +325,7 @@
 //        meta.copy(
 //          status = ApiEventStatus.CANCELLED,
 //          last_modified_on = Some(timestamp),
-//          last_modified_by = eventCancelled.cancellingMember.map(member =>
+//          last_modified_by = eventCancelled.cancelling_member.map(member =>
 //            ApiMemberId(member.id)
 //          )
 //        )

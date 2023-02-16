@@ -16,25 +16,42 @@ object TestData {
     Some(ApiMobileNumber("987-878-0987")),
     "user-name"
   )
+  val updateApiContact = ApiContact(
+    "new-firstname",
+    "new-lastname",
+    Some(ApiEmailAddress("newemail@member.com")),
+    Some(ApiMobileNumber("898-000-9876")),
+    "user-name"
+  )
   val apiInfo = ApiInfo(
     Some(apiContact),
     "handle",
     "avartar",
     "member-name",
     "short-name",
-    ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS,
+    Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_SMS),
     Seq[ApiOrganizationId](ApiOrganizationId(testMemberId)),
     Some(ApiTenantId(testTenantId))
   )
   val apiUpdateInfo = ApiUpdateInfo(
-    Some(apiContact),
-    "new-handle",
-    "new-avatar",
-    "new-firstname",
-    "new-lastname",
-    ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL,
+    Some(updateApiContact),
+    Some("new-handle"),
+    Some("new-avatar"),
+    Some("new-firstname"),
+    Some("new-lastname"),
+    Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
     Seq[ApiOrganizationId](ApiOrganizationId(testOrganizationId)),
     Some(ApiTenantId(testTenantId1))
+  )
+  val apiPartialUpdateInfo = ApiUpdateInfo(
+    Some(apiContact),
+    Some("new-handle"),
+    Some("new-avatar"),
+    None,
+    Some("new-lastname"),
+    Some(ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL),
+    Seq.empty,
+    None
   )
   val contact = Contact(
     "member-first-name",
@@ -49,7 +66,7 @@ object TestData {
     "avartar",
     "member-name",
     "short-name",
-    NotificationPreference.NOTIFICATION_PREFERENCE_SMS,
+    Some(NotificationPreference.NOTIFICATION_PREFERENCE_SMS),
     Seq[OrganizationId](OrganizationId(testMemberId)),
     Some(TenantId(testTenantId))
   )
