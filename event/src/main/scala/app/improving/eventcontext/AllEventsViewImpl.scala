@@ -152,4 +152,20 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     )
   }
 
+  override def processReservationAddedToEvent(
+      state: ApiEvent,
+      reservationAddedToEvent: ReservationAddedToEvent
+  ): UpdateEffect[ApiEvent] = {
+    effects.updateState(
+      state.copy(
+        meta = reservationAddedToEvent.meta.map(
+          convertEventMetaInfoToApiEventMetaInfo
+        ),
+        reservation = reservationAddedToEvent.reservation.map(
+          convertReservationIdToApiReservationId
+        )
+      )
+    )
+  }
+
 }

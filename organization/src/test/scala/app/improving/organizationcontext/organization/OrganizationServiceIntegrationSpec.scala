@@ -71,12 +71,14 @@ class OrganizationServiceIntegrationSpec
         ApiOrganizationId(id.organizationId)
       )
 
-      client.updateOrganizationStatus(
-        ApiOrganizationStatusUpdated(
-          id.organizationId,
-          ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
+      client
+        .updateOrganizationStatus(
+          ApiOrganizationStatusUpdated(
+            id.organizationId,
+            ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+            Some(ApiMemberId("member81"))
+          )
         )
-      )
 
       val activeOrganization =
         client
