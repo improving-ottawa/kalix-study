@@ -129,7 +129,7 @@ message ApiOrganizationStatusUpdated {
 }
 
 message ApiReleaseOrganization {
-    ApiOrganizationId org_id = 1;
+    string org_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }
 

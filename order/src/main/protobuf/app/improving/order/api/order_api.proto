@@ -78,6 +78,6 @@ message ApiOrderInfoResult {
     ApiOrderInfo info = 2;
 }
 message ApiReleaseOrder {
-    ApiOrderId order_id = 1;
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }

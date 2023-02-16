@@ -54,6 +54,7 @@ import app.improving.productcontext.product.{
 import app.improving.tenantcontext.tenant.{
   ApiActivateTenant,
   ApiEstablishTenant,
+  ApiReleaseTenant,
   TenantService
 }
 import app.improving.gateway.util.util.{
@@ -69,6 +70,7 @@ import app.improving.organizationcontext.organization.{
   ApiOrganizationStatus,
   ApiOrganizationStatusUpdated,
   ApiParent,
+  ApiReleaseOrganization,
   OrganizationService
 }
 import com.google.protobuf.empty.Empty
@@ -586,7 +588,9 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       endScenario: EndScenario
   ): Action.Effect[Empty] = {
     endScenario.orders.map(
-      _.orderIds.map(id => orderService.releaseOrder(ApiReleaseOrder(Some(id))))
+      _.orderIds.map(id =>
+        orderService.releaseOrder(ApiReleaseOrder(id.orderId))
+      )
     )
     endScenario.products.map(
       _.skus.map(id => productService.releaseProduct(ApiReleaseProduct(id.sku)))
@@ -603,7 +607,19 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
     endScenario.members.map(
       _.memberIds.map(id =>
-        memberService.releaseMember(ApiReleaseMember(Some(id)))
+        memberService.releaseMember(ApiReleaseMember(id.memberId))
+      )
+    )
+    endScenario.orgs.map(
+      _.orgIds.map(id =>
+        organizationService.releaseOrganization(
+          ApiReleaseOrganization(id.organizationId)
+        )
+      )
+    )
+    endScenario.tenants.map(id =>
+      tenantService.releaseTenant(
+        ApiReleaseTenant(id.tenantId)
       )
     )
 

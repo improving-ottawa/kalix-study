@@ -281,7 +281,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   ): EventSourcedEntity.Effect[Empty] = effects
     .emitEvent(
       OrderReleased(
-        apiReleaseOrder.orderId.map(apiId => OrderId(apiId.orderId)),
+        Some(OrderId(apiReleaseOrder.orderId)),
         apiReleaseOrder.releasingMember.map(apiId => MemberId(apiId.memberId))
       )
     )

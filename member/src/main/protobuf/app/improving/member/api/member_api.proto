@@ -56,7 +56,7 @@ message ApiUpdateMemberInfo {
 }
 
 message ApiReleaseMember {
-    ApiMemberId member_id = 1;
+    string member_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId deleting_member_id = 2;
 }
 

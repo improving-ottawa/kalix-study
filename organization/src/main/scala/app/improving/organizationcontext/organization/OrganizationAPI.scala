@@ -732,9 +732,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
     effects
       .emitEvent(
         OrganizationReleased(
-          releaseOrganization.orgId.map(apiId =>
-            OrganizationId(apiId.organizationId)
-          ),
+          Some(OrganizationId(releaseOrganization.orgId)),
           meta
         )
       )

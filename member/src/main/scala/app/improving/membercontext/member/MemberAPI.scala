@@ -331,7 +331,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     effects
       .emitEvent(
         MemberReleased(
-          apiReleaseMember.memberId.map(apiId => MemberId(apiId.memberId)),
+          Some(MemberId(apiReleaseMember.memberId)),
           apiReleaseMember.deletingMemberId.map(apiId =>
             MemberId(apiId.memberId)
           )
