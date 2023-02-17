@@ -72,7 +72,7 @@ class TestGatewayApiActionImplSpec
         .futureValue
 
       scenarioResult.tenants.isEmpty shouldBe false
-      scenarioResult.storeIds.isDefined shouldBe true
+      scenarioResult.storesForOrgs.isEmpty shouldBe false
       scenarioResult.eventsForOrgs.isEmpty shouldBe false
       scenarioResult.orgsForTenants.isEmpty shouldBe false
       scenarioResult.orgsForTenants.isEmpty shouldBe false

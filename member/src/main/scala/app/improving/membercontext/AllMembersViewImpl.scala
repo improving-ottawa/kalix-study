@@ -84,4 +84,9 @@ class AllMembersViewImpl(context: ViewContext) extends AbstractAllMembersView {
       "Update handler for 'ProcessRegisterMemberList' not implemented yet"
     )
   }
+
+  override def processReleaseMember(
+      state: ApiMemberData,
+      memberReleased: MemberReleased
+  ): UpdateEffect[ApiMemberData] = effects.deleteState()
 }

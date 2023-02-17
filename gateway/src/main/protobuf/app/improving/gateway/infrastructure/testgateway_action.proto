@@ -14,14 +14,14 @@ service TestGatewayApiAction {
 
     rpc HandleStartScenario(StartScenario) returns (ScenarioResults) {
         option (google.api.http) = {
-            post: "start-scenario"
+            post: "/start-scenario"
             body: "*"
         };
     }
 
     rpc HandleEndScenario(EndScenario) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "end-scenario"
+            post: "/end-scenario"
             body: "*"
         };
     }

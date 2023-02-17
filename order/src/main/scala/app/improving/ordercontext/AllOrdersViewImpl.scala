@@ -128,4 +128,6 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
       )
     )
   }
+
+  override def processOrderReleased(state: ApiOrder, orderReleased: OrderReleased): UpdateEffect[ApiOrder] = effects.deleteState()
 }

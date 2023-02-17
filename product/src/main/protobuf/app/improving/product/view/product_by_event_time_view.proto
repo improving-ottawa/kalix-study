@@ -157,7 +157,7 @@ service TicketByEventTimeQuery {
      * "SELECT "
                     "(ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status)  AS products "
                     "FROM ticket_by_event_product "
-                    "JOIN ticket_by_event_event ON ticket_by_event_product.info.event.event_id = ticket_by_event_event.event_id "
+                    "JOIN ticket_by_event_event ON ticket_by_event_product.info.event = ticket_by_event_event.event_id "
                     "WHERE :given_time >= ticket_by_event_event.info.expected_start AND :given_time < ticket_by_event_event.info.expected_end  "
      */
     rpc FindProductsByEventTime(TicketByEventTimeRequest) returns (TicketByEventTimeResponse) {

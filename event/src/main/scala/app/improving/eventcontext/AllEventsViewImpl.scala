@@ -33,7 +33,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     } else {
 
       log.info(
-        s"AllEventsViewImpl in processEventInfoChanged - eventInfoChanged ${eventInfoChanged}"
+        s"AllEventsViewImpl in processEventInfoChanged - eventInfoChanged $eventInfoChanged"
       )
 
       effects.updateState(
@@ -52,7 +52,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
 
     log.info(
-      s"AllEventsViewImpl in processEventScheduled - eventScheduled ${eventScheduled}"
+      s"AllEventsViewImpl in processEventScheduled - eventScheduled $eventScheduled"
     )
 
     effects.updateState(
@@ -70,7 +70,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
 
     log.info(
-      s"AllEventsViewImpl in processEventCancelled - eventCancelled ${eventCancelled}"
+      s"AllEventsViewImpl in processEventCancelled - eventCancelled $eventCancelled"
     )
 
     val now = java.time.Instant.now()
@@ -98,7 +98,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
 
     log.info(
-      s"AllEventsViewImpl in processEventRescheduled - eventRescheduled ${eventRescheduled}"
+      s"AllEventsViewImpl in processEventRescheduled - eventRescheduled $eventRescheduled"
     )
 
     effects.updateState(
@@ -117,7 +117,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
 
     log.info(
-      s"AllEventsViewImpl in processEventDelayed - eventDelayed ${eventDelayed}"
+      s"AllEventsViewImpl in processEventDelayed - eventDelayed $eventDelayed"
     )
 
     val infoOpt = state.info.map(info =>
@@ -155,7 +155,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
 
     log.info(
-      s"AllEventsViewImpl in processEventStarted - eventStarted ${eventStarted}"
+      s"AllEventsViewImpl in processEventStarted - eventStarted $eventStarted"
     )
 
     effects.updateState(
@@ -172,7 +172,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   ): UpdateEffect[ApiEvent] = {
 
     log.info(
-      s"AllEventsViewImpl in processEventEnded - eventEnded ${eventEnded}"
+      s"AllEventsViewImpl in processEventEnded - eventEnded $eventEnded"
     )
 
     effects.updateState(
@@ -186,7 +186,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   override def processReservationAddedToEvent(
       state: ApiEvent,
       reservationAddedToEvent: ReservationAddedToEvent
-  ): UpdateEffect[ApiEvent] = {
+  ): UpdateEffect[ApiEvent] =
     effects.updateState(
       state.copy(
         meta = reservationAddedToEvent.meta.map(
@@ -195,6 +195,9 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
         reservation = reservationAddedToEvent.reservation
       )
     )
-  }
 
+  override def processEventReleased(
+      state: ApiEvent,
+      eventReleased: EventReleased
+  ): UpdateEffect[ApiEvent] = effects.deleteState()
 }

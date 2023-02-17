@@ -109,6 +109,16 @@ service AllOrganizationsView {
         };
     }
 
+    rpc ProcessOrganizationReleased(OrganizationReleased) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "all_organizations"
+            transform_updates: true
+        };
+    }
+
     rpc GetAllOrganizations(AllOrganizationsRequest) returns (stream organizationcontext.organization.ApiOrganization) {
         option (kalix.method).view.query = {
             query: "SELECT * FROM all_organizations "

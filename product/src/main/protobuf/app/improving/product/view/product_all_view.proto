@@ -66,6 +66,16 @@ service AllProductsView {
         };
     }
 
+    rpc ProcessProductReleased(productcontext.ProductReleased) returns (productcontext.product.ApiProduct) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "all_products"
+            transform_updates: true
+        };
+    }
+
     rpc GetAllSkus(AllProductsRequest) returns (AllProductsResult) {
         option (kalix.method).view.query = {
             query: "SELECT "

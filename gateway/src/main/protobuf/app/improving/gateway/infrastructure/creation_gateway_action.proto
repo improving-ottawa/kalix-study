@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package app.improving.gateway;
+
+import "app/improving/gateway/domain/creation_gateway_domain.proto";
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+
+service CreationGatewayApiAction {
+    option (kalix.codegen) = {
+        action: { }
+    };
+
+    rpc HandleEstablishTenant(CreateTenant) returns (TenantCreated) {
+        option (google.api.http) = {
+            post: "/tenant/establish-tenant"
+            body: "tenant_info"
+        };
+    }
+
+    rpc HandleEstablishTenants(CreateTenants) returns (TenantsCreated) {
+        option (google.api.http) = {
+            post: "/tenant/establish-tenants"
+            body: "*"
+        };
+    }
+
+    rpc HandleReleaseTenants(ReleaseTenants) returns (TenantsReleased) {
+        option (google.api.http) = {
+            post: "/tenant/release-tenants"
+            body: "*"
+        };
+    }
+
+    rpc HandleEstablishOrganization(CreateOrganization) returns (OrganizationCreated) {
+        option (google.api.http) = {
+            post: "/organization/establish-organization"
+            body: "establish_organization"
+        };
+    }
+
+    rpc HandleEstablishOrganizations(CreateOrganizations) returns (OrganizationsCreated) {
+        option (google.api.http) = {
+            post: "/organization/establish-organizations"
+            body: "*"
+        };
+    }
+
+    rpc HandleReleaseOrganizations(ReleaseOrganizations) returns (OrganizationsReleased) {
+        option (google.api.http) = {
+            post: "/tenant/release-orgs"
+            body: "*"
+        };
+    }
+
+    rpc HandleScheduleEvent(CreateEvent) returns (EventCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-event"
+            body: "*"
+        };
+    }
+
+    rpc HandleScheduleEvents(CreateEvents) returns (EventsCreated) {
+        option (google.api.http) = {
+            post: "/event/schedule-events"
+            body: "*"
+        };
+    }
+
+    rpc HandleReleaseEvents(ReleaseEvents) returns (EventsReleased) {
+        option (google.api.http) = {
+            post: "/event/release-events"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateStore(CreateStore) returns (StoreCreated) {
+        option (google.api.http) = {
+            post: "/store/create-store"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateStores(CreateStores) returns (StoresCreated) {
+        option (google.api.http) = {
+            post: "/store/create-stores"
+            body: "*"
+        };
+    }
+
+    rpc HandleReleaseStores(ReleaseStores) returns (StoresReleased) {
+        option (google.api.http) = {
+            post: "/event/release-stores"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateProduct(CreateProduct) returns (ProductCreated) {
+        option (google.api.http) = {
+            post: "/product/create-product"
+            body: "establish_product"
+        };
+    }
+
+    rpc HandleCreateProducts(CreateProducts) returns (ProductsCreated) {
+        option (google.api.http) = {
+            post: "/product/create-products"
+            body: "*"
+        };
+    }
+    rpc HandleReleaseProducts(ReleaseProducts) returns (ProductsReleased) {
+        option (google.api.http) = {
+            post: "/event/release-products"
+            body: "*"
+        };
+    }
+
+    rpc HandleRegisterMember(RegisterMember) returns (MemberRegistered) {
+        option (google.api.http) = {
+            post: "/member/register-member"
+            body: "establish_member"
+        };
+    }
+
+    rpc HandleRegisterMembers(RegisterMembers) returns (MembersRegistered) {
+        option (google.api.http) = {
+            post: "/member/register-members"
+            body: "*"
+        };
+    }
+
+    rpc HandleReleaseMembers(ReleaseMembers) returns (MembersReleased) {
+        option (google.api.http) = {
+            post: "/event/release-members"
+            body: "*"
+        };
+    }
+
+    rpc HandleCreateOrder(CreateOrder) returns (OrderCreated) {
+        option (google.api.http) = {
+            post: "/order/create-order"
+            body: "establish_order"
+        };
+    }
+
+    rpc HandleCreateOrders(CreateOrders) returns (OrdersCreated) {
+        option (google.api.http) = {
+            post: "/order/create-orders"
+            body: "*"
+        };
+    }
+
+    rpc HandleReleaseOrders(ReleaseOrders) returns (OrdersReleased) {
+        option (google.api.http) = {
+            post: "/event/release-orders"
+            body: "*"
+        };
+    }
+}

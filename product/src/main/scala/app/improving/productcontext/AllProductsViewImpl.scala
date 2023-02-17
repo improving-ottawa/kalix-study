@@ -102,4 +102,8 @@ class AllProductsViewImpl(context: ViewContext)
     )
   }
 
+  override def processProductReleased(
+      state: ApiProduct,
+      productReleased: ProductReleased
+  ): UpdateEffect[ApiProduct] = effects.deleteState()
 }

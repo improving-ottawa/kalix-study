@@ -500,8 +500,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def updateOrganizationStatus(
       currentState: OrganizationState,
       apiOrganizationStatusUpdated: ApiOrganizationStatusUpdated
-  ): EventSourcedEntity.Effect[Empty] =
-    currentState.organization match {
+  ): EventSourcedEntity.Effect[Empty] = currentState.organization match {
       case Some(org) =>
         val maybeUpdatingMember = apiOrganizationStatusUpdated.updatingMember
         maybeUpdatingMember match {

@@ -196,4 +196,9 @@ class AllOrganizationsViewImpl(context: ViewContext)
       )
     )
   }
+
+  override def processOrganizationReleased(
+      state: ApiOrganization,
+      organizationReleased: OrganizationReleased
+  ): UpdateEffect[ApiOrganization] = effects.deleteState()
 }

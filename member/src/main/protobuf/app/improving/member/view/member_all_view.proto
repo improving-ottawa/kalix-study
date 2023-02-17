@@ -59,6 +59,16 @@ service AllMembersView {
         };
     }
 
+    rpc ProcessReleaseMember(MemberReleased) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "all_members"
+            transform_updates: true
+        };
+    }
+
     rpc GetAllMembers(AllMembersRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
         option (kalix.method).view.query = {
             query: "SELECT * FROM all_members "

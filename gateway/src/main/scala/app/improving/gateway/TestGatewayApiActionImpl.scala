@@ -35,6 +35,7 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
+import app.improving.gateway.util.util._
 import app.improving.storecontext.store.{
   ApiCreateStore,
   ApiReleaseStore,
@@ -57,14 +58,10 @@ import app.improving.tenantcontext.tenant.{
   ApiReleaseTenant,
   TenantService
 }
-import app.improving.gateway.util.util.{
-  genAddress,
-  genEmailAddressForName,
-  genMobileNumber
-}
 import app.improving.ordercontext.order.{ApiReleaseOrder, OrderService}
 import app.improving.organizationcontext.organization
 import app.improving.organizationcontext.organization.{
+  ApiAddMembersToOrganization,
   ApiContacts,
   ApiEstablishOrganization,
   ApiOrganizationStatus,
@@ -84,7 +81,7 @@ import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
-import scala.Seq
+import scala.collection.Seq
 import scala.language.postfixOps
 import scala.concurrent.duration.DurationInt
 
@@ -318,7 +315,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                             Some(
                               ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
                             ),
-                            Seq(topOrgs(ownersForTenant._1)),
+                            Seq(topOrgs(ownersForTenant._1)).toSeq,
                             Some(ownersForTenant._1)
                           )
                         )
@@ -359,7 +356,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           genApiRegisterMemberLists(
             scenarioInfo.numMembersPerOrg,
             orgsByTenant.flatMap { case (tenantId, orgIds) =>
-              orgIds.map(orgId =>
+              orgIds.map { orgId =>
                 (
                   orgId,
                   initialMemberId,
@@ -369,7 +366,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     .flatMap(_._2.info.map(_.name))
                     .getOrElse(r.nextString(10))
                 )
-              )
+              }
             }.toSeq
           ).map { registerMemberList =>
             memberAction
@@ -394,13 +391,81 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info(s"in handleStartScenario memberIds - $memberIds")
 
-    val membersByOrg: Map[ApiOrganizationId, Seq[ApiMemberId]] =
-      establishedOrgs
-        .map { case (orgId, establishedOrg) =>
-          orgId -> establishedOrg.members
-        }
-        .groupBy(_._1)
-        .map(tup => tup._1 -> tup._2.flatMap(_._2).toSeq)
+    val membersByOrg: Map[ApiOrganizationId, Seq[ApiMemberId]] = Await
+      .result(
+        Future
+          .sequence(
+            genApiRegisterMemberLists(
+              scenarioInfo.numMembersPerOrg,
+              orgsByTenant.flatMap { case (tenantId, orgIds) =>
+                orgIds.map(orgId =>
+                  (
+                    orgId,
+                    initialMemberId,
+                    tenantId,
+                    establishedOrgs
+                      .find(_._1 == orgId)
+                      .flatMap(_._2.info.map(_.name))
+                      .getOrElse(r.nextString(10))
+                  )
+                )
+              }.toSeq
+            ).map { registerMemberList: ApiRegisterMemberList =>
+              memberAction
+                .registerMemberList(registerMemberList)
+                .map { memberIds =>
+                  memberIds.memberIds
+                    .flatMap { memberId =>
+                      memberService.updateMemberStatus(
+                        ApiUpdateMemberStatus(
+                          memberId.memberId,
+                          Some(memberId),
+                          ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                        )
+                      )
+                      registerMemberList.memberList
+                        .getOrElse(ApiMemberMap.defaultInstance)
+                        .map
+                        .flatMap(
+                          _._2.organizationMembership
+                            .map(_.organizationId -> memberId)
+                        )
+                        .toSeq
+                    }
+                    .groupBy(_._1)
+                    .map(tup => tup._1 -> tup._2.map(_._2))
+                }
+            }
+          ),
+        10 seconds
+      )
+      .flatten
+      .map(tup => ApiOrganizationId(tup._1) -> tup._2)
+      .toMap
+
+    log.info(s"in handleStartScenario membersByOrg - $membersByOrg")
+
+    membersByOrg.map { case (orgId, memberIds) =>
+      log.info(s"in handleStartScenario membersByOrg addMembersToOrg")
+      organizationService.addMembersToOrganization(
+        ApiAddMembersToOrganization(
+          orgId.organizationId,
+          memberIds.toSeq,
+          Some(
+            owners(
+              orgsByTenant
+                .map(tenantOrgs =>
+                  tenantOrgs._2.map(org => org -> tenantOrgs._1)
+                )
+                .toSeq
+                .flatten
+                .toMap
+                .apply(orgId)
+            ).head
+          )
+        )
+      )
+    }
 
     log.info(s"in handleStartScenario membersByOrg - $membersByOrg")
 
@@ -477,7 +542,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info(s"in handleStartScenario storesByOrg - $storesByOrg")
 
-    val productsByStore =
+    val productsByStore: Map[ApiStoreId, Seq[ApiSku]] =
       genApiCreateProduct(
         scenarioInfo.numTicketsPerEvent,
         eventsByOrg,
@@ -521,7 +586,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               log.info(
                 s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
               )
-              storeId -> Skus(set.map(_._2).toSeq)
+              storeId -> set.map(_._2).toSeq
             }
 
           log.info(
@@ -543,7 +608,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                       storeId.storeId,
                       Some(
                         ApiStoreUpdateInfo(
-                          products = products.skus,
+                          products = products,
                           event = Some(ApiEventId(event.eventId)),
                           venue = Some(ApiVenueId("test-venue-id")),
                           location = Some(ApiLocationId("test-location-id"))
@@ -563,24 +628,22 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     effects.reply(
       ScenarioResults(
-        tenantIds,
+        tenantIds.toSeq,
         orgsByTenant.map(tenantWithOrgs =>
-          tenantWithOrgs._1.toString -> OrganizationIds(tenantWithOrgs._2)
+          tenantWithOrgs._1.tenantId -> OrganizationIds(tenantWithOrgs._2.toSeq)
         ),
         membersByOrg.map(orgWithMembers =>
-          orgWithMembers._1.toString -> MemberIds(orgWithMembers._2)
+          orgWithMembers._1.organizationId -> MemberIds(orgWithMembers._2.toSeq)
         ),
         eventsByOrg.map(orgWithEvents =>
-          orgWithEvents._1.toString -> EventIds(orgWithEvents._2.toSeq)
+          orgWithEvents._1.organizationId -> EventIds(orgWithEvents._2.toSeq)
         ),
-        Some(
-          storesByOrg.values.foldLeft(StoreIds(scala.Seq.empty[ApiStoreId]))(
-            (accum, storeIds) => {
-              StoreIds(accum.storeIds ++ storeIds)
-            }
-          )
+        storesByOrg.map(orgWithStores =>
+          orgWithStores._1.organizationId -> StoreIds(orgWithStores._2.toSeq)
         ),
-        productsByStore.map(tup => tup._1.storeId -> tup._2)
+        productsByStore.map(storeWithProducts =>
+          storeWithProducts._1.storeId -> Skus(storeWithProducts._2.toSeq)
+        )
       )
     )
   }
@@ -588,39 +651,24 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleEndScenario(
       endScenario: EndScenario
   ): Action.Effect[Empty] = {
-    endScenario.orders.map(
-      _.orderIds.map(id =>
-        orderService.releaseOrder(ApiReleaseOrder(id.orderId))
-      )
+    endScenario.orders.map(id =>
+      orderService.releaseOrder(ApiReleaseOrder(id.orderId))
     )
-    endScenario.products.map(
-      _.skus.map(id => productService.releaseProduct(ApiReleaseProduct(id.sku)))
+    endScenario.products.map(id =>
+      productService.releaseProduct(ApiReleaseProduct(id.sku))
     )
-    endScenario.stores.map(
-      _.storeIds.map(id =>
-        storeService.releaseStore(ApiReleaseStore(id.storeId))
-      )
+    endScenario.stores.map(id =>
+      storeService.releaseStore(ApiReleaseStore(id.storeId))
     )
-    endScenario.events.map(
-      _.eventIds.map(id =>
-        eventService.releaseEvent(ApiReleaseEvent(id.eventId))
-      )
+    endScenario.events.map(id =>
+      eventService.releaseEvent(ApiReleaseEvent(id.eventId))
     )
-    endScenario.members.map(
-      _.memberIds.map(id =>
-        memberService.releaseMember(ApiReleaseMember(id.memberId))
-      )
+    endScenario.members.map(id =>
+      memberService.releaseMember(ApiReleaseMember(id.memberId))
     )
-    endScenario.orgs.map(
-      _.orgIds.map(id =>
-        organizationService.releaseOrganization(
-          ApiReleaseOrganization(id.organizationId)
-        )
-      )
-    )
-    endScenario.tenants.map(id =>
-      tenantService.releaseTenant(
-        ApiReleaseTenant(id.tenantId)
+    endScenario.orgs.map(id =>
+      organizationService.releaseOrganization(
+        ApiReleaseOrganization(id.organizationId)
       )
     )
 
@@ -687,7 +735,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                         )
                       )
                     ),
-                    Seq[String](r.nextString(15)),
+                    Seq[String](r.nextString(15)).toSeq,
                     r.nextDouble(),
                     r.nextDouble(),
                     Some(
@@ -929,7 +977,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           r.nextInt(ApiNotificationPreference.values.length)
         )
       ),
-      Seq(orgWithMemberTenantAndName._1),
+      Seq(orgWithMemberTenantAndName._1).toSeq,
       Some(orgWithMemberTenantAndName._3)
     )
   }
@@ -973,15 +1021,15 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             )
           ),
           None,
-          Seq.empty,
+          Seq.empty.toSeq,
           owners,
           Seq(
             ApiContacts(
               owners,
-              Seq.empty,
-              Seq.empty
+              Seq.empty.toSeq,
+              Seq.empty.toSeq
             )
-          ),
+          ).toSeq,
           owners.headOption
         )
       )
@@ -1022,15 +1070,15 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   Some(
                     ApiParent(Some(ApiOrganizationId(parent)))
                   ),
-                  Seq.empty,
+                  Seq.empty.toSeq,
                   owners,
                   Seq(
                     ApiContacts(
                       owners,
-                      Seq.empty,
-                      Seq.empty
+                      Seq.empty.toSeq,
+                      Seq.empty.toSeq
                     )
-                  ),
+                  ).toSeq,
                   owners.headOption
                 )
               )

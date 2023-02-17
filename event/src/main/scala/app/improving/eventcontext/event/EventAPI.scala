@@ -64,60 +64,57 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def changeEventInfo(
       currentState: EventState,
       apiChangeEventInfo: ApiChangeEventInfo
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.event match {
-      case Some(event) =>
-        errorOrReply(
-          event.status,
-          updateableStatuses,
-          "change event info",
-          ValidationNeededWithEventUpdateInfo(
-            apiChangeEventInfo.changingMember,
-            apiChangeEventInfo.info
-          )
-        ) { validatedFields =>
-          val validatedFieldsWithEventUpdateInfo
-              : ValidatedFieldsWithEventUpdateInfo =
-            validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
-          val updatingMember: ApiMemberId =
-            validatedFieldsWithEventUpdateInfo.apiMemberId
-          val updatingInfo: ApiEventUpdateInfo =
-            validatedFieldsWithEventUpdateInfo.apiEventUpdateInfo
-          val newInfo: Option[EventInfo] =
-            event.info.map(buildEventInfoFromUpdateInfo(_, updatingInfo))
-          val infoChanged: EventInfoChanged = EventInfoChanged(
-            eventId = Some(EventId(apiChangeEventInfo.eventId)),
-            info = newInfo,
-            meta = event.meta.map(
-              _.copy(
-                actualStart = updatingInfo.expectedStart,
-                actualEnd = updatingInfo.expectedEnd,
-                lastModifiedBy =
-                  Some(convertApiMemberIdToMemberId(updatingMember)),
-                lastModifiedOn = Some(nowTs)
-              )
+  ): EventSourcedEntity.Effect[Empty] = currentState.event match {
+    case Some(event) =>
+      errorOrReply(
+        event.status,
+        updateableStatuses,
+        "change event info",
+        ValidationNeededWithEventUpdateInfo(
+          apiChangeEventInfo.changingMember,
+          apiChangeEventInfo.info
+        )
+      ) { validatedFields =>
+        val validatedFieldsWithEventUpdateInfo
+            : ValidatedFieldsWithEventUpdateInfo =
+          validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
+        val updatingMember: ApiMemberId =
+          validatedFieldsWithEventUpdateInfo.apiMemberId
+        val updatingInfo: ApiEventUpdateInfo =
+          validatedFieldsWithEventUpdateInfo.apiEventUpdateInfo
+        val newInfo: Option[EventInfo] =
+          event.info.map(buildEventInfoFromUpdateInfo(_, updatingInfo))
+        val infoChanged: EventInfoChanged = EventInfoChanged(
+          eventId = Some(EventId(apiChangeEventInfo.eventId)),
+          info = newInfo,
+          meta = event.meta.map(
+            _.copy(
+              actualStart = updatingInfo.expectedStart,
+              actualEnd = updatingInfo.expectedEnd,
+              lastModifiedBy =
+                Some(convertApiMemberIdToMemberId(updatingMember)),
+              lastModifiedOn = Some(nowTs)
             )
           )
-          log.info(
-            s"EventAPI in changeEventInfo - apiChangeEventInfo - ${apiChangeEventInfo}"
-          )
-          effects.emitEvent(infoChanged).thenReply(_ => Empty.defaultInstance)
-        }
+        )
+        log.info(
+          s"EventAPI in changeEventInfo - apiChangeEventInfo - $apiChangeEventInfo"
+        )
+        effects.emitEvent(infoChanged).thenReply(_ => Empty.defaultInstance)
+      }
 
-      case _ => effects.reply(Empty.defaultInstance)
-    }
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def scheduleEvent(
       currentState: EventState,
       apiScheduleEvent: ApiScheduleEvent
   ): EventSourcedEntity.Effect[ApiEventId] = currentState.event match {
-    case Some(event) => {
-      log.info(s"EventAPI in scheduleEvent - event already existed - ${event}")
+    case Some(event) =>
+      log.info(s"EventAPI in scheduleEvent - event already existed - $event")
       effects.error(
         s"Event already exists with id ${apiScheduleEvent.eventId}"
       )
-    }
     case _ => {
       errorOrReply(
         EventStatus.EVENT_STATUS_SCHEDULED,
@@ -153,7 +150,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           )
         )
         log.info(
-          s"EventAPI in scheduleEvent - apiScheduleEvent - ${apiScheduleEvent}"
+          s"EventAPI in scheduleEvent - apiScheduleEvent - $apiScheduleEvent"
         )
         effects
           .emitEvent(event)

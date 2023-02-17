@@ -155,4 +155,6 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
       )
     )
   }
+
+  override def processStoreReleased(state: ApiStore, storeReleased: StoreReleased): UpdateEffect[ApiStore] = effects.deleteState()
 }

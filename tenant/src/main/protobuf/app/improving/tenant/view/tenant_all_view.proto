@@ -67,6 +67,16 @@ service AllTenantsView {
         };
     }
 
+    rpc ProcessTenantReleased(tenantcontext.TenantReleased) returns (tenantcontext.tenant.ApiTenant) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "tenants"
+        };
+        option (kalix.method).view.update = {
+            table: "all_tenants"
+            transform_updates: true
+        };
+    }
+
     rpc GetAllTenants(GetAllTenantRequest) returns (AllTenantResult) {
         option (kalix.method).view.query = {
             query: "SELECT * AS tenants FROM all_tenants "

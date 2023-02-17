@@ -3,9 +3,10 @@ package app.improving.gateway
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.gateway.TestData.Fixture
+import app.improving.gateway.util.util.endFromResults
+import app.improving.{ApiOrderId, OrderId}
 import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
-import io.circe
 import org.scalatest.{Assertion, BeforeAndAfterAll}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
@@ -13,10 +14,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.ExecutionContextExecutor
-import scala.io.Source
-import io.circe._
-import io.circe.syntax._
-
 import scala.util.Random
 
 class UIGatewayTestDriverSpec
@@ -27,7 +24,7 @@ class UIGatewayTestDriverSpec
     with Fixture {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(500, Millis))
+    PatienceConfig(Span(5, Seconds), Span(5000, Millis))
 
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
@@ -46,14 +43,10 @@ class UIGatewayTestDriverSpec
     gatewayClientSettings
   )
 
-  val requestParamsOrParsingFailure: Either[ParsingFailure, Json] =
-    circe.parser.parse(
-      Source.fromResource("json/minimumRequestParams.json").mkString
-    )
-
   val uiClient: UiGatewayApiActionClient = UiGatewayApiActionClient(
     gatewayClientSettings
   )
+
   def checkResults(
       results: ScenarioResults,
       info: ScenarioInfo
@@ -83,16 +76,20 @@ class UIGatewayTestDriverSpec
 
   "GatewayApiActionImpl" should {
     "handle small scenario w/ no orders" in {
-      val json =
-        requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
+      val numTenants = 1
+      val maxOrgsDepth = 2
+      val maxOrgsWidth = 2
+      val numMembersPerOrg = 1
+      val numEventsPerOrg = 1
+      val numTicketsPerEvent = 1
 
       val info = ScenarioInfo(
-        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
-        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
+        numTenants,
+        maxOrgsDepth,
+        maxOrgsWidth,
+        numMembersPerOrg,
+        numEventsPerOrg,
+        numTicketsPerEvent
       )
 
       val results =
@@ -101,12 +98,15 @@ class UIGatewayTestDriverSpec
       checkResults(results, info)
 
       println(results)
+
+      client.handleEndScenario(endFromResults(results, Seq.empty))
+
     }
   }
 
   "UiGatewayApiActionImpl" must {
 
-    "handle command HandlePurchaseTicket base case" in {
+    "handle command HandlePurchaseTicket 1 ticket for 1 member" in {
       val numTenants = 1
       val maxOrgsDepth = 2
       val maxOrgsWidth = 2
@@ -135,19 +135,18 @@ class UIGatewayTestDriverSpec
       scenarioResult.orgsForTenants.isEmpty shouldBe false
       scenarioResult.membersForOrgs.isEmpty shouldBe false
       scenarioResult.eventsForOrgs.isEmpty shouldBe false
-      scenarioResult.storeIds.isDefined shouldBe true
+      scenarioResult.storesForOrgs.isEmpty shouldBe false
       scenarioResult.productsForStores.isEmpty shouldBe false
 
       val r = new Random()
-      val storeId = scenarioResult.storeIds
-        .getOrElse(StoreIds.defaultInstance)
-        .storeIds
+      val storeId = scenarioResult.storesForOrgs.values
+        .flatMap(_.storeIds.take(1))
         .take(1)
         .head
       val products = scenarioResult
         .productsForStores(storeId.storeId)
         .skus
-        .take(r.nextInt(4))
+        .take(1)
       val memberIds =
         scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
 
@@ -173,6 +172,13 @@ class UIGatewayTestDriverSpec
         .futureValue
 
       orderIds.orderIds.isEmpty shouldBe false
+
+      client.handleEndScenario(
+        endFromResults(
+          scenarioResult,
+          orderIds.orderIds.map(id => OrderId(id.orderId))
+        )
+      )
     }
 
   }

@@ -221,7 +221,7 @@ object TestData {
     val apiProductInfo: ApiProductInfo = ApiProductInfo(
       testName,
       testDescription,
-      testProductDetails,
+      Some(testProductDetails),
       testImages,
       testPrice,
       testCost,
