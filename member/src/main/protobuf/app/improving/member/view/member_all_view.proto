@@ -59,9 +59,9 @@ service AllMembersView {
         };
     }
 
-    rpc GetAllMembers(AllMembersRequest) returns (AllMembersResult) {
+    rpc GetAllMembers(AllMembersRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
         option (kalix.method).view.query = {
-            query: "SELECT * AS members FROM all_members "
+            query: "SELECT * FROM all_members "
         };
     }
 }

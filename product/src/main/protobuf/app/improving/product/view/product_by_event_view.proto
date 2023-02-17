@@ -12,7 +12,7 @@ message TicketByEventRequest {
 }
 
 message TicketByEventResponse {
-    repeated productcontext.product.ApiProduct products = 1;
+    repeated TicketEventCorrTableRow products = 1;
 }
 
 message TicketEventCorrTableRow {
@@ -77,12 +77,18 @@ service TicketByEventView {
         };
     }
 
-    rpc FindMembersByEvent(TicketByEventRequest) returns (TicketByEventResponse) {
-        option (kalix.method).view.query = {
-            query: "SELECT "
+    /**
+     * "SELECT "
                     "* AS products "
                     "FROM ticket_by_event_product "
                     "WHERE ticket_by_event_product.info.event.event_id = :event_id "
+     */
+    rpc FindMembersByEvent(TicketByEventRequest) returns (stream TicketEventCorrTableRow) {
+        option (kalix.method).view.query = {
+            query: "SELECT "
+                    "* "
+                    "FROM ticket_by_event_product "
+                    "WHERE ticket_by_event_product.event.id = :event_id "
         };
     }
 

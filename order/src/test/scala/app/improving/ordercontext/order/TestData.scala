@@ -10,16 +10,8 @@ import app.improving.ordercontext.{
   OrderStatus,
   OrderStatusUpdated
 }
-import app.improving.{
-  ApiMemberId,
-  ApiProductId,
-  MemberId,
-  OrderId,
-  ProductId,
-  StoreId
-}
+import app.improving.{ApiMemberId, ApiSku, MemberId, OrderId, Sku, StoreId}
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiMemberId, ApiSku}
 
 object TestData {
 
@@ -33,6 +25,7 @@ object TestData {
   val testLineTotal = 20
   val testQuantity2 = 13
   val testLineTotal2 = 26
+  val testOrderTotal = 100.0
   val testLineItem1: ApiLineItem = ApiLineItem(
     Some(ApiSku(testProductId)),
     testQuantity,
@@ -150,18 +143,17 @@ object TestData {
   )
 
   val testItem1 = LineItem(
-    Some(ProductId(testProductId)),
+    Some(Sku(testProductId)),
     testQuantity,
     testLineTotal
   )
   val testItem2 = LineItem(
-    Some(ProductId(testProductId)),
+    Some(Sku(testProductId)),
     testQuantity2,
     testLineTotal2
   )
   val testItems = Seq[LineItem](testItem1, testItem2)
   val testInfo = OrderInfo(
-    Some(OrderId(testOrderId)),
     testItems,
     testSpecialInstruction,
     testOrderTotal
@@ -170,7 +162,6 @@ object TestData {
   val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
   val testStoreId = "test-store-id"
   val testMetaInfo = OrderMetaInfo(
-    Some(OrderId(testOrderId)),
     Some(MemberId(testCreatingMemberId)),
     Some(StoreId(testStoreId)),
     Some(timestamp),

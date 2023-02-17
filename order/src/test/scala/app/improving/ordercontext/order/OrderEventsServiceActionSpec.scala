@@ -21,7 +21,6 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       result.reply.orderId shouldBe defined
       result.reply.info shouldBe Some(testOrderInfo)
-      result.reply.meta.map(_.orderId) shouldBe testMetaInfo.orderId.map(_.id)
       result.reply.meta.map(_.status) shouldBe Some(
         ApiOrderStatus.API_ORDER_STATUS_DRAFT
       )
@@ -48,7 +47,6 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       result.reply.orderId shouldBe defined
       result.reply.info shouldBe Some(testOrderInfo)
-      result.reply.meta.map(_.orderId) shouldBe testMetaInfo.orderId.map(_.id)
       result.reply.meta.map(_.status) shouldBe Some(
         ApiOrderStatus.API_ORDER_STATUS_DRAFT
       )

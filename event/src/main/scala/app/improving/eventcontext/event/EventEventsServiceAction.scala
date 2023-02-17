@@ -66,7 +66,9 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
     effects.reply(
       ApiEventCancelled(
         eventCancelled.eventId.map(event => ApiEventId(event.id)),
-        eventCancelled.cancellingMember.map(member => ApiMemberId(member.id))
+        eventCancelled.meta
+          .flatMap(_.scheduledBy)
+          .map(member => ApiMemberId(member.id))
       )
     )
   }

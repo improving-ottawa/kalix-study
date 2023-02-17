@@ -84,7 +84,7 @@ import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
-import scala.collection.Seq
+import scala.Seq
 import scala.language.postfixOps
 import scala.concurrent.duration.DurationInt
 
@@ -574,7 +574,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           orgWithEvents._1.toString -> EventIds(orgWithEvents._2.toSeq)
         ),
         Some(
-          storesByOrg.values.foldLeft(StoreIds(Seq.empty))(
+          storesByOrg.values.foldLeft(StoreIds(scala.Seq.empty[ApiStoreId]))(
             (accum, storeIds) => {
               StoreIds(accum.storeIds ++ storeIds)
             }
@@ -721,7 +721,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           ApiStoreInfo(
             r.nextString(15),
             r.nextString(15),
-            Seq.empty[ApiSku],
+            scala.Seq.empty[ApiSku],
             None,
             None,
             None,
@@ -814,7 +814,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               r.nextInt(ApiNotificationPreference.values.length)
             )
           ),
-          Seq.empty,
+          scala.Seq.empty[ApiOrganizationId],
           forTenant
         )
       )

@@ -2,23 +2,12 @@ package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
 import app.improving.{ApiSku, ApiStoreId, MemberId, Sku, StoreId}
-import app.improving.storecontext.{
-  ProductsAddedToStore,
-  ProductsRemovedFromStore,
-  StoreClosed,
-  StoreCreated,
-  StoreDeleted,
-  StoreMadeReady,
-  StoreMetaInfo,
-  StoreOpened,
-  StoreReleased,
-  StoreStatus,
-  StoreUpdated
-}
+import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreMetaInfo, StoreOpened, StoreReleased, StoreStatus, StoreUpdated}
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 import com.google.protobuf.timestamp.Timestamp
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //

@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory
 class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
   override def emptyState: OrderState = OrderState.defaultInstance
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def createOrder(
       currentState: OrderState,
       apiCreateOrder: ApiCreateOrder
@@ -54,7 +56,6 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
           orderInfoOpt,
           Some(
             OrderMetaInfo(
-              orderIdOpt,
               memberIdOpt,
               apiCreateOrder.storeId.map(store => StoreId(store.storeId)),
               Some(timestamp),
@@ -104,6 +105,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         effects.reply(Empty.defaultInstance)
       }
     }
+  }
 
   def isValidStateChange(
       currentState: OrderStatus,
@@ -206,7 +208,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
             _.copy(
               lastModifiedBy = cancellingMemberIdOpt,
               lastModifiedOn = Some(timestamp),
-              status = OrderStatus.CANCELLED
+              status = OrderStatus.ORDER_STATUS_CANCELLED
             )
           ),
           cancellingMemberIdOpt
@@ -384,6 +386,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         currentState
       }
     }
+  }
 
   override def releaseOrder(
       currentState: OrderState,

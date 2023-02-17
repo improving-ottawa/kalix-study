@@ -81,6 +81,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           s"OrganizationBy ID ${apiGetOrganizationById.orgId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
         )
+      }
     }
   }
 
@@ -117,6 +118,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           s"OrganizationInfo By ID ${apiGetOrganizationInfo.orgId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
         )
+      }
     }
   }
 
@@ -127,45 +129,45 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-        if !currentState.organization
-          .map(_.status)
-          .contains(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) => {
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) => {
         updateListIfValidItemsToAddAndUpdatingMember(
           apiRemoveMembersFromOrganization.updatingMember,
           apiRemoveMembersFromOrganization.membersToRemove,
           "MembersToRemove"
-        ) { (updatingApiMember, membersToRemove) => {
-          val updatingMember = convertApiMemberIdToMemberId(updatingApiMember)
+        ) { (updatingApiMember, membersToRemove) =>
+          {
+            val updatingMember = convertApiMemberIdToMemberId(updatingApiMember)
 
-          val event = MembersRemovedFromOrganization(
-            orgId =
-              Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
-            removedMembers =
-              membersToRemove.map(convertApiMemberIdToMemberId),
-            meta = org.orgMeta.map(
-              _.copy(
-                lastUpdated = Some(nowTs),
-                lastUpdatedBy = Some(updatingMember)
+            val event = MembersRemovedFromOrganization(
+              orgId =
+                Some(OrganizationId(apiRemoveMembersFromOrganization.orgId)),
+              removedMembers =
+                membersToRemove.map(convertApiMemberIdToMemberId),
+              meta = org.orgMeta.map(
+                _.copy(
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy = Some(updatingMember)
+                )
               )
             )
-          )
-          log.info(
-            s"OrganizationAPI in removeMembersFromOrganization - apiRemoveMembersFromOrganization ${apiRemoveMembersFromOrganization}"
-          )
-          effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+            log.info(
+              s"OrganizationAPI in removeMembersFromOrganization - apiRemoveMembersFromOrganization ${apiRemoveMembersFromOrganization}"
+            )
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          }
         }
+      }
+      case other => {
 
-        }
-        case other => {
+        log.info(
+          s"OrganizationAPI in removeMembersFromOrganization - other ${other}"
+        )
 
-          log.info(
-            s"OrganizationAPI in removeMembersFromOrganization - other ${other}"
-          )
-
-          effects.reply(Empty.defaultInstance)
-        }
+        effects.reply(Empty.defaultInstance)
       }
     }
   }
@@ -175,42 +177,43 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-        if !currentState.organization
-          .map(_.status)
-          .contains(
-            OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-          ) => {
+          if !currentState.organization
+            .map(_.status)
+            .contains(
+              OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
+            ) => {
         updateListIfValidItemsToAddAndUpdatingMember(
           apiRemoveOwnersFromOrganization.updatingMember,
           apiRemoveOwnersFromOrganization.ownersToRemove,
           "OwnersToRemove"
-        ) { (updatingMember, ownersToRemove) => {
-          val event = OwnersRemovedFromOrganization(
-            orgId =
-              Some(OrganizationId(apiRemoveOwnersFromOrganization.orgId)),
-            removedOwners = ownersToRemove.map(convertApiMemberIdToMemberId),
-            meta = org.orgMeta.map(
-              _.copy(
-                lastUpdated = Some(nowTs),
-                lastUpdatedBy =
-                  Some(convertApiMemberIdToMemberId(updatingMember))
+        ) { (updatingMember, ownersToRemove) =>
+          {
+            val event = OwnersRemovedFromOrganization(
+              orgId =
+                Some(OrganizationId(apiRemoveOwnersFromOrganization.orgId)),
+              removedOwners = ownersToRemove.map(convertApiMemberIdToMemberId),
+              meta = org.orgMeta.map(
+                _.copy(
+                  lastUpdated = Some(nowTs),
+                  lastUpdatedBy =
+                    Some(convertApiMemberIdToMemberId(updatingMember))
+                )
               )
             )
-          )
-          log.info(
-            s"OrganizationAPI in removeOwnersFromOrganization - apiRemoveOwnersFromOrganization ${apiRemoveOwnersFromOrganization}"
-          )
-          effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+            log.info(
+              s"OrganizationAPI in removeOwnersFromOrganization - apiRemoveOwnersFromOrganization ${apiRemoveOwnersFromOrganization}"
+            )
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+          }
         }
-        }
-        case other => {
+      }
+      case other => {
 
-          log.info(
-            s"OrganizationAPI in removeOwnersFromOrganization - other ${other}"
-          )
+        log.info(
+          s"OrganizationAPI in removeOwnersFromOrganization - other ${other}"
+        )
 
-          effects.reply(Empty.defaultInstance)
-        }
+        effects.reply(Empty.defaultInstance)
       }
     }
   }
@@ -244,22 +247,23 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               newMembers = apiMembersToAdd.map(convertApiMemberIdToMemberId),
               meta = newMeta
             )
-          )
-        )
-        log.info(
-          s"OrganizationAPI in addMembersToOrganization - apiAddMembersToOrganization ${apiAddMembersToOrganization}"
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-            case other => {
-
             log.info(
-              s"OrganizationAPI in addMembersToOrganization - other ${other}"
+              s"OrganizationAPI in addMembersToOrganization - apiAddMembersToOrganization ${apiAddMembersToOrganization}"
             )
-
-            effects.reply(Empty.defaultInstance)
+            effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
+        }
+      }
+      case other => {
+
+        log.info(
+          s"OrganizationAPI in addMembersToOrganization - other ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+      }
     }
-  }}}}
+  }
 
   override def addOwnersToOrganization(
       currentState: OrganizationState,
@@ -295,16 +299,17 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
         }
-        case other => {
+      }
+      case other => {
 
-          log.info(
-            s"OrganizationAPI in addOwnersToOrganization - other ${other}"
-          )
+        log.info(
+          s"OrganizationAPI in addOwnersToOrganization - other ${other}"
+        )
 
-          effects.reply(Empty.defaultInstance)
-        }
+        effects.reply(Empty.defaultInstance)
+      }
     }
-  }}
+  }
 
   override def editOrganizationInfo(
       currentState: OrganizationState,
@@ -346,17 +351,17 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               )
             )
         }
+      }
+      case other => {
 
-        case other => {
+        log.info(
+          s"OrganizationAPI in editOrganizationInfo - other ${other}"
+        )
 
-          log.info(
-            s"OrganizationAPI in editOrganizationInfo - other ${other}"
-          )
-
-          effects.reply(Empty.defaultInstance)
-        }
+        effects.reply(Empty.defaultInstance)
+      }
     }
-  }}
+  }
 
   override def establishOrganization(
       currentState: OrganizationState,
@@ -374,7 +379,6 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         )
       }
       case _ =>
-
         log.info(
           s"OrganizationAPI in establishOrganization - apiEstablishOrganization ${apiEstablishOrganization}"
         )
@@ -479,11 +483,11 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               s"OrganizationAPI in updateParent - apiUpdateParent ${apiUpdateParent}"
             )
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-            case _ =>
-              effects.error(
-                getMissingFieldsError(Map("Parent" -> apiUpdateParent.newParent))
-              )
           }
+          case _ =>
+            effects.error(
+              getMissingFieldsError(Map("Parent" -> apiUpdateParent.newParent))
+            )
         }
       }
       case other => {

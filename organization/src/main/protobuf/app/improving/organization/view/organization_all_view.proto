@@ -109,9 +109,9 @@ service AllOrganizationsView {
         };
     }
 
-    rpc GetAllOrganizations(AllOrganizationsRequest) returns (AllOrganizationsresult) {
+    rpc GetAllOrganizations(AllOrganizationsRequest) returns (stream organizationcontext.organization.ApiOrganization) {
         option (kalix.method).view.query = {
-            query: "SELECT * AS organizations FROM all_organizations "
+            query: "SELECT * FROM all_organizations "
         };
     }
 }

@@ -1,5 +1,6 @@
 package app.improving.gateway
 
+import akka.actor.ActorSystem
 import app.improving.OrganizationId
 import app.improving.eventcontext.{
   AllEventsRequest,
@@ -10,9 +11,9 @@ import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.membercontext.member.{
   ApiRegisterMember,
   MemberActionService,
+  MemberService,
   MembersByEventTimeRequest,
-  MembersByEventTimeResponse,
-  MemberService
+  MembersByEventTimeResponse
 }
 import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
 import app.improving.organizationcontext.organization.{
@@ -67,6 +68,8 @@ import scala.concurrent.Future
 
 class GatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractGatewayApiAction {
+
+  private implicit val system = ActorSystem("GatewayApiActionImpl")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -250,11 +253,10 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               .flatten,
             createOrganization.establishOrganization.flatMap(
               _.establishingMember
-            ),
-            createOrganization.establishOrganization.flatMap(_.meta)
+            )
           )
         )
-        .map(id => OrganizationCreated(Some(id)))
+        .map(id => OrganizationCreated(Some(OrganizationId(id.organizationId))))
     )
   }
 
@@ -277,8 +279,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
                     establishOrganization.members,
                     establishOrganization.owners,
                     establishOrganization.contacts,
-                    establishOrganization.establishingMember,
-                    establishOrganization.meta
+                    establishOrganization.establishingMember
                   )
                 )
             })
@@ -342,11 +343,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .createStore(
           ApiCreateStore(
             storeId,
-            createStore.info.map(
-              _.copy(
-                storeId = storeId
-              )
-            ),
+            createStore.info,
             createStore.creatingMember
           )
         )
@@ -367,9 +364,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
             ApiCreateStore(
               storeId,
               Some(
-                info.copy(
-                  storeId = storeId
-                )
+                info
               ),
               createStores.creatingMember
             )
@@ -392,7 +387,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           ApiCreateProduct(
             sku,
             createProduct.establishProduct
-              .flatMap(_.info.map(_.copy(sku = sku))),
+              .flatMap(_.info),
             createProduct.establishProduct.flatMap(_.meta)
           )
         )
@@ -415,7 +410,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
                 .createProduct(
                   ApiCreateProduct(
                     sku,
-                    establishProduct.info.map(_.copy(sku = sku)),
+                    establishProduct.info,
                     establishProduct.meta
                   )
                 )
@@ -485,7 +480,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           ApiCreateOrder(
             orderId,
             createOrder.establishOrder
-              .flatMap(_.info.map(_.copy(orderId = orderId))),
+              .flatMap(_.info),
             createOrder.establishOrder.flatMap(_.creatingMember)
           )
         )
@@ -508,7 +503,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
               .purchaseTicket(
                 ApiCreateOrder(
                   orderId,
-                  establishOrder.info.map(_.copy(orderId = orderId)),
+                  establishOrder.info,
                   establishOrder.creatingMember
                 )
               )
@@ -531,7 +526,11 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetAllOrganizations")
 
     effects.asyncReply(
-      allOrganizationsView.getAllOrganizations(AllOrganizationsRequest())
+      allOrganizationsView
+        .getAllOrganizations(AllOrganizationsRequest())
+        .runFold(AllOrganizationsresult.defaultInstance)((accum, org) => {
+          AllOrganizationsresult(accum.organizations :+ org)
+        })
     )
   }
 
@@ -565,7 +564,13 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info("in handleGetAllMembers")
 
-    effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
+    effects.asyncReply(
+      allMembersView
+        .getAllMembers(AllMembersRequest())
+        .runFold(AllMembersResult.defaultInstance)((accum, elem) => {
+          AllMembersResult(accum.members :+ elem)
+        })
+    )
   }
 
   override def handleGetAllOrders(

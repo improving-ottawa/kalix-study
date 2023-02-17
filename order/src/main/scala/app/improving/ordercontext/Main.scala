@@ -30,10 +30,10 @@ object Main {
         new OrderByProductQueryView(_),
         new OrderEventsServiceAction(_)
       )
-      .register(
-        OrderByProductQueryViewProvider(new OrderByProductQueryView(_))
-          .withViewId("OrderByProductQueryViewV3")
-      )
+//      .register(
+//        OrderByProductQueryViewProvider(new OrderByProductQueryView(_))
+//          .withViewId("OrderByProductQueryViewV3")
+//      )
   }
 
   def main(args: Array[String]): Unit = {

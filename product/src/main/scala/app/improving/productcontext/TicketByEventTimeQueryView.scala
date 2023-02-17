@@ -1,17 +1,7 @@
 package app.improving.productcontext
 
 import app.improving.ApiMemberId
-import app.improving.eventcontext.EventCancelled
-import app.improving.eventcontext.EventDelayed
-import app.improving.eventcontext.EventEnded
-import app.improving.eventcontext.EventStarted
 import app.improving.eventcontext.event._
-import app.improving.eventcontext.infrastructure.util.{
-  convertEventInfoToApiEventInfo,
-  convertEventMetaInfoToApiEventMetaInfo,
-  convertEventReScheduledToApiEvent,
-  convertEventScheduledToApiEvent
-}
 import app.improving.productcontext.infrastructure.util.{
   convertProductCreatedToApiProduct,
   convertProductInfoToApiProductInfo,
@@ -177,6 +167,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
               .map(_.eventId)
               .getOrElse("EventId is NOT FOUND."),
             eventScheduled.info,
+            "test-reservation-id",
             eventScheduled.meta,
             ApiEventStatus.API_EVENT_STATUS_SCHEDULED
           )
@@ -199,6 +190,7 @@ class TicketByEventTimeQueryView(context: ViewContext)
             .map(_.eventId)
             .getOrElse("EventId is NOT FOUND."),
           eventRescheduled.info,
+          "test-reservation-id",
           eventRescheduled.meta,
           ApiEventStatus.API_EVENT_STATUS_SCHEDULED
         )

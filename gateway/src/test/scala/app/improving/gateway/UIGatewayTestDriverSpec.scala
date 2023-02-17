@@ -2,7 +2,7 @@ package app.improving.gateway
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.{ApiOrderId, ApiProductId}
+import app.improving.ApiOrderId
 import app.improving.gateway.TestData.Fixture
 import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -57,6 +57,9 @@ class UIGatewayTestDriverSpec
       Source.fromResource("json/minimumRequestParams.json").mkString
     )
 
+  val uiClient: UiGatewayApiActionClient = UiGatewayApiActionClient(
+    gatewayClientSettings
+  )
   def checkResults(
       results: ScenarioResults,
       info: ScenarioInfo
@@ -117,7 +120,7 @@ class UIGatewayTestDriverSpec
       val numEventsPerOrg = 1
       val numTicketsPerEvent = 1
 
-      val scenarioResult = testClient
+      val scenarioResult = client
         .handleStartScenario(
           StartScenario(
             Some(
@@ -164,7 +167,6 @@ class UIGatewayTestDriverSpec
                 products.map { productId =>
                   storeId.storeId ->
                     ApiOrderInfo(
-                      ApiOrderId.defaultInstance.orderId,
                       Seq[ApiLineItem](
                         ApiLineItem(Some(productId), 1)
                       )

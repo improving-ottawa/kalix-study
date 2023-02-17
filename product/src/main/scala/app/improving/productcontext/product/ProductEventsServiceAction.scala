@@ -1,6 +1,6 @@
 package app.improving.productcontext.product
 
-import app.improving.{ApiMemberId, ApiProductId}
+import app.improving.{ApiMemberId, ApiSku}
 import app.improving.productcontext.ProductActivated
 import app.improving.productcontext.ProductCreated
 import app.improving.productcontext.ProductDeleted
@@ -31,7 +31,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiProductCreated(
-        productCreated.sku.map(sku => ApiProductId(sku.id)),
+        productCreated.sku.map(sku => ApiSku(sku.id)),
         productCreated.info.map(convertProductInfoToApiProductInfo),
         productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo)
       )
@@ -47,7 +47,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiProductInfoUpdated(
-        productInfoUpdated.sku.map(sku => ApiProductId(sku.id)),
+        productInfoUpdated.sku.map(sku => ApiSku(sku.id)),
         productInfoUpdated.info.map(convertProductInfoToApiProductInfo),
         productInfoUpdated.meta.map(convertProductMetaInfoToApiProductMetaInfo)
       )
@@ -63,7 +63,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiProductDeleted(
-        productDeleted.sku.map(sku => ApiProductId(sku.id)),
+        productDeleted.sku.map(sku => ApiSku(sku.id)),
         productDeleted.deletingMember.map(member => ApiMemberId(member.id))
       )
     )
@@ -78,7 +78,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiProductActivated(
-        productActivated.sku.map(sku => ApiProductId(sku.id)),
+        productActivated.sku.map(sku => ApiSku(sku.id)),
         productActivated.activatingMember.map(member => ApiMemberId(member.id))
       )
     )
@@ -93,7 +93,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiProductInactivated(
-        productInactivated.sku.map(sku => ApiProductId(sku.id)),
+        productInactivated.sku.map(sku => ApiSku(sku.id)),
         productInactivated.inactivatingMember.map(member =>
           ApiMemberId(member.id)
         )

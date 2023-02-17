@@ -1,7 +1,6 @@
 package app.improving.eventcontext.event
 
 import TestData._
-import app.improving.ApiEventId
 import app.improving.eventcontext.Main
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll

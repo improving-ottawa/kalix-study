@@ -44,6 +44,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
           status = ApiEventStatus.API_EVENT_STATUS_SCHEDULED
         )
       )
+    }
   }
   override def processEventScheduled(
       state: ApiEvent,

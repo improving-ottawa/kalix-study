@@ -594,23 +594,20 @@ class GatewayApiActionImplSpec
 
       result.members.isEmpty shouldBe false
     }
-    log.info(s"result ${result}")
-    result.members.isEmpty shouldBe false
-  }
 
+    "handle command find member by event time correctly" in {
 
-  "handle command find member by event time correctly" in {
+      val sixtheen = LocalDateTime.of(2023, 2, 16, 8, 0, 0, 0)
+      val now = sixtheen.toInstant(ZoneOffset.UTC)
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val result = gateWayAction
+        .handleGetMembersByEventTime(
+          MembersByEventTimeRequest(Some(timestamp))
+        )
+        .futureValue
 
-    val sixtheen = LocalDateTime.of(2023, 2, 16, 8, 0, 0, 0)
-    val now = sixtheen.toInstant(ZoneOffset.UTC)
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-    val result = gateWayAction
-      .handleGetMembersByEventTime(
-        MembersByEventTimeRequest(Some(timestamp))
-      )
-      .futureValue
-
-    log.info(memberRegistered + " memberRegistered")
-    memberRegistered.memberRegistered shouldBe defined
+      log.info(result + " result")
+      result.members.isEmpty shouldBe false
+    }
   }
 }

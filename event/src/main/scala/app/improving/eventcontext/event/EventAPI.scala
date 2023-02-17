@@ -62,9 +62,9 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   )
 
   override def changeEventInfo(
-                                currentState: EventState,
-                                apiChangeEventInfo: ApiChangeEventInfo
-                              ): EventSourcedEntity.Effect[Empty] = {
+      currentState: EventState,
+      apiChangeEventInfo: ApiChangeEventInfo
+  ): EventSourcedEntity.Effect[Empty] = {
     currentState.event match {
       case Some(event) =>
         errorOrReply(
@@ -77,7 +77,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
           )
         ) { validatedFields =>
           val validatedFieldsWithEventUpdateInfo
-          : ValidatedFieldsWithEventUpdateInfo =
+              : ValidatedFieldsWithEventUpdateInfo =
             validatedFields.asInstanceOf[ValidatedFieldsWithEventUpdateInfo]
           val updatingMember: ApiMemberId =
             validatedFieldsWithEventUpdateInfo.apiMemberId
@@ -107,13 +107,13 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       case _ => effects.reply(Empty.defaultInstance)
     }
   }
-}
+
   override def scheduleEvent(
       currentState: EventState,
       apiScheduleEvent: ApiScheduleEvent
   ): EventSourcedEntity.Effect[ApiEventId] = currentState.event match {
     case Some(event) => {
-      log.info (s"EventAPI in scheduleEvent - event already existed - ${event}")
+      log.info(s"EventAPI in scheduleEvent - event already existed - ${event}")
       effects.error(
         s"Event already exists with id ${apiScheduleEvent.eventId}"
       )
@@ -152,7 +152,9 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             )
           )
         )
-        log.info (s"EventAPI in scheduleEvent - apiScheduleEvent - ${apiScheduleEvent}")
+        log.info(
+          s"EventAPI in scheduleEvent - apiScheduleEvent - ${apiScheduleEvent}"
+        )
         effects
           .emitEvent(event)
           .thenReply(_ =>
