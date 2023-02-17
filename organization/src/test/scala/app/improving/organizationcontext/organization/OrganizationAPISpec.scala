@@ -10,6 +10,7 @@ import app.improving.organizationcontext.{
   OrganizationStatusUpdated,
   ParentUpdated
 }
+import com.google.protobuf.empty.Empty
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -38,8 +39,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         orgId = "testOrgId",
         newInfo = Some(
           ApiUpdateInfo(
-            name = "sample-name",
-            shortName = "sample-shortname",
+            name = Some("sample-name"),
+            shortName = Some("sample-shortname"),
             address = Some(
               ApiAddress(
                 line1 = "line1",
@@ -52,12 +53,13 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
                 )
               )
             ),
-            isPrivate = true,
-            url = "www.test.com",
-            logo = "N/A",
+            isPrivate = Some(true),
+            url = Some("www.test.com"),
+            logo = Some("N/A"),
             tenant = Some(ApiTenantId(testTenantId))
           )
-        )
+        ),
+        editingMember = Some(ApiMemberId("member2"))
       )
 
       val updateInfoResult =
@@ -72,6 +74,30 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
     }
 
+    "reject EstablishOrganization command with missing info" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val missingInfoEstbalishOrganizationCommand =
+        apiEstablishOrganization.copy(info = None)
+      val result =
+        testKit.establishOrganization(missingInfoEstbalishOrganizationCommand)
+      result.isError shouldBe true
+      result.errorDescription shouldBe "Message is missing the following fields: Info"
+    }
+
+    "reject EstablishOrganization command with info missing necessary fields" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      val missingInfoEstbalishOrganizationCommand =
+        apiEstablishOrganization.copy(info =
+          apiEstablishOrganization.info.map(_.copy(tenant = None, name = ""))
+        )
+      val result =
+        testKit.establishOrganization(missingInfoEstbalishOrganizationCommand)
+      result.isError shouldBe true
+      result.errorDescription shouldBe "Message is missing the following fields: Info.Tenant, Info.Name"
+    }
+
     "return empty effect from edit and update info with terminated status" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
@@ -79,8 +105,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
         orgId = "testOrgId",
         newInfo = Some(
           ApiUpdateInfo(
-            name = "sample-name",
-            shortName = "sample-shortname",
+            name = Some("sample-name"),
+            shortName = Some("sample-shortname"),
             address = Some(
               ApiAddress(
                 line1 = "line1",
@@ -93,9 +119,9 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
                 )
               )
             ),
-            isPrivate = true,
-            url = "www.test.com",
-            logo = "N/A",
+            isPrivate = Some(true),
+            url = Some("www.test.com"),
+            logo = Some("N/A"),
             tenant = Some(ApiTenantId(testTenantId))
           )
         )
@@ -117,10 +143,12 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
       val apiUpdateParent =
-        ApiUpdateParent(orgId, Some(ApiOrganizationId(newParentId)))
+        ApiUpdateParent(
+          orgId = orgId.getOrElse(OrganizationId.defaultInstance).id,
+          newParent = Some(newParentId),
+          updatingMember = Some(ApiMemberId("member25"))
+        )
 
       val updateParentResult = testKit.updateParent(apiUpdateParent)
 
@@ -132,14 +160,16 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       parentUpdated.newParent shouldBe defined
 
-      parentUpdated.newParent shouldBe Some(OrganizationId(newParentId))
+      parentUpdated.newParent shouldBe Some(
+        OrganizationId(newParentId.organizationId)
+      )
     }
 
     "return empty from update organization parent with invalid state's status" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val apiUpdateParent =
-        ApiUpdateParent(testOrgId, Some(ApiOrganizationId(newParentId)))
+        ApiUpdateParent(testOrgId.organizationId, Some(newParentId))
 
       val updateParentResult = testKit.updateParent(apiUpdateParent)
 
@@ -156,12 +186,11 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       establishOrganizationResult.events should have size 1
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
-          orgId,
-          ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED
+          orgId.getOrElse(OrganizationId.defaultInstance).id,
+          ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED,
+          Some(ApiMemberId("member1"))
         )
 
       val updateOrganizationStatusResult =
@@ -186,7 +215,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       val apiOrganizationStatusUpdated =
         ApiOrganizationStatusUpdated(
-          testOrgId,
+          testOrgId.organizationId,
           ApiOrganizationStatus.API_ORGANIZATION_STATUS_SUSPENDED
         )
 
@@ -206,30 +235,87 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
 
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
-      val apiGetOrganizationInfo = ApiGetOrganizationInfo(orgId)
+      val apiGetOrganizationInfo =
+        ApiGetOrganizationInfo(
+          orgId.getOrElse(OrganizationId.defaultInstance).id
+        )
 
       val getOrganizationInfoResult =
         testKit.getOrganizationInfo(apiGetOrganizationInfo)
 
       getOrganizationInfoResult.events should have size 1
 
-      Some(
+      apiEstablishOrganization.info.contains(
         getOrganizationInfoResult.reply
-      ) == apiEstablishOrganization.info shouldBe true
+      ) shouldBe true
     }
 
     "return empty result from getOrganizationInfo with invalid state" in {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
-      val apiGetOrganizationInfo = ApiGetOrganizationInfo(testOrgId)
+      val apiGetOrganizationInfo =
+        ApiGetOrganizationInfo(testOrgId.organizationId)
 
       val getOrganizationInfoResult =
         testKit.getOrganizationInfo(apiGetOrganizationInfo)
 
       getOrganizationInfoResult.events should have size 0
 
+    }
+
+    "fail to leave Draft state if requirements aren't met" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+      val missingMembersEstablingOrganization =
+        apiEstablishOrganization.copy(members = Seq.empty[ApiMemberId])
+
+      testKit.establishOrganization(missingMembersEstablingOrganization)
+      val result = testKit.updateOrganizationStatus(
+        ApiOrganizationStatusUpdated(
+          orgId = testOrgId.organizationId,
+          newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+          updatingMember = Some(ApiMemberId("member36"))
+        )
+      )
+      result.isError shouldBe true
+      result.errorDescription shouldBe "Cannot leave state ORGANIZATION_STATUS_DRAFT without required fields. The state is missing: Members"
+    }
+
+    "succeed in draft state update if already in draft state (even if required fields are missing in the state)" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+      val missingMembersEstablingOrganization =
+        apiEstablishOrganization.copy(members = Seq.empty[ApiMemberId])
+
+      testKit.establishOrganization(missingMembersEstablingOrganization)
+      val result = testKit.updateOrganizationStatus(
+        ApiOrganizationStatusUpdated(
+          orgId = testOrgId.organizationId,
+          newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
+          updatingMember = Some(ApiMemberId("member36"))
+        )
+      )
+      result.isReply shouldBe true
+      result.reply shouldBe Empty.defaultInstance
+    }
+
+    "fail to return to draft state when not in draft state" in {
+      val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
+
+      testKit.establishOrganization(apiEstablishOrganization)
+      val result = testKit.updateOrganizationStatus(
+        ApiOrganizationStatusUpdated(
+          orgId = testOrgId.organizationId,
+          newStatus = ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+          updatingMember = Some(ApiMemberId("member36"))
+        )
+      )
+      result.isReply shouldBe true
+      result.reply shouldBe Empty.defaultInstance
+      result.updatedState
+        .asInstanceOf[OrganizationState]
+        .organization
+        .map(_.status) shouldBe Some(
+        OrganizationStatus.ORGANIZATION_STATUS_ACTIVE
+      )
     }
 
     "correctly add members to the organization" in {
@@ -241,10 +327,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       establishOrganizationResult.events should have size 1
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
-        orgId,
+        orgId.getOrElse(OrganizationId.defaultInstance).id,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),
@@ -282,7 +366,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val apiAddMembersToOrganization = ApiAddMembersToOrganization(
-        testOrgId,
+        testOrgId.organizationId,
         Seq[ApiMemberId](
           ApiMemberId("test-member-id"),
           ApiMemberId("member2"),
@@ -306,10 +390,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       establishOrganizationResult.events should have size 1
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
       val apiRemoveMembersFromOrganization = ApiRemoveMembersFromOrganization(
-        orgId,
+        orgId.getOrElse(OrganizationId.defaultInstance).id,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),
@@ -346,7 +428,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val apiRemoveMembersFromOrganization = ApiRemoveMembersFromOrganization(
-        testOrgId,
+        testOrgId.organizationId,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),
@@ -370,10 +452,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       establishOrganizationResult.events should have size 1
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
       val apiAddOwnersToOrganization = ApiAddOwnersToOrganization(
-        orgId,
+        orgId.getOrElse(OrganizationId.defaultInstance).id,
         Seq[ApiMemberId](
           ApiMemberId("member10"),
           ApiMemberId("member11"),
@@ -413,7 +493,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val apiAddOwnersToOrganization = ApiAddOwnersToOrganization(
-        testOrgId,
+        testOrgId.organizationId,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),
@@ -437,10 +517,8 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       establishOrganizationResult.events should have size 1
       val orgId = testKit.currentState.organization
         .flatMap(_.oid)
-        .map(_.id)
-        .getOrElse("Organization Id is not found.")
       val apiRemoveOwnersFromOrganization = ApiRemoveOwnersFromOrganization(
-        orgId,
+        orgId.getOrElse(OrganizationId.defaultInstance).id,
         Seq[ApiMemberId](
           ApiMemberId("member10"),
           ApiMemberId("member11"),
@@ -478,7 +556,7 @@ class OrganizationAPISpec extends AnyWordSpec with Matchers {
       val testKit = OrganizationAPITestKit(new OrganizationAPI(_))
 
       val apiRemoveOwnersFromOrganization = ApiRemoveOwnersFromOrganization(
-        testOrgId,
+        testOrgId.organizationId,
         Seq[ApiMemberId](
           ApiMemberId("member1"),
           ApiMemberId("member2"),

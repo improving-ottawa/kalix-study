@@ -32,7 +32,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_ACTIVE)
+      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_DRAFT)
 
       memberOpt.flatMap(_.info) shouldBe Some(convertApiInfoToInfo(apiInfo))
     }
@@ -54,7 +54,7 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
 
       memberOpt shouldBe defined
 
-      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_ACTIVE)
+      memberOpt.map(_.status) shouldBe Some(MemberStatus.MEMBER_STATUS_DRAFT)
 
       val testMember = testKit.currentState.member
         .flatMap(_.memberId)
@@ -75,6 +75,24 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
       memberOpt2 shouldBe defined
 
       memberOpt2.map(_.status) shouldBe Some(
+        MemberStatus.MEMBER_STATUS_INACTIVE
+      )
+
+      val updateCommandSuspendedStatus = ApiUpdateMemberStatus(
+        testMember,
+        Some(ApiMemberId(testMemberId2)),
+        ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED
+      )
+
+      val updatedSuspendedStatusResult = testKit.updateMemberStatus(updateCommandSuspendedStatus)
+
+      updatedSuspendedStatusResult.events should have size 0
+
+      val memberOpt3 = testKit.currentState.member
+
+      memberOpt3 shouldBe defined
+
+      memberOpt3.map(_.status) shouldBe Some(
         MemberStatus.MEMBER_STATUS_INACTIVE
       )
     }
@@ -100,6 +118,36 @@ class MemberAPISpec extends AnyWordSpec with Matchers {
         .flatMap(_.memberId)
         .map(_.id)
         .getOrElse("MemberId not found.")
+
+      val partialUpdateCommand = ApiUpdateMemberInfo(
+        testMember,
+        Some(apiPartialUpdateInfo),
+        Some(ApiMemberId(testMemberId2))
+      )
+
+      val partiallyUpdatedResult = testKit.updateMemberInfo(partialUpdateCommand)
+
+      partiallyUpdatedResult.events should have size 1
+
+      val memberOptPartial = testKit.currentState.member
+
+      memberOptPartial shouldBe defined
+
+      val partialUpdateInfoOpt = memberOptPartial.flatMap(_.info)
+
+      partialUpdateInfoOpt shouldBe defined
+
+      partialUpdateInfoOpt.get.firstName shouldBe "member-name"
+
+      partialUpdateInfoOpt.get.lastName shouldBe "new-lastname"
+
+      val apiOrganizationIdPartialOpt = partialUpdateInfoOpt.map(_.organizationMembership)
+
+      apiOrganizationIdPartialOpt shouldBe defined
+
+      val tenantIdPartialOpt = partialUpdateInfoOpt.flatMap(_.tenant)
+
+      tenantIdPartialOpt shouldBe defined
 
       val updateCommand = ApiUpdateMemberInfo(
         testMember,

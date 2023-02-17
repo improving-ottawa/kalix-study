@@ -37,14 +37,13 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       )
 
       effects.updateState(
-        ApiEvent(
-          eventInfoChanged.eventId.map(_.id).getOrElse("EventId is NOT FOUND."),
-          eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
-          eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
-          ApiEventStatus.API_EVENT_STATUS_SCHEDULED
+        state.copy(
+          info = eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
+          meta =
+            eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo),
+          status = ApiEventStatus.API_EVENT_STATUS_SCHEDULED
         )
       )
-    }
   }
   override def processEventScheduled(
       state: ApiEvent,
@@ -56,7 +55,7 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
     )
 
     effects.updateState(
-      state.copy(
+      ApiEvent(
         info = eventScheduled.info.map(convertEventInfoToApiEventInfo),
         meta = eventScheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.API_EVENT_STATUS_SCHEDULED
@@ -79,8 +78,9 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       meta.copy(
         status = ApiEventStatus.API_EVENT_STATUS_CANCELLED,
         lastModifiedOn = Some(timestamp),
-        lastModifiedBy =
-          eventCancelled.cancellingMember.map(member => ApiMemberId(member.id))
+        lastModifiedBy = eventCancelled.meta
+          .flatMap(_.lastModifiedBy)
+          .map(id => ApiMemberId(id.id))
       )
     )
     effects.updateState(
@@ -125,21 +125,17 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
           for {
             timestamp <- info.expectedStart
             duration <- eventDelayed.expectedDuration
-          } yield (
-            Timestamp.of(
-              timestamp.seconds + duration.seconds,
-              timestamp.nanos + duration.nanos
-            )
+          } yield Timestamp.of(
+            timestamp.seconds + duration.seconds,
+            timestamp.nanos + duration.nanos
           ),
         expectedEnd =
           for {
             timestamp <- info.expectedEnd
             duration <- eventDelayed.expectedDuration
-          } yield (
-            Timestamp.of(
-              timestamp.seconds + duration.seconds,
-              timestamp.nanos + duration.nanos
-            )
+          } yield Timestamp.of(
+            timestamp.seconds + duration.seconds,
+            timestamp.nanos + duration.nanos
           )
       )
     )
@@ -163,7 +159,6 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
 
     effects.updateState(
       state.copy(
-        info = eventStarted.info.map(convertEventInfoToApiEventInfo),
         meta = eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.API_EVENT_STATUS_INPROGRESS
       )
@@ -183,6 +178,20 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
       state.copy(
         meta = eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         status = ApiEventStatus.API_EVENT_STATUS_PAST
+      )
+    )
+  }
+
+  override def processReservationAddedToEvent(
+      state: ApiEvent,
+      reservationAddedToEvent: ReservationAddedToEvent
+  ): UpdateEffect[ApiEvent] = {
+    effects.updateState(
+      state.copy(
+        meta = reservationAddedToEvent.meta.map(
+          convertEventMetaInfoToApiEventMetaInfo
+        ),
+        reservation = reservationAddedToEvent.reservation
       )
     )
   }

@@ -7,8 +7,9 @@ import "common_domain.proto";
 package app.improving.eventcontext.event;
 
 message Event {
-    EventId eventId = 1;
+    EventId event_id = 1;
     EventInfo info = 2;
+    string reservation = 5;
     EventMetaInfo meta = 3;
     EventStatus status = 4;
 }

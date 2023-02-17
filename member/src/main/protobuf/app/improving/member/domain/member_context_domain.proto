@@ -13,11 +13,13 @@ enum NotificationPreference {
 }
 
 enum MemberStatus {
-    MEMBER_STATUS_ACTIVE = 0;
+    MEMBER_STATUS_DRAFT = 0;
+    MEMBER_STATUS_ACTIVE = 1;
     MEMBER_STATUS_INACTIVE = 2;
     MEMBER_STATUS_SUSPENDED = 3;
     MEMBER_STATUS_TERMINATED = 4;
-    MEMBER_STATUS_UNKNOWN = 5;
+    MEMBER_STATUS_RELEASED = 5;
+    MEMBER_STATUS_UNKNOWN = 6;
 }
 
 message Info {
@@ -26,7 +28,7 @@ message Info {
     string avatar = 3; // URL type?
     string first_name = 4;
     string last_name = 5;
-    NotificationPreference notification_preference = 6;
+    optional NotificationPreference notification_preference = 6;
     repeated OrganizationId organization_membership = 7;
     optional TenantId tenant = 8;
 }
@@ -63,6 +65,11 @@ message MemberStatusUpdated {
     MetaInfo meta = 2;
 }
 
+message MemberReleased {
+    MemberId member_id = 1;
+    MemberId releasing_member = 2;
+}
+
 message MetaInfo {
     google.protobuf.Timestamp created_on = 1;
     MemberId created_by = 2;
@@ -84,12 +91,12 @@ message MemberMap {
 }
 
 message UpdateInfo {
-    Contact contact = 1;
-    string handle = 2;
-    string avatar = 3; // URL type?
-    string first_name = 4;
-    string last_name = 5;
-    NotificationPreference notification_preference = 6;
-    repeated  OrganizationId organization_membership = 7;
-    TenantId tenant_id = 8;
+    optional Contact contact = 1;
+    optional string handle = 2;
+    optional string avatar = 3; // URL type?
+    optional string first_name = 4;
+    optional string last_name = 5;
+    optional NotificationPreference notification_preference = 6;
+    repeated OrganizationId organization_membership = 7;
+    optional TenantId tenant_id = 8;
 }

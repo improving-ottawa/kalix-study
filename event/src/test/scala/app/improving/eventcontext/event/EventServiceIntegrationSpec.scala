@@ -1,6 +1,7 @@
 package app.improving.eventcontext.event
 
 import TestData._
+import app.improving.ApiEventId
 import app.improving.eventcontext.Main
 import kalix.scalasdk.testkit.KalixTestKit
 import org.scalatest.BeforeAndAfterAll
@@ -35,7 +36,9 @@ class EventServiceIntegrationSpec
       client.scheduleEvent(apiScheduleEvent).futureValue
 
       val scheduled =
-        client.getEventById(ApiGetEventById(testEventId)).futureValue
+        client
+          .getEventById(ApiGetEventById(testEventId.eventId))
+          .futureValue
 
       scheduled.status shouldBe ApiEventStatus.API_EVENT_STATUS_SCHEDULED
 

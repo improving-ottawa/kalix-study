@@ -35,12 +35,10 @@ class OrderActionImplSpec
         "test-id",
         Some(
           ApiOrderInfo(
-            "test-id",
             Seq[ApiLineItem](
-              ApiLineItem(Some(ApiProductId("pro-id-1")), 10, 100.0)
+              ApiLineItem(Some(ApiSku("pro-id-1")), 10, 100.0)
             ),
-            "special instruction",
-            1000.0
+            "special instruction"
           )
         ),
         Some(ApiMemberId("test-member1")),

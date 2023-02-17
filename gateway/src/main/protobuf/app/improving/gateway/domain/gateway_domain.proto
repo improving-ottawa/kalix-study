@@ -10,6 +10,7 @@ import "app/improving/event/api/event_api.proto";
 import "app/improving/tenant/api/tenant_api.proto";
 import "common_api.proto";
 import "app/improving/organization/api/organization_api.proto";
+import "common_domain.proto";
 
 message CreateTenant {
     tenantcontext.tenant.ApiInfo tenant_info = 1;
@@ -42,7 +43,7 @@ message CreateOrganization {
 }
 
 message OrganizationCreated {
-    ApiOrganizationId organization_created = 1;
+    OrganizationId organization_created = 1;
 }
 
 message CreateOrganizations {
@@ -109,7 +110,7 @@ message CreateProduct {
 }
 
 message ProductCreated {
-    ApiProductId product_created = 1;
+    ApiSku product_created = 1;
 }
 
 message CreateProducts {
@@ -117,7 +118,7 @@ message CreateProducts {
 }
 
 message ProductsCreated {
-    repeated ApiProductId products_created = 1;
+    repeated ApiSku products_created = 1;
 }
 
 message EstablishMember {
@@ -186,5 +187,5 @@ message StoreIds {
 }
 
 message Skus {
-    repeated ApiProductId skus = 1;
+    repeated ApiSku skus = 1;
 }

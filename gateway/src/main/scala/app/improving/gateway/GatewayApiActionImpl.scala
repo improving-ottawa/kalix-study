@@ -1,5 +1,6 @@
 package app.improving.gateway
 
+import app.improving.OrganizationId
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,

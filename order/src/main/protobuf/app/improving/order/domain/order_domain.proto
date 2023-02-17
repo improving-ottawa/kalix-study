@@ -6,7 +6,7 @@ import "common_domain.proto";
 package app.improving.ordercontext.order;
 
 message Order {
-    OrderId orderId = 1;
+    OrderId order_id = 1;
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
     OrderStatus status = 4;

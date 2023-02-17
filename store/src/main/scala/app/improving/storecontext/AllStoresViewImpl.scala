@@ -1,5 +1,6 @@
 package app.improving.storecontext
 
+import app.improving.StoreId
 import app.improving.storecontext.infrastructure.util._
 import app.improving.storecontext.store.{ApiStore, ApiStoreStatus}
 import kalix.scalasdk.view.View.UpdateEffect
@@ -36,12 +37,10 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
 
       effects.updateState(
         ApiStore(
-          storeCreated.storeId
-            .map(_.id)
-            .getOrElse("StoreId IS NOT FOUND."),
+          storeCreated.storeId.getOrElse(StoreId.defaultInstance).id,
           storeCreated.info.map(convertStoreInfoToApiStoreInfo),
           storeCreated.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-          ApiStoreStatus.DRAFT
+          ApiStoreStatus.API_STORE_STATUS_DRAFT
         )
       )
     }
@@ -70,12 +69,10 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
 
     effects.updateState(
       ApiStore(
-        storeOpened.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        storeOpened.storeId.getOrElse(StoreId.defaultInstance).id,
         storeOpened.info.map(convertStoreInfoToApiStoreInfo),
         storeOpened.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-        ApiStoreStatus.OPEN
+        ApiStoreStatus.API_STORE_STATUS_OPEN
       )
     )
   }
@@ -91,14 +88,12 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
 
     effects.updateState(
       ApiStore(
-        storeUpdated.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        storeUpdated.storeId.getOrElse(StoreId.defaultInstance).id,
         storeUpdated.info.map(convertStoreInfoToApiStoreInfo),
         storeUpdated.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
         storeUpdated.meta
           .map(meta => convertStoreStatusToApiStoreStatus(meta.status))
-          .getOrElse(ApiStoreStatus.UNKNOWN)
+          .getOrElse(ApiStoreStatus.API_STORE_STATUS_UNKNOWN)
       )
     )
   }
@@ -113,12 +108,10 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
 
     effects.updateState(
       ApiStore(
-        storeClosed.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        storeClosed.storeId.getOrElse(StoreId.defaultInstance).id,
         storeClosed.info.map(convertStoreInfoToApiStoreInfo),
         storeClosed.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-        ApiStoreStatus.CLOSED
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
   }
@@ -134,12 +127,10 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
 
     effects.updateState(
       ApiStore(
-        productsAddedToStore.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        productsAddedToStore.storeId.getOrElse(StoreId.defaultInstance).id,
         productsAddedToStore.info.map(convertStoreInfoToApiStoreInfo),
         productsAddedToStore.meta.map(convertStoreMetaInfoToApiStoreMetaInfo),
-        ApiStoreStatus.CLOSED
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
   }
@@ -154,14 +145,12 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
 
     effects.updateState(
       ApiStore(
-        productsRemovedFromStore.storeId
-          .map(_.id)
-          .getOrElse("StoreId IS NOT FOUND."),
+        productsRemovedFromStore.storeId.getOrElse(StoreId.defaultInstance).id,
         productsRemovedFromStore.info.map(convertStoreInfoToApiStoreInfo),
         productsRemovedFromStore.meta.map(
           convertStoreMetaInfoToApiStoreMetaInfo
         ),
-        ApiStoreStatus.CLOSED
+        ApiStoreStatus.API_STORE_STATUS_CLOSED
       )
     )
   }

@@ -47,7 +47,7 @@ class EventViewSpec
         .getAllEvents(AllEventsRequest())
         .futureValue
 
-      result.events.nonEmpty shouldBe true
+      result.events.size > 0 shouldBe true
 
       true shouldBe true
     }

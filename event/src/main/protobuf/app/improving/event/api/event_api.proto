@@ -14,8 +14,10 @@ enum ApiEventStatus {
     API_EVENT_STATUS_PAST = 2;
     API_EVENT_STATUS_CANCELLED = 3;
     API_EVENT_STATUS_DELAYED = 4;
-    API_EVENT_STATUS_UNKNOWN = 5;
+    API_EVENT_STATUS_RELEASED = 5;
+    API_EVENT_STATUS_UNKNOWN = 6;
 }
+
 message ApiReservationId {
     string reservation_id = 1 [(kalix.field).entity_key = true];
 }
@@ -27,6 +29,7 @@ message ApiGetEventById {
 message ApiEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
+    string reservation = 5;
     ApiEventMetaInfo meta = 3;
     ApiEventStatus status = 4;
 }
@@ -36,11 +39,21 @@ message ApiEventInfo {
     string description = 2;
     string event_url = 3;
     ApiOrganizationId sponsoring_org = 4;
-    ApiGeoLocation geo_location = 5;
-    ApiReservationId reservation = 6;
+    optional ApiGeoLocation geo_location = 5;
     google.protobuf.Timestamp expected_start = 7;
     google.protobuf.Timestamp expected_end = 8;
     bool is_private = 9;
+}
+
+message ApiEventUpdateInfo {
+    optional string event_name = 1;
+    optional string description = 2;
+    optional string event_url = 3;
+    optional ApiOrganizationId sponsoring_org = 4;
+    optional ApiGeoLocation geo_location = 5;
+    optional google.protobuf.Timestamp expected_start = 7;
+    optional google.protobuf.Timestamp expected_end = 8;
+    optional bool is_private = 9;
 }
 
 message ApiEventMetaInfo {
@@ -55,7 +68,7 @@ message ApiEventMetaInfo {
 
 message ApiChangeEventInfo {
     string event_id = 1 [(kalix.field).entity_key = true];
-    ApiEventInfo info = 2;
+    ApiEventUpdateInfo info = 2;
     ApiMemberId changing_member = 3;
 }
 
@@ -94,6 +107,11 @@ message ApiEndEvent {
     ApiMemberId ending_member = 2;
 }
 
+message ApiReleaseEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 2;
+}
+
 message ApiAddLiveUpdate {
     string event_id = 1 [(kalix.field).entity_key = true];
     ApiLiveUpdate update = 2;
@@ -104,6 +122,11 @@ message ApiLiveUpdate {
     string to = 2;
 }
 
+message ApiAddReservationToEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    string reservation = 2;
+    ApiMemberId reserving_member = 3;
+}
 // For direct event source in direct_event_events.proto
 
 

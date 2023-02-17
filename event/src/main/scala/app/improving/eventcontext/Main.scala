@@ -1,10 +1,6 @@
 package app.improving.eventcontext
 
-import app.improving.eventcontext.event.{
-  EventAPI,
-  EventEventsService,
-  EventEventsServiceAction
-}
+import app.improving.eventcontext.event.EventAPI
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 

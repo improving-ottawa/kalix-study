@@ -1,6 +1,7 @@
 package app.improving.eventcontext.event
 
 import app.improving._
+import com.google.protobuf.duration.Duration
 import app.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
@@ -14,20 +15,19 @@ import app.improving.eventcontext.{
   ReservationId
 }
 import com.google.protobuf.timestamp.Timestamp
-import com.google.protobuf.duration.Duration
+
+import java.time.Instant
 
 object TestData {
-  val now = java.time.Instant.now()
-  val start = Timestamp.of(now.getEpochSecond, now.getNano)
-  val end = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
-  val expectedDuration = Some(Duration.of(20, 0))
-  val testEventId = "test-event-id"
-  val testEventId2 = "test-event-id2"
-  val testEventId3 = "test-event-id3"
-  val testMemberId = "test-member-id"
-  val testReason = "test-reason"
-  val apiScheduleEvent = ApiScheduleEvent(
-    testEventId,
+  val now: Instant = java.time.Instant.now()
+  val start: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  val end: Timestamp = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
+  val durationDelayed: Long = 1000000L
+  val testEventId: ApiEventId = ApiEventId("test-event-id")
+  val testEventId2: ApiEventId = ApiEventId("test-event-id2")
+  val testEventId3: ApiEventId = ApiEventId("test-event-id3")
+  val apiScheduleEvent: ApiScheduleEvent = ApiScheduleEvent(
+    testEventId.eventId,
     Some(
       ApiEventInfo(
         "try-out-event",
@@ -35,17 +35,51 @@ object TestData {
         "www.nowhere.com",
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-        Some(ApiReservationId("reserve-1")),
         Some(start),
-        Some(end),
-        false
+        Some(end)
       )
     ),
     Some(ApiMemberId("1"))
   )
 
-  val apiSchedulePrivateEvent = ApiScheduleEvent(
-    testEventId2,
+  val apiAddReservationToEvent: ApiAddReservationToEvent =
+    ApiAddReservationToEvent(
+      testEventId.eventId,
+      "reservation33",
+      Some(ApiMemberId("5"))
+    )
+
+  val apiStartEvent: ApiStartEvent = ApiStartEvent(
+    testEventId.eventId,
+    Some(ApiMemberId("1"))
+  )
+
+  val apiEndEvent: ApiEndEvent = ApiEndEvent(
+    testEventId.eventId,
+    Some(ApiMemberId("2"))
+  )
+
+  val apiDelayEvent: ApiDelayEvent = ApiDelayEvent(
+    testEventId.eventId,
+    "The venue has been scheduled to shutdown",
+    Some(Duration.of(durationDelayed, 0)),
+    Some(ApiMemberId("2"))
+  )
+
+  val apiCancelEvent: ApiCancelEvent = ApiCancelEvent(
+    testEventId.eventId,
+    Some(ApiMemberId("2"))
+  )
+
+  val apiRescheduleEvent: ApiRescheduleEvent = ApiRescheduleEvent(
+    testEventId.eventId,
+    Some(Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)),
+    Some(Timestamp.of(now.getEpochSecond + 2000000L, now.getNano)),
+    Some(ApiMemberId("2"))
+  )
+
+  val apiSchedulePrivateEvent: ApiScheduleEvent = ApiScheduleEvent(
+    testEventId2.eventId,
     Some(
       ApiEventInfo(
         "try-out-event",
@@ -53,17 +87,16 @@ object TestData {
         "www.nowhere.com",
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-        Some(ApiReservationId("reserve-1")),
         Some(start),
         Some(end),
-        true
+        isPrivate = true
       )
     ),
     Some(ApiMemberId("1"))
   )
 
-  val apiSchedulePrivateFailedEvent = ApiScheduleEvent(
-    testEventId3,
+  val apiSchedulePrivateFailedEvent: ApiScheduleEvent = ApiScheduleEvent(
+    testEventId3.eventId,
     Some(
       ApiEventInfo(
         "try-out-event",
@@ -71,10 +104,9 @@ object TestData {
         "www.nowhere.com",
         Some(ApiOrganizationId("test-organization-id")),
         Some(ApiGeoLocation(0.12, 0.438, 4.322)),
-        Some(ApiReservationId("reserve-1")),
         Some(start),
         Some(end),
-        true
+        isPrivate = true
       )
     ),
     Some(ApiMemberId("1"))

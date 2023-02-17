@@ -25,20 +25,17 @@ message ApiOrder {
 }
 
 message ApiLineItem {
-    ApiProductId product = 1;
+    ApiSku product = 1;
     int32     quantity = 2;
     double    line_total = 3;
 }
 
 message ApiOrderInfo {
-    string order_id = 1 [(kalix.field).entity_key = true];
     repeated ApiLineItem line_items = 2;
     string special_instructions = 3;
-    double order_total = 4;
 }
 
 message ApiOrderMetaInfo  {
-    string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId member_id = 2;
     ApiStoreId store_id = 3;
     google.protobuf.Timestamp created_on = 4;
@@ -48,10 +45,8 @@ message ApiOrderMetaInfo  {
 }
 
 message ApiOrderInfoUpdate {
-        string order_id = 1 [(kalix.field).entity_key = true];
-        repeated ApiLineItem line_items = 2;
-        string special_instructions = 3;
-        double order_total = 4;
+    repeated ApiLineItem line_items = 2;
+    optional string special_instructions = 3;
 }
 message ApiCreateOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
@@ -81,6 +76,10 @@ message ApiGetOrderInfo {
 message ApiOrderInfoResult {
     ApiOrderId order_id = 1;
     ApiOrderInfo info = 2;
+}
+message ApiReleaseOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 2;
 }
 
 // For direct_event_order events.

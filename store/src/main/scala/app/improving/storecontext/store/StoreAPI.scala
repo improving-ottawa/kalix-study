@@ -1,15 +1,17 @@
 package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
-import app.improving.{ApiProductId, ApiStoreId, MemberId, ProductId, StoreId}
+import app.improving.{ApiSku, ApiStoreId, MemberId, Sku, StoreId}
 import app.improving.storecontext.{
   ProductsAddedToStore,
   ProductsRemovedFromStore,
   StoreClosed,
   StoreCreated,
   StoreDeleted,
+  StoreMadeReady,
   StoreMetaInfo,
   StoreOpened,
+  StoreReleased,
   StoreStatus,
   StoreUpdated
 }
@@ -17,7 +19,7 @@ import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 import com.google.protobuf.timestamp.Timestamp
-import org.slf4j.LoggerFactory
+
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -31,271 +33,218 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   override def createStore(
       currentState: StoreState,
       apiCreateStore: ApiCreateStore
-  ): EventSourcedEntity.Effect[ApiStoreId] = {
-    currentState.store match {
-      case Some(store) => {
-
-        log.info(
-          s"StoreAPI in createStore - existing store ${store}"
-        )
-
-        effects.reply(ApiStoreId.defaultInstance)
+  ): EventSourcedEntity.Effect[ApiStoreId] = currentState.store match {
+    case Some(_) =>
+      effects.error(s"Store already created with id ${apiCreateStore.storeId}")
+    case _ =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val memberIdOpt = {
+        apiCreateStore.creatingMember.map(member => MemberId(member.memberId))
       }
-      case _ => {
-
-        log.info(
-          s"StoreAPI in createStore - apiCreateStore ${apiCreateStore}"
-        )
-
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val memberIdOpt = {
-          apiCreateStore.creatingMember.map(member => MemberId(member.memberId))
-        }
-        val storeId = apiCreateStore.storeId
-        val event = StoreCreated(
-          Some(StoreId(storeId)),
-          apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
-          Some(
-            StoreMetaInfo(
-              memberIdOpt,
-              Some(timestamp),
-              memberIdOpt,
-              Some(timestamp),
-              StoreStatus.DRAFT
-            )
+      val storeId = apiCreateStore.storeId
+      val event = StoreCreated(
+        Some(StoreId(apiCreateStore.storeId)),
+        apiCreateStore.info.map(convertApiStoreInfoToStoreInfo),
+        Some(
+          StoreMetaInfo(
+            memberIdOpt,
+            Some(timestamp),
+            memberIdOpt,
+            Some(timestamp),
+            StoreStatus.STORE_STATUS_DRAFT
           )
         )
-        effects.emitEvent(event).thenReply(_ => ApiStoreId(storeId))
-      }
-    }
+      )
+      effects
+        .emitEvent(event)
+        .thenReply(_ => ApiStoreId(storeId))
   }
 
   override def updateStore(
       currentState: StoreState,
       apiUpdateStore: ApiUpdateStore
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId.contains(
-            StoreId(apiUpdateStore.storeId)
-          ) && !store.meta.map(_.status).contains(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in updateStore - apiUpdateStore ${apiUpdateStore}"
-        )
-
-        val event = StoreUpdated(
-          Some(StoreId(apiUpdateStore.storeId)),
-          apiUpdateStore.info.map(convertApiStoreInfoToStoreInfo),
-          apiUpdateStore.meta.map(convertApiStoreMetaInfoToStoreMetaInfo)
-        )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+    case Some(store)
+        if currentState != StoreState.defaultInstance && !store.status.isStoreStatusDeleted =>
+      val updateInfoOpt =
+        apiUpdateStore.info.map(convertApiStoreUpdateInfoToStoreUpdateInfo)
+      val updatedInfoOpt = store.info.map { storeInfo =>
+        updateInfoOpt.fold(storeInfo) { updateInfo =>
+          storeInfo.copy(
+            name = updateInfo.name.getOrElse(storeInfo.name),
+            description =
+              updateInfo.description.getOrElse(storeInfo.description),
+            products =
+              if (updateInfo.products.isEmpty) storeInfo.products
+              else updateInfo.products,
+            event =
+              if (updateInfo.event.isDefined) updateInfo.event
+              else storeInfo.event,
+            venue =
+              if (updateInfo.venue.isDefined) updateInfo.venue
+              else storeInfo.venue,
+            location =
+              if (updateInfo.location.isDefined) updateInfo.location
+              else storeInfo.location,
+            sponsoringOrg =
+              if (updateInfo.sponsoringOrg.isDefined) updateInfo.sponsoringOrg
+              else storeInfo.sponsoringOrg
+          )
+        }
       }
-      case other => {
-
-        log.info(
-          s"StoreAPI in updateStore - other ${other}"
-        )
-
-        effects.reply(Empty.defaultInstance)
-      }
-    }
+      val event = StoreUpdated(
+        Some(StoreId(apiUpdateStore.storeId)),
+        updatedInfoOpt,
+        apiUpdateStore.meta.map(convertApiStoreMetaInfoToStoreMetaInfo)
+      )
+      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def deleteStore(
       currentState: StoreState,
       apiDeleteStore: ApiDeleteStore
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == Some(
-            StoreId(apiDeleteStore.storeId)
-          ) && store.meta.map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in deleteStore - apiDeleteStore ${apiDeleteStore}"
-        )
-
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val event = StoreDeleted(
-          Some(StoreId(apiDeleteStore.storeId)),
-          store.meta.map(
-            _.copy(
-              lastModifiedBy = apiDeleteStore.deletingMember.map(member =>
-                MemberId(member.memberId)
-              ),
-              lastModifiedOn = Some(timestamp),
-              status = StoreStatus.DELETED
-            )
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+    case Some(store)
+        if store.status.isStoreStatusDraft || store.status.isStoreStatusClosed =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val event = StoreDeleted(
+        Some(StoreId(apiDeleteStore.storeId)),
+        store.meta.map(
+          _.copy(
+            lastModifiedBy = apiDeleteStore.deletingMember.map(member =>
+              MemberId(member.memberId)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = StoreStatus.STORE_STATUS_DELETED
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
-      case other => {
+      )
+      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+    case _ => effects.reply(Empty.defaultInstance)
+  }
 
-        log.info(
-          s"StoreAPI in deleteStore - other ${other}"
+  override def makeStoreReady(
+      currentState: StoreState,
+      apiReadyStore: ApiReadyStore
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+    case Some(store)
+        if currentState != StoreState.defaultInstance && store.status.isStoreStatusDraft =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val event = StoreMadeReady(
+        Some(StoreId(apiReadyStore.storeId)),
+        store.info,
+        store.meta.map(
+          _.copy(
+            lastModifiedBy = apiReadyStore.readyingMember.map(member =>
+              MemberId(member.memberId)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = StoreStatus.STORE_STATUS_READY
+          )
         )
-
-        effects.reply(Empty.defaultInstance)
-      }
-    }
+      )
+      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def openStore(
       currentState: StoreState,
       apiOpenStore: ApiOpenStore
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == Some(StoreId(apiOpenStore.storeId)) && store.meta
-            .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in openStore - apiOpenStore ${apiOpenStore}"
-        )
-
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val event = StoreOpened(
-          Some(StoreId(apiOpenStore.storeId)),
-          store.info,
-          store.meta.map(
-            _.copy(
-              lastModifiedBy = apiOpenStore.openingMember.map(member =>
-                MemberId(member.memberId)
-              ),
-              lastModifiedOn = Some(timestamp),
-              status = StoreStatus.OPEN
-            )
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+    case Some(store)
+        if store.status.isStoreStatusReady || store.status.isStoreStatusClosed =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val event = StoreOpened(
+        Some(StoreId(apiOpenStore.storeId)),
+        store.info,
+        store.meta.map(
+          _.copy(
+            lastModifiedBy = apiOpenStore.openingMember.map(member =>
+              MemberId(member.memberId)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = StoreStatus.STORE_STATUS_OPEN
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in openStore - other ${other}"
-        )
-
-        effects.reply(Empty.defaultInstance)
-      }
-    }
+      )
+      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def closeStore(
       currentState: StoreState,
       apiCloseStore: ApiCloseStore
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == Some(StoreId(apiCloseStore.storeId)) && store.meta
-            .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in closeStore - apiCloseStore ${apiCloseStore}"
-        )
-
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val event = StoreClosed(
-          Some(StoreId(apiCloseStore.storeId)),
-          store.info,
-          store.meta.map(
-            _.copy(
-              lastModifiedBy = apiCloseStore.closingMember.map(member =>
-                MemberId(member.memberId)
-              ),
-              lastModifiedOn = Some(timestamp),
-              status = StoreStatus.CLOSED
-            )
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+    case Some(store)
+        if store.status.isStoreStatusReady || store.status.isStoreStatusOpen =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val event = StoreClosed(
+        Some(StoreId(apiCloseStore.storeId)),
+        store.info,
+        store.meta.map(
+          _.copy(
+            lastModifiedBy = apiCloseStore.closingMember.map(member =>
+              MemberId(member.memberId)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = StoreStatus.STORE_STATUS_CLOSED
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in closeStore - other ${other}"
-        )
-
-        effects.reply(Empty.defaultInstance)
-      }
-    }
+      )
+      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def addProductsToStore(
       currentState: StoreState,
       apiAddProductToStore: ApiAddProductsToStore
-  ): EventSourcedEntity.Effect[Empty] = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == Some(
-            StoreId(apiAddProductToStore.storeId)
-          ) && store.meta
-            .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in addProductsToStore - apiAddProductToStore ${apiAddProductToStore}"
-        )
-
-        val now = java.time.Instant.now()
-        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-        val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
-        val event = ProductsAddedToStore(
-          Some(StoreId(apiAddProductToStore.storeId)),
-          store.info.map(
-            _.copy(
-              products =
-                currentProducts ++ apiAddProductToStore.products.map(product =>
-                  ProductId(product.productId)
-                )
-            )
-          ),
-          store.meta.map(
-            _.copy(
-              lastModifiedBy = apiAddProductToStore.addingMember.map(member =>
-                MemberId(member.memberId)
-              ),
-              lastModifiedOn = Some(timestamp)
-            )
+  ): EventSourcedEntity.Effect[Empty] = currentState.store match {
+    case Some(store)
+        if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance =>
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+      val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
+      val event = ProductsAddedToStore(
+        Some(StoreId(apiAddProductToStore.storeId)),
+        store.info.map(
+          _.copy(
+            products =
+              currentProducts ++ apiAddProductToStore.products.map(product =>
+                Sku(product.sku)
+              )
+          )
+        ),
+        store.meta.map(
+          _.copy(
+            lastModifiedBy = apiAddProductToStore.addingMember.map(member =>
+              MemberId(member.memberId)
+            ),
+            lastModifiedOn = Some(timestamp)
           )
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in addProductsToStore - other ${other}"
-        )
-
-        effects.reply(Empty.defaultInstance)
-      }
-    }
+      )
+      effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+    case _ => effects.reply(Empty.defaultInstance)
   }
 
   override def removeProductsFromStore(
       currentState: StoreState,
       apiRemoveProductFromStore: ApiRemoveProductsFromStore
-  ): EventSourcedEntity.Effect[Empty] = {
+  ): EventSourcedEntity.Effect[Empty] =
     currentState.store match {
       case Some(store)
-          if store.storeId == Some(
-            StoreId(apiRemoveProductFromStore.storeId)
-          ) && store.meta
-            .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in removeProductsFromStore - apiRemoveProductFromStore ${apiRemoveProductFromStore}"
-        )
-
+          if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
         val productsToRemove = apiRemoveProductFromStore.products.map(product =>
-          ProductId(product.productId)
+          Sku(product.sku)
         )
         val event = ProductsRemovedFromStore(
           Some(StoreId(apiRemoveProductFromStore.storeId)),
@@ -316,270 +265,184 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             )
           )
         )
+        log.info(
+          s"StoreAPI in removeProductsFromStore - apiRemoveProductFromStore ${apiRemoveProductFromStore}"
+        )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case other => {
-
-        log.info(
-          s"StoreAPI in removeProductsFromStore - other ${other}"
-        )
-
-        effects.reply(Empty.defaultInstance)
-      }
+      case _ => effects.reply(Empty.defaultInstance)
     }
-  }
 
   override def getProductsInStore(
       currentState: StoreState,
       apiGetProductsInStore: ApiGetProductsInStore
-  ): EventSourcedEntity.Effect[ApiProductsInStore] = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == Some(StoreId(apiGetProductsInStore.storeId))
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in getProductsInStore - apiGetProductsInStore ${apiGetProductsInStore}"
-        )
-
-        val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
-        val result = ApiProductsInStore(
-          apiGetProductsInStore.storeId,
-          currentProducts.map(productId => ApiProductId(productId.id))
-        )
-        effects.reply(result)
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in getProductsInStore - other ${other}"
-        )
-
-        effects.reply(ApiProductsInStore.defaultInstance)
-      }
-    }
+  ): EventSourcedEntity.Effect[ApiProductsInStore] = currentState.store match {
+    case Some(store)
+        if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance =>
+      val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
+      val result = ApiProductsInStore(
+        apiGetProductsInStore.storeId,
+        currentProducts.map(productId => ApiSku(productId.id))
+      )
+      effects.reply(result)
+    case _ => effects.reply(ApiProductsInStore.defaultInstance)
   }
 
   override def storeCreated(
       currentState: StoreState,
       storeCreated: StoreCreated
-  ): StoreState = {
-    currentState.store match {
-      case Some(store) => {
-
-        log.info(
-          s"StoreAPI in storeCreated - existing store ${store}"
+  ): StoreState = currentState.store match {
+    case Some(_) => currentState
+    case _ =>
+      currentState.withStore(
+        Store(
+          storeCreated.storeId,
+          storeCreated.info,
+          storeCreated.meta,
+          StoreStatus.STORE_STATUS_DRAFT
         )
-
-        currentState
-      }
-      case _ => {
-
-        log.info(
-          s"StoreAPI in storeCreated - storeCreated ${storeCreated}"
-        )
-
-        currentState.withStore(
-          Store(
-            storeCreated.storeId,
-            storeCreated.info,
-            storeCreated.meta,
-            StoreStatus.DRAFT
-          )
-        )
-      }
-    }
+      )
   }
 
   override def storeDeleted(
       currentState: StoreState,
       storeDeleted: StoreDeleted
-  ): StoreState = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == storeDeleted.storeId
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in storeDeleted - storeDeleted ${storeDeleted}"
+  ): StoreState = currentState.store match {
+    case Some(store)
+        if store.storeId == storeDeleted.storeId
+          && (store.status.isStoreStatusDraft || store.status.isStoreStatusClosed) =>
+      currentState.withStore(
+        store.copy(
+          meta = storeDeleted.meta,
+          status = StoreStatus.STORE_STATUS_DELETED
         )
+      )
+    case _ => currentState
+  }
 
-        currentState.withStore(
-          store.copy(
-            meta = storeDeleted.meta
-          )
+  override def storeMadeReady(
+      currentState: StoreState,
+      storeMadeReady: StoreMadeReady
+  ): StoreState = currentState.store match {
+    case Some(store) if store.status.isStoreStatusDraft =>
+      currentState.withStore(
+        store.copy(
+          info = storeMadeReady.info,
+          meta = storeMadeReady.meta,
+          status = StoreStatus.STORE_STATUS_READY
         )
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in storeDeleted - other ${other}"
-        )
-
-        currentState
-      }
-    }
+      )
+    case _ => currentState
   }
 
   override def storeOpened(
       currentState: StoreState,
       storeOpened: StoreOpened
-  ): StoreState = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == storeOpened.storeId
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in storeOpened - storeOpened ${storeOpened}"
+  ): StoreState = currentState.store match {
+    case Some(store)
+        if store.status.isStoreStatusReady || store.status.isStoreStatusClosed =>
+      currentState.withStore(
+        store.copy(
+          info = storeOpened.info,
+          meta = storeOpened.meta,
+          status = StoreStatus.STORE_STATUS_OPEN
         )
-
-        currentState.withStore(
-          store.copy(
-            info = storeOpened.info,
-            meta = storeOpened.meta
-          )
-        )
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in storeOpened - other ${other}"
-        )
-
-        currentState
-      }
-    }
+      )
+    case _ => currentState
   }
 
   override def storeClosed(
       currentState: StoreState,
       storeClosed: StoreClosed
-  ): StoreState = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == storeClosed.storeId
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in storeClosed - storeClosed ${storeClosed}"
+  ): StoreState = currentState.store match {
+    case Some(store)
+        if store.status.isStoreStatusReady || store.status.isStoreStatusOpen =>
+      currentState.withStore(
+        store.copy(
+          info = storeClosed.info,
+          meta = storeClosed.meta,
+          status = StoreStatus.STORE_STATUS_CLOSED
         )
-
-        currentState.withStore(
-          store.copy(
-            info = storeClosed.info,
-            meta = storeClosed.meta
-          )
-        )
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in storeClosed - other ${other}"
-        )
-
-        currentState
-      }
-    }
+      )
+    case _ => currentState
   }
 
   override def productsAddedToStore(
       currentState: StoreState,
-      productsAddedToStore: ProductsAddedToStore
-  ): StoreState = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == productsAddedToStore.storeId
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in productsAddedToStore - productsAddedToStore ${productsAddedToStore}"
+      productAddedToStore: ProductsAddedToStore
+  ): StoreState = currentState.store match {
+    case Some(store) if !store.status.isStoreStatusDeleted =>
+      currentState.withStore(
+        store.copy(
+          info = productAddedToStore.info,
+          meta = productAddedToStore.meta
         )
-
-        currentState.withStore(
-          store.copy(
-            info = productsAddedToStore.info,
-            meta = productsAddedToStore.meta
-          )
-        )
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in productsAddedToStore - other ${other}"
-        )
-
-        currentState
-      }
-    }
+      )
+    case _ => currentState
   }
 
   override def productsRemovedFromStore(
       currentState: StoreState,
-      productsRemovedFromStore: ProductsRemovedFromStore
-  ): StoreState = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == productsRemovedFromStore.storeId
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in productsRemovedFromStore - productsRemovedFromStore ${productsRemovedFromStore}"
+      productRemovedFromStore: ProductsRemovedFromStore
+  ): StoreState = currentState.store match {
+    case Some(store) if !store.status.isStoreStatusDeleted =>
+      currentState.withStore(
+        store.copy(
+          info = productRemovedFromStore.info,
+          meta = productRemovedFromStore.meta
         )
-
-        currentState.withStore(
-          store.copy(
-            info = productsRemovedFromStore.info,
-            meta = productsRemovedFromStore.meta
-          )
-        )
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in productsRemovedFromStore - other ${other}"
-        )
-
-        currentState
-      }
-    }
+      )
+    case _ => currentState
   }
 
   override def storeUpdated(
       currentState: StoreState,
       storeUpdated: StoreUpdated
-  ): StoreState = {
-    currentState.store match {
-      case Some(store)
-          if store.storeId == storeUpdated.storeId
-            && store.meta
-              .map(_.status) != Some(StoreStatus.DELETED) => {
-
-        log.info(
-          s"StoreAPI in storeUpdated - storeUpdated ${storeUpdated}"
+  ): StoreState = currentState.store match {
+    case Some(store) if !store.status.isStoreStatusDeleted =>
+      currentState.withStore(
+        store.copy(
+          info = storeUpdated.info,
+          meta = storeUpdated.meta
         )
+      )
+    case _ => currentState
+  }
 
-        currentState.withStore(
-          store.copy(
-            info = storeUpdated.info,
-            meta = storeUpdated.meta
+  override def releaseStore(
+      currentState: StoreState,
+      apiReleaseStore: ApiReleaseStore
+  ): EventSourcedEntity.Effect[Empty] = effects
+    .emitEvent(
+      StoreReleased(
+        Some(StoreId(apiReleaseStore.storeId)),
+        apiReleaseStore.releasingMember.map(apiId => MemberId(apiId.memberId))
+      )
+    )
+    .deleteEntity()
+    .thenReply(_ => Empty.defaultInstance)
+
+  override def storeReleased(
+      currentState: StoreState,
+      storeReleased: StoreReleased
+  ): StoreState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(store =
+      currentState.store.map(
+        _.copy(
+          status = StoreStatus.STORE_STATUS_RELEASED,
+          meta = currentState.store.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = storeReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
           )
         )
-      }
-      case other => {
-
-        log.info(
-          s"StoreAPI in storeUpdated - other ${other}"
-        )
-
-        currentState
-      }
-    }
+      )
+    )
   }
 }

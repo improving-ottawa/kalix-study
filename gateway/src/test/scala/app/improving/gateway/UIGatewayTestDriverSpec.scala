@@ -14,6 +14,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
 
+import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.io.Source
 import io.circe._
@@ -47,11 +48,7 @@ class UIGatewayTestDriverSpec
       config.getInt("app.improving.akka.grpc.client-url-port")
     )
 
-  val testClient: TestGatewayApiActionClient = TestGatewayApiActionClient(
-    gatewayClientSettings
-  )
-
-  val uiClient: UiGatewayApiActionClient = UiGatewayApiActionClient(
+  val client: TestGatewayApiActionClient = TestGatewayApiActionClient(
     gatewayClientSettings
   )
 
@@ -102,7 +99,7 @@ class UIGatewayTestDriverSpec
       )
 
       val results =
-        testClient.handleStartScenario(StartScenario(Some(info))).futureValue
+        client.handleStartScenario(StartScenario(Some(info))).futureValue
 
       checkResults(results, info)
 

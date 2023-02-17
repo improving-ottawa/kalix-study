@@ -20,7 +20,8 @@ service TenantService {
                 "app.improving.tenantcontext.TenantActivated",
                 "app.improving.tenantcontext.TenantSuspended",
                 "app.improving.tenantcontext.PrimaryContactUpdated",
-                "app.improving.tenantcontext.TenantNameChanged"]
+                "app.improving.tenantcontext.TenantNameChanged",
+                "app.improving.tenantcontext.TenantReleased"]
         }
     };
 
@@ -40,6 +41,12 @@ service TenantService {
     rpc SuspendTenant(ApiSuspendTenant) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/tenant/{tenant_id}/suspend-tenant"
+        };
+    }
+
+    rpc ReleaseTenant(ApiReleaseTenant) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/tenant/{tenant_id}/release-tenant"
         };
     }
 

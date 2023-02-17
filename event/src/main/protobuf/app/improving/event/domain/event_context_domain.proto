@@ -12,7 +12,8 @@ enum EventStatus {
     EVENT_STATUS_PAST = 2;
     EVENT_STATUS_CANCELLED = 3;
     EVENT_STATUS_DELAYED = 4;
-    EVENT_STATUS_UNKNOWN = 5;
+    EVENT_STATUS_RELEASED = 5;
+    EVENT_STATUS_UNKNOWN = 6;
 }
 
 message ReservationId {
@@ -21,7 +22,7 @@ message ReservationId {
 
 message EventCancelled {
     EventId event_id = 1;
-    MemberId cancelling_member = 2;
+    EventMetaInfo meta = 2;
 }
 
 message EventDelayed {
@@ -39,10 +40,9 @@ message EventEnded {
 message EventInfo {
     string event_name = 1;
     string description = 2;
-    string event_uRL = 3; // URL type?
+    string event_url = 3; // URL type?
     OrganizationId sponsoring_org = 4;
     GeoLocation geo_location = 5;
-    ReservationId reservation = 6;
     google.protobuf.Timestamp expected_start = 7;
     google.protobuf.Timestamp expected_end = 8;
     bool is_private = 9;
@@ -77,18 +77,30 @@ message EventResults {
 }
 
 message EventScheduled {
-    EventId  event_id = 1;
+    EventId event_id = 1;
     EventInfo info = 2;
     EventMetaInfo meta = 3;
 }
 
 message EventStarted {
-    EventId  event_id = 1;
+    EventId event_id = 1;
     EventInfo info = 2;
     EventMetaInfo meta = 3;
+}
+
+
+message EventReleased {
+    EventId event_id = 1 ;
+    MemberId releasing_member = 2;
 }
 
 message LiveUpdate {
     string from = 1;
     string to = 2;
+}
+
+message ReservationAddedToEvent {
+    EventId event_id = 1;
+    string reservation = 2;
+    EventMetaInfo meta = 3;
 }

@@ -1,7 +1,7 @@
 package app.improving.productcontext
 
 import app.improving.productcontext.infrastructure.util._
-import app.improving.productcontext.product.{ApiProduct, ApiProductStatus}
+import app.improving.productcontext.product.ApiProductStatus
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 import org.slf4j.LoggerFactory
@@ -14,92 +14,58 @@ import org.slf4j.LoggerFactory
 class TicketByEventViewImpl(context: ViewContext)
     extends AbstractTicketByEventView {
 
-  override def emptyState: ApiProduct = ApiProduct.defaultInstance
+  override def emptyState: TicketEventCorrTableRow =
+    TicketEventCorrTableRow.defaultInstance
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
   override def processProductCreated(
-      state: ApiProduct,
+      state: TicketEventCorrTableRow,
       productCreated: ProductCreated
-  ): UpdateEffect[ApiProduct] = {
-    if (state != emptyState) {
-
-      log.info(
-        s"TicketByEventViewImpl in processProductCreated - state already existed"
-      )
-
-      effects.ignore()
-    } else {
-
-      log.info(
-        s"TicketByEventViewImpl in processProductCreated - productCreated ${productCreated}"
-      )
-
+  ): UpdateEffect[TicketEventCorrTableRow] = {
+    if (state != emptyState) effects.ignore()
+    else
       effects.updateState(
-        convertProductCreatedToApiProduct(productCreated)
+        convertProductCreatedToTicketEventCorrTableRow(productCreated)
       )
-    }
   }
 
   override def processProductInfoUpdated(
-      state: ApiProduct,
+      state: TicketEventCorrTableRow,
       productInfoUpdated: ProductInfoUpdated
-  ): UpdateEffect[ApiProduct] = {
-
-    log.info(
-      s"TicketByEventViewImpl in processProductInfoUpdated - productInfoUpdated ${productInfoUpdated}"
-    )
-
+  ): UpdateEffect[TicketEventCorrTableRow] =
     effects.updateState(
       state.copy(
-        info = productInfoUpdated.info.map(convertProductInfoToApiProductInfo),
-        meta = productInfoUpdated.meta.map(
-          convertProductMetaInfoToApiProductMetaInfo
-        )
+        info = productInfoUpdated.info,
+        meta = productInfoUpdated.meta,
+        event = productInfoUpdated.info.flatMap(extractEventIdFromProductInfo)
       )
     )
-  }
 
   override def processProductDeleted(
-      state: ApiProduct,
+      state: TicketEventCorrTableRow,
       productDeleted: ProductDeleted
-  ): UpdateEffect[ApiProduct] = {
-
-    log.info(
-      s"TicketByEventViewImpl in processProductDeleted - productDeleted ${productDeleted}"
-    )
-
+  ): UpdateEffect[TicketEventCorrTableRow] =
     effects.deleteState()
-  }
 
   override def processProductActivated(
-      state: ApiProduct,
+      state: TicketEventCorrTableRow,
       productActivated: ProductActivated
-  ): UpdateEffect[ApiProduct] = {
-
-    log.info(
-      s"TicketByEventViewImpl in processProductActivated - productActivated ${productActivated}"
-    )
-
+  ): UpdateEffect[TicketEventCorrTableRow] = {
     effects.updateState(
       state.copy(
-        status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
+        status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE.toString()
       )
     )
   }
 
   override def processProductInactivated(
-      state: ApiProduct,
+      state: TicketEventCorrTableRow,
       productInactivated: ProductInactivated
-  ): UpdateEffect[ApiProduct] = {
-
-    log.info(
-      s"TicketByEventViewImpl in processProductInactivated - productInactivated ${productInactivated}"
-    )
-
+  ): UpdateEffect[TicketEventCorrTableRow] = {
     effects.updateState(
       state.copy(
-        status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE
+        status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE.toString()
       )
     )
   }

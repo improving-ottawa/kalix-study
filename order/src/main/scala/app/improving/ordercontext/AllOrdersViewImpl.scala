@@ -1,6 +1,6 @@
 package app.improving.ordercontext
 
-import app.improving.ApiMemberId
+import app.improving.{ApiMemberId, ApiOrderId, OrderId, StoreId}
 import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -38,7 +38,7 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
 
       effects.updateState(
         ApiOrder(
-          orderCreated.orderId.map(_.id).getOrElse("OrderId is NOT FOUND."),
+          orderCreated.orderId.getOrElse(OrderId.defaultInstance).id,
           orderCreated.info.map(convertOrderInfoToApiOrderInfo),
           orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
           ApiOrderStatus.API_ORDER_STATUS_DRAFT

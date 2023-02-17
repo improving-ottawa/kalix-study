@@ -4,6 +4,7 @@ import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{ApiMemberId, MemberId}
 import app.improving.membercontext.{
+  MemberReleased,
   MemberInfoUpdated,
   MemberRegistered,
   MemberStatus,
@@ -37,9 +38,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           s"MemberAPI in registerMember - member already existed - ${member}"
         )
 
-        effects.reply(
-          ApiMemberId.defaultInstance
-        ) // already registered so just return.
+        effects.error(
+          s"Member already registered for id ${apiRegisterMember.memberId}"
+        )// already registered so just return.
       }
       case _ => {
 
@@ -62,7 +63,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               memberIdOpt,
               Some(timestamp),
               memberIdOpt,
-              MemberStatus.MEMBER_STATUS_ACTIVE
+              MemberStatus.MEMBER_STATUS_DRAFT
             )
           )
         )
@@ -79,7 +80,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       case Some(state)
           if state.memberId.contains(
             MemberId(apiUpdateMemberStatus.memberId)
-          ) => {
+          ) && isStateChangeValid(state, apiUpdateMemberStatus.newStatus) => {
 
         log.info(
           s"MemberAPI in updateMemberStatus - apiUpdateMemberStatus - ${apiUpdateMemberStatus}"
@@ -114,15 +115,40 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
     }
   }
 
+  def isStateChangeValid(member: Member, status: ApiMemberStatus): Boolean = {
+    member.status match {
+      case MemberStatus.MEMBER_STATUS_DRAFT
+          if member.getInfo.handle.nonEmpty &&
+            member.getInfo.avatar.nonEmpty &&
+            member.getInfo.firstName.nonEmpty &&
+            member.getInfo.lastName.nonEmpty &&
+            !status.isApiMemberStatusDraft =>
+        true
+      case MemberStatus.MEMBER_STATUS_ACTIVE
+          if !status.isApiMemberStatusDraft &&
+            !status.isApiMemberStatusActive =>
+        true
+      case MemberStatus.MEMBER_STATUS_INACTIVE
+          if !status.isApiMemberStatusDraft &&
+            !status.isApiMemberStatusInactive &&
+            !status.isApiMemberStatusSuspended =>
+        true
+      case MemberStatus.MEMBER_STATUS_SUSPENDED
+          if !status.isApiMemberStatusDraft &&
+            !status.isApiMemberStatusInactive &&
+            !status.isApiMemberStatusSuspended =>
+        true
+      case _ =>
+        false
+    }
+  }
+
   override def updateMemberInfo(
       currentState: MemberState,
       apiUpdateMemberInfo: ApiUpdateMemberInfo
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.member match {
-      case Some(state)
-          if state.memberId.contains(
-            MemberId(apiUpdateMemberInfo.memberId)
-          ) => {
+      case Some(state) => {
 
         log.info(
           s"MemberAPI in updateMemberInfo - apiUpdateMemberInfo - ${apiUpdateMemberInfo}"
@@ -325,7 +351,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           memberRegistered.memberId,
           memberRegistered.info,
           memberRegistered.meta,
-          MemberStatus.MEMBER_STATUS_ACTIVE
+          MemberStatus.MEMBER_STATUS_DRAFT
         )
         currentState.withMember(member)
       }
@@ -360,5 +386,45 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         currentState
       }
     }
+  }
+
+  override def releaseMember(
+      currentState: MemberState,
+      apiReleaseMember: ApiReleaseMember
+  ): EventSourcedEntity.Effect[Empty] =
+    effects
+      .emitEvent(
+        MemberReleased(
+          Some(MemberId(apiReleaseMember.memberId)),
+          apiReleaseMember.deletingMemberId.map(apiId =>
+            MemberId(apiId.memberId)
+          )
+        )
+      )
+      .deleteEntity()
+      .thenReply(_ => Empty.defaultInstance)
+
+  override def memberReleased(
+      currentState: MemberState,
+      memberReleased: MemberReleased
+  ): MemberState = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    currentState.copy(member =
+      currentState.member.map(
+        _.copy(
+          status = MemberStatus.MEMBER_STATUS_RELEASED,
+          meta = currentState.member.flatMap(
+            _.meta.map(
+              _.copy(
+                lastModifiedBy = memberReleased.releasingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            )
+          )
+        )
+      )
+    )
   }
 }

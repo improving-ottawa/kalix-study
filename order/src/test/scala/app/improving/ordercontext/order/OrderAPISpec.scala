@@ -1,6 +1,7 @@
 package app.improving.ordercontext.order
 
 import TestData._
+import app.improving.{ApiOrderId, MemberId}
 import app.improving.MemberId
 import app.improving.ordercontext.infrastructure.util._
 import app.improving.ordercontext.{
@@ -34,9 +35,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderCreated.info shouldBe defined
       orderCreated.meta shouldBe defined
 
-      orderCreated.info.map(_.orderTotal).getOrElse(0.0) shouldBe testLineItems
-        .map(item => item.lineTotal * item.quantity)
-        .sum
+      orderCreated.info
+        .map(_.lineItems)
+        .map(lineItemSeq => lineItemSeq.map(convertLineItemToApiLineItem))
+        .get shouldBe testLineItems
 
       val nullCreateOrderResult = testKit.createOrder(apiCreateOrder)
 
@@ -54,15 +56,9 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       orderCreated.orderId shouldBe defined
 
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
       val updateOrderStatusResult =
         testKit.updateOrderStatus(
-          apiUpdateOrderStatus.copy(
-            orderId = orderId
-          )
+          apiUpdateOrderStatus
         )
 
       updateOrderStatusResult.events should have size 1
@@ -95,12 +91,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       orderCreated.orderId shouldBe defined
 
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
       val updateOrderInfoResult =
-        testKit.updateOrderInfo(apiUpdateOrderInfo.copy(orderId = orderId))
+        testKit.updateOrderInfo(
+          apiUpdateOrderInfo
+        )
 
       updateOrderInfoResult.events should have size 1
 
@@ -120,10 +114,37 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         .map(item => item.lineTotal * item.quantity)
         .sum
 
+      orderInfoUpdated.info
+        .map(_.specialInstructions)
+        .getOrElse("") shouldBe testSpecialInstruction
+
       val nullUpdateOrderInfoResult =
         testKit.updateOrderInfo(nullApiUpdateOrderInfo)
 
       nullUpdateOrderInfoResult.events should have size 0
+
+      val updateOrderStatusResultToPending =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus
+        )
+
+      updateOrderStatusResultToPending.events should have size 1
+
+      val updateOrderStatusResultToInProcess =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            newStatus = testNewOrderStatusToInProcess
+          )
+        )
+
+      updateOrderStatusResultToInProcess.events should have size 1
+
+      val updateInProcessOrderInfoResult =
+        testKit.updateOrderInfo(
+          apiUpdateOrderInfo
+        )
+
+      updateInProcessOrderInfoResult.events should have size 0
     }
 
     "correctly process commands of type CancelOrder" in {
@@ -137,13 +158,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       orderCreated.orderId shouldBe defined
 
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
-
       val cancelOrderResult =
-        testKit.cancelOrder(apiCancelOrder.copy(orderId = orderId))
+        testKit.cancelOrder(
+          apiCancelOrder
+        )
 
       cancelOrderResult.events should have size 1
 
@@ -161,7 +179,6 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       )
 
       val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
-
       nullCancelOrderResult.events should have size 0
     }
 
@@ -171,27 +188,17 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       val createOrderResult = testKit.createOrder(apiCreateOrder)
 
       createOrderResult.events should have size 1
-
-      val orderId = testKit.currentState.order
-        .flatMap(_.orderId)
-        .map(_.id)
-        .getOrElse("OrderId is not found.")
-
       val getOrderInfoResult =
-        testKit.getOrderInfo(apiGetOrderInfo.copy(orderId = orderId))
+        testKit.getOrderInfo(
+          apiGetOrderInfo
+        )
 
       val result = getOrderInfoResult.reply
 
       result.orderId shouldBe defined
       result.info shouldBe defined
 
-      result.info shouldBe Some(
-        testOrderInfo.copy(orderTotal =
-          testLineItems
-            .map(item => item.lineTotal * item.quantity)
-            .sum
-        )
-      )
+      result.info shouldBe Some(testOrderInfo)
     }
   }
 }

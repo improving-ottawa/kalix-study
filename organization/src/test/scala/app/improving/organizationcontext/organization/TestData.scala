@@ -7,20 +7,20 @@ import java.time.Instant
 
 object TestData {
 
-  val testOrgId = "test-organization-id"
-  val parentIdTest = "parent-id-test"
-  val newParentId = "new-parent-id"
+  val testOrgId: ApiOrganizationId = ApiOrganizationId("test-organization-id")
+  val parentIdTest: ApiOrganizationId = ApiOrganizationId("parent-id-test")
+  val newParentId: ApiOrganizationId = ApiOrganizationId("new-parent-id")
   val testTenantId = "test-tenant-id"
   val establishingMemberId = "establishing-member-id"
-  val now = Instant.now()
-  val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  val now: Instant = Instant.now()
+  val timestamp: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
-  val apiEstablishOrganization = ApiEstablishOrganization(
-    testOrgId,
+  val apiEstablishOrganization: ApiEstablishOrganization = ApiEstablishOrganization(
+    testOrgId.organizationId,
     Some(
       ApiInfo(
         "name-test",
-        "shortname-test",
+        Some("shortname-test"),
         Some(
           ApiAddress(
             "line1",
@@ -33,13 +33,13 @@ object TestData {
             )
           )
         ),
-        true,
-        "www.test.com",
-        "N/A",
+        Some(true),
+        Some("www.test.com"),
+        Some("N/A"),
         Some(ApiTenantId(testTenantId))
       )
     ),
-    Some(ApiParent(parentIdTest)),
+    Some(ApiParent(Some(ApiOrganizationId(parentIdTest.organizationId)))),
     Seq[ApiMemberId](
       ApiMemberId("test-member-id"),
       ApiMemberId("member2"),
@@ -50,17 +50,9 @@ object TestData {
       ApiMemberId("member11"),
       ApiMemberId("member12")
     ),
-    Seq.empty,
-    Some(ApiMemberId(establishingMemberId)),
-    Some(
-      ApiMetaInfo(
-        Some(timestamp),
-        Some(ApiMemberId(establishingMemberId)),
-        Some(timestamp),
-        Some(ApiMemberId(establishingMemberId)),
-        ApiOrganizationStatus.API_ORGANIZATION_STATUS_DRAFT,
-        Seq.empty[ApiOrganizationId]
-      )
-    )
+    Seq[ApiContacts](
+      ApiContacts(primaryContacts = Seq(ApiMemberId("member81")))
+    ),
+    Some(ApiMemberId(establishingMemberId))
   )
 }

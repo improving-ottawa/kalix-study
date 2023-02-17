@@ -33,3 +33,13 @@ message ScenarioResults {
     StoreIds store_ids = 6;
     map<string, Skus> products_for_stores = 7;
 }
+
+message EndScenario {
+    repeated ApiTenantId tenants = 1;
+    repeated OrganizationIds orgs = 2;
+    repeated MemberIds members = 3;
+    repeated EventIds events = 4;
+    repeated StoreIds stores = 6;
+    repeated Skus products = 7;
+    repeated OrderIds orders = 8;
+}

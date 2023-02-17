@@ -29,7 +29,7 @@ class AllTenantsViewImpl(context: ViewContext) extends AbstractAllTenantsView {
           tenantEstablished.primaryContact.map(convertContactToApiContact),
           tenantEstablished.info.map(convertInfoToApiInfo),
           tenantEstablished.meta.map(convertMetaInfoToApiMetaInfo),
-          ApiTenantStatus.DRAFT
+          ApiTenantStatus.API_TENANT_STATUS_DRAFT
         )
       )
   }
@@ -50,7 +50,7 @@ class AllTenantsViewImpl(context: ViewContext) extends AbstractAllTenantsView {
       state.copy(
         meta = tenantSuspended.meta.map(convertMetaInfoToApiMetaInfo),
         name = tenantSuspended.name,
-        status = ApiTenantStatus.SUSPENDED
+        status = ApiTenantStatus.API_TENANT_STATUS_SUSPENDED
       )
     )
   }

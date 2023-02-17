@@ -6,38 +6,56 @@ import "google/protobuf/timestamp.proto";
 package app.improving.productcontext;
 
 enum ProductStatus {
-    PRODUCT_STATUS_ACTIVE = 0;
+    PRODUCT_STATUS_DRAFT = 0;
+    PRODUCT_STATUS_ACTIVE = 1;
     PRODUCT_STATUS_INACTIVE = 2;
     PRODUCT_STATUS_DELETED = 3;
-    PRODUCT_STATUS_UNKNOWN = 4;
+    PRODUCT_STATUS_RELEASED = 4;
+    PRODUCT_STATUS_UNKNOWN = 5;
+}
+
+message ReservedTicket {
+    string section = 1;
+    string row = 2;
+    string set = 3;
+    EventId event = 4;
+}
+
+message RestrictedTicket {
+    string section = 1;
+    EventId event = 2;
+}
+
+message OpenTicket {
+    EventId event = 1;
+}
+
+message ProductDetails {
+    oneof ticket {
+        ReservedTicket reserved_ticket = 1;
+        RestrictedTicket restricted_ticket = 2;
+        OpenTicket open_ticket = 3;
+    }
 }
 
 message ProductInfo {
-    ProductId sku = 1;
-    string  name = 2;
-    string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    EventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    StoreId store = 11;
+    string  name = 1;
+    string  description = 2;
+    ProductDetails product_details = 3;
+    repeated string image = 4;
+    double price = 5;
+    double cost = 6;
+    StoreId store = 7;
 }
 
 message ProductInfoUpdate {
-    ProductId sku = 1;
-    string  name = 2;
-    string  description = 3;
-    string section = 4;
-    string row = 5;
-    string seat = 6;
-    EventId event = 7;
-    repeated string image = 8;
-    double price = 9;
-    double cost = 10;
-    StoreId store = 11;
+    optional string name = 1;
+    optional string description = 2;
+    optional ProductDetails product_details = 3;
+    repeated string image = 4;
+    optional double price = 5;
+    optional double cost = 6;
+    StoreId store = 7;
 }
 
 message ProductMetaInfo {
@@ -48,32 +66,37 @@ message ProductMetaInfo {
 }
 
 message ProductCreated {
-    ProductId sku = 1;
+    Sku sku = 1;
     ProductInfo info = 2;
     ProductMetaInfo meta = 3;
 }
 message ProductInfoUpdated {
-    ProductId sku = 1;
+    Sku sku = 1;
     ProductInfo info = 2;
     ProductMetaInfo meta = 3;
 }
 message ProductDeleted {
-    ProductId sku = 1;
+    Sku sku = 1;
     MemberId deleting_member = 2;
 }
 message ProductActivated {
-    ProductId sku = 1;
+    Sku sku = 1;
     MemberId activating_member = 2;
 }
 message ProductInactivated {
-    ProductId sku = 1;
+    Sku sku = 1;
     MemberId inactivating_member = 2;
 }
+message ProductReleased {
+    Sku sku = 1;
+    MemberId releasing_member = 2;
+
+}
 message GetProductInfo {
-    ProductId sku = 1;
+    Sku sku = 1;
 }
 message ProductInfoResult {
-    ProductId sku = 1;
+    Sku sku = 1;
     ProductInfo info = 2;
     ProductMetaInfo meta = 3;
 }

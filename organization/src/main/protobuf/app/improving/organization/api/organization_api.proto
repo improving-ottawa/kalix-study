@@ -2,6 +2,7 @@
 syntax = "proto3";
 
 import "common_api.proto";
+import "common_domain.proto";
 import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
@@ -14,7 +15,7 @@ message ApiOrganization {
     repeated string member_ids = 4;
     repeated string owner_ids = 5;
     repeated ApiContacts contacts = 6;
-    ApiMetaInfo orgMeta = 7;
+    ApiMetaInfo org_meta = 7;
     string name = 8;
     ApiOrganizationStatus status = 9;
 }
@@ -23,30 +24,31 @@ enum ApiOrganizationStatus {
     API_ORGANIZATION_STATUS_DRAFT = 0;
     API_ORGANIZATION_STATUS_ACTIVE = 1;
     API_ORGANIZATION_STATUS_SUSPENDED = 2;
-    API_ORGANIZATION_STATUS_TERMINATED = 3;
+    API_ORGANIZATION_STATUS_RELEASED = 3;
+    API_ORGANIZATION_STATUS_TERMINATED = 4;
 }
 
 message ApiInfo {
-        string name = 1;
-        string shortName = 2;
-        ApiAddress address = 3;
-        bool isPrivate = 4;
-        string url = 5; // URL type?
-        string logo = 6; // URL type?
-        ApiTenantId tenant = 7;
+    string name = 1;
+    optional string short_name = 2;
+    ApiAddress address = 3;
+    optional bool is_private = 4;
+    optional string url = 5; // URL type?
+    optional string logo = 6; // URL type?
+    ApiTenantId tenant = 7;
 }
 
 message ApiMetaInfo {
-    google.protobuf.Timestamp createdOn = 1;
-    ApiMemberId createdBy = 2;
-    google.protobuf.Timestamp   lastUpdated = 3;
-    ApiMemberId lastUpdatedBy = 4;
-    ApiOrganizationStatus currentStatus = 5;
+    google.protobuf.Timestamp created_on = 1;
+    ApiMemberId created_by = 2;
+    google.protobuf.Timestamp last_updated = 3;
+    ApiMemberId last_updated_by = 4;
+    ApiOrganizationStatus current_status = 5;
     repeated ApiOrganizationId children = 6;
 }
 
 message ApiParent {
-    string org_id = 1 [(kalix.field).entity_key = true];
+    ApiOrganizationId org_id = 1;
 }
 
 message ApiGetOrganizationInfo {
@@ -58,71 +60,77 @@ message ApiGetOrganizationById {
 }
 
 message ApiContacts {
-    repeated ApiMemberId primaryContacts = 1;
-    repeated ApiMemberId billingContacts = 2;
-    repeated ApiMemberId distributionContacts = 3;
+    repeated ApiMemberId primary_contacts = 1;
+    repeated ApiMemberId billing_contacts = 2;
+    repeated ApiMemberId distribution_contacts = 3;
 }
 
 message ApiUpdateInfo {
-    string name = 1;
-    string shortName = 2;
-    ApiAddress address = 3;
-    bool isPrivate = 4;
-    string url = 5; // URL type?
-    string logo = 6; // URL type?
-    ApiTenantId tenant = 7;
+    optional string name = 1;
+    optional string short_name = 2;
+    optional ApiAddress address = 3;
+    optional bool is_private = 4;
+    optional string url = 5; // URL type?
+    optional string logo = 6; // URL type?
+    optional ApiTenantId tenant = 7;
 }
 
 message ApiUpdateParent {
     string org_id = 1 [(kalix.field).entity_key = true];
-    ApiOrganizationId newParent = 2;
+    ApiOrganizationId new_parent = 2;
+    ApiMemberId updating_member = 3;
 }
 
 message ApiAddMembersToOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiMemberId membersToAdd = 2;
-    ApiMemberId updatingMember = 3;
+    repeated ApiMemberId members_to_add = 2;
+    ApiMemberId updating_member = 3;
 }
 
 message ApiAddOwnersToOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiMemberId ownersToAdd = 2;
-    ApiMemberId updatingMember = 3;
+    repeated ApiMemberId owners_to_add = 2;
+    ApiMemberId updating_member = 3;
 }
 
 message ApiEditOrganizationInfo {
     string org_id = 1 [(kalix.field).entity_key = true];
-    ApiUpdateInfo newInfo = 2;
-    ApiMemberId editingMember = 3;
+    ApiUpdateInfo new_info = 2;
+    ApiMemberId editing_member = 3;
 }
 
 message ApiEstablishOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
     ApiInfo info = 2;
-    ApiParent parent = 3;
+    optional ApiParent parent = 3;
     repeated ApiMemberId members = 4;
     repeated ApiMemberId owners = 5;
     repeated ApiContacts contacts = 6;
-    ApiMemberId establishingMember = 7;
-    ApiMetaInfo meta = 8;
+    ApiMemberId establishing_member = 7;
 }
 
 message ApiRemoveOwnersFromOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiMemberId ownersToRemove = 2;
-    ApiMemberId updatingMember = 3;
+    repeated ApiMemberId owners_to_remove = 2;
+    ApiMemberId updating_member = 3;
 
 }
 
 message ApiRemoveMembersFromOrganization {
     string org_id = 1 [(kalix.field).entity_key = true];
-    repeated ApiMemberId membersToRemove = 2;
-    ApiMemberId updatingMember = 3;
+    repeated ApiMemberId members_to_remove = 2;
+    ApiMemberId updating_member = 3;
 }
 
 message ApiOrganizationStatusUpdated {
     string org_id = 1 [(kalix.field).entity_key = true];
-    ApiOrganizationStatus newStatus = 2;
+    ApiOrganizationStatus new_status = 2;
+    ApiMemberId updating_member = 3;
+}
+
+message ApiReleaseOrganization {
+    string org_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 2;
 }
 
 message ApiOrganizationListByMember {
