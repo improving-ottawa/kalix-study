@@ -52,6 +52,7 @@ message EventsTableRow {
     string event_name = 2;
     google.type.Date event_date = 3;
     eventcontext.EventStatus status = 4;
+    OrganizationId event_org_id = 5;
 }
 
 message EventOrgCorrTableRow {
@@ -101,6 +102,16 @@ service MembersAttendingEventsForAnOrganization {
     }
 
     rpc ProcessEventScheduledForCorrTable(eventcontext.EventScheduled) returns (EventOrgCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "event"
+        };
+        option (kalix.method).view.update = {
+            table: "event_org_corr"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventCancelledForCorrTable(eventcontext.EventScheduled) returns (EventOrgCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "event"
         };

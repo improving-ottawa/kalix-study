@@ -10,6 +10,7 @@ import org.scalatest.time.Millis
 import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.wordspec.AnyWordSpec
+import app.improving.membercontext.Main
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
