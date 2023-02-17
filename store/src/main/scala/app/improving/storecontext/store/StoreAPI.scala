@@ -2,7 +2,19 @@ package app.improving.storecontext.store
 
 import app.improving.storecontext.infrastructure.util._
 import app.improving.{ApiSku, ApiStoreId, MemberId, Sku, StoreId}
-import app.improving.storecontext.{ProductsAddedToStore, ProductsRemovedFromStore, StoreClosed, StoreCreated, StoreDeleted, StoreMadeReady, StoreMetaInfo, StoreOpened, StoreReleased, StoreStatus, StoreUpdated}
+import app.improving.storecontext.{
+  ProductsAddedToStore,
+  ProductsRemovedFromStore,
+  StoreClosed,
+  StoreCreated,
+  StoreDeleted,
+  StoreMadeReady,
+  StoreMetaInfo,
+  StoreOpened,
+  StoreReleased,
+  StoreStatus,
+  StoreUpdated
+}
 import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
@@ -232,9 +244,8 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
-        val productsToRemove = apiRemoveProductFromStore.products.map(product =>
-          Sku(product.sku)
-        )
+        val productsToRemove =
+          apiRemoveProductFromStore.products.map(product => Sku(product.sku))
         val event = ProductsRemovedFromStore(
           Some(StoreId(apiRemoveProductFromStore.storeId)),
           store.info.map(

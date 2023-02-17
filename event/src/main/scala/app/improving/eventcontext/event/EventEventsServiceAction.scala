@@ -28,7 +28,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventInfoChanged] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventInfoChanged - eventInfoChanged - ${eventInfoChanged}"
+      s"EventEventsServiceAction in transformEventInfoChanged - eventInfoChanged - $eventInfoChanged"
     )
 
     effects.reply(
@@ -44,7 +44,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventScheduled] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventScheduled - eventScheduled - ${eventScheduled}"
+      s"EventEventsServiceAction in transformEventScheduled - eventScheduled - $eventScheduled"
     )
 
     effects.reply(
@@ -58,9 +58,8 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   override def transformEventCancelled(
       eventCancelled: EventCancelled
   ): Action.Effect[ApiEventCancelled] = {
-
     log.info(
-      s"EventEventsServiceAction in transformEventCancelled - eventCancelled - ${eventCancelled}"
+      s"EventEventsServiceAction in transformEventCancelled - eventCancelled - $eventCancelled"
     )
 
     effects.reply(
@@ -72,12 +71,13 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
       )
     )
   }
+
   override def transformEventRescheduled(
       eventRescheduled: EventRescheduled
   ): Action.Effect[ApiEventRescheduled] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventRescheduled - eventRescheduled - ${eventRescheduled}"
+      s"EventEventsServiceAction in transformEventRescheduled - eventRescheduled - $eventRescheduled"
     )
 
     effects.reply(
@@ -93,7 +93,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventDelayed] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventDelayed - eventDelayed - ${eventDelayed}"
+      s"EventEventsServiceAction in transformEventDelayed - eventDelayed - $eventDelayed"
     )
 
     effects.reply(
@@ -110,7 +110,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventStarted] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventStarted - eventStarted - ${eventStarted}"
+      s"EventEventsServiceAction in transformEventStarted - eventStarted - $eventStarted"
     )
 
     effects.reply(
@@ -126,7 +126,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventEnded] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventEnded - eventEnded - ${eventEnded}"
+      s"EventEventsServiceAction in transformEventEnded - eventEnded - $eventEnded"
     )
 
     effects.reply(

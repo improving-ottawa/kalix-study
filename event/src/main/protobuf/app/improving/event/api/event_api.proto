@@ -127,6 +127,7 @@ message ApiAddReservationToEvent {
     string reservation = 2;
     ApiMemberId reserving_member = 3;
 }
+
 // For direct event source in direct_event_events.proto
 
 

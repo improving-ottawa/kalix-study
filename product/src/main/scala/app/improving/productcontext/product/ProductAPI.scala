@@ -124,6 +124,7 @@ class ProductAPI(context: EventSourcedEntityContext)
     currentState.product match {
       case Some(product)
           if product.status != ProductStatus.PRODUCT_STATUS_DELETED => {
+
         val event = ProductActivated(
           Some(Sku(apiActivateProduct.sku)),
           apiActivateProduct.activatingMember.map(member =>

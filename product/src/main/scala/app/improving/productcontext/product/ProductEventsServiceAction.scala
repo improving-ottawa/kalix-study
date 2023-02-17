@@ -26,7 +26,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiProductCreated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductCreated - productCreated - ${productCreated}"
+      s"ProductEventsServiceAction in transformProductCreated - productCreated - $productCreated"
     )
 
     effects.reply(
@@ -42,7 +42,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiProductInfoUpdated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductInfoUpdated - productInfoUpdated - ${productInfoUpdated}"
+      s"ProductEventsServiceAction in transformProductInfoUpdated - productInfoUpdated - $productInfoUpdated"
     )
 
     effects.reply(
@@ -58,7 +58,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiProductDeleted] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductDeleted - productDeleted - ${productDeleted}"
+      s"ProductEventsServiceAction in transformProductDeleted - productDeleted - $productDeleted"
     )
 
     effects.reply(
@@ -73,7 +73,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiProductActivated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductActivated - productActivated - ${productActivated}"
+      s"ProductEventsServiceAction in transformProductActivated - productActivated - $productActivated"
     )
 
     effects.reply(
@@ -88,7 +88,7 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiProductInactivated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductInactivated - productInactivated - ${productInactivated}"
+      s"ProductEventsServiceAction in transformProductInactivated - productInactivated - $productInactivated"
     )
 
     effects.reply(

@@ -2,13 +2,30 @@ package app.improving.eventcontext.event
 
 import com.google.protobuf.duration.Duration
 import com.google.protobuf.timestamp.Timestamp
-import app.improving.{ApiEventId, ApiGeoLocation, ApiMemberId, ApiOrganizationId, EventId, MemberId, OrganizationId}
-import app.improving.eventcontext.{EventInfo, EventMetaInfo, EventScheduled, EventStatus, ReservationAddedToEvent}
+import app.improving.{
+  ApiEventId,
+  ApiGeoLocation,
+  ApiMemberId,
+  ApiOrganizationId,
+  EventId,
+  MemberId,
+  OrganizationId
+}
+import app.improving.eventcontext.{
+  EventInfo,
+  EventMetaInfo,
+  EventScheduled,
+  EventStatus,
+  ReservationAddedToEvent
+}
 import kalix.scalasdk.testkit.EventSourcedResult
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import TestData._
-import app.improving.eventcontext.infrastructure.util.{convertApiEventInfoToEventInfo, convertApiMemberIdToMemberId}
+import app.improving.eventcontext.infrastructure.util.{
+  convertApiEventInfoToEventInfo,
+  convertApiMemberIdToMemberId
+}
 import com.google.protobuf.empty.Empty
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //

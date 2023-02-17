@@ -15,6 +15,7 @@ enum ApiOrderStatus {
     API_ORDER_STATUS_DELIVERED = 4;
     API_ORDER_STATUS_CANCELLED = 5;
     API_ORDER_STATUS_UNKNOWN = 6;
+
 }
 
 message ApiOrder {
@@ -76,12 +77,14 @@ message ApiGetOrderInfo {
 message ApiOrderInfoResult {
     ApiOrderId order_id = 1;
     ApiOrderInfo info = 2;
+    ApiOrderMetaInfo meta = 3;
+    ApiMemberId cancelling_member = 4;
 }
+
 message ApiReleaseOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }
-
 // For direct_event_order events.
 
 message ApiOrderCreated {

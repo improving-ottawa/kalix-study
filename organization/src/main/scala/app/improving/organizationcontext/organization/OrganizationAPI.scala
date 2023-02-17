@@ -76,7 +76,6 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         log.info(
           s"OrganizationAPI in getOrganization - other ${other}"
         )
-
         effects.error(
           s"OrganizationBy ID ${apiGetOrganizationById.orgId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
@@ -215,6 +214,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
 
         effects.reply(Empty.defaultInstance)
       }
+
     }
   }
   override def addMembersToOrganization(
@@ -368,16 +368,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       apiEstablishOrganization: ApiEstablishOrganization
   ): EventSourcedEntity.Effect[ApiOrganizationId] = {
     currentState.organization match {
-      case Some(org) => {
-
-        log.info(
-          s"OrganizationAPI in establishOrganization - organization already existed ${org}"
-        )
-
+      case Some(org) =>
         effects.error(
           s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
         )
-      }
       case _ =>
         log.info(
           s"OrganizationAPI in establishOrganization - apiEstablishOrganization ${apiEstablishOrganization}"
@@ -479,6 +473,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
                 )
               )
             )
+
             log.info(
               s"OrganizationAPI in updateParent - apiUpdateParent ${apiUpdateParent}"
             )

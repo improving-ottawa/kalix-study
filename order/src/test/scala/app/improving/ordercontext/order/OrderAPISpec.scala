@@ -1,9 +1,11 @@
 package app.improving.ordercontext.order
 
 import TestData._
-import app.improving.{ApiOrderId, MemberId}
 import app.improving.MemberId
-import app.improving.ordercontext.infrastructure.util._
+import app.improving.ordercontext.infrastructure.util.{
+  convertApiOrderStatusToOrderStatus,
+  convertLineItemToApiLineItem
+}
 import app.improving.ordercontext.{
   OrderCanceled,
   OrderCreated,

@@ -40,7 +40,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 
         effects.error(
           s"Member already registered for id ${apiRegisterMember.memberId}"
-        )// already registered so just return.
+        ) // already registered so just return.
       }
       case _ => {
 
@@ -104,14 +104,12 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
-      case other => {
-
+      case other =>
         log.info(
           s"MemberAPI in updateMemberStatus - other - ${other}"
         )
 
         effects.reply(Empty.defaultInstance)
-      }
     }
   }
 
@@ -176,12 +174,11 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
+
       case other => {
-
         log.info(
-          s"MemberAPI in updateMemberInfo - other - ${other}"
+          s"MemberAPI in updateMemberInfo - other - $other"
         )
-
         effects.reply(Empty.defaultInstance)
       }
     }
@@ -232,7 +229,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
   override def getMemberData(
       currentState: MemberState,
       apiGetMemberData: ApiGetMemberData
-  ): EventSourcedEntity.Effect[ApiMemberData] = {
+  ): EventSourcedEntity.Effect[ApiMemberData] =
     currentState.member match {
       case Some(state)
           if state.memberId.contains(MemberId(apiGetMemberData.memberId)) => {
@@ -248,8 +245,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
         effects.reply(apiMemberData)
       }
-      case other => {
-
+      case other =>
         log.info(
           s"MemberAPI in getMemberData - other - ${other}"
         )
@@ -258,9 +254,8 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           s"MemberData ID ${apiGetMemberData.memberId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
         )
-      }
+
     }
-  }
 
   override def memberInfoUpdated(
       currentState: MemberState,
@@ -280,14 +275,12 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           )
         )
       }
-      case other => {
-
+      case other =>
         log.info(
           s"MemberAPI in memberInfoUpdated - other - ${other}"
         )
 
         currentState
-      }
     }
   }
 
@@ -336,7 +329,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       case Some(member) => {
 
         log.info(
-          s"MemberAPI in memberRegistered - member already existed - ${member}"
+          s"MemberAPI in memberRegistered - member already existed - $member"
         )
 
         currentState
@@ -357,15 +350,16 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       }
     }
   }
+
   override def memberStatusUpdated(
       currentState: MemberState,
       memberStatusUpdated: MemberStatusUpdated
-  ): MemberState = {
+  ): MemberState =
     currentState.member match {
       case Some(state) if state.memberId == memberStatusUpdated.memberId => {
 
         log.info(
-          s"MemberAPI in memberStatusUpdated - memberStatusUpdated - ${memberStatusUpdated}"
+          s"MemberAPI in memberStatusUpdated - memberStatusUpdated - $memberStatusUpdated"
         )
 
         currentState.withMember(
@@ -378,15 +372,12 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
       }
       case other => {
-
         log.info(
-          s"MemberAPI in memberStatusUpdated - other - ${other}"
+          s"MemberAPI in memberStatusUpdated - other - $other"
         )
-
         currentState
       }
     }
-  }
 
   override def releaseMember(
       currentState: MemberState,

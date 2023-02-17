@@ -3,16 +3,16 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.{ApiEventId, ApiMemberId, EventId}
+import app.improving.ApiMemberId
 import app.improving.eventcontext.AllEventsRequest
 import app.improving.ordercontext.order.ApiLineItem
 import app.improving.tenantcontext.GetAllTenantRequest
 import app.improving.organizationcontext.AllOrganizationsRequest
 import app.improving.ordercontext.AllOrdersRequest
 import app.improving.storecontext.AllStoresRequest
-import app.improving.productcontext.{AllProductsRequest, ProductDetails}
+import app.improving.productcontext.AllProductsRequest
 import app.improving.membercontext.AllMembersRequest
-import app.improving.productcontext.ProductDetails.Ticket
+
 import app.improving.productcontext.product.ApiProductDetails
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.membercontext.member.MembersByEventTimeRequest
@@ -25,7 +25,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
 
-import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset}
 import scala.concurrent.Future
 
 // This class was initially generated based on the .proto definition by Kalix tooling.

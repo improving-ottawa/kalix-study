@@ -4,7 +4,6 @@ import app.improving.productcontext.infrastructure.util._
 import app.improving.productcontext.product.ApiProductStatus
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
-import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -16,8 +15,6 @@ class TicketByEventViewImpl(context: ViewContext)
 
   override def emptyState: TicketEventCorrTableRow =
     TicketEventCorrTableRow.defaultInstance
-
-  private val log = LoggerFactory.getLogger(this.getClass)
 
   override def processProductCreated(
       state: TicketEventCorrTableRow,
