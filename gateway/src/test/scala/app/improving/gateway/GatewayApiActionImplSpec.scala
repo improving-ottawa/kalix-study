@@ -23,6 +23,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
 
+import java.time.{LocalDateTime, ZoneOffset}
 import scala.concurrent.Future
 
 // This class was initially generated based on the .proto definition by Kalix tooling.

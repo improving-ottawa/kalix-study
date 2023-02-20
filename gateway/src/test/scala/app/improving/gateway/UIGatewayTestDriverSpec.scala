@@ -17,8 +17,6 @@ import scala.io.Source
 import io.circe._
 import io.circe.syntax._
 
-import scala.collection.immutable
-
 class UIGatewayTestDriverSpec
     extends AnyWordSpec
     with Matchers
@@ -32,7 +30,7 @@ class UIGatewayTestDriverSpec
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
 
-  private val log = LoggerFactory.getLogger(this.getClass)
+//  private val log = LoggerFactory.getLogger(this.getClass)
 
   lazy val config: Config = ConfigFactory.load()
 

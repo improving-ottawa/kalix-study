@@ -18,11 +18,20 @@ object Main {
     // and is kept up-to-date with any changes in your protobuf definitions.
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
-    KalixFactory.withComponents(
-      new ProductAPI(_),
-      new AllProductsViewImpl(_),
-      new TicketByEventViewImpl(_)
-    )
+    KalixFactory
+      .withComponents(
+        new ProductAPI(_),
+        new AllProductsViewImpl(_),
+        new TicketByEventViewImpl(_)
+      )
+//      .register(
+//        TicketByEventViewProvider(new TicketByEventViewImpl(_))
+//          .withViewId("TicketByEventViewV2")
+//      )
+//      .register(
+//        TicketByEventTimeQueryViewProvider(new TicketByEventTimeQueryView(_))
+//          .withViewId("TicketByEventTimeQueryViewV2")
+//      )
   }
 
   def main(args: Array[String]): Unit = {

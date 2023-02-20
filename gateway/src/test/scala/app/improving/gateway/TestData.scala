@@ -106,7 +106,7 @@ object TestData {
 
     val apiEstablishOrganization: ApiEstablishOrganization =
       ApiEstablishOrganization(
-        Some(ApiOrganizationId(testOrgId)),
+        testOrgId.toString,
         Some(
           OrgInfo(
             "name-test",
@@ -186,16 +186,15 @@ object TestData {
     val testVenue: ApiVenueId = ApiVenueId(testVenueId)
     val testLocationId = "test-location-id"
     val testLocation: ApiLocationId = ApiLocationId(testLocationId)
-    val testProducts: Seq[ApiProductId] = Seq[ApiProductId](
-      ApiProductId(testProductId1),
-      ApiProductId(testProductId2)
+    val testProducts: Seq[ApiSku] = Seq[ApiSku](
+      ApiSku(testProductId1),
+      ApiSku(testProductId2)
     )
     val testOrg: ApiOrganizationId = ApiOrganizationId(testOrgId)
     val testMember1 = "test-member1"
     val testMember2 = "test-member2"
     val testMember3 = "test-member3"
     val apiStoreInfo: ApiStoreInfo = ApiStoreInfo(
-      Some(testStoreId),
       testName,
       testDescription,
       testProducts,
@@ -205,9 +204,9 @@ object TestData {
       Some(testOrg)
     )
 
-    val testSku: ApiProductId = ApiProductId("test-product-id")
-    val testSku2: ApiProductId = ApiProductId("test-product-id2")
-    val testSku3: ApiProductId = ApiProductId("test-product-id3")
+    val testSku: ApiSku = ApiSku("test-product-id")
+    val testSku2: ApiSku = ApiSku("test-product-id2")
+    val testSku3: ApiSku = ApiSku("test-product-id3")
     val testRow = "test-row"
     val testSeat = "test-seat"
     val testSection = "test-section"
@@ -220,7 +219,6 @@ object TestData {
     val testMemberId1 = "test-member-id1"
     val testTimestamp: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     val apiProductInfo: ApiProductInfo = ApiProductInfo(
-      Some(testSku),
       testName,
       testDescription,
       testProductDetails,
@@ -271,22 +269,22 @@ object TestData {
     val testQuantity2 = 13
     val testLineTotal2 = 26
     val testLineItem1: ApiLineItem = ApiLineItem(
-      Some(ApiProductId(testProductId)),
+      Some(ApiSku(testProductId)),
       testQuantity,
       testLineTotal
     )
     val testLineItem2: ApiLineItem = ApiLineItem(
-      Some(ApiProductId(testProductId)),
+      Some(ApiSku(testProductId)),
       testQuantity2,
       testLineTotal2
     )
     val testLineItem3: ApiLineItem = ApiLineItem(
-      Some(ApiProductId(testProductId2)),
+      Some(ApiSku(testProductId2)),
       testQuantity2,
       testLineTotal2
     )
     val testLineItem4: ApiLineItem = ApiLineItem(
-      Some(ApiProductId(testProductId3)),
+      Some(ApiSku(testProductId3)),
       testQuantity2,
       testLineTotal2
     )

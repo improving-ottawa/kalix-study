@@ -766,7 +766,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 Some(
                   Timestamp.of(
                     now.getEpochSecond + r.nextLong(100000),
-                    now.getNano + r.nextInt()
+                    now.getNano
                   )
                 )
               )
