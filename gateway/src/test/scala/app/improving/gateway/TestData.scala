@@ -106,7 +106,7 @@ object TestData {
 
     val apiEstablishOrganization: ApiEstablishOrganization =
       ApiEstablishOrganization(
-        testOrgId,
+        testOrgId.toString,
         Some(
           OrgInfo(
             "name-test",
@@ -221,7 +221,7 @@ object TestData {
     val apiProductInfo: ApiProductInfo = ApiProductInfo(
       testName,
       testDescription,
-      Some(testProductDetails),
+      testProductDetails,
       testImages,
       testPrice,
       testCost,

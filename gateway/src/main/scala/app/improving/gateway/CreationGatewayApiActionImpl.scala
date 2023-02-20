@@ -130,6 +130,19 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  private val allMembersView = creationContext.getGrpcClient(
+    classOf[AllMembersView],
+    config.getString(
+      "app.improving.gateway.member.grpc-client-name"
+    )
+  )
+
+  private val allOrdersView = creationContext.getGrpcClient(
+    classOf[AllOrdersView],
+    config.getString(
+      "app.improving.gateway.order.grpc-client-name"
+    )
+  )
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
