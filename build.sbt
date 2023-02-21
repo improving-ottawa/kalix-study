@@ -82,5 +82,5 @@ lazy val root = project
     publishTo := Some(Resolver.defaultLocal)
   )
   .aggregate(
-    projection
+    gateway
   )

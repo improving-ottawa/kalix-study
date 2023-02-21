@@ -268,7 +268,6 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
       tenantReleased: TenantReleased
   ): TenantState = {
     val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 
     currentState.copy(tenant =
       currentState.tenant.map(

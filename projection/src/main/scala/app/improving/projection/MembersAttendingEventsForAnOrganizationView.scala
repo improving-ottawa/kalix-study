@@ -21,6 +21,7 @@ import app.improving.ordercontext.{
   OrderStatus,
   OrderStatusUpdated
 }
+import app.improving.productcontext.infrastructure.util.extractEventIdFromProductInfo
 import app.improving.productcontext.{
   ProductActivated,
   ProductCreated,
@@ -68,6 +69,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
           memberStatusUpdated.meta
             .map(_.memberStatus)
             .getOrElse(MemberStatus.MEMBER_STATUS_UNKNOWN)
+            .name
         )
       )
   }
@@ -147,7 +149,8 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
         state.copy(status =
           eventRescheduled.meta
             .map(_.status)
-            .getOrElse(EventStatus.UNKNOWN)
+            .getOrElse(EventStatus.EVENT_STATUS_UNKNOWN)
+            .name
         )
       )
 
@@ -161,7 +164,8 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
         state.copy(status =
           eventDelayed.meta
             .map(_.status)
-            .getOrElse(EventStatus.UNKNOWN)
+            .getOrElse(EventStatus.EVENT_STATUS_UNKNOWN)
+            .name
         )
       )
 
@@ -175,7 +179,8 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
         state.copy(status =
           eventEnded.meta
             .map(_.status)
-            .getOrElse(EventStatus.UNKNOWN)
+            .getOrElse(EventStatus.EVENT_STATUS_UNKNOWN)
+            .name
         )
       )
   }
@@ -194,7 +199,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.updateState(
         TicketEventCorrTableRow(
           productCreated.sku,
-          productCreated.info.get.event
+          productCreated.info.flatMap(extractEventIdFromProductInfo)
         )
       )
 
@@ -205,7 +210,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(ticketStatus = ProductStatus.ACTIVE)
+        state.copy(ticketStatus = ProductStatus.PRODUCT_STATUS_ACTIVE.name)
       )
 
     override def processProductInactivated(
@@ -215,7 +220,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(ticketStatus = ProductStatus.INACTIVE)
+        state.copy(ticketStatus = ProductStatus.PRODUCT_STATUS_INACTIVE.name)
       )
 
     override def processProductDeleted(
@@ -265,7 +270,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        OrderTableRow(orderCreated.orderId, OrderStatus.ORDER_STATUS_DRAFT)
+        OrderTableRow(orderCreated.orderId, OrderStatus.ORDER_STATUS_DRAFT.name)
       )
 
     override def processOrderStatusUpdated(
@@ -275,7 +280,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(status = orderStatusUpdated.newStatus)
+        state.copy(status = orderStatusUpdated.newStatus.name)
       )
 
   }

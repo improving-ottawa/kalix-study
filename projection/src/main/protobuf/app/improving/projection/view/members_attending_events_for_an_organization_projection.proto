@@ -202,10 +202,10 @@ service MembersAttendingEventsForAnOrganization {
                     "JOIN orders ON ticket_member_corr.order_id = orders.order_id "
                     "WHERE event_org_corr.event_org_id = :org_id "
                     "AND events.event_date = :event_date "
-                    "AND (event.status = 'SCHEDULED' OR event.status = 'INPROGRESS') "
-                    "AND members.status = 'ACTIVE' "
-                    "AND ticket_event_corr.status = 'ACTIVE' "
-                    "AND (orders.status = 'DELIVERED' OR orders.status = 'READY') "
+                    "AND (event.status = 'SCHEDULED' OR event.status = 'EVENT_STATUS_INPROGRESS') "
+                    "AND members.status = 'MEMBER_STATUS_ACTIVE' "
+                    "AND ticket_event_corr.status = 'PRODUCT_STATUS_ACTIVE' "
+                    "AND (orders.status = 'DELIVERED' OR orders.status = 'ORDER_STATUS_READY') "
                     "ORDER BY member_id "
         };
     }

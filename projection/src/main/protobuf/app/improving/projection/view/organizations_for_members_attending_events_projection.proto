@@ -171,10 +171,10 @@ service OrganizationsForMembersAttendingEvents {
                     "JOIN members ON org_member_corr.attendingMember_id = members.attendingMember_id "
                     "JOIN orders ON ticket_member_corr.order_id = orders.order_id "
                     "WHERE ticket_event_corr.event = :eventId "
-                    "AND organizations.status = 'ACTIVE' "
-                    "AND members.status = 'ACTIVE' "
-                    "AND ticket_event_corr.status = 'ACTIVE' "
-                    "AND (orders.status = 'DELIVERED' OR orders.status = 'READY') "
+                    "AND organizations.status = 'ORGANIZATION_STATUS_ACTIVE' "
+                    "AND members.status = 'MEMBER_STATUS_ACTIVE' "
+                    "AND ticket_event_corr.status = 'PRODUCT_STATUS_ACTIVE' "
+                    "AND (orders.status = 'DELIVERED' OR orders.status = 'ORDER_STATUS_READY') "
         };
     }
 }

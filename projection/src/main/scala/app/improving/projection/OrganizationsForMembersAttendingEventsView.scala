@@ -1,6 +1,6 @@
 package app.improving.projection
 
-import app.improving.eventcontext.{EventCancelled, EventScheduled}
+import app.improving.eventcontext.EventScheduled
 import app.improving.membercontext.{
   MemberRegistered,
   MemberStatus,
@@ -18,6 +18,7 @@ import app.improving.organizationcontext.{
   OrganizationStatus,
   OrganizationStatusUpdated
 }
+import app.improving.productcontext.infrastructure.util.extractEventIdFromProductInfo
 import app.improving.productcontext.{
   ProductActivated,
   ProductCreated,
@@ -51,7 +52,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
           OrgsTableRow(
             organizationEstablished.orgId,
             organizationEstablished.info.get.name,
-            OrganizationStatus.ORGANIZATION_STATUS_DRAFT
+            OrganizationStatus.ORGANIZATION_STATUS_DRAFT.name
           )
         )
 
@@ -62,7 +63,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(status = organizationStatusUpdated.newStatus)
+        state.copy(status = organizationStatusUpdated.newStatus.name)
       )
   }
 
@@ -95,7 +96,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
         state.copy(status =
           memberStatusUpdated.meta
             .map(_.memberStatus)
-            .getOrElse(MemberStatus.MEMBER_STATUS_UNKNOWN)
+            .getOrElse(MemberStatus.MEMBER_STATUS_UNKNOWN).name
         )
       )
   }
@@ -153,7 +154,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.updateState(
         TicketEventCorrTableRow(
           productCreated.sku,
-          productCreated.info.get.event
+          productCreated.info.flatMap(extractEventIdFromProductInfo)
         )
       )
     override def processProductActivated(
@@ -163,7 +164,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(ticketStatus = ProductStatus.ACTIVE)
+        state.copy(ticketStatus = ProductStatus.PRODUCT_STATUS_ACTIVE.name)
       )
 
     override def processProductInactivated(
@@ -173,7 +174,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(ticketStatus = ProductStatus.INACTIVE)
+        state.copy(ticketStatus = ProductStatus.PRODUCT_STATUS_INACTIVE.name)
       )
 
     override def processProductDeleted(
@@ -222,7 +223,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(status = OrderStatus.ORDER_STATUS_DRAFT)
+        state.copy(status = OrderStatus.ORDER_STATUS_DRAFT.name)
       )
 
     override def processOrderStatusUpdated(
@@ -232,7 +233,7 @@ class OrganizationsForMembersAttendingEventsView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(status = orderStatusUpdated.newStatus)
+        state.copy(status = orderStatusUpdated.newStatus.name)
       )
   }
 }

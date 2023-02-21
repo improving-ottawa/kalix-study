@@ -17,7 +17,7 @@ message NoEventsOnDayForOrg {
 message EventInfo {
     EventId event_id = 1;
     string event_name = 2;
-    eventcontext.EventStatus status = 3;
+    string status = 3;
 }
 
 message MemberEvents {
@@ -34,29 +34,29 @@ message MemberInfo {
 message MembersTableRow {
     MemberId attending_member_id = 1;
     string attending_member_name = 2;
-    membercontext.MemberStatus status = 3;
+    string status = 3;
 }
 
 message EventsTableRow {
     EventId event_id = 1;
     string event_name = 2;
     google.type.Date event_date = 3;
-    eventcontext.EventStatus status = 4;
+    string status = 4;
 }
 
 message TicketEventCorrTableRow {
-    ProductId ticket_sku = 1;
+    Sku ticket_sku = 1;
     EventId event_id = 2;
-    productcontext.ProductStatus ticket_status = 3;
+    string ticket_status = 3;
 }
 
 message OrderTableRow {
     OrderId order_id = 1;
-    ordercontext.OrderStatus status = 2;
+   string status = 2;
 }
 
 message TicketMemberCorrTableRow {
-    ProductId ticket_sku = 1;
+    Sku ticket_sku = 1;
     MemberId attending_member_id = 2;
     OrderId order_id = 3;
 }
@@ -92,7 +92,7 @@ message OrgAndMembersAndEvents {
 message OrgsTableRow {
     OrganizationId attending_member_org_id = 1;
     string attending_member_org_name = 2;
-    organizationcontext.OrganizationStatus status = 3;
+    string status = 3;
 }
 
 message OrgMemberCorrTableRow {

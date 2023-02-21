@@ -1,6 +1,6 @@
 package app.improving.eventcontext
 
-import app.improving.{ApiEventId, ApiMemberId}
+import app.improving.ApiMemberId
 import app.improving.eventcontext.event.{ApiEvent, ApiEventStatus}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext

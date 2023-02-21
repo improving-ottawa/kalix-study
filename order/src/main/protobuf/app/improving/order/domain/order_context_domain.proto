@@ -49,7 +49,7 @@ message OrderCreated {
 }
 message LineItemOrdered {
     OrderId order_id = 1;
-    ProductId product_id = 2;
+    Sku product_id = 2;
     MemberId for_member_id = 3;
 }
 message OrderStatusUpdated {
@@ -71,7 +71,7 @@ message OrderCanceled {
 }
 message LineItemCancelled {
     OrderId order_id = 1;
-    ProductId product_id = 2;
+    Sku product_id = 2;
     MemberId for_member_id = 3;
 }
 message GetOrderInfo {
