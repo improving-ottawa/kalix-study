@@ -78,7 +78,7 @@ import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID
 import scala.concurrent.{Await, Future}
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -276,7 +276,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         .toMap
 
     log.info(
-      s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size}"
+      s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size} - ${establishedOrgs.keys}"
     )
 
     Await.result(
@@ -284,16 +284,33 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         .sequence(
           establishedOrgs.keys
             .map(orgId => {
+              log.info(
+                s"in handleStartScenario updateOrganizationStatus orgId - $orgId updating member - $initialMemberId"
+              )
               organizationService
                 .updateOrganizationStatus(
                   ApiOrganizationStatusUpdated(
                     orgId.organizationId,
-                    ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
+                    ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+                    Some(initialMemberId)
                   )
                 )
+                .transformWith {
+                  case Success(_) => Future.successful(())
+                  case Failure(error) => {
+                    log.info(
+                      s"in handleStartScenario updateOrganizationStatus transformWith - error - $error"
+                    )
+                    Future.successful(())
+                  }
+                }
             })
         ),
       10 seconds
+    )
+
+    log.info(
+      s"in handleStartScenario establishedOrgs - updateOrganizationStatus"
     )
 
     Await.result(
@@ -330,7 +347,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
 
     log.info(
-      s"in handleStartScenario establishedOrgs - updateOrganizationStatus"
+      s"in handleStartScenario updateMemberInfo - updateMemberInfo"
     )
 
     val orgsByTenant: Map[ApiTenantId, Seq[ApiOrganizationId]] =
@@ -972,7 +989,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             )
           ),
           None,
-          Seq.empty,
+          owners.headOption.toSeq,
           owners,
           Seq(
             ApiContacts(
@@ -1021,7 +1038,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   Some(
                     ApiParent(Some(ApiOrganizationId(parent)))
                   ),
-                  Seq.empty,
+                  owners.headOption.toSeq,
                   owners,
                   Seq(
                     ApiContacts(

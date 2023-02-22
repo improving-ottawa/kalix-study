@@ -1,6 +1,24 @@
 package app.improving.productcontext.product
 
-import app.improving.{ApiEventId, ApiMemberId, ApiStoreId}
+import app.improving.productcontext.{
+  OpenTicket,
+  ProductActivated,
+  ProductCreated,
+  ProductDeleted,
+  ProductDetails,
+  ProductInactivated,
+  ProductInfo,
+  ProductInfoUpdated,
+  ProductMetaInfo
+}
+import app.improving.{
+  ApiEventId,
+  ApiMemberId,
+  ApiStoreId,
+  MemberId,
+  Sku,
+  StoreId
+}
 import com.google.protobuf.timestamp.Timestamp
 
 import java.time.Instant
@@ -167,5 +185,46 @@ object TestData {
     testSku3,
     Some(apiProductInfoPrivateFailedEvent),
     Some(apiProductMetaInfo)
+  )
+
+  val productDetails = ProductDetails(
+    ProductDetails.Ticket.OpenTicket.apply(OpenTicket.defaultInstance)
+  )
+  val productInfo = ProductInfo(
+    testName,
+    testDescription,
+    Some(productDetails),
+    testImages,
+    testPrice,
+    testCost,
+    Some(StoreId(testStoreId))
+  )
+  val productMetaInfo = ProductMetaInfo(
+    Some(MemberId(testMemberId)),
+    Some(testTimestamp),
+    Some(MemberId(testMemberId1)),
+    Some(testTimestamp)
+  )
+  val productCreated = ProductCreated(
+    Some(Sku(testSku)),
+    Some(productInfo),
+    Some(productMetaInfo)
+  )
+  val productInfoUpdated = ProductInfoUpdated(
+    Some(Sku(testSku)),
+    Some(productInfo),
+    Some(productMetaInfo)
+  )
+  val productDeleted = ProductDeleted(
+    Some(Sku(testSku)),
+    Some(MemberId(testMemberId))
+  )
+  val productActivated = ProductActivated(
+    Some(Sku(testSku)),
+    Some(MemberId(testMemberId))
+  )
+  val productInactivated = ProductInactivated(
+    Some(Sku(testSku)),
+    Some(MemberId(testMemberId))
   )
 }

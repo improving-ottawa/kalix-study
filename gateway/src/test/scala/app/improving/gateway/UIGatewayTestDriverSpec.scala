@@ -3,6 +3,7 @@ package app.improving.gateway
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.gateway.TestData.Fixture
+import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe
 import org.scalatest.{Assertion, BeforeAndAfterAll}
@@ -10,12 +11,14 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import org.slf4j.LoggerFactory
+//import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.io.Source
 import io.circe._
 import io.circe.syntax._
+
+import scala.util.Random
 
 class UIGatewayTestDriverSpec
     extends AnyWordSpec
@@ -43,6 +46,10 @@ class UIGatewayTestDriverSpec
     )
 
   val client: TestGatewayApiActionClient = TestGatewayApiActionClient(
+    gatewayClientSettings
+  )
+
+  val gatewayActionClient = GatewayApiActionClient(
     gatewayClientSettings
   )
 
@@ -98,6 +105,60 @@ class UIGatewayTestDriverSpec
       checkResults(results, info)
 
       println(results)
+    }
+    "handle command HandlePurchaseTicket base case" in {
+      val json =
+        requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
+
+      val info = ScenarioInfo(
+        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
+        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
+      )
+
+      val scenarioResult =
+        client.handleStartScenario(StartScenario(Some(info))).futureValue
+
+      checkResults(scenarioResult, info)
+
+      val r = new Random()
+      val storeId = scenarioResult.storeIds
+        .getOrElse(StoreIds.defaultInstance)
+        .storeIds
+        .take(1)
+        .head
+      val products = scenarioResult
+        .productsForStores(storeId.storeId)
+        .skus
+        .take(r.nextInt(4))
+      val memberIds =
+        scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
+
+      val memberId = memberIds(r.nextInt(memberIds.size))
+
+      val orderIds = gatewayActionClient
+        .handlePurchaseTickets(
+          PurchaseTicketsRequest(
+            Map(
+              memberId.memberId -> OrdersForStores(
+                products.map { productId =>
+                  storeId.storeId ->
+                    ApiOrderInfo(
+                      Seq[ApiLineItem](
+                        ApiLineItem(Some(productId), 1)
+                      )
+                    )
+                }.toMap
+              )
+            )
+          )
+        )
+        .futureValue
+
+      orderIds.orderIds.isEmpty shouldBe false
     }
   }
 }

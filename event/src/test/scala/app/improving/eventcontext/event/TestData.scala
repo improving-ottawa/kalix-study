@@ -1,6 +1,17 @@
 package app.improving.eventcontext.event
 
 import app.improving._
+import app.improving.eventcontext.{
+  EventCancelled,
+  EventDelayed,
+  EventEnded,
+  EventInfo,
+  EventInfoChanged,
+  EventMetaInfo,
+  EventRescheduled,
+  EventScheduled,
+  EventStarted
+}
 import com.google.protobuf.duration.Duration
 import com.google.protobuf.timestamp.Timestamp
 
@@ -11,9 +22,12 @@ object TestData {
   val start: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
   val end: Timestamp = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
   val durationDelayed: Long = 1000000L
+  val expectedDuration = Some(Duration.of(20, 0))
   val testEventId: ApiEventId = ApiEventId("test-event-id")
   val testEventId2: ApiEventId = ApiEventId("test-event-id2")
   val testEventId3: ApiEventId = ApiEventId("test-event-id3")
+  val testMemberId = "test-member-id"
+  val testReason = "test-reason"
   val apiScheduleEvent: ApiScheduleEvent = ApiScheduleEvent(
     testEventId.eventId,
     Some(
@@ -98,5 +112,58 @@ object TestData {
       )
     ),
     Some(ApiMemberId("1"))
+  )
+
+  val eventInfo = EventInfo(
+    "try-out-event",
+    "School footbal try out",
+    "www.nowhere.com",
+    Some(OrganizationId("test-organization-id")),
+    Some(GeoLocation(0.12, 0.438, 4.322)),
+    Some(start),
+    Some(end),
+    false
+  )
+  val eventMetaInfo = EventMetaInfo(
+    Some(MemberId(testMemberId)),
+    Some(start),
+    Some(MemberId(testMemberId)),
+    Some(end),
+    Some(start),
+    Some(end)
+  )
+  val eventInfoChanged = EventInfoChanged(
+    Some(EventId(testEventId.eventId)),
+    Some(eventInfo),
+    Some(eventMetaInfo)
+  )
+  val eventScheduled = EventScheduled(
+    Some(EventId(testEventId.eventId)),
+    Some(eventInfo),
+    Some(eventMetaInfo)
+  )
+  val eventCancelled = EventCancelled(
+    Some(EventId(testEventId.eventId)),
+    Some(eventMetaInfo)
+  )
+  val eventRescheduled = EventRescheduled(
+    Some(EventId(testEventId.eventId)),
+    Some(eventInfo),
+    Some(eventMetaInfo)
+  )
+  val eventDelayed = EventDelayed(
+    Some(EventId(testEventId.eventId)),
+    testReason,
+    Some(eventMetaInfo),
+    expectedDuration
+  )
+  val eventStarted = EventStarted(
+    Some(EventId(testEventId.eventId)),
+    Some(eventInfo),
+    Some(eventMetaInfo)
+  )
+  val eventEnded = EventEnded(
+    Some(EventId(testEventId.eventId)),
+    Some(eventMetaInfo)
   )
 }

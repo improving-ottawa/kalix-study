@@ -58,6 +58,16 @@ service AllOrdersView {
         };
     }
 
+    rpc ProcessOrderReleases(OrderReleased) returns (order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "all_orders"
+            transform_updates: true
+        };
+    }
+
     rpc GetAllOrders(AllOrdersRequest) returns (AllOrdersresult) {
         option (kalix.method).view.query = {
             query: "SELECT * AS orders FROM all_orders "

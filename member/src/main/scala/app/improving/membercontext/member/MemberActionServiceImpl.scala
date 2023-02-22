@@ -1,6 +1,15 @@
 package app.improving.membercontext.member
 
 import app.improving.ApiMemberId
+import app.improving.membercontext.{
+  MemberByMemberIdsQuery,
+  MemberByMemberIdsRequest
+}
+import app.improving.ordercontext.{OrderByProductQuery, OrderByProductRequest}
+import app.improving.productcontext.{
+  TicketByEventTimeQuery,
+  TicketByEventTimeRequest
+}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -27,6 +36,27 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
         "app.improving.member.member.grpc-client-name"
       )
     )
+
+  val memberByMemberIdsView = creationContext.getGrpcClient(
+    classOf[MemberByMemberIdsQuery],
+    config.getString(
+      "app.improving.member.member.grpc-client-name"
+    )
+  )
+
+  val orderByProductView = creationContext.getGrpcClient(
+    classOf[OrderByProductQuery],
+    config.getString(
+      "app.improving.member.order.grpc-client-name"
+    )
+  )
+
+  val ticketByEventTimeView = creationContext.getGrpcClient(
+    classOf[TicketByEventTimeQuery],
+    config.getString(
+      "app.improving.member.product.grpc-client-name"
+    )
+  )
 
   override def registerMemberList(
       apiRegisterMemberList: ApiRegisterMemberList
@@ -57,5 +87,75 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       .map(memberIds => ApiMemberIds(memberIds.toSeq))
 
     effects.asyncReply(result)
+  }
+
+  override def findMembersByEventTime(
+      memberByEventTimeRequest: MembersByEventTimeRequest
+  ): Action.Effect[MembersByEventTimeResponse] = {
+
+    log.info("in MemberActionServiceImpl findMembersByEventTime")
+
+    val givenTimeOpt = memberByEventTimeRequest.givenTime
+
+    val products = ticketByEventTimeView.findProductsByEventTime(
+      TicketByEventTimeRequest(givenTimeOpt)
+    )
+
+//    products.onComplete({
+//      case Success(value) =>
+//        log.info(
+//          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
+//        )
+//      case Failure(exception) =>
+//        log.info(
+//          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
+//        )
+//    })
+
+    val productIds = products.map(_.products.map(_.sku))
+
+    effects.asyncReply(
+      for {
+        pids <- productIds
+        memberIds <- Future
+          .sequence(
+            pids
+              .map(productId => {
+                log.info(
+                  s"in MemberActionServiceImpl findMembersByEventTime productId ${productId}"
+                )
+                val result = orderByProductView
+                  .findOrdersByProducts(
+                    OrderByProductRequest(
+                      productId.map(_.sku).getOrElse("Sku is NOT FOUND.")
+                    )
+                  )
+                  .map(response =>
+                    response.orders
+                      .map(_.meta.flatMap(_.memberId.map(_.memberId)))
+                      .flatten
+                  )
+
+//                result.onComplete({
+//                  case Success(value) =>
+//                    log.info(
+//                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
+//                    )
+//                  case Failure(exception) =>
+//                    log.info(
+//                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
+//                    )
+//                })
+
+                result
+              })
+          )
+        members <- memberByMemberIdsView.findMembersByMemberIds(
+          MemberByMemberIdsRequest(memberIds.flatten)
+        )
+      } yield {
+        MembersByEventTimeResponse(members.members)
+      }
+    )
   }
 }

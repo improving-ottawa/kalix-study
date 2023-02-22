@@ -10,6 +10,7 @@ import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
 import "app/improving/member/view/member_all_view.proto";
+import "common_api.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -161,6 +162,13 @@ service GatewayApiAction {
     rpc HandleGetAllOrders(ordercontext.AllOrdersRequest) returns (ordercontext.AllOrdersresult) {
         option (google.api.http) = {
             post: "/orders/get-all-orders"
+            body: "*"
+        };
+    }
+
+    rpc HandlePurchaseTickets(PurchaseTicketsRequest) returns (ApiOrderIds) {
+        option (google.api.http) = {
+            post: "/order/purchase-ticket"
             body: "*"
         };
     }

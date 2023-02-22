@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+
+package app.improving.productcontext.product;
+
+import "app/improving/product/api/product_api.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+import "kalix/annotations.proto";
+
+
+service ProductEventsService {
+    option (kalix.codegen) = {
+        action: {}
+    };
+    option (kalix.service).eventing.in = {
+        event_sourced_entity: "products"
+        ignore_unknown: true
+    };
+    option (kalix.service).eventing.out.direct.event_stream_id = "event_products";
+
+    option (kalix.service).acl.allow = { service: "*" };
+
+    rpc TransformProductCreated(ProductCreated) returns (ApiProductCreated) { }
+    rpc TransformProductInfoUpdated(ProductInfoUpdated) returns (ApiProductInfoUpdated) {}
+    rpc TransformProductDeleted(ProductDeleted) returns (ApiProductDeleted) {}
+    rpc TransformProductActivated(ProductActivated) returns (ApiProductActivated) {}
+    rpc TransformProductInactivated(ProductInactivated) returns (ApiProductInactivated) {}
+
+}

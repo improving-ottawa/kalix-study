@@ -1,6 +1,6 @@
 package app.improving.gateway
 
-import app.improving.OrganizationId
+import app.improving.{ApiMemberId, ApiOrderIds, ApiStoreId, OrganizationId}
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -552,5 +552,32 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetAllOrders")
 
     effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))
+  }
+
+  override def handlePurchaseTickets(
+      purchaseTicketRequest: PurchaseTicketsRequest
+  ): Action.Effect[ApiOrderIds] = {
+
+    log.info("in handlePurchaseTicket")
+    effects
+      .asyncReply(
+        Future
+          .sequence(purchaseTicketRequest.ordersForStoresForMembers.map {
+            case (memberId, ordersForStores) =>
+              Future
+                .sequence(ordersForStores.ordersForStores.map {
+                  case (storeId, orderInfo) =>
+                    orderAction.purchaseTicket(
+                      ApiCreateOrder(
+                        UUID.randomUUID().toString,
+                        Some(orderInfo),
+                        Some(ApiMemberId(memberId)),
+                        Some(ApiStoreId(storeId))
+                      )
+                    )
+                }.toSeq)
+          }.toSeq)
+          .map(reqs => ApiOrderIds(reqs.flatten))
+      )
   }
 }

@@ -1,41 +1,62 @@
 package app.improving.ordercontext
 
-import app.improving.{ApiMemberId, OrderId}
+import app.improving.ApiMemberId
+import app.improving.ordercontext.infrastructure.util._
 import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
+import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
-import app.improving.ordercontext.infrastructure.util._
-import com.google.protobuf.timestamp.Timestamp
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
+class OrderByProductQueryView(context: ViewContext)
+    extends AbstractOrderByProductQueryView {
 
   override def emptyState: ApiOrder = ApiOrder.defaultInstance
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   override def processOrderCreated(
       state: ApiOrder,
       orderCreated: OrderCreated
   ): UpdateEffect[ApiOrder] = {
-    if (state != emptyState) effects.ignore()
-    else
+    if (state != emptyState) {
+
+      log.info(
+        s"OrderByProductQueryView in processOrderCreated - state already existed"
+      )
+
+      effects.ignore()
+    } else {
+
+      log.info(
+        s"OrderByProductQueryView in processOrderCreated - orderCreated ${orderCreated}"
+      )
+
       effects.updateState(
         ApiOrder(
-          orderCreated.orderId.getOrElse(OrderId.defaultInstance).id,
+          orderCreated.orderId.map(_.id).getOrElse("OrderId is NOT FOUND."),
           orderCreated.info.map(convertOrderInfoToApiOrderInfo),
           orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
           ApiOrderStatus.API_ORDER_STATUS_DRAFT
         )
       )
+    }
   }
 
   override def processOrderStatusUpdated(
       state: ApiOrder,
       orderStatusUpdated: OrderStatusUpdated
   ): UpdateEffect[ApiOrder] = {
+
+    log.info(
+      s"OrderByProductQueryView in processOrderStatusUpdated - orderStatusUpdated ${orderStatusUpdated}"
+    )
+
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     effects.updateState(
@@ -60,6 +81,11 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
       state: ApiOrder,
       orderInfoUpdated: OrderInfoUpdated
   ): UpdateEffect[ApiOrder] = {
+
+    log.info(
+      s"OrderByProductQueryView in processOrderInfoUpdated - orderInfoUpdated ${orderInfoUpdated}"
+    )
+
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     effects.updateState(
@@ -81,6 +107,11 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
       state: ApiOrder,
       orderCanceled: OrderCanceled
   ): UpdateEffect[ApiOrder] = {
+
+    log.info(
+      s"OrderByProductQueryView in processOrderCanceled - orderCanceled ${orderCanceled}"
+    )
+
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
     effects.updateState(
@@ -103,7 +134,6 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
       state: ApiOrder,
       orderReleased: OrderReleased
   ): UpdateEffect[ApiOrder] = {
-
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 

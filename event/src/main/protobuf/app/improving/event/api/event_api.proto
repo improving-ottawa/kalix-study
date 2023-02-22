@@ -122,3 +122,53 @@ message ApiAddReservationToEvent {
     string reservation = 2;
     ApiMemberId reserving_member = 3;
 }
+
+// For direct event source in direct_event_events.proto
+
+
+message ApiEventCancelled {
+    ApiEventId event_id = 1;
+    ApiMemberId cancelling_member = 2;
+}
+
+message ApiEventDelayed {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    string reason = 2;
+    ApiEventMetaInfo meta = 3;
+    google.protobuf.Duration expected_duration = 4;
+}
+
+message ApiEventEnded {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventMetaInfo meta = 2;
+}
+
+message ApiEventInfoChanged {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventRescheduled {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventScheduled {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventStarted {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiReservationAddedToEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    string reservation = 2;
+    ApiEventMetaInfo meta = 3;
+}

@@ -241,9 +241,8 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
-        val productsToRemove = apiRemoveProductFromStore.products.map(product =>
-          Sku(product.sku)
-        )
+        val productsToRemove =
+          apiRemoveProductFromStore.products.map(product => Sku(product.sku))
         val event = ProductsRemovedFromStore(
           Some(StoreId(apiRemoveProductFromStore.storeId)),
           store.info.map(

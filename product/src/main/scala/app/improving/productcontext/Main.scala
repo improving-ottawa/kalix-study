@@ -1,6 +1,9 @@
 package app.improving.productcontext
 
-import app.improving.productcontext.product.ProductAPI
+import app.improving.productcontext.product.{
+  ProductAPI,
+  ProductEventsServiceAction
+}
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -22,15 +25,17 @@ object Main {
       .withComponents(
         new ProductAPI(_),
         new AllProductsViewImpl(_),
+        new ProductEventsServiceAction(_),
+        new TicketByEventTimeQueryView(_),
         new TicketByEventViewImpl(_)
       )
 //      .register(
 //        TicketByEventViewProvider(new TicketByEventViewImpl(_))
-//          .withViewId("TicketByEventViewV2")
+//          .withViewId("TicketByEventViewV3")
 //      )
 //      .register(
 //        TicketByEventTimeQueryViewProvider(new TicketByEventTimeQueryView(_))
-//          .withViewId("TicketByEventTimeQueryViewV2")
+//          .withViewId("TicketByEventTimeQueryViewV3")
 //      )
   }
 

@@ -25,7 +25,7 @@ object Main {
       new MemberMap(_),
       new AllMembersViewImpl(_),
       new MemberActionServiceImpl(_),
-      //      new MemberByEventQueryView(_),
+      new MemberByMemberIdsQueryView(_),
       new MemberByMetaInfoViewImpl(_)
     )
   }

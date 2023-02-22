@@ -40,6 +40,7 @@ import app.improving.organizationcontext.{
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -49,6 +50,8 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 class OrganizationAPI(context: EventSourcedEntityContext)
     extends AbstractOrganizationAPI {
   override def emptyState: OrganizationState = OrganizationState.defaultInstance
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   // TODO: there's an UpdateOrganizationContacts listed in the riddl but not present
 
@@ -60,9 +63,16 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if !currentState.organization
             .map(_.status)
-            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) =>
+            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) => {
+        log.info(
+          s"OrganizationAPI in getOrganization apiGetOrganizationById - $apiGetOrganizationById"
+        )
         effects.reply(convertOrganizationToApiOrganization(org))
+      }
       case _ =>
+        log.info(
+          s"OrganizationAPI in getOrganization OrganizationBy ID ${apiGetOrganizationById.orgId} IS NOT FOUND."
+        )
         effects.error(
           s"OrganizationBy ID ${apiGetOrganizationById.orgId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
@@ -78,7 +88,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(_)
           if !currentState.organization
             .map(_.status)
-            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) =>
+            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) => {
+        log.info(
+          s"OrganizationAPI in getOrganizationInfo apiGetOrganizationInfo - $apiGetOrganizationInfo."
+        )
         val event = GetOrganizationInfo(
           Some(OrganizationId(apiGetOrganizationInfo.orgId))
         )
@@ -89,11 +102,16 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             val apiInfoOpt = infoOpt.map(convertInfoToApiInfo)
             apiInfoOpt.getOrElse(ApiInfo.defaultInstance)
           })
-      case _ =>
+      }
+      case _ => {
+        log.info(
+          s"OrganizationAPI in getOrganizationInfo OrganizationInfo By ID ${apiGetOrganizationInfo.orgId} IS NOT FOUND.."
+        )
         effects.error(
           s"OrganizationInfo By ID ${apiGetOrganizationInfo.orgId} IS NOT FOUND.",
           Status.Code.NOT_FOUND
         )
+      }
     }
   }
 
@@ -108,7 +126,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in removeMembersFromOrganization apiRemoveMembersFromOrganization - $apiRemoveMembersFromOrganization."
+        )
         updateListIfValidItemsToAddAndUpdatingMember(
           apiRemoveMembersFromOrganization.updatingMember,
           apiRemoveMembersFromOrganization.membersToRemove,
@@ -131,9 +152,14 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             )
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
-
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in removeMembersFromOrganization other - $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -147,7 +173,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in removeOwnersFromOrganization apiRemoveOwnersFromOrganization - $apiRemoveOwnersFromOrganization."
+        )
         updateListIfValidItemsToAddAndUpdatingMember(
           apiRemoveOwnersFromOrganization.updatingMember,
           apiRemoveOwnersFromOrganization.ownersToRemove,
@@ -169,7 +198,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in removeOwnersFromOrganization other - $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -183,7 +218,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in addMembersToOrganization apiAddMembersToOrganization - $apiAddMembersToOrganization."
+        )
         updateListIfValidItemsToAddAndUpdatingMember(
           apiAddMembersToOrganization.updatingMember,
           apiAddMembersToOrganization.membersToAdd,
@@ -206,7 +244,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in addMembersToOrganization other - $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -220,7 +264,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in addOwnersToOrganization apiAddOwnersToOrganization - $apiAddOwnersToOrganization."
+        )
         updateListIfValidItemsToAddAndUpdatingMember(
           apiAddOwnersToOrganization.updatingMember,
           apiAddOwnersToOrganization.ownersToAdd,
@@ -242,7 +289,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
           }
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in addOwnersToOrganization other - $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -252,7 +305,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status.isOrganizationStatusDraft || org.status.isOrganizationStatusActive =>
+          if org.status.isOrganizationStatusDraft || org.status.isOrganizationStatusActive => {
+        log.info(
+          s"OrganizationAPI in editOrganizationInfo apiEditOrganizationInfo - $apiEditOrganizationInfo."
+        )
         val maybeUpdateInfo = apiEditOrganizationInfo.newInfo
         val maybeMember = apiEditOrganizationInfo.editingMember
         (maybeUpdateInfo, maybeMember) match {
@@ -283,8 +339,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               )
             )
         }
-
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in editOrganizationInfo other - $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -293,11 +354,19 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       apiEstablishOrganization: ApiEstablishOrganization
   ): EventSourcedEntity.Effect[ApiOrganizationId] = {
     currentState.organization match {
-      case Some(org) =>
+      case Some(org) => {
+        log.info(
+          s"OrganizationAPI in establishOrganization organization is already established - $org."
+        )
         effects.error(
           s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
         )
-      case _ =>
+      }
+      case _ => {
+        log.info(
+          s"OrganizationAPI in establishOrganization apiEstablishOrganization - $apiEstablishOrganization."
+        )
+
         val maybeInfo = apiEstablishOrganization.info
         val maybeMember = apiEstablishOrganization.establishingMember
 
@@ -370,6 +439,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               )
             )
         }
+      }
     }
   }
 
@@ -380,7 +450,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): EventSourcedEntity.Effect[Empty] = {
     currentState.organization match {
       case Some(org)
-          if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED =>
+          if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED => {
+        log.info(
+          s"OrganizationAPI in updateParent apiUpdateParent - $apiUpdateParent."
+        )
         (apiUpdateParent.newParent, apiUpdateParent.updatingMember) match {
           case (Some(parent), Some(updatingMember)) =>
             val event = ParentUpdated(
@@ -401,7 +474,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               getMissingFieldsError(Map("Parent" -> apiUpdateParent.newParent))
             )
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in updateParent other - $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
   }
 
@@ -409,12 +488,21 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   override def updateOrganizationStatus(
       currentState: OrganizationState,
       apiOrganizationStatusUpdated: ApiOrganizationStatusUpdated
-  ): EventSourcedEntity.Effect[Empty] =
+  ): EventSourcedEntity.Effect[Empty] = {
+    log.info(
+      s"OrganizationAPI in updateOrganizationStatus apiOrganizationStatusUpdated - $apiOrganizationStatusUpdated."
+    )
     currentState.organization match {
-      case Some(org) =>
+      case Some(org) => {
+        log.info(
+          s"OrganizationAPI in updateOrganizationStatus currentState.organization - $org."
+        )
         val maybeUpdatingMember = apiOrganizationStatusUpdated.updatingMember
         maybeUpdatingMember match {
           case Some(apiUpdatingMember) =>
+            log.info(
+              s"OrganizationAPI in updateOrganizationStatus apiUpdatingMember - $apiUpdatingMember."
+            )
             val newStatus = convertApiOrganizationStatusToOrganizationStatus(
               apiOrganizationStatusUpdated.newStatus
             )
@@ -425,11 +513,22 @@ class OrganizationAPI(context: EventSourcedEntityContext)
               if (org.status == newStatus) Right(())
               else verifyStatusStateBeforeStatusChange(org.status, currentState)
 
-            statusDirectionOkayOrError.flatMap(_ =>
+            statusDirectionOkayOrError.flatMap(_ => {
+              log.info(
+                s"OrganizationAPI in updateOrganizationStatus statusDirectionOkayOrError."
+              )
               statusChangeOkayOrError
-            ) match {
-              case Left(error) => effects.error(error)
-              case Right(_) =>
+            }) match {
+              case Left(error) => {
+                log.info(
+                  s"OrganizationAPI in updateOrganizationStatus statusChangeOkayOrError error $error."
+                )
+                effects.error(error)
+              }
+              case Right(_) => {
+                log.info(
+                  s"OrganizationAPI in updateOrganizationStatus statusChangeOkayOrError emit status update event."
+                )
                 val event = OrganizationStatusUpdated(
                   orgId = org.oid,
                   newStatus = newStatus,
@@ -442,17 +541,27 @@ class OrganizationAPI(context: EventSourcedEntityContext)
                   )
                 )
                 effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+              }
             }
-
-          case _ =>
-            effects.error(
-              getMissingFieldsError(
-                Map("UpdatingMember" -> maybeUpdatingMember)
-              )
+          case _ => {
+            val errors = getMissingFieldsError(
+              Map("UpdatingMember" -> maybeUpdatingMember)
             )
+            log.info(
+              s"OrganizationAPI in updateOrganizationStatus missing fields errors $errors."
+            )
+            effects.error(errors)
+          }
         }
-      case _ => effects.reply(Empty.defaultInstance)
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in updateOrganizationStatus other $other."
+        )
+        effects.reply(Empty.defaultInstance)
+      }
     }
+  }
 
   override def findOrganizationsByMember(
       currentState: OrganizationState,
@@ -460,9 +569,18 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = currentState.organization match {
     case Some(org)
         if org.members
-          .exists(id => findOrganizationsByMember.member.contains(id)) =>
+          .exists(id => findOrganizationsByMember.member.contains(id)) => {
+      log.info(
+        s"OrganizationAPI in findOrganizationsByMember findOrganizationsByMember $findOrganizationsByMember."
+      )
       currentState
-    case _ => OrganizationState.defaultInstance
+    }
+    case other => {
+      log.info(
+        s"OrganizationAPI in findOrganizationsByMember findOrganizationsByMember other $other."
+      )
+      OrganizationState.defaultInstance
+    }
   }
 
   override def findOrganizationsByOwner(
@@ -471,16 +589,36 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState = currentState.organization match {
     case Some(org)
         if org.owners
-          .exists(id => findOrganizationsByOwner.owner.contains(id)) =>
+          .exists(id => findOrganizationsByOwner.owner.contains(id)) => {
+      log.info(
+        s"OrganizationAPI in findOrganizationsByOwner findOrganizationsByOwner $findOrganizationsByOwner."
+      )
       currentState
-    case _ => OrganizationState.defaultInstance
+    }
+    case other => {
+      log.info(
+        s"OrganizationAPI in findOrganizationsByOwner other $other."
+      )
+      OrganizationState.defaultInstance
+    }
   }
 
   override def getOrganizationInfo(
       currentState: OrganizationState,
       getOrganizationInfo: GetOrganizationInfo
   ): OrganizationState = currentState.organization match {
-    case Some(_) => currentState
+    case Some(_) => {
+      log.info(
+        s"OrganizationAPI in getOrganizationInfo getOrganizationInfo $getOrganizationInfo."
+      )
+      currentState
+    }
+    case other => {
+      log.info(
+        s"OrganizationAPI in getOrganizationInfo other $other."
+      )
+      OrganizationState.defaultInstance
+    }
   }
 
   override def membersAddedToOrganization(
@@ -493,7 +631,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in membersAddedToOrganization membersAddedToOrganization $membersAddedToOrganization."
+        )
         currentState.withOrganization(
           org.copy(
             members =
@@ -501,7 +642,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             orgMeta = membersAddedToOrganization.meta
           )
         )
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in membersAddedToOrganization other $other."
+        )
+        currentState
+      }
     }
   }
 
@@ -515,7 +662,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in membersRemovedFromOrganization membersRemovedFromOrganization $membersRemovedFromOrganization."
+        )
         currentState.withOrganization(
           org.copy(
             members = org.members.filterNot(
@@ -524,7 +674,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             orgMeta = membersRemovedFromOrganization.meta
           )
         )
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in membersRemovedFromOrganization other $other."
+        )
+        currentState
+      }
     }
   }
 
@@ -536,14 +692,23 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if !currentState.organization
             .map(_.status)
-            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) =>
+            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) => {
+        log.info(
+          s"OrganizationAPI in organizationAccountsUpdated organizationAccountsUpdated $organizationAccountsUpdated."
+        )
         currentState.withOrganization(
           org.copy(
             info = organizationAccountsUpdated.info,
             orgMeta = organizationAccountsUpdated.meta
           )
         )
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in organizationAccountsUpdated other $other."
+        )
+        currentState
+      }
     }
   }
 
@@ -555,13 +720,22 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       case Some(org)
           if !currentState.organization
             .map(_.status)
-            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) =>
+            .contains(OrganizationStatus.ORGANIZATION_STATUS_TERMINATED) => {
+        log.info(
+          s"OrganizationAPI in organizationContactsUpdated organizationContactsUpdated $organizationContactsUpdated."
+        )
         currentState.withOrganization(
           org.copy(
             contacts = organizationContactsUpdated.contacts
           )
         )
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in organizationContactsUpdated other $other."
+        )
+        currentState
+      }
     }
   }
 
@@ -570,12 +744,19 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       organizationEstablished: OrganizationEstablished
   ): OrganizationState =
     currentState.organization match {
-      case Some(org) =>
+      case Some(org) => {
+        log.info(
+          s"OrganizationAPI in organizationEstablished organization is already established $org."
+        )
         effects.error(
           s"The current organization is already established.  Please update the organization instead of establishing new one. - ${org.toString}"
         )
         currentState
-      case _ =>
+      }
+      case _ => {
+        log.info(
+          s"OrganizationAPI in organizationEstablished organizationEstablished $organizationEstablished."
+        )
         val organization = Organization(
           oid = organizationEstablished.orgId,
           info = organizationEstablished.info,
@@ -596,6 +777,7 @@ class OrganizationAPI(context: EventSourcedEntityContext)
         )
 
         currentState.withOrganization(organization)
+      }
     }
 
   override def organizationInfoUpdated(
@@ -604,13 +786,22 @@ class OrganizationAPI(context: EventSourcedEntityContext)
   ): OrganizationState =
     currentState.organization match {
       case Some(org)
-          if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE =>
+          if org.status == OrganizationStatus.ORGANIZATION_STATUS_DRAFT || org.status == OrganizationStatus.ORGANIZATION_STATUS_ACTIVE => {
+        log.info(
+          s"OrganizationAPI in organizationInfoUpdated organizationInfoUpdated $organizationInfoUpdated."
+        )
         org.copy(
           info = organizationInfoUpdated.info,
           orgMeta = organizationInfoUpdated.meta
         )
         currentState.withOrganization(org)
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in organizationInfoUpdated other $other."
+        )
+        currentState
+      }
     }
 
   override def organizationStatusUpdated(
@@ -618,7 +809,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       organizationStatusUpdated: OrganizationStatusUpdated
   ): OrganizationState = currentState.organization match {
     case Some(org)
-        if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED =>
+        if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED => {
+      log.info(
+        s"OrganizationAPI in organizationStatusUpdated organizationStatusUpdated $organizationStatusUpdated."
+      )
       currentState.withOrganization(
         org.copy(
           orgMeta = org.orgMeta.map(
@@ -633,7 +827,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
           status = organizationStatusUpdated.newStatus
         )
       )
-    case _ => currentState
+    }
+    case other => {
+      log.info(
+        s"OrganizationAPI in organizationStatusUpdated other $other."
+      )
+      currentState
+    }
   }
 
   override def ownersAddedToOrganization(
@@ -646,7 +846,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in ownersAddedToOrganization ownersAddedToOrganization $ownersAddedToOrganization."
+        )
         currentState.withOrganization(
           org.copy(
             owners =
@@ -654,7 +857,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             orgMeta = ownersAddedToOrganization.meta
           )
         )
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in ownersAddedToOrganization other $other."
+        )
+        currentState
+      }
     }
 
   override def ownersRemovedFromOrganization(
@@ -667,7 +876,10 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             .map(_.status)
             .contains(
               OrganizationStatus.ORGANIZATION_STATUS_TERMINATED
-            ) =>
+            ) => {
+        log.info(
+          s"OrganizationAPI in ownersRemovedFromOrganization ownersRemovedFromOrganization $ownersRemovedFromOrganization."
+        )
         currentState.withOrganization(
           org.copy(
             owners = org.owners.filterNot(
@@ -676,7 +888,13 @@ class OrganizationAPI(context: EventSourcedEntityContext)
             orgMeta = ownersRemovedFromOrganization.meta
           )
         )
-      case _ => currentState
+      }
+      case other => {
+        log.info(
+          s"OrganizationAPI in ownersRemovedFromOrganization other $other."
+        )
+        currentState
+      }
     }
 
   override def parentUpdated(
@@ -684,11 +902,20 @@ class OrganizationAPI(context: EventSourcedEntityContext)
       parentUpdated: ParentUpdated
   ): OrganizationState = currentState.organization match {
     case Some(org)
-        if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED =>
+        if org.status != OrganizationStatus.ORGANIZATION_STATUS_TERMINATED => {
+      log.info(
+        s"OrganizationAPI in parentUpdated parentUpdated $parentUpdated."
+      )
       currentState.withOrganization(
         org.copy(parent = parentUpdated.newParent, orgMeta = parentUpdated.meta)
       )
-    case _ => currentState
+    }
+    case other => {
+      log.info(
+        s"OrganizationAPI in parentUpdated other $other."
+      )
+      currentState
+    }
   }
 
   private def updateListIfValidItemsToAddAndUpdatingMember[A](

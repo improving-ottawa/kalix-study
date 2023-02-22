@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package app.improving.productcontext;
+
+import "app/improving/product/api/product_api.proto";
+import "app/improving/product/domain/product_context_domain.proto";
+import "common_api.proto";
+import "google/protobuf/timestamp.proto";
+import "common_domain.proto";
+
+message TicketByEventRequest {
+    string event_id = 1;
+}
+
+message TicketByEventResponse {
+    ApiSku sku = 1;
+    product.ApiProductInfo info = 2;
+    product.ApiProductMetaInfo meta = 3;
+    string status = 4;
+}
+
+message TicketEventCorrTableRow {
+    ApiSku sku = 1;
+    product.ApiProductInfo info = 2;
+    product.ApiProductMetaInfo meta = 3;
+    string status = 4;
+    ApiEventId event = 5;
+}
+
+message TicketByEventTimeRequest {
+    google.protobuf.Timestamp given_time = 1;
+}
+
+message TicketByEventTimeResponse {
+    repeated TicketEventCorrTableRow products = 1;
+}

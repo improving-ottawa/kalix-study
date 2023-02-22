@@ -39,6 +39,7 @@ lazy val product = project
   .in(file("product"))
   .configure(Kalix.service("product"))
   .configure(Kalix.dependsOn(common, "common"))
+  .configure(Kalix.dependsOn(event, "event"))
 
 lazy val store = project
   .in(file("store"))
@@ -68,7 +69,7 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(gateway)
+  .aggregate(gateway, event, order, product)
 //product - nulls
 //order - nulls
 //store - nulls
