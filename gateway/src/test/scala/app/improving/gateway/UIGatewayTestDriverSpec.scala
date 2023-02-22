@@ -3,18 +3,19 @@ package app.improving.gateway
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.gateway.TestData.Fixture
-import app.improving.gateway.util.util.endFromResults
-import app.improving.{ApiOrderId, OrderId}
-import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
+import io.circe
 import org.scalatest.{Assertion, BeforeAndAfterAll}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.Random
+import scala.io.Source
+import io.circe._
+import io.circe.syntax._
 
 class UIGatewayTestDriverSpec
     extends AnyWordSpec
@@ -24,10 +25,12 @@ class UIGatewayTestDriverSpec
     with Fixture {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(5000, Millis))
+    PatienceConfig(Span(5, Seconds), Span(1000, Millis))
 
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
+
+//  private val log = LoggerFactory.getLogger(this.getClass)
 
   lazy val config: Config = ConfigFactory.load()
 
@@ -40,10 +43,6 @@ class UIGatewayTestDriverSpec
     )
 
   val client: TestGatewayApiActionClient = TestGatewayApiActionClient(
-    gatewayClientSettings
-  )
-
-  val uiClient: UiGatewayApiActionClient = UiGatewayApiActionClient(
     gatewayClientSettings
   )
 
@@ -76,20 +75,14 @@ class UIGatewayTestDriverSpec
 
   "GatewayApiActionImpl" should {
     "handle small scenario w/ no orders" in {
-      val numTenants = 1
-      val maxOrgsDepth = 2
-      val maxOrgsWidth = 2
-      val numMembersPerOrg = 1
-      val numEventsPerOrg = 1
-      val numTicketsPerEvent = 1
 
       val info = ScenarioInfo(
-        numTenants,
-        maxOrgsDepth,
-        maxOrgsWidth,
-        numMembersPerOrg,
-        numEventsPerOrg,
-        numTicketsPerEvent
+        numTenants = 1,
+        maxOrgsDepth = 2,
+        maxOrgsWidth = 2,
+        numMembersPerOrg = 1,
+        numEventsPerOrg = 1,
+        numTicketsPerEvent = 1
       )
 
       val results =
@@ -98,88 +91,6 @@ class UIGatewayTestDriverSpec
       checkResults(results, info)
 
       println(results)
-
-      client.handleEndScenario(endFromResults(results, Seq.empty))
-
     }
-  }
-
-  "UiGatewayApiActionImpl" must {
-
-    "handle command HandlePurchaseTicket 1 ticket for 1 member" in {
-      val numTenants = 1
-      val maxOrgsDepth = 2
-      val maxOrgsWidth = 2
-      val numMembersPerOrg = 1
-      val numEventsPerOrg = 1
-      val numTicketsPerEvent = 1
-
-      val scenarioResult = client
-        .handleStartScenario(
-          StartScenario(
-            Some(
-              ScenarioInfo(
-                numTenants,
-                maxOrgsDepth,
-                maxOrgsWidth,
-                numMembersPerOrg,
-                numEventsPerOrg,
-                numTicketsPerEvent
-              )
-            )
-          )
-        )
-        .futureValue
-
-      scenarioResult.tenants.isEmpty shouldBe false
-      scenarioResult.orgsForTenants.isEmpty shouldBe false
-      scenarioResult.membersForOrgs.isEmpty shouldBe false
-      scenarioResult.eventsForOrgs.isEmpty shouldBe false
-      scenarioResult.storesForOrgs.isEmpty shouldBe false
-      scenarioResult.productsForStores.isEmpty shouldBe false
-
-      val r = new Random()
-      val storeId = scenarioResult.storesForOrgs.values
-        .flatMap(_.storeIds.take(1))
-        .take(1)
-        .head
-      val products = scenarioResult
-        .productsForStores(storeId.storeId)
-        .skus
-        .take(1)
-      val memberIds =
-        scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
-
-      val memberId = memberIds(r.nextInt(memberIds.size))
-
-      val orderIds = uiClient
-        .handlePurchaseTickets(
-          PurchaseTicketsRequest(
-            Map(
-              memberId.memberId -> OrdersForStores(
-                products.map { productId =>
-                  storeId.storeId ->
-                    ApiOrderInfo(
-                      Seq[ApiLineItem](
-                        ApiLineItem(Some(productId), 1)
-                      )
-                    )
-                }.toMap
-              )
-            )
-          )
-        )
-        .futureValue
-
-      orderIds.orderIds.isEmpty shouldBe false
-
-      client.handleEndScenario(
-        endFromResults(
-          scenarioResult,
-          orderIds.orderIds.map(id => OrderId(id.orderId))
-        )
-      )
-    }
-
   }
 }

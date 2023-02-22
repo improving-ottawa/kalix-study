@@ -118,6 +118,8 @@ object util {
         ApiEventStatus.API_EVENT_STATUS_CANCELLED
       case EventStatus.EVENT_STATUS_DELAYED =>
         ApiEventStatus.API_EVENT_STATUS_DELAYED
+      case EventStatus.EVENT_STATUS_RELEASED =>
+        ApiEventStatus.API_EVENT_STATUS_RELEASED
       case EventStatus.EVENT_STATUS_UNKNOWN =>
         ApiEventStatus.API_EVENT_STATUS_UNKNOWN
       case EventStatus.Unrecognized(unrecognizedValue) =>

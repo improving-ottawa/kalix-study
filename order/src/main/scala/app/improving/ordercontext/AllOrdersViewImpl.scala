@@ -1,6 +1,6 @@
 package app.improving.ordercontext
 
-import app.improving.{ApiMemberId, ApiOrderId, OrderId, StoreId}
+import app.improving.{ApiMemberId, OrderId}
 import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
