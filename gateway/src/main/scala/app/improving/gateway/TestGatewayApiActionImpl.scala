@@ -65,6 +65,7 @@ import app.improving.gateway.util.util.{
 import app.improving.ordercontext.order.{ApiReleaseOrder, OrderService}
 import app.improving.organizationcontext.organization
 import app.improving.organizationcontext.organization.{
+  ApiAddMembersToOrganization,
   ApiContacts,
   ApiEstablishOrganization,
   ApiOrganizationStatus,
@@ -282,23 +283,6 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     Await.result(
       Future
         .sequence(
-          establishedOrgs.keys
-            .map(orgId => {
-              organizationService
-                .updateOrganizationStatus(
-                  ApiOrganizationStatusUpdated(
-                    orgId.organizationId,
-                    ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE
-                  )
-                )
-            })
-        ),
-      10 seconds
-    )
-
-    Await.result(
-      Future
-        .sequence(
           owners
             .flatMap(ownersForTenant =>
               ownersForTenant._2
@@ -352,56 +336,83 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info(s"in handleStartScenario orgsByTenant - $orgsByTenant")
 
-    val memberIds: Seq[ApiMemberId] = Await.result(
+    val tenantsByOrgs = orgsByTenant
+      .map(tenantOrgs => tenantOrgs._2.map(org => org -> tenantOrgs._1))
+      .toSeq
+      .flatten
+      .toMap
+
+    val membersForOrgs: Map[ApiOrganizationId, Set[ApiMemberId]] = Await
+      .result(
+        Future
+          .sequence(
+            genApiRegisterMemberLists(
+              scenarioInfo.numMembersPerOrg,
+              orgsByTenant.flatMap { case (tenantId, orgIds) =>
+                orgIds.map(orgId =>
+                  (
+                    orgId,
+                    initialMemberId,
+                    tenantId,
+                    establishedOrgs
+                      .find(_._1 == orgId)
+                      .flatMap(_._2.info.map(_.name))
+                      .getOrElse(r.nextString(10))
+                  )
+                )
+              }.toSeq
+            ).map { case (registerMemberList, orgId) =>
+              memberAction
+                .registerMemberList(registerMemberList)
+                .map(memberIds =>
+                  memberIds.memberIds.map(memberId => {
+                    memberService.updateMemberStatus(
+                      ApiUpdateMemberStatus(
+                        memberId.memberId,
+                        Some(ApiMemberId(memberId.memberId)),
+                        ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                      )
+                    )
+                    (orgId, memberId)
+                  })
+                )
+            }
+          )
+          .map(_.flatten),
+        10 seconds
+      )
+      .groupBy(_._1)
+      .map(tup => tup._1 -> tup._2.map(_._2).toSet)
+
+    log.info(s"in handleStartScenario membersForOrgs - $membersForOrgs")
+
+    Await.result(
       Future
         .sequence(
-          genApiRegisterMemberLists(
-            scenarioInfo.numMembersPerOrg,
-            orgsByTenant.flatMap { case (tenantId, orgIds) =>
-              orgIds.map(orgId =>
-                (
-                  orgId,
-                  initialMemberId,
-                  tenantId,
-                  establishedOrgs
-                    .find(_._1 == orgId)
-                    .flatMap(_._2.info.map(_.name))
-                    .getOrElse(r.nextString(10))
-                )
-              )
-            }.toSeq
-          ).map { registerMemberList =>
-            memberAction
-              .registerMemberList(registerMemberList)
-              .map(memberIds =>
-                memberIds.memberIds.map(memberId => {
-                  memberService.updateMemberStatus(
-                    ApiUpdateMemberStatus(
-                      memberId.memberId,
-                      Some(ApiMemberId(memberId.memberId)),
-                      ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
-                    )
+          establishedOrgs.keys
+            .map(orgId => {
+              organizationService
+                .addMembersToOrganization(
+                  ApiAddMembersToOrganization(
+                    orgId = orgId.organizationId,
+                    membersToAdd = membersForOrgs(orgId).toSeq,
+                    updatingMember = Some(owners(tenantsByOrgs(orgId)).head)
                   )
-                  memberId
-                })
-              )
-          }
-        )
-        .map(_.flatten),
+                )
+                .andThen(_ =>
+                  organizationService
+                    .updateOrganizationStatus(
+                      ApiOrganizationStatusUpdated(
+                        orgId.organizationId,
+                        ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+                        Some(initialMemberId)
+                      )
+                    )
+                )
+            })
+        ),
       10 seconds
     )
-
-    log.info(s"in handleStartScenario memberIds - $memberIds")
-
-    val membersByOrg: Map[ApiOrganizationId, Seq[ApiMemberId]] =
-      establishedOrgs
-        .map { case (orgId, establishedOrg) =>
-          orgId -> establishedOrg.members
-        }
-        .groupBy(_._1)
-        .map(tup => tup._1 -> tup._2.flatMap(_._2).toSeq)
-
-    log.info(s"in handleStartScenario membersByOrg - $membersByOrg")
 
     val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] = Await
       .result(
@@ -411,7 +422,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               startScenario.scenarioInfo
                 .map(_.numEventsPerOrg)
                 .getOrElse(0): Int,
-              membersByOrg
+              membersForOrgs
             ).map(apiScheduleEvent => {
               eventService
                 .scheduleEvent(apiScheduleEvent)
@@ -482,11 +493,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         eventsByOrg,
         storesByOrg,
         orgsByTenant,
-        orgsByTenant
-          .map(tenantOrgs => tenantOrgs._2.map(org => org -> tenantOrgs._1))
-          .toSeq
-          .flatten
-          .toMap
+        tenantsByOrgs
       ) match {
         case productsMap =>
           val apiCreateProducts = productsMap.values.flatten
@@ -566,8 +573,8 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         orgsByTenant.map(tenantWithOrgs =>
           tenantWithOrgs._1.toString -> OrganizationIds(tenantWithOrgs._2)
         ),
-        membersByOrg.map(orgWithMembers =>
-          orgWithMembers._1.toString -> MemberIds(orgWithMembers._2)
+        membersForOrgs.map(orgWithMembers =>
+          orgWithMembers._1.toString -> MemberIds(orgWithMembers._2.toSeq)
         ),
         eventsByOrg.map(orgWithEvents =>
           orgWithEvents._1.toString -> EventIds(orgWithEvents._2.toSeq)
@@ -736,7 +743,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
   private def genApiScheduleEvents(
       numOfEvents: Integer,
-      membersByOrg: Map[ApiOrganizationId, Seq[ApiMemberId]]
+      membersByOrg: Map[ApiOrganizationId, Set[ApiMemberId]]
   ): Seq[ApiScheduleEvent] = {
     val r = new Random()
 
@@ -766,7 +773,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 Some(
                   Timestamp.of(
                     now.getEpochSecond + r.nextLong(100000),
-                    now.getNano + r.nextInt()
+                    now.getNano
                   )
                 )
               )
@@ -863,7 +870,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       orgsWithNameRegisteringMemberAndTenant: Seq[
         (ApiOrganizationId, ApiMemberId, ApiTenantId, String)
       ]
-  ): Seq[ApiRegisterMemberList] = {
+  ): Seq[(ApiRegisterMemberList, ApiOrganizationId)] = {
 
     log.info(
       s"handleStartScenario genApiRegisterMemberLists numOfMembersPerOrg $numOfMembersPerOrg"
@@ -873,18 +880,21 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     orgsWithNameRegisteringMemberAndTenant.map(
       orgWithNameRegisteringMemberAndTenant =>
-        ApiRegisterMemberList(
-          Some(
-            ApiMemberMap(
-              (1 to r.between(1, numOfMembersPerOrg + 1)).map { _ =>
-                UUID.randomUUID().toString -> genApiInfoForMember(
-                  r,
-                  orgWithNameRegisteringMemberAndTenant
-                )
-              }.toMap
-            )
+        (
+          ApiRegisterMemberList(
+            Some(
+              ApiMemberMap(
+                (1 to r.between(1, numOfMembersPerOrg + 1)).map { _ =>
+                  UUID.randomUUID().toString -> genApiInfoForMember(
+                    r,
+                    orgWithNameRegisteringMemberAndTenant
+                  )
+                }.toMap
+              )
+            ),
+            Some(orgWithNameRegisteringMemberAndTenant._2)
           ),
-          Some(orgWithNameRegisteringMemberAndTenant._2)
+          orgWithNameRegisteringMemberAndTenant._1
         )
     )
   }

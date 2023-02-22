@@ -1,8 +1,0 @@
-{
-  "num_tenants": 1,
-  "max_orgs_depth": 2,
-  "max_orgs_width": 2,
-  "num_members_per_org": 1,
-  "num_events_per_org": 1,
-  "num_tickets_per_event": 1
-}

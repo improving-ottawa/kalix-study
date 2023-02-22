@@ -167,7 +167,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
   private val allOrdersView = creationContext.getGrpcClient(
     classOf[AllOrdersView],
     config.getString(
-      "app.improving.gateway.store.grpc-client-name"
+      "app.improving.gateway.order.grpc-client-name"
     )
   )
   override def handleEstablishTenant(
