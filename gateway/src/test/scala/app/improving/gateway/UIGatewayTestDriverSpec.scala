@@ -25,7 +25,7 @@ class UIGatewayTestDriverSpec
     with Fixture {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(500, Millis))
+    PatienceConfig(Span(5, Seconds), Span(1000, Millis))
 
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
@@ -45,11 +45,6 @@ class UIGatewayTestDriverSpec
   val client: TestGatewayApiActionClient = TestGatewayApiActionClient(
     gatewayClientSettings
   )
-
-  val requestParamsOrParsingFailure: Either[ParsingFailure, Json] =
-    circe.parser.parse(
-      Source.fromResource("json/minimumRequestParams.json").mkString
-    )
 
   def checkResults(
       results: ScenarioResults,
@@ -80,16 +75,14 @@ class UIGatewayTestDriverSpec
 
   "GatewayApiActionImpl" should {
     "handle small scenario w/ no orders" in {
-      val json =
-        requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
 
       val info = ScenarioInfo(
-        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
-        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
+        numTenants = 1,
+        maxOrgsDepth = 2,
+        maxOrgsWidth = 2,
+        numMembersPerOrg = 1,
+        numEventsPerOrg = 1,
+        numTicketsPerEvent = 1
       )
 
       val results =
