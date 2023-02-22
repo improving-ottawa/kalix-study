@@ -610,6 +610,12 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       )
     )
 
+    endScenario.tenants.map(id =>
+      tenantService.releaseTenant(
+        ApiReleaseTenant(id.tenantId)
+      )
+    )
+
     effects.reply(Empty.defaultInstance)
   }
 

@@ -16,11 +16,13 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
+import app.improving.membercontext.AllMembersView
 import app.improving.membercontext.member.{
   ApiRegisterMember,
   ApiReleaseMember,
   MemberService
 }
+import app.improving.ordercontext.AllOrdersView
 import app.improving.ordercontext.order.{
   ApiCreateOrder,
   ApiReleaseOrder,
@@ -59,7 +61,7 @@ import scala.concurrent.Future
 class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractCreationGatewayApiAction {
 
-  private implicit val system = ActorSystem("GatewayApiActionImpl")
+  private implicit val system: ActorSystem = ActorSystem("GatewayApiActionImpl")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 

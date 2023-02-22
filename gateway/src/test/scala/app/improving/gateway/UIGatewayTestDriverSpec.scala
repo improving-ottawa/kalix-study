@@ -3,6 +3,7 @@ package app.improving.gateway
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.gateway.TestData.Fixture
+import app.improving.gateway.util.util.endFromResults
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe
 import org.scalatest.{Assertion, BeforeAndAfterAll}
@@ -25,7 +26,7 @@ class UIGatewayTestDriverSpec
     with Fixture {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(1000, Millis))
+    PatienceConfig(Span(7, Seconds), Span(5000, Millis))
 
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
@@ -90,7 +91,11 @@ class UIGatewayTestDriverSpec
 
       checkResults(results, info)
 
-      println(results)
+      client
+        .handleEndScenario(
+          endFromResults(results, Seq.empty)
+        )
+        .futureValue
     }
   }
 }

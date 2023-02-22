@@ -3,10 +3,18 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.ApiMemberId
+import app.improving.membercontext.member.ApiReleaseMember
+import app.improving.{
+  ApiMemberId,
+  ApiOrganizationId,
+  ApiTenantId,
+  OrganizationId
+}
 import app.improving.ordercontext.order.ApiLineItem
+import app.improving.organizationcontext.organization.ApiReleaseOrganization
 import app.improving.productcontext.product.ApiProductDetails
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
+import app.improving.tenantcontext.tenant.ApiReleaseTenant
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -58,6 +66,17 @@ class CreationGatewayApiActionImplSpec
         log.info(tenantCreated + " tenantCreated")
         tenantCreated.tenantCreated shouldBe defined
 
+        gateWayAction.handleReleaseTenants(
+          ReleaseTenants(
+            Seq(
+              ApiReleaseTenant(
+                tenantCreated.tenantCreated
+                  .getOrElse(ApiTenantId.defaultInstance)
+                  .tenantId
+              )
+            )
+          )
+        )
       }
 
       "handle command EstablishTenants" in {
@@ -67,6 +86,14 @@ class CreationGatewayApiActionImplSpec
 
         log.info(tenantsCreated + " tenantsCreated")
         tenantsCreated.tenantsCreated.isEmpty shouldBe false
+
+        gateWayAction.handleReleaseTenants(
+          ReleaseTenants(
+            tenantsCreated.tenantsCreated.map(tenant =>
+              ApiReleaseTenant(tenant.tenantId)
+            )
+          )
+        )
       }
 
       "handle command EstablishOrganization" in {
@@ -82,6 +109,17 @@ class CreationGatewayApiActionImplSpec
         log.info(organizationCreated + " organizationCreated")
         organizationCreated.organizationCreated shouldBe defined
 
+        gateWayAction.handleReleaseOrganizations(
+          ReleaseOrganizations(
+            Seq(
+              ApiOrganizationId(
+                organizationCreated.organizationCreated
+                  .getOrElse(OrganizationId.defaultInstance)
+                  .id
+              )
+            )
+          )
+        )
       }
 
       "handle command RegisterMembers" in {
@@ -100,6 +138,12 @@ class CreationGatewayApiActionImplSpec
 
         log.info(membersRegistered + " membersRegistered")
         membersRegistered.membersRegistered.isEmpty shouldBe false
+
+        gateWayAction.handleReleaseMembers(
+          ReleaseMembers(
+            membersRegistered.membersRegistered
+          )
+        )
       }
 
       "handle command CreateOrder" in {
@@ -205,6 +249,36 @@ class CreationGatewayApiActionImplSpec
 
         log.info(orderCreated + " orderCreated")
         orderCreated.orderCreated shouldBe defined
+
+        gateWayAction.handleReleaseMembers(
+          ReleaseMembers(
+            memberId.toList
+          )
+        )
+
+        gateWayAction.handleReleaseEvents(
+          ReleaseEvents(
+            eventId.toList
+          )
+        )
+
+        gateWayAction.handleReleaseOrganizations(
+          ReleaseOrganizations(
+            organizationsCreated.organizationsCreated
+          )
+        )
+
+        gateWayAction.handleReleaseProducts(
+          ReleaseProducts(
+            productCreated.productCreated.toList
+          )
+        )
+
+        gateWayAction.handleReleaseOrders(
+          ReleaseOrders(
+            orderCreated.orderCreated.toList
+          )
+        )
       }
 
       "handle command for CreateOrder private event" in {
@@ -313,6 +387,36 @@ class CreationGatewayApiActionImplSpec
 
         log.info(orderCreated + " orderCreated private event")
         orderCreated.orderCreated shouldBe defined
+
+        gateWayAction.handleReleaseMembers(
+          ReleaseMembers(
+            memberId.toList
+          )
+        )
+
+        gateWayAction.handleReleaseEvents(
+          ReleaseEvents(
+            eventId.toList
+          )
+        )
+
+        gateWayAction.handleReleaseOrganizations(
+          ReleaseOrganizations(
+            organizationsCreated.organizationsCreated
+          )
+        )
+
+        gateWayAction.handleReleaseProducts(
+          ReleaseProducts(
+            productCreated.productCreated.toList
+          )
+        )
+
+        gateWayAction.handleReleaseOrders(
+          ReleaseOrders(
+            orderCreated.orderCreated.toList
+          )
+        )
       }
 
       "handle failed command for CreateOrder private event" in {
@@ -384,6 +488,18 @@ class CreationGatewayApiActionImplSpec
               )
             )
             .futureValue
+        )
+
+        gateWayAction.handleReleaseEvents(
+          ReleaseEvents(
+            eventId.toList
+          )
+        )
+
+        gateWayAction.handleReleaseProducts(
+          ReleaseProducts(
+            productCreated.productCreated.toList
+          )
         )
       }
     }
