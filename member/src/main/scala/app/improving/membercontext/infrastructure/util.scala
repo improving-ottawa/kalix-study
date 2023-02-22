@@ -201,4 +201,19 @@ object util {
       memberRegistered.meta.map(convertMetaInfoToApiMetaInfo)
     )
   }
+
+  def convertApiUpdateInfoToInfo(apiUpdateInfo: ApiUpdateInfo): Info = {
+    Info(
+      apiUpdateInfo.contact.map(convertApiContactToContact),
+      apiUpdateInfo.handle.getOrElse("handle is NOT FOUND."),
+      apiUpdateInfo.avatar.getOrElse("avatar is NOT FOUND."),
+      apiUpdateInfo.firstName.getOrElse("firstName is NOT FOUND."),
+      apiUpdateInfo.lastName.getOrElse("lastName is NOT FOUND."),
+      apiUpdateInfo.notificationPreference.map(convertNotificationPreference),
+      apiUpdateInfo.organizationMembership.map(org =>
+        OrganizationId(org.organizationId)
+      ),
+      apiUpdateInfo.tenantId.map(tenant => TenantId(tenant.tenantId))
+    )
+  }
 }

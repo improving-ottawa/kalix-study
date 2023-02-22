@@ -20,14 +20,20 @@ object Main {
     // and is kept up-to-date with any changes in your protobuf definitions.
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
-    KalixFactory.withComponents(
-      new MemberAPI(_),
-      new MemberMap(_),
-      new AllMembersViewImpl(_),
-      new MemberActionServiceImpl(_),
-      //      new MemberByEventQueryView(_),
-      new MemberByMetaInfoViewImpl(_)
-    )
+    KalixFactory
+      .withComponents(
+        new MemberAPI(_),
+        new MemberMap(_),
+        new AllMembersViewImpl(_),
+        new MemberActionServiceImpl(_),
+        new MemberByMemberIdsQueryView(_),
+        new MemberByMetaInfoViewImpl(_),
+        new MemberByOrderQueryView(_)
+      )
+      .register(
+        AllMembersViewProvider(new AllMembersViewImpl(_))
+          .withViewId("AllMembersViewV1")
+      )
   }
 
   def main(args: Array[String]): Unit = {

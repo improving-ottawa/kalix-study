@@ -1,6 +1,23 @@
 package app.improving.productcontext.product
 
-import app.improving.{ApiEventId, ApiMemberId, ApiStoreId}
+import app.improving.productcontext.infrastructure.util.convertApiProductDetailsToProductDetails
+import app.improving.productcontext.{
+  ProductActivated,
+  ProductCreated,
+  ProductDeleted,
+  ProductInactivated,
+  ProductInfo,
+  ProductInfoUpdated,
+  ProductMetaInfo
+}
+import app.improving.{
+  ApiEventId,
+  ApiMemberId,
+  ApiStoreId,
+  MemberId,
+  Sku,
+  StoreId
+}
 import com.google.protobuf.timestamp.Timestamp
 
 import java.time.Instant
@@ -18,7 +35,7 @@ object TestData {
   val testEventId = "test-event-id"
   val testEventId2 = "test-event-id2"
   val testEventId3 = "test-event-id3"
-  val testProductDetails: Option[ApiProductDetails] = Some(
+  val testProductDetails: ApiProductDetails =
     ApiProductDetails(
       ApiProductDetails.ApiTicket.ReservedTicket(
         ApiReservedTicket(
@@ -29,20 +46,17 @@ object TestData {
         )
       )
     )
-  )
-  val testProductDetails2: Option[ApiProductDetails] = Some(
-    ApiProductDetails(
-      ApiProductDetails.ApiTicket.ReservedTicket(
-        ApiReservedTicket(
-          section = testSection,
-          row = testRow,
-          set = testSeat,
-          event = Some(ApiEventId(testEventId2))
-        )
+  val testProductDetails2: ApiProductDetails = ApiProductDetails(
+    ApiProductDetails.ApiTicket.ReservedTicket(
+      ApiReservedTicket(
+        section = testSection,
+        row = testRow,
+        set = testSeat,
+        event = Some(ApiEventId(testEventId2))
       )
     )
   )
-  val testProductDetails3: Option[ApiProductDetails] = Some(
+  val testProductDetails3: ApiProductDetails =
     ApiProductDetails(
       ApiProductDetails.ApiTicket.ReservedTicket(
         ApiReservedTicket(
@@ -53,7 +67,6 @@ object TestData {
         )
       )
     )
-  )
   val testImages: Seq[String] = Seq[String]("test-image")
   val testPrice = 10.0
   val testCost = 3.0
@@ -65,7 +78,7 @@ object TestData {
   val apiProductInfo: ApiProductInfo = ApiProductInfo(
     testName,
     testDescription,
-    testProductDetails,
+    Some(testProductDetails),
     testImages,
     testPrice,
     testCost,
@@ -74,7 +87,7 @@ object TestData {
   val apiProductInfoPrivateEvent: ApiProductInfo = ApiProductInfo(
     testName,
     testDescription,
-    testProductDetails2,
+    Some(testProductDetails2),
     testImages,
     testPrice,
     testCost,
@@ -83,7 +96,7 @@ object TestData {
   val apiProductInfoPrivateFailedEvent: ApiProductInfo = ApiProductInfo(
     testName,
     testDescription,
-    testProductDetails3,
+    Some(testProductDetails3),
     testImages,
     testPrice,
     testCost,
@@ -104,7 +117,7 @@ object TestData {
   val apiProductInfoUpdate: ApiProductInfoUpdate = ApiProductInfoUpdate(
     Option(testNameUpdate),
     Option(testDescriptionUpdate),
-    testProductDetails3,
+    Some(testProductDetails3),
     testImagesUpdate,
     None,
     Option(testCostUpdate),
@@ -114,7 +127,7 @@ object TestData {
   val apiProductInfoAfterUpdate: ApiProductInfo = apiProductInfo.copy(
     name = testNameUpdate,
     description = testDescriptionUpdate,
-    productDetails = testProductDetails3,
+    productDetails = Some(testProductDetails),
     image = testImagesUpdate,
     cost = testCostUpdate,
     store = Some(ApiStoreId(testStoreIdUpdate))
@@ -167,5 +180,43 @@ object TestData {
     testSku3,
     Some(apiProductInfoPrivateFailedEvent),
     Some(apiProductMetaInfo)
+  )
+
+  val productInfo: ProductInfo = ProductInfo(
+    testName,
+    testDescription,
+    Some(convertApiProductDetailsToProductDetails(testProductDetails)),
+    testImages,
+    testPrice,
+    testCost,
+    Some(StoreId(testStoreId))
+  )
+  val productMetaInfo: ProductMetaInfo = ProductMetaInfo(
+    Some(MemberId(testMemberId)),
+    Some(testTimestamp),
+    Some(MemberId(testMemberId1)),
+    Some(testTimestamp)
+  )
+  val productCreated: ProductCreated = ProductCreated(
+    Some(Sku(testSku)),
+    Some(productInfo),
+    Some(productMetaInfo)
+  )
+  val productInfoUpdated: ProductInfoUpdated = ProductInfoUpdated(
+    Some(Sku(testSku)),
+    Some(productInfo),
+    Some(productMetaInfo)
+  )
+  val productDeleted: ProductDeleted = ProductDeleted(
+    Some(Sku(testSku)),
+    Some(MemberId(testMemberId))
+  )
+  val productActivated: ProductActivated = ProductActivated(
+    Some(Sku(testSku)),
+    Some(MemberId(testMemberId))
+  )
+  val productInactivated: ProductInactivated = ProductInactivated(
+    Some(Sku(testSku)),
+    Some(MemberId(testMemberId))
   )
 }

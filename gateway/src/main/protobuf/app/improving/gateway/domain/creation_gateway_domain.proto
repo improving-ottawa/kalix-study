@@ -20,6 +20,14 @@ message TenantCreated {
     ApiTenantId tenant_created = 1;
 }
 
+message ReleaseTenants {
+    repeated tenantcontext.tenant.ApiReleaseTenant release_tenants = 1;
+}
+
+message TenantsReleased {
+    repeated ApiTenantId released_tenants = 1;
+}
+
 message CreateTenants {
     repeated tenantcontext.tenant.ApiInfo tenant_info = 1;
 }
@@ -39,11 +47,19 @@ message EstablishOrganization {
 }
 
 message CreateOrganization {
-    EstablishOrganization establish_organization = 1;
+    organizationcontext.organization.ApiEstablishOrganization establish_organization = 1;
 }
 
 message OrganizationCreated {
     OrganizationId organization_created = 1;
+}
+
+message ReleaseOrganizations {
+    repeated ApiOrganizationId organization_ids = 1;
+}
+
+message OrganizationsReleased {
+    repeated ApiOrganizationId released_orgs = 1;
 }
 
 message CreateOrganizations {
@@ -54,11 +70,6 @@ message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
 
-message ScheduleEvent {
-    eventcontext.event.ApiEventInfo info = 1;
-    ApiMemberId scheduling_member = 2;
-}
-
 message CreateEvent {
     eventcontext.event.ApiEventInfo info = 1;
     ApiMemberId scheduling_member = 2;
@@ -66,6 +77,14 @@ message CreateEvent {
 
 message EventCreated {
     ApiEventId event_created = 1;
+}
+
+message ReleaseEvents{
+    repeated ApiEventId event_ids = 1;
+}
+
+message EventsReleased {
+    repeated ApiEventId released_events = 1;
 }
 
 message CreateEvents {
@@ -100,6 +119,14 @@ message StoresCreated {
     repeated ApiStoreId stores_created = 1;
 }
 
+message ReleaseStores{
+    repeated ApiStoreId store_ids = 1;
+}
+
+message StoresReleased {
+    repeated ApiStoreId released_stores = 1;
+}
+
 message EstablishProduct {
     productcontext.product.ApiProductInfo info = 1;
     productcontext.product.ApiProductMetaInfo meta = 2;
@@ -119,6 +146,14 @@ message CreateProducts {
 
 message ProductsCreated {
     repeated ApiSku products_created = 1;
+}
+
+message ReleaseProducts{
+    repeated ApiSku skus = 1;
+}
+
+message ProductsReleased {
+    repeated ApiSku released_skus = 1;
 }
 
 message EstablishMember {
@@ -143,6 +178,14 @@ message MembersRegistered {
     repeated ApiMemberId members_registered  =1;
 }
 
+message ReleaseMembers{
+    repeated ApiMemberId members = 1;
+}
+
+message MembersReleased {
+    repeated ApiMemberId released_members = 1;
+}
+
 message EstablishOrder {
     ordercontext.order.ApiOrderInfo info = 1;
     ApiMemberId creating_member = 2;
@@ -159,13 +202,19 @@ message OrderCreated {
 
 message CreateOrders {
     repeated EstablishOrder establish_orders = 1;
-
 }
 
 message OrdersCreated {
     repeated ApiOrderId orders_created = 1;
 }
 
+message ReleaseOrders{
+    repeated ApiOrderId orders = 1;
+}
+
+message OrdersReleased {
+    repeated ApiOrderId released_orders = 1;
+}
 message OrganizationIds {
     repeated ApiOrganizationId org_ids = 1;
 }

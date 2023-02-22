@@ -19,6 +19,7 @@ import com.google.protobuf.empty.Empty
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 import com.google.protobuf.timestamp.Timestamp
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -27,6 +28,8 @@ import com.google.protobuf.timestamp.Timestamp
 
 class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   override def emptyState: StoreState = StoreState.defaultInstance
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   override def createStore(
       currentState: StoreState,
@@ -237,13 +240,12 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
   ): EventSourcedEntity.Effect[Empty] =
     currentState.store match {
       case Some(store)
-          if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance =>
+          if !store.status.isStoreStatusDeleted && currentState != StoreState.defaultInstance => {
         val now = java.time.Instant.now()
         val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
         val currentProducts = store.info.map(_.products).getOrElse(Seq.empty)
-        val productsToRemove = apiRemoveProductFromStore.products.map(product =>
-          Sku(product.sku)
-        )
+        val productsToRemove =
+          apiRemoveProductFromStore.products.map(product => Sku(product.sku))
         val event = ProductsRemovedFromStore(
           Some(StoreId(apiRemoveProductFromStore.storeId)),
           store.info.map(
@@ -263,7 +265,11 @@ class StoreAPI(context: EventSourcedEntityContext) extends AbstractStoreAPI {
             )
           )
         )
+        log.info(
+          s"StoreAPI in removeProductsFromStore - apiRemoveProductFromStore ${apiRemoveProductFromStore}"
+        )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+      }
       case _ => effects.reply(Empty.defaultInstance)
     }
 

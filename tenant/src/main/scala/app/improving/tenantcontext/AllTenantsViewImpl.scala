@@ -79,4 +79,9 @@ class AllTenantsViewImpl(context: ViewContext) extends AbstractAllTenantsView {
       )
     )
   }
+
+  override def processTenantReleased(
+      state: ApiTenant,
+      tenantReleased: TenantReleased
+  ): UpdateEffect[ApiTenant] = effects.deleteState()
 }

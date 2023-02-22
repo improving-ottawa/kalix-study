@@ -35,6 +35,7 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
+import app.improving.gateway.util.util._
 import app.improving.storecontext.store.{
   ApiCreateStore,
   ApiReleaseStore,
@@ -56,11 +57,6 @@ import app.improving.tenantcontext.tenant.{
   ApiEstablishTenant,
   ApiReleaseTenant,
   TenantService
-}
-import app.improving.gateway.util.util.{
-  genAddress,
-  genEmailAddressForName,
-  genMobileNumber
 }
 import app.improving.ordercontext.order.{ApiReleaseOrder, OrderService}
 import app.improving.organizationcontext.organization
@@ -85,6 +81,7 @@ import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
+import scala.collection.Seq
 import scala.language.postfixOps
 import scala.concurrent.duration.DurationInt
 
@@ -301,7 +298,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                             Some(
                               ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
                             ),
-                            Seq(topOrgs(ownersForTenant._1)),
+                            Seq(topOrgs(ownersForTenant._1)).toSeq,
                             Some(ownersForTenant._1)
                           )
                         )
@@ -487,7 +484,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info(s"in handleStartScenario storesByOrg - $storesByOrg")
 
-    val productsByStore =
+    val productsByStore: Map[ApiStoreId, Seq[ApiSku]] =
       genApiCreateProduct(
         scenarioInfo.numTicketsPerEvent,
         eventsByOrg,
@@ -527,7 +524,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               log.info(
                 s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
               )
-              storeId -> Skus(set.map(_._2).toSeq)
+              storeId -> set.map(_._2).toSeq
             }
 
           log.info(
@@ -549,7 +546,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                       storeId.storeId,
                       Some(
                         ApiStoreUpdateInfo(
-                          products = products.skus,
+                          products = products,
                           event = Some(ApiEventId(event.eventId)),
                           venue = Some(ApiVenueId("test-venue-id")),
                           location = Some(ApiLocationId("test-location-id"))
@@ -569,24 +566,22 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     effects.reply(
       ScenarioResults(
-        tenantIds,
+        tenantIds.toSeq,
         orgsByTenant.map(tenantWithOrgs =>
-          tenantWithOrgs._1.toString -> OrganizationIds(tenantWithOrgs._2)
+          tenantWithOrgs._1.tenantId -> OrganizationIds(tenantWithOrgs._2.toSeq)
         ),
         membersForOrgs.map(orgWithMembers =>
           orgWithMembers._1.toString -> MemberIds(orgWithMembers._2.toSeq)
         ),
         eventsByOrg.map(orgWithEvents =>
-          orgWithEvents._1.toString -> EventIds(orgWithEvents._2.toSeq)
+          orgWithEvents._1.organizationId -> EventIds(orgWithEvents._2.toSeq)
         ),
-        Some(
-          storesByOrg.values.foldLeft(StoreIds(Seq.empty))(
-            (accum, storeIds) => {
-              StoreIds(accum.storeIds ++ storeIds)
-            }
-          )
+        storesByOrg.map(orgWithStores =>
+          orgWithStores._1.organizationId -> StoreIds(orgWithStores._2.toSeq)
         ),
-        productsByStore.map(tup => tup._1.storeId -> tup._2)
+        productsByStore.map(storeWithProducts =>
+          storeWithProducts._1.storeId -> Skus(storeWithProducts._2.toSeq)
+        )
       )
     )
   }
@@ -594,36 +589,27 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleEndScenario(
       endScenario: EndScenario
   ): Action.Effect[Empty] = {
-    endScenario.orders.map(
-      _.orderIds.map(id =>
-        orderService.releaseOrder(ApiReleaseOrder(id.orderId))
+    endScenario.orders.map(id =>
+      orderService.releaseOrder(ApiReleaseOrder(id.orderId))
+    )
+    endScenario.products.map(id =>
+      productService.releaseProduct(ApiReleaseProduct(id.sku))
+    )
+    endScenario.stores.map(id =>
+      storeService.releaseStore(ApiReleaseStore(id.storeId))
+    )
+    endScenario.events.map(id =>
+      eventService.releaseEvent(ApiReleaseEvent(id.eventId))
+    )
+    endScenario.members.map(id =>
+      memberService.releaseMember(ApiReleaseMember(id.memberId))
+    )
+    endScenario.orgs.map(id =>
+      organizationService.releaseOrganization(
+        ApiReleaseOrganization(id.organizationId)
       )
     )
-    endScenario.products.map(
-      _.skus.map(id => productService.releaseProduct(ApiReleaseProduct(id.sku)))
-    )
-    endScenario.stores.map(
-      _.storeIds.map(id =>
-        storeService.releaseStore(ApiReleaseStore(id.storeId))
-      )
-    )
-    endScenario.events.map(
-      _.eventIds.map(id =>
-        eventService.releaseEvent(ApiReleaseEvent(id.eventId))
-      )
-    )
-    endScenario.members.map(
-      _.memberIds.map(id =>
-        memberService.releaseMember(ApiReleaseMember(id.memberId))
-      )
-    )
-    endScenario.orgs.map(
-      _.orgIds.map(id =>
-        organizationService.releaseOrganization(
-          ApiReleaseOrganization(id.organizationId)
-        )
-      )
-    )
+
     endScenario.tenants.map(id =>
       tenantService.releaseTenant(
         ApiReleaseTenant(id.tenantId)
@@ -693,7 +679,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                         )
                       )
                     ),
-                    Seq[String](r.nextString(15)),
+                    Seq[String](r.nextString(15)).toSeq,
                     r.nextDouble(),
                     r.nextDouble(),
                     Some(
@@ -727,7 +713,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           ApiStoreInfo(
             r.nextString(15),
             r.nextString(15),
-            Seq.empty[ApiSku],
+            scala.Seq.empty[ApiSku],
             None,
             None,
             None,
@@ -820,7 +806,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               r.nextInt(ApiNotificationPreference.values.length)
             )
           ),
-          Seq.empty,
+          scala.Seq.empty[ApiOrganizationId],
           forTenant
         )
       )
@@ -938,7 +924,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           r.nextInt(ApiNotificationPreference.values.length)
         )
       ),
-      Seq(orgWithMemberTenantAndName._1),
+      Seq(orgWithMemberTenantAndName._1).toSeq,
       Some(orgWithMemberTenantAndName._3)
     )
   }
@@ -982,15 +968,15 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             )
           ),
           None,
-          Seq.empty,
+          Seq.empty.toSeq,
           owners,
           Seq(
             ApiContacts(
               owners,
-              Seq.empty,
-              Seq.empty
+              Seq.empty.toSeq,
+              Seq.empty.toSeq
             )
-          ),
+          ).toSeq,
           owners.headOption
         )
       )
@@ -1031,15 +1017,15 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   Some(
                     ApiParent(Some(ApiOrganizationId(parent)))
                   ),
-                  Seq.empty,
+                  Seq.empty.toSeq,
                   owners,
                   Seq(
                     ApiContacts(
                       owners,
-                      Seq.empty,
-                      Seq.empty
+                      Seq.empty.toSeq,
+                      Seq.empty.toSeq
                     )
-                  ),
+                  ).toSeq,
                   owners.headOption
                 )
               )

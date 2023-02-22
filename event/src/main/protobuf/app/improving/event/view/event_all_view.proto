@@ -79,6 +79,13 @@ service AllEventsView {
         };
     }
 
+    rpc ProcessEventReleased(EventReleased) returns (event.ApiEvent) {
+        option (kalix.method).view.update = {
+            table: "all_events"
+            transform_updates: true
+        };
+    }
+
     rpc GetAllEvents(AllEventsRequest) returns (AllEventsResult) {
         option (kalix.method).view.query = {
             query: "SELECT * AS events FROM all_events"

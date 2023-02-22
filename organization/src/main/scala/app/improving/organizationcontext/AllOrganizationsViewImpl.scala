@@ -8,6 +8,7 @@ import app.improving.organizationcontext.organization.{
 }
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -19,21 +20,40 @@ class AllOrganizationsViewImpl(context: ViewContext)
 
   override def emptyState: ApiOrganization = ApiOrganization.defaultInstance
 
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def processOrganizationEstablished(
       state: ApiOrganization,
       organizationEstablished: OrganizationEstablished
   ): UpdateEffect[ApiOrganization] = {
-    if (state != emptyState) effects.ignore()
-    else
+    if (state != emptyState) {
+
+      log.info(
+        s"AllOrganizationsViewImpl in processOrganizationEstablished - state already existed"
+      )
+
+      effects.ignore()
+    } else {
+
+      log.info(
+        s"AllOrganizationsViewImpl in processOrganizationEstablished - organizationEstablished ${organizationEstablished}"
+      )
+
       effects.updateState(
         convertOrganizationEstablishedToApiOrganization(organizationEstablished)
       )
+    }
   }
 
   override def processMembersAddedToOrganization(
       state: ApiOrganization,
       membersAddedToOrganization: MembersAddedToOrganization
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processMembersAddedToOrganization - membersAddedToOrganization ${membersAddedToOrganization}"
+    )
+
     val members = state.memberIds
     effects.updateState(
       state.copy(memberIds =
@@ -48,6 +68,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       membersRemovedFromOrganization: MembersRemovedFromOrganization
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processMembersRemovedFromOrganization - membersRemovedFromOrganization ${membersRemovedFromOrganization}"
+    )
+
     val members = state.memberIds
     effects.updateState(
       state.copy(memberIds =
@@ -64,6 +89,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       organizationAccountsUpdated: OrganizationAccountsUpdated
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processOrganizationAccountsUpdated - organizationAccountsUpdated ${organizationAccountsUpdated}"
+    )
+
     effects.updateState(
       state.copy(
         info = organizationAccountsUpdated.info.map(convertInfoToApiInfo),
@@ -77,6 +107,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       organizationContactsUpdated: OrganizationContactsUpdated
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processOrganizationContactsUpdated - organizationContactsUpdated ${organizationContactsUpdated}"
+    )
+
     effects.updateState(
       state.copy(contacts =
         organizationContactsUpdated.contacts.map(contact =>
@@ -94,6 +129,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       organizationInfoUpdated: OrganizationInfoUpdated
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processOrganizationInfoUpdated - organizationInfoUpdated ${organizationInfoUpdated}"
+    )
+
     effects.updateState(
       state.copy(info = organizationInfoUpdated.info.map(convertInfoToApiInfo))
     )
@@ -103,6 +143,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       organizationStatusUpdated: OrganizationStatusUpdated
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processOrganizationStatusUpdated - organizationStatusUpdated ${organizationStatusUpdated}"
+    )
+
     effects.updateState(
       state.copy(status =
         convertOrganizationStatusToApiOrganizationStatus(
@@ -116,6 +161,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       ownersAddedToOrganization: OwnersAddedToOrganization
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processOwnersAddedToOrganization - ownersAddedToOrganization ${ownersAddedToOrganization}"
+    )
+
     val owners = state.ownerIds
     effects.updateState(
       state.copy(ownerIds =
@@ -130,6 +180,11 @@ class AllOrganizationsViewImpl(context: ViewContext)
       state: ApiOrganization,
       ownersRemovedFromOrganization: OwnersRemovedFromOrganization
   ): UpdateEffect[ApiOrganization] = {
+
+    log.info(
+      s"AllOrganizationsViewImpl in processOwnersRemovedFromOrganization - ownersRemovedFromOrganization ${ownersRemovedFromOrganization}"
+    )
+
     val owners = state.ownerIds
     effects.updateState(
       state.copy(ownerIds =
@@ -141,4 +196,9 @@ class AllOrganizationsViewImpl(context: ViewContext)
       )
     )
   }
+
+  override def processOrganizationReleased(
+      state: ApiOrganization,
+      organizationReleased: OrganizationReleased
+  ): UpdateEffect[ApiOrganization] = effects.deleteState()
 }

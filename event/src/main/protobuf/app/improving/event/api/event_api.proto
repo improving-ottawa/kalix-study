@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+
 package app.improving.eventcontext.event;
 
 import "common_api.proto";
@@ -15,6 +16,10 @@ enum ApiEventStatus {
     API_EVENT_STATUS_DELAYED = 4;
     API_EVENT_STATUS_RELEASED = 5;
     API_EVENT_STATUS_UNKNOWN = 6;
+}
+
+message ApiReservationId {
+    string reservation_id = 1 [(kalix.field).entity_key = true];
 }
 
 message ApiGetEventById {
@@ -121,4 +126,48 @@ message ApiAddReservationToEvent {
     string event_id = 1 [(kalix.field).entity_key = true];
     string reservation = 2;
     ApiMemberId reserving_member = 3;
+}
+
+// For direct event source in direct_event_events.proto
+
+
+message ApiEventCancelled {
+    ApiEventId event_id = 1;
+    ApiMemberId cancelling_member = 2;
+}
+
+message ApiEventDelayed {
+    ApiEventId event_id = 1;
+    string reason = 2;
+    ApiEventMetaInfo meta = 3;
+    google.protobuf.Duration expected_duration = 4;
+}
+
+message ApiEventEnded {
+    ApiEventId event_id = 1;
+    ApiEventMetaInfo meta = 2;
+}
+
+message ApiEventInfoChanged {
+    ApiEventId event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventRescheduled {
+    ApiEventId  event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventScheduled {
+    ApiEventId  event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiEventStarted {
+    ApiEventId  event_id = 1;
+    ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
 }

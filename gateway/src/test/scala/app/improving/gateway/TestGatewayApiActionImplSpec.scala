@@ -2,6 +2,7 @@ package app.improving.gateway
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.gateway.util.util.endFromResults
 import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
@@ -9,6 +10,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
+
+import scala.concurrent.ExecutionContextExecutor
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -24,8 +27,8 @@ class TestGatewayApiActionImplSpec
   implicit private val patience: PatienceConfig =
     PatienceConfig(Span(5, Seconds), Span(5000, Millis))
 
-  implicit val sys = ActorSystem("OrderActionImpl")
-  implicit val ec = sys.dispatcher
+  implicit val sys: ActorSystem = ActorSystem("OrderActionImpl")
+  implicit val ec: ExecutionContextExecutor = sys.dispatcher
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -72,12 +75,18 @@ class TestGatewayApiActionImplSpec
         .futureValue
 
       scenarioResult.tenants.isEmpty shouldBe false
-      scenarioResult.storeIds.isDefined shouldBe true
+      scenarioResult.storesForOrgs.isEmpty shouldBe false
       scenarioResult.eventsForOrgs.isEmpty shouldBe false
       scenarioResult.orgsForTenants.isEmpty shouldBe false
       scenarioResult.orgsForTenants.isEmpty shouldBe false
       scenarioResult.membersForOrgs.isEmpty shouldBe false
       scenarioResult.productsForStores.isEmpty shouldBe false
+
+      testGateWayAction
+        .handleEndScenario(
+          endFromResults(scenarioResult, Seq.empty)
+        )
+        .futureValue
     }
 
   }

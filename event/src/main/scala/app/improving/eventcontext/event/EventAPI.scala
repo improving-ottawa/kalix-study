@@ -23,6 +23,7 @@ import com.google.protobuf.duration.Duration
 import io.grpc.Status
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntity
 import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
+import org.slf4j.LoggerFactory
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -31,6 +32,8 @@ import kalix.scalasdk.eventsourcedentity.EventSourcedEntityContext
 
 class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
   override def emptyState: EventState = EventState.defaultInstance
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   // It's possible to add a reservation to an update if you're the status is in the set of statuses in reservablestatuses, update the info if it's in updateableStatuses,
   // reschedule if it's in reschedulableStatuses, etc. Note that status isn't the only constraint: the command fields must be validated, and for delay and start we verify that the reservation has been set.
@@ -94,6 +97,9 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             )
           )
         )
+        log.info(
+          s"EventAPI in changeEventInfo - apiChangeEventInfo - $apiChangeEventInfo"
+        )
         effects.emitEvent(infoChanged).thenReply(_ => Empty.defaultInstance)
       }
 
@@ -104,11 +110,12 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
       currentState: EventState,
       apiScheduleEvent: ApiScheduleEvent
   ): EventSourcedEntity.Effect[ApiEventId] = currentState.event match {
-    case Some(_) =>
+    case Some(event) =>
+      log.info(s"EventAPI in scheduleEvent - event already existed - $event")
       effects.error(
         s"Event already exists with id ${apiScheduleEvent.eventId}"
       )
-    case _ =>
+    case _ => {
       errorOrReply(
         EventStatus.EVENT_STATUS_SCHEDULED,
         Set(EventStatus.EVENT_STATUS_SCHEDULED),
@@ -142,6 +149,9 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
             )
           )
         )
+        log.info(
+          s"EventAPI in scheduleEvent - apiScheduleEvent - $apiScheduleEvent"
+        )
         effects
           .emitEvent(event)
           .thenReply(_ =>
@@ -150,7 +160,7 @@ class EventAPI(context: EventSourcedEntityContext) extends AbstractEventAPI {
               .getOrElse(ApiEventId.defaultInstance)
           )
       }
-
+    }
   }
 
   override def cancelEvent(

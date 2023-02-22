@@ -1,51 +1,50 @@
 package app.improving.gateway
 
-import app.improving.OrganizationId
-import app.improving.eventcontext.{
-  AllEventsRequest,
-  AllEventsResult,
-  AllEventsView
+import akka.actor.ActorSystem
+import app.improving.{
+  ApiEventId,
+  ApiMemberId,
+  ApiOrderId,
+  ApiOrganizationId,
+  ApiSku,
+  ApiStoreId,
+  ApiTenantId,
+  OrganizationId
 }
-import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
-import app.improving.membercontext.member.{ApiRegisterMember, MemberService}
-import app.improving.eventcontext.event.{ApiScheduleEvent, EventService}
+import app.improving.eventcontext.event.{
+  ApiReleaseEvent,
+  ApiScheduleEvent,
+  EventService
+}
+import app.improving.membercontext.AllMembersView
+import app.improving.membercontext.member.{
+  ApiRegisterMember,
+  ApiReleaseMember,
+  MemberService
+}
+import app.improving.ordercontext.AllOrdersView
+import app.improving.ordercontext.order.{
+  ApiCreateOrder,
+  ApiReleaseOrder,
+  OrderAction,
+  OrderService
+}
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
+  ApiReleaseOrganization,
   OrganizationService
 }
-import app.improving.organizationcontext.{
-  AllOrganizationsRequest,
-  AllOrganizationsView,
-  AllOrganizationsresult
+import app.improving.productcontext.product.{
+  ApiCreateProduct,
+  ApiReleaseProduct,
+  ProductService
 }
-import app.improving.membercontext.{
-  AllMembersRequest,
-  AllMembersResult,
-  AllMembersView
+import app.improving.storecontext.store.{
+  ApiCreateStore,
+  ApiReleaseStore,
+  StoreService
 }
-import app.improving.ordercontext.{
-  AllOrdersRequest,
-  AllOrdersView,
-  AllOrdersresult
-}
-import app.improving.productcontext.{
-  AllProductsRequest,
-  AllProductsResult,
-  AllProductsView
-}
-import app.improving.storecontext.store.{ApiCreateStore, StoreService}
-import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
-import app.improving.storecontext.{
-  AllStoresRequest,
-  AllStoresResult,
-  AllStoresView
-}
-import app.improving.tenantcontext.{
-  AllTenantResult,
-  AllTenantsView,
-  GetAllTenantRequest
-}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -59,8 +58,10 @@ import scala.concurrent.Future
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
 // or delete it so it is regenerated as needed.
 
-class GatewayApiActionImpl(creationContext: ActionCreationContext)
-    extends AbstractGatewayApiAction {
+class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
+    extends AbstractCreationGatewayApiAction {
+
+  private implicit val system: ActorSystem = ActorSystem("GatewayApiActionImpl")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -117,43 +118,17 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-  private val orderAction: OrderAction = creationContext.getGrpcClient(
-    classOf[OrderAction],
+  val orderService: OrderService = creationContext.getGrpcClient(
+    classOf[OrderService],
     config.getString(
       "app.improving.gateway.order.grpc-client-name"
     )
   )
 
-  private val allEventsView = creationContext.getGrpcClient(
-    classOf[AllEventsView],
+  val orderAction: OrderAction = creationContext.getGrpcClient(
+    classOf[OrderAction],
     config.getString(
-      "app.improving.gateway.event.grpc-client-name"
-    )
-  )
-  private val allOrganizationsView = creationContext.getGrpcClient(
-    classOf[AllOrganizationsView],
-    config.getString(
-      "app.improving.gateway.organization.grpc-client-name"
-    )
-  )
-  private val allTenantsView = creationContext.getGrpcClient(
-    classOf[AllTenantsView],
-    config.getString(
-      "app.improving.gateway.tenant.grpc-client-name"
-    )
-  )
-
-  private val allStoresView = creationContext.getGrpcClient(
-    classOf[AllStoresView],
-    config.getString(
-      "app.improving.gateway.store.grpc-client-name"
-    )
-  )
-
-  private val allProductsView = creationContext.getGrpcClient(
-    classOf[AllProductsView],
-    config.getString(
-      "app.improving.gateway.product.grpc-client-name"
+      "app.improving.gateway.order.grpc-client-name"
     )
   )
 
@@ -347,7 +322,9 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
           storeService.createStore(
             ApiCreateStore(
               storeId,
-              Some(info),
+              Some(
+                info
+              ),
               createStores.creatingMember
             )
           )
@@ -368,7 +345,8 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .createProduct(
           ApiCreateProduct(
             sku,
-            createProduct.establishProduct.flatMap(_.info),
+            createProduct.establishProduct
+              .flatMap(_.info),
             createProduct.establishProduct.flatMap(_.meta)
           )
         )
@@ -460,9 +438,9 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
         .purchaseTicket(
           ApiCreateOrder(
             orderId,
-            createOrder.establishOrder.flatMap(_.info),
-            createOrder.establishOrder.flatMap(_.creatingMember),
-            createOrder.establishOrder.flatMap(_.storeId)
+            createOrder.establishOrder
+              .flatMap(_.info),
+            createOrder.establishOrder.flatMap(_.creatingMember)
           )
         )
         .map(id => OrderCreated(Some(id)))
@@ -485,8 +463,7 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
                 ApiCreateOrder(
                   orderId,
                   establishOrder.info,
-                  establishOrder.creatingMember,
-                  establishOrder.storeId
+                  establishOrder.creatingMember
                 )
               )
           })
@@ -495,62 +472,160 @@ class GatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   }
 
-  override def handleGetAllEvents(
-      allEventsRequest: AllEventsRequest
-  ): Action.Effect[AllEventsResult] = {
-    effects.asyncReply(allEventsView.getAllEvents(allEventsRequest))
-  }
-
-  override def handleGetAllOrganizations(
-      allOrganizationsRequest: AllOrganizationsRequest
-  ): Action.Effect[AllOrganizationsresult] = {
-
-    log.info("in handleGetAllOrganizations")
-
+  override def handleReleaseTenants(
+      releaseTenants: ReleaseTenants
+  ): Action.Effect[TenantsReleased] = {
+    log.info("in releaseTenants")
     effects.asyncReply(
-      allOrganizationsView.getAllOrganizations(AllOrganizationsRequest())
+      Future
+        .sequence(
+          releaseTenants.releaseTenants.map { releaseTenant =>
+            tenantService
+              .releaseTenant(
+                releaseTenant
+              )
+          }
+        )
+        .map(_ =>
+          TenantsReleased(
+            releaseTenants.releaseTenants.map(id => ApiTenantId(id.tenantId))
+          )
+        )
     )
   }
 
-  override def handleGetAllTenants(
-      getAllTenantRequest: GetAllTenantRequest
-  ): Action.Effect[AllTenantResult] = {
-    effects.asyncReply(allTenantsView.getAllTenants(GetAllTenantRequest()))
+  override def handleReleaseOrganizations(
+      releaseOrganizations: ReleaseOrganizations
+  ): Action.Effect[OrganizationsReleased] = {
+
+    log.info("in releaseTenants")
+    effects.asyncReply(
+      Future
+        .sequence(
+          releaseOrganizations.organizationIds.map { releaseOrg =>
+            organizationService
+              .releaseOrganization(
+                ApiReleaseOrganization(releaseOrg.organizationId)
+              )
+          }
+        )
+        .map(_ =>
+          OrganizationsReleased(
+            releaseOrganizations.organizationIds
+              .map(id => ApiOrganizationId(id.organizationId))
+          )
+        )
+    )
   }
 
-  override def handleGetAllStores(
-      allStoresRequest: AllStoresRequest
-  ): Action.Effect[AllStoresResult] = {
+  override def handleReleaseEvents(
+      releaseEvents: ReleaseEvents
+  ): Action.Effect[EventsReleased] = {
 
-    log.info("in handleRegisterMembers")
-
-    effects.asyncReply(allStoresView.getAllStores(AllStoresRequest()))
+    log.info("in releaseTenants")
+    effects.asyncReply(
+      Future
+        .sequence(
+          releaseEvents.eventIds.map { releaseEvent =>
+            eventService
+              .releaseEvent(
+                ApiReleaseEvent(releaseEvent.eventId)
+              )
+          }
+        )
+        .map(_ =>
+          EventsReleased(
+            releaseEvents.eventIds.map(id => ApiEventId(id.eventId))
+          )
+        )
+    )
   }
 
-  override def handleGetAllProducts(
-      allProductsRequest: AllProductsRequest
-  ): Action.Effect[AllProductsResult] = {
+  override def handleReleaseStores(
+      releaseStores: ReleaseStores
+  ): Action.Effect[StoresReleased] = {
 
-    log.info("in handleRegisterMembers")
-
-    effects.asyncReply(allProductsView.getAllSkus(AllProductsRequest()))
+    log.info("in releaseTenants")
+    effects.asyncReply(
+      Future
+        .sequence(
+          releaseStores.storeIds.map { releaseStore =>
+            storeService
+              .releaseStore(
+                ApiReleaseStore(releaseStore.storeId)
+              )
+          }
+        )
+        .map(_ =>
+          StoresReleased(
+            releaseStores.storeIds.map(id => ApiStoreId(id.storeId))
+          )
+        )
+    )
   }
 
-  override def handleGetAllMembers(
-      allMembersRequest: AllMembersRequest
-  ): Action.Effect[AllMembersResult] = {
-
-    log.info("in handleGetAllMembers")
-
-    effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
+  override def handleReleaseProducts(
+      releaseProducts: ReleaseProducts
+  ): Action.Effect[ProductsReleased] = {
+    log.info("in releaseTenants")
+    effects.asyncReply(
+      Future
+        .sequence(
+          releaseProducts.skus.map { releaseProduct =>
+            productService
+              .releaseProduct(
+                ApiReleaseProduct(releaseProduct.sku)
+              )
+          }
+        )
+        .map(_ =>
+          ProductsReleased(
+            releaseProducts.skus.map(id => ApiSku(id.sku))
+          )
+        )
+    )
   }
 
-  override def handleGetAllOrders(
-      allOrdersRequest: AllOrdersRequest
-  ): Action.Effect[AllOrdersresult] = {
+  override def handleReleaseMembers(
+      releaseMembers: ReleaseMembers
+  ): Action.Effect[MembersReleased] = {
+    log.info("in releaseTenants")
+    effects.asyncReply(
+      Future
+        .sequence(
+          releaseMembers.members.map { releaseMember =>
+            memberService
+              .releaseMember(
+                ApiReleaseMember(releaseMember.memberId)
+              )
+          }
+        )
+        .map(_ =>
+          MembersReleased(
+            releaseMembers.members.map(id => ApiMemberId(id.memberId))
+          )
+        )
+    )
+  }
 
-    log.info("in handleGetAllOrders")
-
-    effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))
+  override def handleReleaseOrders(
+      releaseOrders: ReleaseOrders
+  ): Action.Effect[OrdersReleased] = {
+    log.info("in releaseTenants")
+    effects.asyncReply(
+      Future
+        .sequence(
+          releaseOrders.orders.map { releaseOrder =>
+            orderService.releaseOrder(
+              ApiReleaseOrder(releaseOrder.orderId)
+            )
+          }
+        )
+        .map(_ =>
+          OrdersReleased(
+            releaseOrders.orders.map(id => ApiOrderId(id.orderId))
+          )
+        )
+    )
   }
 }

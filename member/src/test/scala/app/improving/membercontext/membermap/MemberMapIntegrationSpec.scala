@@ -2,13 +2,7 @@ package app.improving.membercontext.membermap
 
 import kalix.scalasdk.testkit.KalixTestKit
 import app.improving.membercontext.{Main, NotificationPreference}
-import app.improving.{
-  Contact,
-  EmailAddress,
-  MobileNumber,
-  OrganizationId,
-  TenantId
-}
+import app.improving.{Contact, EmailAddress, MobileNumber, OrganizationId, TenantId}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers

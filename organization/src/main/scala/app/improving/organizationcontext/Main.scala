@@ -19,12 +19,17 @@ object Main {
     // and is kept up-to-date with any changes in your protobuf definitions.
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
-    KalixFactory.withComponents(
-      new OrganizationAPI(_),
-      new AllOrganizationsViewImpl(_),
-      new OrganizationByMemberViewImpl(_),
-      new OrganizationByOwnerViewImpl(_)
-    )
+    KalixFactory
+      .withComponents(
+        new OrganizationAPI(_),
+        new AllOrganizationsViewImpl(_),
+        new OrganizationByMemberViewImpl(_),
+        new OrganizationByOwnerViewImpl(_)
+      )
+      .register(
+        AllOrganizationsViewProvider(new AllOrganizationsViewImpl(_))
+          .withViewId("AllOrganizationsViewV1")
+      )
   }
 
   def main(args: Array[String]): Unit = {

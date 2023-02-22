@@ -244,7 +244,14 @@ class TenantAPI(context: EventSourcedEntityContext) extends AbstractTenantAPI {
             name = tenantNameChanged.newName
           )
         )
-      case _ => currentState
+      case other => {
+
+        log.info(
+          s"TenantAPI in tenantNameChanged - other ${other}"
+        )
+
+        currentState
+      }
     }
   }
 

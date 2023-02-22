@@ -1,6 +1,6 @@
 package app.improving.eventcontext
 
-import app.improving.eventcontext.event.EventAPI
+import app.improving.eventcontext.event.{EventAPI, EventEventsServiceAction}
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -18,7 +18,11 @@ object Main {
     // and is kept up-to-date with any changes in your protobuf definitions.
     // If you prefer, you may remove this and manually register these components in a
     // `Kalix()` instance.
-    KalixFactory.withComponents(new EventAPI(_), new AllEventsViewImpl(_))
+    KalixFactory.withComponents(
+      new EventAPI(_),
+      new AllEventsViewImpl(_),
+      new EventEventsServiceAction(_)
+    )
   }
 
   def main(args: Array[String]): Unit = {

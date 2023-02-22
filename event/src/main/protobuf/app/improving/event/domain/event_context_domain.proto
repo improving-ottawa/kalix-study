@@ -16,6 +16,10 @@ enum EventStatus {
     EVENT_STATUS_UNKNOWN = 6;
 }
 
+message ReservationId {
+    string id = 1;
+}
+
 message EventCancelled {
     EventId event_id = 1;
     EventMetaInfo meta = 2;

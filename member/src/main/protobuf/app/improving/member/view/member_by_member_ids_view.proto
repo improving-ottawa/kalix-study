@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+
+package app.improving.membercontext;
+
+import "app/improving/member/api/member_api.proto";
+import "app/improving/member/domain/member_context_domain.proto";
+import "kalix/annotations.proto";
+
+
+message MemberByMemberIdsRequest {
+    repeated string member_ids = 1;
+}
+
+
+message MemberByMemberIdsResponse {
+    repeated member.ApiMemberData members = 1;
+}
+
+service MemberByMemberIdsQuery {
+    option (kalix.codegen) = {
+        view: {}
+    };
+
+    rpc ProcessRegisterMember(MemberRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_member_ids_member"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberStatus(MemberStatusUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_member_ids_member"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessUpdateMemberInfo(MemberInfoUpdated) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_member_ids_member"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_member_ids_member"
+            transform_updates: true
+        };
+    }
+
+    rpc FindMembersByMemberIds(MemberByMemberIdsRequest) returns (MemberByMemberIdsResponse) {
+        option (kalix.method).view.query = {
+            query: "SELECT "
+                    "(member_by_member_ids_member.member_id AS member_id, member_by_member_ids_member.info AS info, member_by_member_ids_member.meta AS meta) AS members "
+                    "FROM  member_by_member_ids_member "
+                    "WHERE member_by_member_ids_member.member_id = ANY(:member_ids) "
+        };
+    }
+}

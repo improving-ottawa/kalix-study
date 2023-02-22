@@ -1,6 +1,17 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiMemberId, ApiSku}
+import app.improving.ordercontext.{
+  LineItem,
+  OrderCanceled,
+  OrderCreated,
+  OrderInfo,
+  OrderInfoUpdated,
+  OrderMetaInfo,
+  OrderStatus,
+  OrderStatusUpdated
+}
+import app.improving.{ApiMemberId, ApiSku, MemberId, OrderId, Sku, StoreId}
+import com.google.protobuf.timestamp.Timestamp
 
 object TestData {
 
@@ -14,6 +25,7 @@ object TestData {
   val testLineTotal = 20
   val testQuantity2 = 13
   val testLineTotal2 = 26
+  val testOrderTotal = 100.0
   val testLineItem1: ApiLineItem = ApiLineItem(
     Some(ApiSku(testProductId)),
     testQuantity,
@@ -128,5 +140,55 @@ object TestData {
   val apiGetOrderInfo: ApiGetOrderInfo = ApiGetOrderInfo(
     testOrderId,
     Some(ApiMemberId(requestingMemberId))
+  )
+
+  val testItem1 = LineItem(
+    Some(Sku(testProductId)),
+    testQuantity,
+    testLineTotal
+  )
+  val testItem2 = LineItem(
+    Some(Sku(testProductId)),
+    testQuantity2,
+    testLineTotal2
+  )
+  val testItems = Seq[LineItem](testItem1, testItem2)
+  val testInfo = OrderInfo(
+    testItems,
+    testSpecialInstruction,
+    testOrderTotal
+  )
+  val now = java.time.Instant.now()
+  val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  val testStoreId = "test-store-id"
+  val testMetaInfo = OrderMetaInfo(
+    Some(MemberId(testCreatingMemberId)),
+    Some(StoreId(testStoreId)),
+    Some(timestamp),
+    Some(MemberId(testCreatingMemberId)),
+    Some(timestamp),
+    OrderStatus.ORDER_STATUS_DRAFT
+  )
+  val orderCreated = OrderCreated(
+    Some(OrderId(testOrderId)),
+    Some(testInfo),
+    Some(testMetaInfo)
+  )
+  val orderStatusUpdated = OrderStatusUpdated(
+    Some(OrderId(testOrderId)),
+    OrderStatus.ORDER_STATUS_READY,
+    Some(MemberId(testUpdatingMemberId))
+  )
+  val orderInfoUpdated = OrderInfoUpdated(
+    Some(OrderId(testOrderId)),
+    Some(testInfo),
+    Some(testMetaInfo),
+    Some(MemberId(testUpdatingMemberId))
+  )
+  val orderCancelled = OrderCanceled(
+    Some(OrderId(testOrderId)),
+    Some(testInfo),
+    Some(testMetaInfo.copy(status = OrderStatus.ORDER_STATUS_CANCELLED)),
+    Some(MemberId(testCancellingMemberId))
   )
 }
