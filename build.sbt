@@ -51,6 +51,14 @@ lazy val tenant = project
   .configure(Kalix.service("tenant"))
   .configure(Kalix.dependsOn(common, "common"))
 
+lazy val projection = project
+  .in(file("projection"))
+  .configure(
+    Kalix.service("projection")
+  )
+  .configure(Kalix.dependsOn(org, "organization"))
+  .configure(Kalix.dependsOn(member, "member"))
+
 lazy val gateway = project
   .in(file("gateway"))
   .configure(Kalix.service("gateway"))
@@ -61,7 +69,12 @@ lazy val gateway = project
   .configure(Kalix.dependsOn(event, "event"))
   .configure(Kalix.dependsOn(product, "product"))
   .configure(Kalix.dependsOn(member, "member"))
-
+  .configure(
+    Kalix.dependsOn(
+      projection,
+      "projection"
+    )
+  )
 lazy val root = project
   .in(file("."))
   .settings(
@@ -69,7 +82,6 @@ lazy val root = project
     publishLocal := {},
     publishTo := Some(Resolver.defaultLocal)
   )
-  .aggregate(gateway, order, org, product, event, member, tenant, store)
-//product - nulls
-//order - nulls
-//store - nulls
+  .aggregate(
+    gateway
+  )
