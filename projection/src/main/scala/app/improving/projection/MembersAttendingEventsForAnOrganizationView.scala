@@ -1,5 +1,6 @@
-package app.improving.projections
+package app.improving.projection
 
+import app.improving.{EventId, MemberId, OrderId, OrganizationId, Sku}
 import app.improving.eventcontext.{
   EventCancelled,
   EventDelayed,
@@ -14,6 +15,7 @@ import app.improving.membercontext.{
   MemberStatus,
   MemberStatusUpdated
 }
+import app.improving.productcontext.infrastructure.util._
 import app.improving.ordercontext.{
   LineItemCancelled,
   LineItemOrdered,
@@ -32,6 +34,8 @@ import com.google.`type`.Date
 import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
+
+import java.time.{Instant, LocalTime, ZoneId, ZoneOffset}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -52,7 +56,9 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     else
       effects.updateState(
         MembersTableRow(
-          memberRegistered.memberId,
+          memberRegistered.memberId
+            .getOrElse(MemberId.defaultInstance)
+            .id,
           s"${memberRegistered.info.get.firstName} ${memberRegistered.info.get.lastName}"
         )
       )
@@ -67,7 +73,8 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
         state.copy(status =
           memberStatusUpdated.meta
             .map(_.memberStatus)
-            .getOrElse(MemberStatus.UNKNOWN)
+            .getOrElse(MemberStatus.MEMBER_STATUS_UNKNOWN)
+            .name
         )
       )
   }
@@ -85,8 +92,12 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     else
       effects.updateState(
         EventOrgCorrTableRow(
-          eventScheduled.eventId,
+          eventScheduled.eventId
+            .getOrElse(EventId.defaultInstance)
+            .id,
           eventScheduled.info.get.sponsoringOrg
+            .getOrElse(OrganizationId.defaultInstance)
+            .id
         )
       )
   }
@@ -103,8 +114,20 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     else
       effects.updateState(
         EventsTableRow(
-          eventScheduled.eventId,
-          eventScheduled.info.get.eventName
+          eventScheduled.eventId
+            .getOrElse(EventId.defaultInstance)
+            .id,
+          eventScheduled.info.get.eventName,
+          eventDate = eventScheduled.info.get.expectedStart.map(time =>
+            Timestamp(
+              Instant
+                .ofEpochSecond(time.seconds, time.nanos)
+                .atZone(ZoneId.of("UTC"))
+                .toLocalDate
+                .toEpochSecond(LocalTime.MIDNIGHT, ZoneOffset.of("UTC"))
+            )
+          ),
+          status = eventScheduled.meta.get.status.name
         )
       )
 
@@ -124,16 +147,10 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     else
       effects.updateState(
         EventsTableRow(
-          eventStarted.eventId,
-          eventStarted.info.map(_.eventName).getOrElse(""),
-          eventStarted.info.map(info =>
-            Date.parseFrom(
-              info.expectedStart
-                .map(_.toString)
-                .getOrElse(Timestamp.defaultInstance.toString)
-                .getBytes()
-            )
-          )
+          eventStarted.eventId
+            .getOrElse(EventId.defaultInstance)
+            .id,
+          eventStarted.info.map(_.eventName).getOrElse("")
         )
       )
 
@@ -144,10 +161,20 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(status =
-          eventRescheduled.meta
+        state.copy(
+          status = eventRescheduled.meta
             .map(_.status)
-            .getOrElse(EventStatus.UNKNOWN)
+            .getOrElse(EventStatus.EVENT_STATUS_UNKNOWN)
+            .name,
+          eventDate = eventRescheduled.info.get.expectedStart.map(time =>
+            Timestamp(
+              Instant
+                .ofEpochSecond(time.seconds, time.nanos)
+                .atZone(ZoneId.of("UTC"))
+                .toLocalDate
+                .toEpochSecond(LocalTime.MIDNIGHT, ZoneOffset.of("UTC"))
+            )
+          )
         )
       )
 
@@ -161,7 +188,8 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
         state.copy(status =
           eventDelayed.meta
             .map(_.status)
-            .getOrElse(EventStatus.UNKNOWN)
+            .getOrElse(EventStatus.EVENT_STATUS_UNKNOWN)
+            .name
         )
       )
 
@@ -175,7 +203,8 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
         state.copy(status =
           eventEnded.meta
             .map(_.status)
-            .getOrElse(EventStatus.UNKNOWN)
+            .getOrElse(EventStatus.EVENT_STATUS_UNKNOWN)
+            .name
         )
       )
   }
@@ -193,8 +222,12 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     else
       effects.updateState(
         TicketEventCorrTableRow(
-          productCreated.sku,
-          productCreated.info.get.event
+          productCreated.sku
+            .getOrElse(Sku.defaultInstance)
+            .id,
+          extractEventIdFromProductInfo(productCreated.info.get)
+            .getOrElse(EventId.defaultInstance)
+            .id
         )
       )
 
@@ -205,7 +238,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(ticketStatus = ProductStatus.ACTIVE)
+        state.copy(ticketStatus = ProductStatus.PRODUCT_STATUS_ACTIVE.name)
       )
 
     override def processProductInactivated(
@@ -215,7 +248,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(ticketStatus = ProductStatus.INACTIVE)
+        state.copy(ticketStatus = ProductStatus.PRODUCT_STATUS_INACTIVE.name)
       )
 
     override def processProductDeleted(
@@ -240,9 +273,15 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
     else
       effects.updateState(
         TicketMemberCorrTableRow(
-          lineItemOrdered.productId,
-          lineItemOrdered.forMemberId,
+          lineItemOrdered.productId
+            .getOrElse(Sku.defaultInstance)
+            .id,
+          lineItemOrdered.forMemberId
+            .getOrElse(MemberId.defaultInstance)
+            .id,
           lineItemOrdered.orderId
+            .getOrElse(OrderId.defaultInstance)
+            .id
         )
       )
 
@@ -265,7 +304,12 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        OrderTableRow(orderCreated.orderId, OrderStatus.ORDER_STATUS_DRAFT)
+        OrderTableRow(
+          orderCreated.orderId
+            .getOrElse(OrderId.defaultInstance)
+            .id,
+          OrderStatus.ORDER_STATUS_DRAFT.name
+        )
       )
 
     override def processOrderStatusUpdated(
@@ -275,7 +319,7 @@ class MembersAttendingEventsForAnOrganizationView(context: ViewContext)
       effects.ignore()
     else
       effects.updateState(
-        state.copy(status = orderStatusUpdated.newStatus)
+        state.copy(status = orderStatusUpdated.newStatus.name)
       )
 
   }

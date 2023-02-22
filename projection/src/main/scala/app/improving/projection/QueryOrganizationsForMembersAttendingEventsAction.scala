@@ -1,4 +1,4 @@
-package app.improving.projections
+package app.improving.projection
 
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -21,36 +21,29 @@ class QueryOrganizationsForMembersAttendingEventsAction(
         .execute()
         .map(reply =>
           OrgsByMembersForEvents(
-            reply.orgInfos
-              .map(orgInfo =>
-                orgInfo.attendingMemberOrgId
-                  .map(orgId =>
-                    orgId.id -> OrgInfoMembers(
-                      orgInfo.attendingMemberOrgName,
-                      reply.orgMembers
-                        .filter(_.attendingMemberOrgId.contains(orgId))
-                        .flatMap(_.memberInfos)
-                    )
+            reply.orgInfos.map { orgInfo =>
+              orgInfo.attendingMemberOrgId -> OrgInfoMembers(
+                orgInfo.attendingMemberOrgName,
+                reply.orgMembers
+                  .filter(
+                    _.attendingMemberOrgId
+                      .contains(orgInfo.attendingMemberOrgId)
                   )
+                  .flatMap(_.memberInfos)
               )
-              .filter(_.isDefined)
-              .map(_.get)
-              .toMap,
+            }.toMap,
             reply.orgMembers
               .flatMap(_.memberInfos)
               .map(memberInfo =>
-                memberInfo.attendingMemberId
-                  .map(memberId =>
-                    memberId.id -> MemberInfoEvents(
-                      memberInfo.attendingMemberName,
-                      reply.memberEvents
-                        .filter(_.attendingMemberId.contains(memberId))
-                        .flatMap(_.eventInfos)
+                memberInfo.attendingMemberId -> MemberInfoEvents(
+                  memberInfo.attendingMemberName,
+                  reply.memberEvents
+                    .filter(
+                      _.attendingMemberId.contains(memberInfo.attendingMemberId)
                     )
-                  )
+                    .flatMap(_.eventInfos)
+                )
               )
-              .filter(_.isDefined)
-              .map(_.get)
               .toMap
           )
         )

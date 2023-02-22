@@ -1,6 +1,5 @@
 package app.improving.gateway
 
-import akka.actor.ActorSystem
 import app.improving.{
   ApiEventId,
   ApiMemberId,
@@ -34,11 +33,13 @@ import app.improving.organizationcontext.organization.{
   ApiReleaseOrganization,
   OrganizationService
 }
+import app.improving.productcontext.AllProductsView
 import app.improving.productcontext.product.{
   ApiCreateProduct,
   ApiReleaseProduct,
   ProductService
 }
+import app.improving.storecontext.AllStoresView
 import app.improving.storecontext.store.{
   ApiCreateStore,
   ApiReleaseStore,
@@ -60,8 +61,6 @@ import scala.concurrent.Future
 
 class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractCreationGatewayApiAction {
-
-  private implicit val system: ActorSystem = ActorSystem("GatewayApiActionImpl")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -132,21 +131,21 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-  val allStoresView = creationContext.getGrpcClient(
+  val allStoresView: AllStoresView = creationContext.getGrpcClient(
     classOf[AllStoresView],
     config.getString(
       "app.improving.gateway.store.grpc-client-name"
     )
   )
 
-  val allProductsView = creationContext.getGrpcClient(
+  val allProductsView: AllProductsView = creationContext.getGrpcClient(
     classOf[AllProductsView],
     config.getString(
       "app.improving.gateway.product.grpc-client-name"
     )
   )
 
-  val allMembersView = creationContext.getGrpcClient(
+  val allMembersView: AllMembersView = creationContext.getGrpcClient(
     classOf[AllMembersView],
     config.getString(
       "app.improving.gateway.member.grpc-client-name"

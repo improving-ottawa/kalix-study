@@ -1,8 +1,9 @@
 syntax = "proto3";
 
-package app.improving.projections;
+package app.improving.projection;
 
-import "app/improving/organizationsForMembersAttendingEventsProjection/view/organizations_for_members_attending_events_projection.proto";
+import "app/improving/projection/common/common_domain.proto";
+import "app/improving/projection/view/organizations_for_members_attending_events_projection.proto";
 import "google/api/annotations.proto";
 import "kalix/annotations.proto";
 
@@ -29,7 +30,7 @@ service QueryOrganizationsForMembersAttendingEvents {
     rpc QueryOrganizationsForMembersAttendingEvents(FindOrgsByMembersForEvents) returns (OrgsByMembersForEvents)  {
         option (google.api.http) = {
             post: "/org-for-members-attending-events/query"
-            body: "event_id"
+            body: "*"
         };
     }
 }

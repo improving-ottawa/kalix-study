@@ -48,21 +48,32 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         val orderInfoOpt = apiCreateOrder.info
           .map(convertApiOrderInfoToOrderInfo)
           .map(calculateOrderTotal)
-        val event = OrderCreated(
-          orderIdOpt,
-          orderInfoOpt,
-          Some(
-            OrderMetaInfo(
-              memberIdOpt,
-              apiCreateOrder.storeId.map(store => StoreId(store.storeId)),
-              Some(timestamp),
-              memberIdOpt,
-              Some(timestamp),
-              OrderStatus.ORDER_STATUS_DRAFT
+        val events = Seq(
+          OrderCreated(
+            orderIdOpt,
+            orderInfoOpt,
+            Some(
+              OrderMetaInfo(
+                memberIdOpt,
+                apiCreateOrder.storeId.map(store => StoreId(store.storeId)),
+                Some(timestamp),
+                memberIdOpt,
+                Some(timestamp),
+                OrderStatus.ORDER_STATUS_DRAFT
+              )
+            )
+          ),
+          orderInfoOpt.map(
+            _.lineItems.map(item =>
+              LineItemOrdered(
+                orderIdOpt,
+                item.product,
+                memberIdOpt
+              )
             )
           )
         )
-        effects.emitEvent(event).thenReply(_ => ApiOrderId(orderId))
+        effects.emitEvent(events).thenReply(_ => ApiOrderId(orderId))
       }
     }
   }
@@ -203,22 +214,33 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
           apiCancelOrder.cancellingMember.map(member =>
             MemberId(member.memberId)
           )
-        val event = OrderCanceled(
-          order.orderId,
-          order.info,
-          order.meta.map(
-            _.copy(
-              lastModifiedBy = cancellingMemberIdOpt,
-              lastModifiedOn = Some(timestamp),
-              status = OrderStatus.ORDER_STATUS_CANCELLED
-            )
+        val events = Seq(
+          OrderCanceled(
+            order.orderId,
+            order.info,
+            order.meta.map(
+              _.copy(
+                lastModifiedBy = cancellingMemberIdOpt,
+                lastModifiedOn = Some(timestamp),
+                status = OrderStatus.ORDER_STATUS_CANCELLED
+              )
+            ),
+            cancellingMemberIdOpt
           ),
-          cancellingMemberIdOpt
+          order.info.map(
+            _.lineItems.map(item =>
+              LineItemCancelled(
+                order.orderId,
+                item.product,
+                order.meta.flatMap(_.memberId)
+              )
+            )
+          )
         )
         log.info(
           s"OrderAPI in cancelOrder - apiCancelOrder - ${apiCancelOrder}"
         )
-        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+        effects.emitEvent(events).thenReply(_ => Empty.defaultInstance)
 
       }
       case other => {
@@ -432,4 +454,14 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       )
     )
   }
+
+  override def lineItemOrdered(
+      currentState: OrderState,
+      lineItemOrdered: LineItemOrdered
+  ): OrderState = currentState
+
+  override def lineItemCancelled(
+      currentState: OrderState,
+      lineItemCancelled: LineItemCancelled
+  ): OrderState = currentState
 }

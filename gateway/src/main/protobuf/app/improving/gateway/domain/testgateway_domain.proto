@@ -4,7 +4,6 @@ package app.improving.gateway;
 
 import "common_api.proto";
 import "app/improving/gateway/domain/creation_gateway_domain.proto";
-import "common_domain.proto";
 import "scalapb/scalapb.proto";
 import "validate/validate.proto";
 

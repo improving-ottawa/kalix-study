@@ -17,15 +17,15 @@ enum OrderStatus {
 }
 
 message LineItem {
-        Sku product = 1;
-        int32     quantity = 2;
-        double    line_total = 3;
+    Sku product = 1;
+    int32     quantity = 2;
+    double    line_total = 3;
 }
 
 message OrderInfo {
-        repeated LineItem line_items = 2;
-        string special_instructions = 3;
-        double order_total = 4;
+    repeated LineItem line_items = 2;
+    string special_instructions = 3;
+    double order_total = 4;
 }
 
 message OrderInfoUpdate {
@@ -47,6 +47,11 @@ message OrderCreated {
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
 }
+message LineItemOrdered {
+    OrderId order_id = 1;
+    Sku product_id = 2;
+    MemberId for_member_id = 3;
+}
 message OrderStatusUpdated {
     OrderId order_id = 1;
     OrderStatus new_status = 2;
@@ -63,6 +68,11 @@ message OrderCanceled {
     OrderInfo info = 2;
     OrderMetaInfo meta = 3;
     MemberId cancelling_member = 4;
+}
+message LineItemCancelled {
+    OrderId order_id = 1;
+    Sku product_id = 2;
+    MemberId for_member_id = 3;
 }
 message GetOrderInfo {
     OrderId order_id = 1;

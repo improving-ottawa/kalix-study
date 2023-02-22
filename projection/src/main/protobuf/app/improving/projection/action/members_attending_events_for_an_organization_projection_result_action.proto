@@ -1,8 +1,9 @@
 syntax = "proto3";
 
-package app.improving.projections;
+package app.improving.projection;
 
-import "app/improving/membersAttendingEventsForAnOrganizationProjection/view/members_attending_events_for_an_organization_projection.proto";
+import "app/improving/projection/common/common_domain.proto";
+import "app/improving/projection/view/members_attending_events_for_an_organization_projection.proto";
 import "date.proto";
 import "google/api/annotations.proto";
 import "kalix/annotations.proto";

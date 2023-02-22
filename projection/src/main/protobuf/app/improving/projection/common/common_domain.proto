@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package app.improving.projection;
+
+import "google/protobuf/timestamp.proto";
+
+message NoEventsOnDayForOrg {
+    string ord_id = 1;
+}
+
+message EventInfo {
+    string event_id = 1;
+    string event_name = 2;
+    string status = 3;
+}
+
+message MemberEvents {
+    string attending_member_id = 1;
+    repeated EventInfo event_infos = 2;
+}
+
+message MemberInfo {
+    string attending_member_id = 1;
+    string attending_member_name = 2;
+}
+
+
+message MembersTableRow {
+    string attending_member_id = 1;
+    string attending_member_name = 2;
+    string status = 3;
+}
+
+message EventsTableRow {
+    string event_id = 1;
+    string event_name = 2;
+    google.protobuf.Timestamp event_date = 3;
+    string status = 4;
+}
+
+message TicketEventCorrTableRow {
+    string ticket_sku = 1;
+    string event_id = 2;
+    string ticket_status = 3;
+}
+
+message OrderTableRow {
+    string order_id = 1;
+    string status = 2;
+}
+
+message TicketMemberCorrTableRow {
+    string ticket_sku = 1;
+    string attending_member_id = 2;
+    string order_id = 3;
+}
+
+message MemberEventsOnDay {
+    repeated MemberInfo member_infos = 1;
+    repeated MemberEvents member_events = 2;
+}
+
+
+message EventOrgCorrTableRow {
+    string event_id = 1;
+    string event_org_id = 2;
+}
+
+
+message OrgMembers {
+    string attending_member_org_id = 1;
+    repeated MemberInfo member_infos = 2;
+}
+
+message OrgInfo {
+    string attending_member_org_id = 1;
+    string attending_member_org_name = 2;
+}
+
+message OrgAndMembersAndEvents {
+    repeated OrgInfo org_infos = 1;
+    repeated OrgMembers org_members = 2;
+    repeated MemberEvents member_events = 3;
+}
+
+message OrgsTableRow {
+    string attending_member_org_id = 1;
+    string attending_member_org_name = 2;
+    string status = 3;
+}
+
+message OrgMemberCorrTableRow {
+    string attending_member_org_id = 1;
+    string attending_member_id = 2;
+}

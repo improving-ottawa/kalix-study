@@ -1,4 +1,4 @@
-package app.improving.projections
+package app.improving.projection
 
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 
 object Main {
 
-  private val log = LoggerFactory.getLogger("app.improving.projections.Main")
+  private val log = LoggerFactory.getLogger("app.improving.projection.Main")
 
   def createKalix(): Kalix = {
     // The KalixFactory automatically registers any generated Actions, Views or Entities,
@@ -19,8 +19,9 @@ object Main {
     // `Kalix()` instance.
     KalixFactory.withComponents(
       new MembersAttendingEventsForAnOrganizationView(_),
-      new QueryMembersAttendingEventsForAnOrganizationAction(_)
-    )
+      new OrganizationsForMembersAttendingEventsView(_),
+      new QueryMembersAttendingEventsForAnOrganizationAction(_),
+      new QueryOrganizationsForMembersAttendingEventsAction(_))
   }
 
   def main(args: Array[String]): Unit = {

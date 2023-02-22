@@ -1,9 +1,8 @@
-package app.improving.projections
+package app.improving.projection
 
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 
-import scala.collection.immutable
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -26,20 +25,16 @@ class QueryMembersAttendingEventsForAnOrganizationAction(
             result.memberInfos
               .map(memberInfo =>
                 MemberEventsResult(
-                  memberInfo.attendingMemberId
-                    .map(memberId =>
-                      immutable.Map(
-                        memberId.id -> EventInfos(
-                          result.memberEvents
-                            .find(
-                              _.attendingMemberId == memberInfo.attendingMemberId
-                            )
-                            .head
-                            .eventInfos
+                  Map(
+                    memberInfo.attendingMemberId -> EventInfos(
+                      result.memberEvents
+                        .find(
+                          _.attendingMemberId == memberInfo.attendingMemberId
                         )
-                      )
+                        .head
+                        .eventInfos
                     )
-                    .getOrElse(Map.empty),
+                  ),
                   memberInfo.attendingMemberName
                 )
               )
