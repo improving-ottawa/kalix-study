@@ -107,3 +107,7 @@ message ApiOrderCanceled {
     ApiOrderMetaInfo meta = 3;
     ApiMemberId cancelling_member = 4;
 }
+message ApiOrderReleased {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 2;
+}

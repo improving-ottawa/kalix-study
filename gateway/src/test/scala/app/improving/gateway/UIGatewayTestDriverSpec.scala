@@ -2,6 +2,7 @@ package app.improving.gateway
 
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
+import app.improving.OrderId
 import app.improving.gateway.TestData.Fixture
 import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
@@ -11,6 +12,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import app.improving.gateway.util.util._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -49,7 +51,7 @@ class UIGatewayTestDriverSpec
     gatewayClientSettings
   )
 
-  val gatewayActionClient = GatewayApiActionClient(
+  val gatewayActionClient = UiGatewayApiActionClient(
     gatewayClientSettings
   )
 
@@ -104,7 +106,11 @@ class UIGatewayTestDriverSpec
 
       checkResults(results, info)
 
-      println(results)
+      client
+        .handleEndScenario(
+          endFromResults(results, Seq.empty)
+        )
+        .futureValue
     }
     "handle command HandlePurchaseTicket base case" in {
       val json =
@@ -125,13 +131,11 @@ class UIGatewayTestDriverSpec
       checkResults(scenarioResult, info)
 
       val r = new Random()
-      val storeId = scenarioResult.storeIds
-        .getOrElse(StoreIds.defaultInstance)
-        .storeIds
+      val storeId = scenarioResult.productsForStores.keySet
         .take(1)
         .head
       val products = scenarioResult
-        .productsForStores(storeId.storeId)
+        .productsForStores(storeId)
         .skus
         .take(r.nextInt(4))
       val memberIds =
@@ -145,7 +149,7 @@ class UIGatewayTestDriverSpec
             Map(
               memberId.memberId -> OrdersForStores(
                 products.map { productId =>
-                  storeId.storeId ->
+                  storeId ->
                     ApiOrderInfo(
                       Seq[ApiLineItem](
                         ApiLineItem(Some(productId), 1)
@@ -159,6 +163,15 @@ class UIGatewayTestDriverSpec
         .futureValue
 
       orderIds.orderIds.isEmpty shouldBe false
+
+      client
+        .handleEndScenario(
+          endFromResults(
+            scenarioResult,
+            orderIds.orderIds.map(id => OrderId(id.orderId))
+          )
+        )
+        .futureValue
     }
   }
 }

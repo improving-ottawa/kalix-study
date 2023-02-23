@@ -16,7 +16,6 @@ import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //

@@ -66,6 +66,16 @@ service MemberByMetaInfoView {
         };
     }
 
+    rpc ProcessReleaseMember(MemberReleased) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_meta_info"
+            transform_updates: true
+        };
+    }
+
     //WHERE :queryData.createdBy.member_id = memberId.memberId.member_id  OR :queryData.createdOn = meta.createdOn OR :queryData.lastModifiedOn = meta.lastModifiedOn OR :queryData.lastModifiedBy = meta.lastModifiedBy OR :queryData.memberStatus = meta.memberStatus
     rpc GetMembersByMetaInfo(ByMetaInfoRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
         option (kalix.method).view.query = {

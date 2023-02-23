@@ -199,5 +199,22 @@ class AllEventsViewImpl(context: ViewContext) extends AbstractAllEventsView {
   override def processEventReleased(
       state: ApiEvent,
       eventReleased: EventReleased
-  ): UpdateEffect[ApiEvent] = effects.deleteState()
+  ): UpdateEffect[ApiEvent] = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(meta =
+        state.meta.map(
+          _.copy(
+            lastModifiedBy = eventReleased.releasingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = ApiEventStatus.API_EVENT_STATUS_RELEASED
+          )
+        )
+      )
+    )
+  }
 }

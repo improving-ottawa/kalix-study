@@ -32,11 +32,6 @@ class OrganizationServiceIntegrationSpec
   private val client =
     testKit.getGrpcClient(classOf[OrganizationService])
 
-  private val memberViewClient =
-    testKit.getGrpcClient(classOf[OrganizationByMemberView])
-  private val ownerViewClient =
-    testKit.getGrpcClient(classOf[OrganizationByOwnerView])
-
   "OrganizationService" must {
 
 //    "process established organization for view" in {

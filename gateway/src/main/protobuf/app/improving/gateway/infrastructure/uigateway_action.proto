@@ -3,6 +3,7 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/event/view/event_all_view.proto";
+import "app/improving/gateway/domain/creation_gateway_domain.proto";
 import "app/improving/gateway/domain/uigateway_domain.proto";
 import "app/improving/product/view/product_all_view.proto";
 import "app/improving/order/view/order_all_view.proto";
@@ -34,7 +35,7 @@ service UiGatewayApiAction {
         };
     }
 
-    rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsresult) {
+    rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsResult) {
         option (google.api.http) = {
             post: "/organization/get-all-organizations"
             body: "*"

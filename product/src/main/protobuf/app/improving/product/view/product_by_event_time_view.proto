@@ -79,6 +79,16 @@ service TicketByEventTimeQuery {
         };
     }
 
+    rpc ProcessProductReleased(productcontext.ProductReleased) returns (TicketEventCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_time_product"
+            transform_updates: true
+        };
+    }
+
     rpc ProcessEventScheduled(eventcontext.event.ApiEventScheduled) returns (eventcontext.event.ApiEvent) {
         option (kalix.method).eventing.in.direct = {
             service: "kalix-study-event"
@@ -135,6 +145,17 @@ service TicketByEventTimeQuery {
     }
 
     rpc ProcessEventCancelled(eventcontext.event.ApiEventCancelled) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-event"
+            event_stream_id: "event_events"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_time_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessEventReleased(eventcontext.event.ApiEventReleased) returns (eventcontext.event.ApiEvent) {
         option (kalix.method).eventing.in.direct = {
             service: "kalix-study-event"
             event_stream_id: "event_events"

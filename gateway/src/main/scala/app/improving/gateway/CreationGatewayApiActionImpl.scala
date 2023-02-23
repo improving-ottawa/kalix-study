@@ -1,10 +1,16 @@
 package app.improving.gateway
 
 import akka.actor.ActorSystem
+import app.improving.eventcontext.{
+  AllEventsRequest,
+  AllEventsResult,
+  AllEventsView
+}
 import app.improving.{
   ApiEventId,
   ApiMemberId,
   ApiOrderId,
+  ApiOrderIds,
   ApiOrganizationId,
   ApiSku,
   ApiStoreId,
@@ -16,19 +22,28 @@ import app.improving.eventcontext.event.{
   ApiScheduleEvent,
   EventService
 }
-import app.improving.membercontext.AllMembersView
+import app.improving.membercontext.{
+  AllMembersRequest,
+  AllMembersResult,
+  AllMembersView
+}
 import app.improving.membercontext.member.{
   ApiRegisterMember,
   ApiReleaseMember,
   MemberService
 }
-import app.improving.ordercontext.AllOrdersView
+import app.improving.ordercontext.{
+  AllOrdersRequest,
+  AllOrdersResult,
+  AllOrdersView
+}
 import app.improving.ordercontext.order.{
   ApiCreateOrder,
   ApiReleaseOrder,
   OrderAction,
   OrderService
 }
+import app.improving.organizationcontext._
 import app.improving.organizationcontext.organization.{
   ApiEstablishOrganization,
   ApiReleaseOrganization,
@@ -521,8 +536,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseTenants(
-                                     releaseTenants: ReleaseTenants
-                                   ): Action.Effect[TenantsReleased] = {
+      releaseTenants: ReleaseTenants
+  ): Action.Effect[TenantsReleased] = {
     log.info("in releaseTenants")
     effects.asyncReply(
       Future
@@ -543,8 +558,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseOrganizations(
-                                           releaseOrganizations: ReleaseOrganizations
-                                         ): Action.Effect[OrganizationsReleased] = {
+      releaseOrganizations: ReleaseOrganizations
+  ): Action.Effect[OrganizationsReleased] = {
 
     log.info("in releaseTenants")
     effects.asyncReply(
@@ -567,8 +582,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseEvents(
-                                    releaseEvents: ReleaseEvents
-                                  ): Action.Effect[EventsReleased] = {
+      releaseEvents: ReleaseEvents
+  ): Action.Effect[EventsReleased] = {
 
     log.info("in releaseTenants")
     effects.asyncReply(
@@ -590,8 +605,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseStores(
-                                    releaseStores: ReleaseStores
-                                  ): Action.Effect[StoresReleased] = {
+      releaseStores: ReleaseStores
+  ): Action.Effect[StoresReleased] = {
 
     log.info("in releaseTenants")
     effects.asyncReply(
@@ -613,8 +628,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseProducts(
-                                      releaseProducts: ReleaseProducts
-                                    ): Action.Effect[ProductsReleased] = {
+      releaseProducts: ReleaseProducts
+  ): Action.Effect[ProductsReleased] = {
     log.info("in releaseTenants")
     effects.asyncReply(
       Future
@@ -635,8 +650,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseMembers(
-                                     releaseMembers: ReleaseMembers
-                                   ): Action.Effect[MembersReleased] = {
+      releaseMembers: ReleaseMembers
+  ): Action.Effect[MembersReleased] = {
     log.info("in releaseTenants")
     effects.asyncReply(
       Future
@@ -657,8 +672,8 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
   }
 
   override def handleReleaseOrders(
-                                    releaseOrders: ReleaseOrders
-                                  ): Action.Effect[OrdersReleased] = {
+      releaseOrders: ReleaseOrders
+  ): Action.Effect[OrdersReleased] = {
     log.info("in releaseTenants")
     effects.asyncReply(
       Future
@@ -685,12 +700,13 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
 
   override def handleGetAllOrganizations(
       allOrganizationsRequest: AllOrganizationsRequest
-  ): Action.Effect[AllOrganizationsresult] = {
+  ): Action.Effect[AllOrganizationsResult] = {
 
     log.info("in handleGetAllOrganizations")
 
     effects.asyncReply(
-      allOrganizationsView.getAllOrganizations(AllOrganizationsRequest())
+      allOrganizationsView
+        .getAllOrganizations(AllOrganizationsRequest())
     )
   }
 
@@ -724,12 +740,18 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info("in handleGetAllMembers")
 
-    effects.asyncReply(allMembersView.getAllMembers(AllMembersRequest()))
+    effects.asyncReply(
+      allMembersView
+        .getAllMembers(AllMembersRequest())
+        .runFold(AllMembersResult.defaultInstance)((accum, elem) => {
+          AllMembersResult(accum.members :+ elem)
+        })
+    )
   }
 
   override def handleGetAllOrders(
       allOrdersRequest: AllOrdersRequest
-  ): Action.Effect[AllOrdersresult] = {
+  ): Action.Effect[AllOrdersResult] = {
 
     log.info("in handleGetAllOrders")
 

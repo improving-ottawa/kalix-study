@@ -50,7 +50,9 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
       val result = service.transformEventCancelled(eventCancelled)
 
       result.reply.eventId shouldBe defined
-      result.reply.cancellingMember shouldBe Some(ApiMemberId(testMemberId))
+      result.reply.cancellingMember shouldBe Some(
+        ApiMemberId(testMemberId.memberId)
+      )
     }
 
     "handle command TransformEventRescheduled" in {

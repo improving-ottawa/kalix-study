@@ -108,6 +108,16 @@ service OrganizationByOwnerView {
         };
     }
 
+    rpc ProcessOrganizationReleased(OrganizationReleased) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_owner"
+            transform_updates: true
+        };
+    }
+
     rpc FindOrganizationByOwner(ByOwnerRequest) returns (stream organizationcontext.organization.ApiOrganization) {
         option (kalix.method).view.query = {
             query: "SELECT * FROM organizations_by_owner WHERE :owner_id = ANY(owner_ids)"

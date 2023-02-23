@@ -129,11 +129,10 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
     )
   }
 
-  override def processOrderReleases(
+  override def processOrderReleased(
       state: ApiOrder,
       orderReleased: OrderReleased
   ): UpdateEffect[ApiOrder] = {
-
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
 

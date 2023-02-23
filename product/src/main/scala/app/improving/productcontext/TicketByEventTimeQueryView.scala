@@ -79,6 +79,28 @@ class TicketByEventTimeQueryView(context: ViewContext)
       )
     }
 
+    override def processProductReleased(
+        state: TicketEventCorrTableRow,
+        productReleased: ProductReleased
+    ): UpdateEffect[TicketEventCorrTableRow] = {
+
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+      effects.updateState(
+        state.copy(
+          meta = state.meta.map(
+            _.copy(
+              lastModifiedBy = productReleased.releasingMember.map(member =>
+                ApiMemberId(member.id)
+              ),
+              lastModifiedOn = Some(timestamp)
+            )
+          ),
+          status = ApiProductStatus.API_PRODUCT_STATUS_RELEASED.toString()
+        )
+      )
+    }
   }
 
   object TicketByEventTimeEventViewTable
@@ -257,6 +279,25 @@ class TicketByEventTimeQueryView(context: ViewContext)
       )
     }
 
+    override def processEventReleased(
+        state: ApiEvent,
+        apiEventReleased: ApiEventReleased
+    ): UpdateEffect[ApiEvent] = {
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+      effects.updateState(
+        state.copy(meta =
+          state.meta.map(
+            _.copy(
+              lastModifiedBy = apiEventReleased.releasingMember,
+              lastModifiedOn = Some(timestamp),
+              status = ApiEventStatus.API_EVENT_STATUS_RELEASED
+            )
+          )
+        )
+      )
+    }
   }
 
 }

@@ -1,8 +1,9 @@
 package app.improving.productcontext
 
-import app.improving.ApiEventId
+import app.improving.{ApiEventId, ApiMemberId}
 import app.improving.productcontext.infrastructure.util._
 import app.improving.productcontext.product.ApiProductStatus
+import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 
@@ -72,4 +73,26 @@ class TicketByEventViewImpl(context: ViewContext)
     )
   }
 
+  override def processProductReleased(
+      state: TicketEventCorrTableRow,
+      productReleased: ProductReleased
+  ): UpdateEffect[TicketEventCorrTableRow] = {
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy = productReleased.releasingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp)
+          )
+        ),
+        status = ApiProductStatus.API_PRODUCT_STATUS_RELEASED.toString()
+      )
+    )
+  }
 }

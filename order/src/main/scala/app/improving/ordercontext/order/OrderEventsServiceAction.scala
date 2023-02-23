@@ -1,6 +1,6 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiMemberId, ApiOrderId}
+import app.improving.ApiMemberId
 import app.improving.ordercontext.OrderCanceled
 import app.improving.ordercontext.OrderCreated
 import app.improving.ordercontext.OrderInfoUpdated

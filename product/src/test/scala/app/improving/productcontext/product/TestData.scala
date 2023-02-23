@@ -189,7 +189,7 @@ object TestData {
   val productInfo: ProductInfo = ProductInfo(
     testName,
     testDescription,
-    Some(convertApiProductDetailsToProductDetails(testProductDetails)),
+    Some(convertApiProductDetailsToProductDetails(testProductDetails.get)),
     testImages,
     testPrice,
     testCost,

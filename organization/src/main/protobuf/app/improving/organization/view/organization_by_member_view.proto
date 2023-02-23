@@ -107,6 +107,16 @@ service OrganizationByMemberView {
         };
     }
 
+    rpc ProcessOrganizationReleased(OrganizationReleased) returns (organizationcontext.organization.ApiOrganization) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "organizations"
+        };
+        option (kalix.method).view.update = {
+            table: "organizations_by_member"
+            transform_updates: true
+        };
+    }
+
     rpc FindOrganizationByMember(ByMemberRequest) returns (stream organizationcontext.organization.ApiOrganization) {
         option (kalix.method).view.query = {
             query: "SELECT * FROM organizations_by_member WHERE :member_id = ANY(member_ids)"

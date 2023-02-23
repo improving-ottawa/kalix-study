@@ -1,6 +1,6 @@
 package app.improving.productcontext
 
-import app.improving.productcontext.product.ProductAPI
+import app.improving.productcontext.product.{ProductAPI, ProductEventsServiceAction}
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 

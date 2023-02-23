@@ -177,3 +177,8 @@ message ApiReservationAddedToEvent {
     string reservation = 2;
     ApiEventMetaInfo meta = 3;
 }
+
+message ApiEventReleased {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 2;
+}

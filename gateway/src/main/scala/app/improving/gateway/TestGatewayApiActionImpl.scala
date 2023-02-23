@@ -75,7 +75,7 @@ import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID
 import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Random, Success}
+import scala.util.Random
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -780,7 +780,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info(
       s"handleStartScenario genApiRegisterInitialMember"
     )
-    ApiRegisterMember(
+    val result = ApiRegisterMember(
       UUID.randomUUID().toString,
       Some(
         ApiInfo(
@@ -811,6 +811,12 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         )
       )
     )
+
+    log.info(
+      s"handleStartScenario genApiRegisterInitialMember - ApiRegisterMember - $result"
+    )
+
+    result
   }
 
   private def genApiEstablishTenants(

@@ -24,10 +24,6 @@ message ApiStoreId {
     string store_id = 1 [(kalix.field).entity_key = true];
 }
 
-message ApiOrderIds {
-    repeated ApiOrderId order_ids = 1 [(kalix.field).entity_key = true];
-}
-
 message ApiSku {
     string sku = 1 [(kalix.field).entity_key = true];
 }

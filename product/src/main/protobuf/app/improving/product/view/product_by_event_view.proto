@@ -64,12 +64,22 @@ service TicketByEventView {
         };
     }
 
+    rpc ProcessProductReleased(productcontext.ProductReleased) returns (TicketEventCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
     rpc FindMembersByEventTime(TicketByEventRequest) returns (stream TicketByEventResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status "
                     "FROM ticket_by_event_product "
-                    "WHERE ticket_by_event_product.event.id = :eventId"
+                    "WHERE ticket_by_event_product.event.event_id = :event_id"
         };
     }
 
