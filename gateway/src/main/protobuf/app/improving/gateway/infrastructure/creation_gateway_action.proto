@@ -95,6 +95,13 @@ service CreationGatewayApiAction {
         };
     }
 
+    rpc HandleReleaseOrders(ReleaseOrders) returns (OrdersReleased) {
+        option (google.api.http) = {
+            post: "/event/release-orders"
+            body: "*"
+        };
+    }
+
     rpc HandleCreateProduct(CreateProduct) returns (ProductCreated) {
         option (google.api.http) = {
             post: "/product/create-product"
@@ -150,9 +157,58 @@ service CreationGatewayApiAction {
         };
     }
 
-    rpc HandleReleaseOrders(ReleaseOrders) returns (OrdersReleased) {
+    rpc HandleGetAllEvents(eventcontext.AllEventsRequest) returns (eventcontext.AllEventsResult) {
         option (google.api.http) = {
-            post: "/event/release-orders"
+            post: "/event/get-all-events"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsresult) {
+        option (google.api.http) = {
+            post: "/organization/get-all-organizations"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllTenants(tenantcontext.GetAllTenantRequest) returns (tenantcontext.AllTenantResult) {
+        option (google.api.http) = {
+            post: "/tenant/get-all-tenants"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllStores(storecontext.AllStoresRequest) returns (storecontext.AllStoresResult) {
+        option (google.api.http) = {
+            post: "/store/get-all-stores"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllProducts(productcontext.AllProductsRequest) returns (productcontext.AllProductsResult) {
+        option (google.api.http) = {
+            post: "/product/get-all-products"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllMembers(membercontext.AllMembersRequest) returns (membercontext.AllMembersResult) {
+        option (google.api.http) = {
+            post: "/member/get-all-members"
+            body: "*"
+        };
+    }
+
+    rpc HandleGetAllOrders(ordercontext.AllOrdersRequest) returns (ordercontext.AllOrdersresult) {
+        option (google.api.http) = {
+            post: "/orders/get-all-orders"
+            body: "*"
+        };
+    }
+
+    rpc HandlePurchaseTickets(PurchaseTicketsRequest) returns (ApiOrderIds) {
+        option (google.api.http) = {
+            post: "/order/purchase-ticket"
             body: "*"
         };
     }

@@ -102,16 +102,16 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       TicketByEventTimeRequest(givenTimeOpt)
     )
 
-    products.onComplete({
-      case Success(value) =>
-        log.info(
-          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
-        )
-      case Failure(exception) =>
-        log.info(
-          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
-        )
-    })
+//    products.onComplete({
+//      case Success(value) =>
+//        log.info(
+//          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
+//        )
+//      case Failure(exception) =>
+//        log.info(
+//          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
+//        )
+//    })
 
     val productIds = products.map(_.products.map(_.sku))
 
@@ -127,23 +127,26 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
                 )
                 val result = orderByProductView
                   .findOrdersByProducts(
-                    OrderByProductRequest(productId)
+                    OrderByProductRequest(
+                      productId.map(_.sku).getOrElse("Sku is NOT FOUND.")
+                    )
                   )
                   .map(response =>
                     response.orders
                       .map(_.meta.flatMap(_.memberId.map(_.memberId)))
                       .flatten
                   )
-                result.onComplete({
-                  case Success(value) =>
-                    log.info(
-                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
-                    )
-                  case Failure(exception) =>
-                    log.info(
-                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
-                    )
-                })
+
+//                result.onComplete({
+//                  case Success(value) =>
+//                    log.info(
+//                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
+//                    )
+//                  case Failure(exception) =>
+//                    log.info(
+//                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
+//                    )
+//                })
 
                 result
               })

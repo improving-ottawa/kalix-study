@@ -120,24 +120,24 @@ message ApiTicketsForEvent {
 // For direct_event_product events.
 
 message ApiProductCreated {
-    ApiSku sku = 1;
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfo info = 2;
     ApiProductMetaInfo meta = 3;
 }
 message ApiProductInfoUpdated {
-    ApiSku sku = 1;
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiProductInfo info = 2;
     ApiProductMetaInfo meta = 3;
 }
 message ApiProductDeleted {
-    ApiSku sku = 1;
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId deleting_member = 2;
 }
 message ApiProductActivated {
-    ApiSku sku = 1;
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId activating_member = 2;
 }
 message ApiProductInactivated {
-    ApiSku sku = 1;
+    string sku = 1 [(kalix.field).entity_key = true];
     ApiMemberId inactivating_member = 2;
 }

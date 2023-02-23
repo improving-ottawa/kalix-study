@@ -137,37 +137,43 @@ message ApiEventCancelled {
 }
 
 message ApiEventDelayed {
-    ApiEventId event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     string reason = 2;
     ApiEventMetaInfo meta = 3;
     google.protobuf.Duration expected_duration = 4;
 }
 
 message ApiEventEnded {
-    ApiEventId event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventMetaInfo meta = 2;
 }
 
 message ApiEventInfoChanged {
-    ApiEventId event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
     ApiEventMetaInfo meta = 3;
 }
 
 message ApiEventRescheduled {
-    ApiEventId  event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
     ApiEventMetaInfo meta = 3;
 }
 
 message ApiEventScheduled {
-    ApiEventId  event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
     ApiEventMetaInfo meta = 3;
 }
 
 message ApiEventStarted {
-    ApiEventId  event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiEventInfo info = 2;
+    ApiEventMetaInfo meta = 3;
+}
+
+message ApiReservationAddedToEvent {
+    string event_id = 1 [(kalix.field).entity_key = true];
+    string reservation = 2;
     ApiEventMetaInfo meta = 3;
 }

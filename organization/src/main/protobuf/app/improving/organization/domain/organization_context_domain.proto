@@ -137,8 +137,8 @@ message OrganizationListByOwner {
 }
 
 message OrganizationStatusUpdated {
-    OrganizationId orgId = 1;
-    OrganizationStatus newStatus = 2;
+    OrganizationId org_id = 1;
+    OrganizationStatus new_status = 2;
     MetaInfo meta = 3;
 }
 

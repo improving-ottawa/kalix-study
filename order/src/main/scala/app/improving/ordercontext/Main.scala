@@ -1,10 +1,7 @@
 package app.improving.ordercontext
 
-import app.improving.ordercontext.order.{
-  OrderAPI,
-  OrderActionImpl,
-  OrderEventsServiceAction
-}
+import app.improving.ordercontext.order.OrderAPI
+import app.improving.ordercontext.order.OrderActionImpl
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 

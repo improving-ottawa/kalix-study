@@ -238,3 +238,11 @@ message StoreIds {
 message Skus {
     repeated ApiSku skus = 1;
 }
+
+message OrdersForStores {
+    map<string, ordercontext.order.ApiOrderInfo> orders_for_stores = 1;
+}
+
+message PurchaseTicketsRequest {
+    map <string, OrdersForStores> orders_for_stores_for_members = 1;
+}

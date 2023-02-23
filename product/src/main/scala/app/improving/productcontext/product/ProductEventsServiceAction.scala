@@ -1,6 +1,6 @@
 package app.improving.productcontext.product
 
-import app.improving.{ApiMemberId, ApiSku}
+import app.improving.ApiMemberId
 import app.improving.productcontext.ProductActivated
 import app.improving.productcontext.ProductCreated
 import app.improving.productcontext.ProductDeleted
@@ -26,74 +26,78 @@ class ProductEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiProductCreated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductCreated - productCreated - $productCreated"
+      s"ProductEventsServiceAction in transformProductCreated - productCreated - ${productCreated}"
     )
 
     effects.reply(
       ApiProductCreated(
-        productCreated.sku.map(sku => ApiSku(sku.id)),
+        productCreated.sku.map(_.id).getOrElse("Sku is NOT FOUND."),
         productCreated.info.map(convertProductInfoToApiProductInfo),
         productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo)
       )
     )
   }
+
   override def transformProductInfoUpdated(
       productInfoUpdated: ProductInfoUpdated
   ): Action.Effect[ApiProductInfoUpdated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductInfoUpdated - productInfoUpdated - $productInfoUpdated"
+      s"ProductEventsServiceAction in transformProductInfoUpdated - productInfoUpdated - ${productInfoUpdated}"
     )
 
     effects.reply(
       ApiProductInfoUpdated(
-        productInfoUpdated.sku.map(sku => ApiSku(sku.id)),
+        productInfoUpdated.sku.map(_.id).getOrElse("Sku is NOT FOUND."),
         productInfoUpdated.info.map(convertProductInfoToApiProductInfo),
         productInfoUpdated.meta.map(convertProductMetaInfoToApiProductMetaInfo)
       )
     )
   }
+
   override def transformProductDeleted(
       productDeleted: ProductDeleted
   ): Action.Effect[ApiProductDeleted] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductDeleted - productDeleted - $productDeleted"
+      s"ProductEventsServiceAction in transformProductDeleted - productDeleted - ${productDeleted}"
     )
 
     effects.reply(
       ApiProductDeleted(
-        productDeleted.sku.map(sku => ApiSku(sku.id)),
+        productDeleted.sku.map(_.id).getOrElse("Sku is NOT FOUND."),
         productDeleted.deletingMember.map(member => ApiMemberId(member.id))
       )
     )
   }
+
   override def transformProductActivated(
       productActivated: ProductActivated
   ): Action.Effect[ApiProductActivated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductActivated - productActivated - $productActivated"
+      s"ProductEventsServiceAction in transformProductActivated - productActivated - ${productActivated}"
     )
 
     effects.reply(
       ApiProductActivated(
-        productActivated.sku.map(sku => ApiSku(sku.id)),
+        productActivated.sku.map(_.id).getOrElse("Sku is NOT FOUND."),
         productActivated.activatingMember.map(member => ApiMemberId(member.id))
       )
     )
   }
+
   override def transformProductInactivated(
       productInactivated: ProductInactivated
   ): Action.Effect[ApiProductInactivated] = {
 
     log.info(
-      s"ProductEventsServiceAction in transformProductInactivated - productInactivated - $productInactivated"
+      s"ProductEventsServiceAction in transformProductInactivated - productInactivated - ${productInactivated}"
     )
 
     effects.reply(
       ApiProductInactivated(
-        productInactivated.sku.map(sku => ApiSku(sku.id)),
+        productInactivated.sku.map(_.id).getOrElse("Sku is NOT FOUND."),
         productInactivated.inactivatingMember.map(member =>
           ApiMemberId(member.id)
         )

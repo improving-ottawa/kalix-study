@@ -20,7 +20,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
         EventEventsServiceActionTestKit(new EventEventsServiceAction(_))
       val result = service.transformEventInfoChanged(eventInfoChanged)
 
-      result.reply.eventId shouldBe defined
+      result.reply.eventId.isEmpty shouldBe false
       result.reply.info shouldBe Some(convertEventInfoToApiEventInfo(eventInfo))
       result.reply.meta shouldBe Some(
         convertEventMetaInfoToApiEventMetaInfo(
@@ -34,7 +34,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
         EventEventsServiceActionTestKit(new EventEventsServiceAction(_))
       val result = service.transformEventScheduled(eventScheduled)
 
-      result.reply.eventId shouldBe defined
+      result.reply.eventId.isEmpty shouldBe false
       result.reply.info shouldBe Some(convertEventInfoToApiEventInfo(eventInfo))
       result.reply.meta shouldBe Some(
         convertEventMetaInfoToApiEventMetaInfo(
@@ -50,9 +50,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
       val result = service.transformEventCancelled(eventCancelled)
 
       result.reply.eventId shouldBe defined
-      result.reply.cancellingMember shouldBe Some(
-        ApiMemberId(testMemberId.memberId)
-      )
+      result.reply.cancellingMember shouldBe Some(ApiMemberId(testMemberId))
     }
 
     "handle command TransformEventRescheduled" in {
@@ -61,7 +59,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformEventRescheduled(eventRescheduled)
 
-      result.reply.eventId shouldBe defined
+      result.reply.eventId.isEmpty shouldBe false
       result.reply.info shouldBe Some(convertEventInfoToApiEventInfo(eventInfo))
       result.reply.meta shouldBe Some(
         convertEventMetaInfoToApiEventMetaInfo(
@@ -76,13 +74,13 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformEventDelayed(eventDelayed)
 
-      result.reply.eventId shouldBe defined
+      result.reply.eventId.isEmpty shouldBe false
       result.reply.meta shouldBe Some(
         convertEventMetaInfoToApiEventMetaInfo(
           eventMetaInfo
         )
       )
-      result.reply.expectedDuration shouldBe Some(expectedDuration)
+      result.reply.expectedDuration shouldBe expectedDuration
     }
 
     "handle command TransformEventStarted" in {
@@ -91,7 +89,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformEventStarted(eventStarted)
 
-      result.reply.eventId shouldBe defined
+      result.reply.eventId.isEmpty shouldBe false
       result.reply.info shouldBe Some(convertEventInfoToApiEventInfo(eventInfo))
       result.reply.meta shouldBe Some(
         convertEventMetaInfoToApiEventMetaInfo(
@@ -106,7 +104,7 @@ class EventEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformEventEnded(eventEnded)
 
-      result.reply.eventId shouldBe defined
+      result.reply.eventId.isEmpty shouldBe false
       result.reply.meta shouldBe Some(
         convertEventMetaInfoToApiEventMetaInfo(
           eventMetaInfo

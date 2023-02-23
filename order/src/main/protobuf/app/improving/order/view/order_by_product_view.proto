@@ -81,6 +81,15 @@ service OrderByProductQuery {
         };
     }
 
+    rpc ProcessOrderReleases(OrderReleased) returns (order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "order_by_product_order"
+            transform_updates: true
+        };
+    }
 //    rpc ProcessProductCreated(productcontext.product.ApiProductCreated) returns (productcontext.product.ApiProduct) {
 //        option (kalix.method).eventing.in.direct = {
 //            service: "kalix-study-product"

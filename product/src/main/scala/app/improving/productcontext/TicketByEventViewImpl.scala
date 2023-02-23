@@ -1,5 +1,6 @@
 package app.improving.productcontext
 
+import app.improving.ApiEventId
 import app.improving.productcontext.infrastructure.util._
 import app.improving.productcontext.product.ApiProductStatus
 import kalix.scalasdk.view.View.UpdateEffect
@@ -33,9 +34,13 @@ class TicketByEventViewImpl(context: ViewContext)
   ): UpdateEffect[TicketEventCorrTableRow] =
     effects.updateState(
       state.copy(
-        info = productInfoUpdated.info,
-        meta = productInfoUpdated.meta,
-        event = productInfoUpdated.info.flatMap(extractEventIdFromProductInfo)
+        info = productInfoUpdated.info.map(convertProductInfoToApiProductInfo),
+        meta = productInfoUpdated.meta.map(
+          convertProductMetaInfoToApiProductMetaInfo
+        ),
+        event = productInfoUpdated.info
+          .flatMap(extractEventIdFromProductInfo)
+          .map(id => ApiEventId(id.eventId))
       )
     )
 

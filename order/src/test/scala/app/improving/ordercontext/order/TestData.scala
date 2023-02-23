@@ -47,6 +47,7 @@ object TestData {
     testLineTotal2
   )
   val testSpecialInstruction = "test-special-instruction"
+  val testOrderTotal = 100.0
   val testLineItems: Seq[ApiLineItem] =
     Seq[ApiLineItem](testLineItem1, testLineItem2)
   val testLineItemsPrivateEvent: Seq[ApiLineItem] =

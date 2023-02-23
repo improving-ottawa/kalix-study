@@ -3,7 +3,7 @@ package app.improving.gateway
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
 import app.improving.gateway.TestData.Fixture
-import app.improving.gateway.util.util.endFromResults
+import app.improving.ordercontext.order.{ApiLineItem, ApiOrderInfo}
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe
 import org.scalatest.{Assertion, BeforeAndAfterAll}
@@ -18,6 +18,8 @@ import scala.io.Source
 import io.circe._
 import io.circe.syntax._
 
+import scala.util.Random
+
 class UIGatewayTestDriverSpec
     extends AnyWordSpec
     with Matchers
@@ -26,7 +28,7 @@ class UIGatewayTestDriverSpec
     with Fixture {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(7, Seconds), Span(5000, Millis))
+    PatienceConfig(Span(500, Seconds), Span(5000, Millis))
 
   implicit val sys: ActorSystem = ActorSystem("UIGatewayTestDriverSpec")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
@@ -46,6 +48,15 @@ class UIGatewayTestDriverSpec
   val client: TestGatewayApiActionClient = TestGatewayApiActionClient(
     gatewayClientSettings
   )
+
+  val gatewayActionClient = GatewayApiActionClient(
+    gatewayClientSettings
+  )
+
+  val requestParamsOrParsingFailure: Either[ParsingFailure, Json] =
+    circe.parser.parse(
+      Source.fromResource("json/minimumRequestParams.json").mkString
+    )
 
   def checkResults(
       results: ScenarioResults,
@@ -76,14 +87,16 @@ class UIGatewayTestDriverSpec
 
   "GatewayApiActionImpl" should {
     "handle small scenario w/ no orders" in {
+      val json =
+        requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
 
       val info = ScenarioInfo(
-        numTenants = 1,
-        maxOrgsDepth = 2,
-        maxOrgsWidth = 2,
-        numMembersPerOrg = 1,
-        numEventsPerOrg = 1,
-        numTicketsPerEvent = 1
+        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
+        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
       )
 
       val results =
@@ -91,11 +104,61 @@ class UIGatewayTestDriverSpec
 
       checkResults(results, info)
 
-      client
-        .handleEndScenario(
-          endFromResults(results, Seq.empty)
+      println(results)
+    }
+    "handle command HandlePurchaseTicket base case" in {
+      val json =
+        requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
+
+      val info = ScenarioInfo(
+        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
+        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
+        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
+        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
+      )
+
+      val scenarioResult =
+        client.handleStartScenario(StartScenario(Some(info))).futureValue
+
+      checkResults(scenarioResult, info)
+
+      val r = new Random()
+      val storeId = scenarioResult.storeIds
+        .getOrElse(StoreIds.defaultInstance)
+        .storeIds
+        .take(1)
+        .head
+      val products = scenarioResult
+        .productsForStores(storeId.storeId)
+        .skus
+        .take(r.nextInt(4))
+      val memberIds =
+        scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
+
+      val memberId = memberIds(r.nextInt(memberIds.size))
+
+      val orderIds = gatewayActionClient
+        .handlePurchaseTickets(
+          PurchaseTicketsRequest(
+            Map(
+              memberId.memberId -> OrdersForStores(
+                products.map { productId =>
+                  storeId.storeId ->
+                    ApiOrderInfo(
+                      Seq[ApiLineItem](
+                        ApiLineItem(Some(productId), 1)
+                      )
+                    )
+                }.toMap
+              )
+            )
+          )
         )
         .futureValue
+
+      orderIds.orderIds.isEmpty shouldBe false
     }
   }
 }

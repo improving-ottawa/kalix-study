@@ -2,26 +2,13 @@ syntax = "proto3";
 
 package app.improving.productcontext;
 
-import "app/improving/product/api/product_api.proto";
+
 import "app/improving/product/domain/product_context_domain.proto";
+import "app/improving/product/view/product_view_common.proto";
 import "kalix/annotations.proto";
-import "common_domain.proto";
 
-message TicketByEventRequest {
-    string event_id = 1;
-}
 
-message TicketByEventResponse {
-    repeated TicketEventCorrTableRow products = 1;
-}
 
-message TicketEventCorrTableRow {
-    Sku sku = 1;
-    ProductInfo info = 2;
-    ProductMetaInfo meta = 3;
-    string status = 4;
-    EventId event = 5;
-}
 
 service TicketByEventView {
     option (kalix.codegen) = {
@@ -77,18 +64,12 @@ service TicketByEventView {
         };
     }
 
-    /**
-     * "SELECT "
-                    "* AS products "
-                    "FROM ticket_by_event_product "
-                    "WHERE ticket_by_event_product.info.event.event_id = :event_id "
-     */
-    rpc FindMembersByEvent(TicketByEventRequest) returns (stream TicketEventCorrTableRow) {
+    rpc FindMembersByEventTime(TicketByEventRequest) returns (stream TicketByEventResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "* "
+                    "ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status "
                     "FROM ticket_by_event_product "
-                    "WHERE ticket_by_event_product.event.id = :event_id "
+                    "WHERE ticket_by_event_product.event.id = :eventId"
         };
     }
 

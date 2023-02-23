@@ -75,7 +75,7 @@ import com.google.protobuf.timestamp.Timestamp
 
 import java.util.UUID
 import scala.concurrent.{Await, Future}
-import scala.util.Random
+import scala.util.{Failure, Random, Success}
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -274,7 +274,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         .toMap
 
     log.info(
-      s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size}"
+      s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size} - ${establishedOrgs.keys}"
     )
 
     Await.result(
@@ -968,7 +968,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             )
           ),
           None,
-          Seq.empty.toSeq,
+          owners.headOption.toSeq,
           owners,
           Seq(
             ApiContacts(
@@ -1017,7 +1017,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   Some(
                     ApiParent(Some(ApiOrganizationId(parent)))
                   ),
-                  Seq.empty.toSeq,
+                  owners.headOption.toSeq,
                   owners,
                   Seq(
                     ApiContacts(

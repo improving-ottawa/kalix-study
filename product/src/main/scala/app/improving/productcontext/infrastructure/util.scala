@@ -17,6 +17,7 @@ import app.improving.productcontext.{
 import app.improving.productcontext.product.{
   ApiOpenTicket,
   ApiProduct,
+  ApiProductCreated,
   ApiProductDetails,
   ApiProductInfo,
   ApiProductInfoUpdate,
@@ -114,10 +115,10 @@ object util {
     )
 
   def convertProductCreatedToTicketEventCorrTableRow(
-      productCreated: ProductCreated
+      productCreated: ApiProductCreated
   ): TicketEventCorrTableRow = {
     TicketEventCorrTableRow(
-      sku = productCreated.sku,
+      sku = Some(ApiSku(productCreated.sku)),
       info = productCreated.info,
       meta = productCreated.meta,
       status = ProductStatus.PRODUCT_STATUS_ACTIVE.toString(),
@@ -125,15 +126,46 @@ object util {
     )
   }
 
+  def convertProductCreatedToTicketEventCorrTableRow(
+      productCreated: ProductCreated
+  ): TicketEventCorrTableRow = {
+    TicketEventCorrTableRow(
+      sku = productCreated.sku.map(id => ApiSku(id.id)),
+      info = productCreated.info.map(convertProductInfoToApiProductInfo),
+      meta =
+        productCreated.meta.map(convertProductMetaInfoToApiProductMetaInfo),
+      status = ProductStatus.PRODUCT_STATUS_ACTIVE.toString(),
+      event = productCreated.info
+        .flatMap(extractEventIdFromProductInfo)
+        .map(id => ApiEventId(id.eventId))
+    )
+  }
+
+  def extractEventIdFromProductInfo(
+      productInfo: ApiProductInfo
+  ): Option[ApiEventId] = {
+    productInfo.productDetails.flatMap(
+      _.apiTicket match {
+        case ApiTicket.ReservedTicket(value)   => value.event
+        case ApiTicket.RestrictedTicket(value) => value.event
+        case ApiTicket.OpenTicket(value)       => value.event
+        case ApiTicket.Empty                   => None
+      }
+    )
+  }
+
   def extractEventIdFromProductInfo(
       productInfo: ProductInfo
-  ): Option[EventId] = {
+  ): Option[ApiEventId] = {
     productInfo.productDetails.flatMap(
       _.ticket match {
-        case Ticket.ReservedTicket(value)   => value.event
-        case Ticket.RestrictedTicket(value) => value.event
-        case Ticket.OpenTicket(value)       => value.event
-        case Ticket.Empty                   => None
+        case Ticket.ReservedTicket(value) =>
+          value.event.map(id => ApiEventId(id.id))
+        case Ticket.RestrictedTicket(value) =>
+          value.event.map(id => ApiEventId(id.id))
+        case Ticket.OpenTicket(value) =>
+          value.event.map(id => ApiEventId(id.id))
+        case Ticket.Empty => None
       }
     )
   }
