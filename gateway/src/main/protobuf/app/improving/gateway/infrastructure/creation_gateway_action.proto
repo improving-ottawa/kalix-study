@@ -2,11 +2,14 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
+import "app/improving/event/api/event_api.proto";
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/creation_gateway_domain.proto";
 import "app/improving/member/view/member_all_view.proto";
 import "app/improving/order/view/order_all_view.proto";
+import "app/improving/order/view/order_by_product_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
+import "app/improving/product/api/product_api.proto";
 import "app/improving/product/view/product_all_view.proto";
 import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
@@ -167,50 +170,61 @@ service CreationGatewayApiAction {
 
     rpc HandleGetAllEvents(eventcontext.AllEventsRequest) returns (eventcontext.AllEventsResult) {
         option (google.api.http) = {
-            post: "/event/get-all-events"
-            body: "*"
+            get: "/event/get-all-events"
         };
     }
 
     rpc HandleGetAllOrganizations(organizationcontext.AllOrganizationsRequest) returns (organizationcontext.AllOrganizationsResult) {
         option (google.api.http) = {
-            post: "/organization/get-all-organizations"
-            body: "*"
+            get: "/organization/get-all-organizations"
         };
     }
 
     rpc HandleGetAllTenants(tenantcontext.GetAllTenantRequest) returns (tenantcontext.AllTenantResult) {
         option (google.api.http) = {
-            post: "/tenant/get-all-tenants"
-            body: "*"
+            get: "/tenant/get-all-tenants"
         };
     }
 
     rpc HandleGetAllStores(storecontext.AllStoresRequest) returns (storecontext.AllStoresResult) {
         option (google.api.http) = {
-            post: "/store/get-all-stores"
-            body: "*"
+            get: "/store/get-all-stores"
         };
     }
 
     rpc HandleGetAllProducts(productcontext.AllProductsRequest) returns (productcontext.AllProductsResult) {
         option (google.api.http) = {
-            post: "/product/get-all-products"
-            body: "*"
+            get: "/product/get-all-products"
         };
     }
 
     rpc HandleGetAllMembers(membercontext.AllMembersRequest) returns (membercontext.AllMembersResult) {
         option (google.api.http) = {
-            post: "/member/get-all-members"
-            body: "*"
+            get: "/member/get-all-members"
         };
     }
 
     rpc HandleGetAllOrders(ordercontext.AllOrdersRequest) returns (ordercontext.AllOrdersResult) {
         option (google.api.http) = {
-            post: "/orders/get-all-orders"
-            body: "*"
+            get: "/orders/get-all-orders"
+        };
+    }
+
+    rpc HandleGetProductInfoById(GetProductInfoById) returns (productcontext.product.ApiProductInfoResult) {
+        option (google.api.http) = {
+            get: "/product/info/{sku}"
+        };
+    }
+
+    rpc HandleGetEventById(GetEventById) returns (eventcontext.event.ApiEvent) {
+        option (google.api.http) = {
+            get: "/event/{event_id}"
+        };
+    }
+
+    rpc HandleGetOrdersByProductId(GetOrdersByProductId) returns (ordercontext.OrderByProductResponse) {
+        option (google.api.http) = {
+            get: "/orders/get-orders-by-product-id/{sku}"
         };
     }
 

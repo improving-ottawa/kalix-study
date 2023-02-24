@@ -246,3 +246,15 @@ message OrdersForStores {
 message PurchaseTicketsRequest {
     map <string, OrdersForStores> orders_for_stores_for_members = 1;
 }
+
+message GetEventById {
+    string event_id = 1;
+}
+
+message GetProductInfoById {
+    string sku = 1;
+}
+
+message GetOrdersByProductId {
+    string sku = 1;
+}

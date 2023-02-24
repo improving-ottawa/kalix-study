@@ -18,6 +18,8 @@ import app.improving.{
   OrganizationId
 }
 import app.improving.eventcontext.event.{
+  ApiEvent,
+  ApiGetEventById,
   ApiReleaseEvent,
   ApiScheduleEvent,
   EventService
@@ -35,7 +37,10 @@ import app.improving.membercontext.member.{
 import app.improving.ordercontext.{
   AllOrdersRequest,
   AllOrdersResult,
-  AllOrdersView
+  AllOrdersView,
+  OrderByProductQuery,
+  OrderByProductRequest,
+  OrderByProductResponse
 }
 import app.improving.ordercontext.order.{
   ApiCreateOrder,
@@ -51,6 +56,10 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.productcontext.product.{
   ApiCreateProduct,
+  ApiGetProductInfo,
+  ApiProduct,
+  ApiProductInfo,
+  ApiProductInfoResult,
   ApiReleaseProduct,
   ProductService
 }
@@ -65,7 +74,6 @@ import app.improving.productcontext.{
   AllProductsView
 }
 import app.improving.storecontext.store.{ApiCreateStore, StoreService}
-import app.improving.productcontext.product.{ApiCreateProduct, ProductService}
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import app.improving.storecontext.{
   AllStoresRequest,
@@ -210,6 +218,14 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
       "app.improving.gateway.order.grpc-client-name"
     )
   )
+
+  private val orderByProductQuery = creationContext.getGrpcClient(
+    classOf[OrderByProductQuery],
+    config.getString(
+      "app.improving.gateway.order.grpc-client-name"
+    )
+  )
+
   override def handleEstablishTenant(
       establishTenant: CreateTenant
   ): Action.Effect[TenantCreated] = {
@@ -783,5 +799,51 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
           }.toSeq)
           .map(reqs => ApiOrderIds(reqs.flatten))
       )
+  }
+
+  override def handleGetProductInfoById(
+      getProductInfoById: GetProductInfoById
+  ): Action.Effect[ApiProductInfoResult] = {
+
+    log.info("in handleGetProductInfoById")
+
+    effects.asyncReply(
+      productService
+        .getProductInfo(
+          ApiGetProductInfo(
+            getProductInfoById.sku
+          )
+        )
+    )
+  }
+
+  override def handleGetEventById(
+      getEventById: GetEventById
+  ): Action.Effect[ApiEvent] = {
+
+    log.info("in handleGetEventById")
+
+    effects.asyncReply(
+      eventService.getEventById(
+        ApiGetEventById(
+          getEventById.eventId
+        )
+      )
+    )
+  }
+
+  override def handleGetOrdersByProductId(
+      getOrdersByProductId: GetOrdersByProductId
+  ): Action.Effect[OrderByProductResponse] = {
+
+    log.info("in handleGetOrdersByProductId")
+
+    effects.asyncReply(
+      orderByProductQuery.findOrdersByProducts(
+        OrderByProductRequest(
+          getOrdersByProductId.sku
+        )
+      )
+    )
   }
 }
