@@ -2,7 +2,7 @@ package app.improving.ordercontext
 
 import app.improving.ApiMemberId
 import app.improving.ordercontext.infrastructure.util._
-import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
+import app.improving.ordercontext.order.{ApiLineItem, ApiOrder, ApiOrderStatus}
 import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -124,6 +124,38 @@ class OrderByProductQueryView(context: ViewContext)
             ),
             lastModifiedOn = Some(timestamp),
             status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED
+          )
+        )
+      )
+    )
+  }
+
+  override def processOrderClearLineItems(
+      state: ApiOrder,
+      orderClearLineItems: OrderClearLineItems
+  ): UpdateEffect[ApiOrder] = {
+
+    log.info(
+      s"OrderByProductQueryView in processOrderClearLineItems - orderClearLineItems ${orderClearLineItems}"
+    )
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy = orderClearLineItems.clearingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp)
+          )
+        ),
+        info = state.info.map(
+          _.copy(
+            lineItems = Seq.empty[ApiLineItem],
+            specialInstructions = ""
           )
         )
       )

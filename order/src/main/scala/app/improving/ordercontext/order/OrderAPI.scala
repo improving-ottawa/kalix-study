@@ -265,6 +265,40 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
     }
   }
 
+  override def clearLineItems(
+      currentState: OrderState,
+      apiOrderClearLineItems: ApiOrderClearLineItems
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.order match {
+      case Some(order) => {
+        log.info(
+          s"OrderAPI in clearLineItems - apiOrderClearLineItems - $apiOrderClearLineItems"
+        )
+
+        val clearingMemberIdOpt =
+          apiOrderClearLineItems.clearingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        val event = OrderLineItemsCleared(
+          order.orderId,
+          order.info,
+          order.meta,
+          clearingMemberIdOpt
+        )
+
+        effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
+
+      }
+      case other => {
+
+        log.info(
+          s"OrderAPI in clearLineItems - other - $other"
+        )
+        effects.reply(Empty.defaultInstance)
+      }
+    }
+  }
+
   override def orderCreated(
       currentState: OrderState,
       orderCreated: OrderCreated
@@ -388,7 +422,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
       case other => {
 
         log.info(
-          s"OrderAPI in orderCanceled - other - ${other}"
+          s"OrderAPI in orderCanceled - other - $other"
         )
 
         currentState
@@ -431,5 +465,47 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         )
       )
     )
+  }
+  override def orderLineItemsCleared(
+      currentState: OrderState,
+      orderLineItemsCleared: OrderLineItemsCleared
+  ): OrderState = {
+    currentState.order match {
+      case Some(order) => {
+
+        log.info(
+          s"OrderAPI in orderLineItemsCleared - order - $order"
+        )
+
+        val now = java.time.Instant.now()
+        val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+        currentState.withOrder(
+          order.copy(
+            meta = order.meta.map(
+              _.copy(
+                lastModifiedBy = orderLineItemsCleared.clearingMember,
+                lastModifiedOn = Some(timestamp)
+              )
+            ),
+            info = order.info.map(
+              _.copy(
+                lineItems = Seq.empty[LineItem],
+                specialInstructions = "",
+                orderTotal = 0.0
+              )
+            )
+          )
+        )
+      }
+      case other => {
+
+        log.info(
+          s"OrderAPI in orderLineItemsCleared - other - $other"
+        )
+
+        currentState
+      }
+    }
   }
 }

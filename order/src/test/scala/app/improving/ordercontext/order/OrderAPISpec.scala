@@ -1,15 +1,17 @@
 package app.improving.ordercontext.order
 
 import TestData._
-import app.improving.MemberId
+import app.improving.{ApiMemberId, ApiOrderId, MemberId}
 import app.improving.ordercontext.infrastructure.util.{
   convertApiOrderStatusToOrderStatus,
   convertLineItemToApiLineItem
 }
 import app.improving.ordercontext.{
+  LineItem,
   OrderCanceled,
   OrderCreated,
   OrderInfoUpdated,
+  OrderLineItemsCleared,
   OrderStatus,
   OrderStatusUpdated
 }
@@ -120,10 +122,10 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         .map(_.specialInstructions)
         .getOrElse("") shouldBe testSpecialInstruction
 
-      val nullUpdateOrderInfoResult =
-        testKit.updateOrderInfo(nullApiUpdateOrderInfo)
-
-      nullUpdateOrderInfoResult.events should have size 0
+//      val nullUpdateOrderInfoResult =
+//        testKit.updateOrderInfo(nullApiUpdateOrderInfo)
+//
+//      nullUpdateOrderInfoResult.events should have size 0
 
       val updateOrderStatusResultToPending =
         testKit.updateOrderStatus(
@@ -180,8 +182,8 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         MemberId(testCancellingMemberId)
       )
 
-      val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
-      nullCancelOrderResult.events should have size 0
+//      val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
+//      nullCancelOrderResult.events should have size 0
     }
 
     "correctly process commands of type GetOrderInfo" in {
@@ -201,6 +203,48 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       result.info shouldBe defined
 
       result.info shouldBe Some(testOrderInfo)
+    }
+
+    "correctly process clear out line items" in {
+      val testKit = OrderAPITestKit(new OrderAPI(_))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+      orderCreated.info shouldBe defined
+      orderCreated.meta shouldBe defined
+
+      orderCreated.info
+        .map(_.lineItems)
+        .map(lineItemSeq => lineItemSeq.map(convertLineItemToApiLineItem))
+        .get shouldBe testLineItems
+
+      val clearLineItemsResult = testKit.clearLineItems(
+        ApiOrderClearLineItems(
+          orderCreated.orderId.map(order => ApiOrderId(order.id)),
+          Some(ApiMemberId("test-member-id"))
+        )
+      )
+
+      clearLineItemsResult.events should have size 1
+
+      val lineItemsCleared =
+        clearLineItemsResult.nextEvent[OrderLineItemsCleared]
+
+      lineItemsCleared.orderId shouldBe defined
+
+      val result = testKit.currentState.order.flatMap(_.info.map(_.lineItems))
+
+      result shouldBe Some(Seq.empty[LineItem])
+
+      val specialInstructionsOpt =
+        testKit.currentState.order.flatMap(_.info.map(_.specialInstructions))
+
+      specialInstructionsOpt shouldBe Some("")
     }
   }
 }

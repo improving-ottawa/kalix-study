@@ -76,3 +76,13 @@ message OrderReleased {
     OrderId order_id = 1;
     MemberId releasing_member = 2;
 }
+message OrderClearLineItems {
+    OrderId order_id = 1;
+    MemberId clearing_member = 2;
+}
+message OrderLineItemsCleared {
+    OrderId order_id = 1;
+    OrderInfo info = 2;
+    OrderMetaInfo meta = 3;
+    MemberId clearing_member = 4;
+}

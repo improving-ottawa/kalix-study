@@ -1,7 +1,7 @@
 package app.improving.ordercontext
 
 import app.improving.{ApiMemberId, OrderId}
-import app.improving.ordercontext.order.{ApiOrder, ApiOrderStatus}
+import app.improving.ordercontext.order.{ApiLineItem, ApiOrder, ApiOrderStatus}
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 import app.improving.ordercontext.infrastructure.util._
@@ -129,5 +129,40 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
     )
   }
 
-  override def processOrderReleased(state: ApiOrder, orderReleased: OrderReleased): UpdateEffect[ApiOrder] = effects.deleteState()
+  override def processOrderReleased(
+      state: ApiOrder,
+      orderReleased: OrderReleased
+  ): UpdateEffect[ApiOrder] = effects.deleteState()
+
+  override def processOrderClearLineItems(
+      state: ApiOrder,
+      orderClearLineItems: OrderClearLineItems
+  ): UpdateEffect[ApiOrder] = {
+
+    log.info(
+      s"AllOrdersViewImpl in processOrderClearLineItems - orderClearLineItems ${orderClearLineItems}"
+    )
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy = orderClearLineItems.clearingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp)
+          )
+        ),
+        info = state.info.map(
+          _.copy(
+            lineItems = Seq.empty[ApiLineItem],
+            specialInstructions = ""
+          )
+        )
+      )
+    )
+  }
 }

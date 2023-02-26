@@ -19,7 +19,8 @@ service OrderService {
                 "app.improving.ordercontext.OrderStatusUpdated",
                 "app.improving.ordercontext.OrderInfoUpdated",
                 "app.improving.ordercontext.OrderCanceled",
-                "app.improving.ordercontext.OrderReleased"
+                "app.improving.ordercontext.OrderReleased",
+                "app.improving.ordercontext.OrderLineItemsCleared"
             ]
         }
     };
@@ -62,6 +63,13 @@ service OrderService {
     rpc GetOrderInfo(ApiGetOrderInfo) returns (ApiOrderInfoResult) {
         option (google.api.http) = {
             get: "/order/{order_id}/order-info"
+        };
+    }
+
+    rpc ClearLineItems(ApiOrderClearLineItems) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/clear-lineitems"
+            body: "*"
         };
     }
 }
