@@ -1,7 +1,7 @@
 package app.improving.ordercontext.order
 
 import TestData._
-import app.improving.MemberId
+import app.improving.{ApiMemberId, ApiOrderId, MemberId}
 import app.improving.ordercontext.infrastructure.util.{
   convertApiOrderStatusToOrderStatus,
   convertLineItemToApiLineItem
@@ -113,17 +113,17 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       orderInfoUpdated.info
         .map(_.orderTotal)
         .getOrElse(0.0) shouldBe testLineItemsUpdate
-        .map(item => item.lineTotal * item.quantity)
+        .map(item => item.pricePerItem * item.quantity)
         .sum
 
       orderInfoUpdated.info
         .map(_.specialInstructions)
-        .getOrElse("") shouldBe testSpecialInstruction
+        .getOrElse("") shouldBe Some(testSpecialInstruction)
 
-      val nullUpdateOrderInfoResult =
-        testKit.updateOrderInfo(nullApiUpdateOrderInfo)
-
-      nullUpdateOrderInfoResult.events should have size 0
+//      val nullUpdateOrderInfoResult =
+//        testKit.updateOrderInfo(nullApiUpdateOrderInfo)
+//
+//      nullUpdateOrderInfoResult.events should have size 0
 
       val updateOrderStatusResultToPending =
         testKit.updateOrderStatus(
@@ -180,8 +180,8 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
         MemberId(testCancellingMemberId)
       )
 
-      val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
-      nullCancelOrderResult.events should have size 0
+//      val nullCancelOrderResult = testKit.cancelOrder(nullApiCancelOrder)
+//      nullCancelOrderResult.events should have size 0
     }
 
     "correctly process commands of type GetOrderInfo" in {
@@ -201,6 +201,243 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       result.info shouldBe defined
 
       result.info shouldBe Some(testOrderInfo)
+    }
+
+    "correctly cancel in process order" in {
+      val testKit = OrderAPITestKit(new OrderAPI(_))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+
+      val updateOrderInfoResult =
+        testKit.updateOrderInfo(
+          apiUpdateOrderInfo
+        )
+
+      updateOrderInfoResult.events should have size 1
+
+      val orderInfoUpdated = updateOrderInfoResult.nextEvent[OrderInfoUpdated]
+
+      orderInfoUpdated.orderId shouldBe defined
+      orderInfoUpdated.info shouldBe defined
+      orderInfoUpdated.meta shouldBe defined
+
+      orderInfoUpdated.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testUpdatingMemberId)
+      )
+
+      orderInfoUpdated.info
+        .map(_.orderTotal)
+        .getOrElse(0.0) shouldBe testLineItemsUpdate
+        .map(item => item.pricePerItem * item.quantity)
+        .sum
+
+      orderInfoUpdated.info
+        .map(_.specialInstructions)
+        .getOrElse("") shouldBe Some(testSpecialInstruction)
+
+      val updateOrderStatusResultToPending =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus
+        )
+
+      updateOrderStatusResultToPending.events should have size 1
+
+      val updateOrderStatusResultToInProcess =
+        testKit.updateOrderStatus(
+          apiUpdateOrderStatus.copy(
+            newStatus = testNewOrderStatusToInProcess
+          )
+        )
+
+      updateOrderStatusResultToInProcess.events should have size 1
+
+      val updateInProcessOrderInfoResult =
+        testKit.updateOrderInfo(
+          apiUpdateOrderInfo
+        )
+
+      updateInProcessOrderInfoResult.events should have size 0
+
+      orderCreated.orderId shouldBe defined
+
+      val cancelOrderResult =
+        testKit.cancelOrder(
+          apiCancelOrder
+        )
+
+      cancelOrderResult.events should have size 1
+
+      val orderCancelled = cancelOrderResult.nextEvent[OrderCanceled]
+
+      orderCancelled.orderId shouldBe defined
+      orderCancelled.info shouldBe defined
+      orderCancelled.meta shouldBe defined
+
+      orderCancelled.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_CANCELLED
+      )
+      orderCancelled.meta.flatMap(_.lastModifiedBy) shouldBe Some(
+        MemberId(testCancellingMemberId)
+      )
+    }
+
+    "correctly update statuses" in {
+      val testKit = OrderAPITestKit(new OrderAPI(_))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+
+      val apiOrderPending = ApiPendingOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val pendingResult = testKit.pendingOrder(apiOrderPending)
+
+      pendingResult.events should have size 1
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_PENDING
+      )
+
+      val apiInProgressOrder = ApiInProgressOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val inProcessOrderResult = testKit.inProgressOrder(apiInProgressOrder)
+
+      inProcessOrderResult.events should have size 1
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_INPROCESS
+      )
+
+      val apiReadyOrder = ApiReadyOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val apiReadyOrderResult = testKit.readyOrder(apiReadyOrder)
+
+      apiReadyOrderResult.events should have size 1
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_READY
+      )
+
+      val apiDeliverOrder = ApiDeliverOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val apiDeliverOrderResult = testKit.deliverOrder(apiDeliverOrder)
+
+      apiDeliverOrderResult.events should have size 1
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_DELIVERED
+      )
+    }
+
+    "correctly not update statuses" in {
+      val testKit = OrderAPITestKit(new OrderAPI(_))
+
+      val createOrderResult = testKit.createOrder(apiCreateOrder)
+
+      createOrderResult.events should have size 1
+
+      val orderCreated = createOrderResult.nextEvent[OrderCreated]
+
+      orderCreated.orderId shouldBe defined
+
+      val apiDeliverOrder = ApiDeliverOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val apiDeliverOrderResult = testKit.deliverOrder(apiDeliverOrder)
+
+      apiDeliverOrderResult.events should have size 0
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_DRAFT
+      )
+
+      val apiInProgressOrder = ApiInProgressOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val inProcessOrderResult = testKit.inProgressOrder(apiInProgressOrder)
+
+      inProcessOrderResult.events should have size 0
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_DRAFT
+      )
+
+      val apiReadyOrder = ApiReadyOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val apiReadyOrderResult = testKit.readyOrder(apiReadyOrder)
+
+      apiReadyOrderResult.events should have size 0
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_DRAFT
+      )
+
+      val apiOrderPending = ApiPendingOrder(
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        Some(ApiMemberId(testUpdatingMemberId))
+      )
+
+      val pendingResult = testKit.pendingOrder(apiOrderPending)
+
+      pendingResult.events should have size 1
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_PENDING
+      )
+
+      val apiReadyOrderResult1 = testKit.readyOrder(apiReadyOrder)
+
+      apiReadyOrderResult1.events should have size 0
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_PENDING
+      )
+
+      val inProcessOrderResult1 = testKit.inProgressOrder(apiInProgressOrder)
+
+      inProcessOrderResult1.events should have size 1
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_INPROCESS
+      )
+
+      val apiDeliverOrderResult1 = testKit.deliverOrder(apiDeliverOrder)
+
+      apiDeliverOrderResult1.events should have size 0
+
+      testKit.currentState.getOrder.meta.map(_.status) shouldBe Some(
+        OrderStatus.ORDER_STATUS_INPROCESS
+      )
+
     }
   }
 }

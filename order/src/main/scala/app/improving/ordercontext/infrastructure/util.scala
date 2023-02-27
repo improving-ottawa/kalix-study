@@ -25,6 +25,7 @@ object util {
   def convertApiLineItemToLineItem(apiLineItem: ApiLineItem): LineItem = {
     LineItem(
       apiLineItem.product.map(product => Sku(product.sku)),
+      apiLineItem.pricePerItem,
       apiLineItem.quantity,
       apiLineItem.lineTotal
     )
@@ -33,15 +34,25 @@ object util {
   def convertLineItemToApiLineItem(lineItem: LineItem): ApiLineItem = {
     ApiLineItem(
       lineItem.product.map(product => ApiSku(product.id)),
+      lineItem.pricePerItem,
       lineItem.quantity,
       lineItem.lineTotal
     )
   }
 
+  def calculateLineItemsTotal(orderInfo: OrderInfo): OrderInfo = {
+    val lineItems = orderInfo.lineItems.map(lineItem =>
+      lineItem.copy(
+        lineTotal = lineItem.pricePerItem * lineItem.quantity
+      )
+    )
+    orderInfo.copy(
+      lineItems = lineItems
+    )
+  }
   def calculateOrderTotal(orderInfo: OrderInfo): OrderInfo = {
     orderInfo.copy(
-      orderTotal =
-        orderInfo.lineItems.map(item => item.quantity * item.lineTotal).sum
+      orderTotal = orderInfo.lineItems.map(item => item.lineTotal).sum
     )
   }
 

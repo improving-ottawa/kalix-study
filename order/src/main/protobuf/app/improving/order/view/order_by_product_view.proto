@@ -81,7 +81,7 @@ service OrderByProductQuery {
         };
     }
 
-    rpc ProcessOrderReleases(OrderReleased) returns (order.ApiOrder) {
+    rpc ProcessOrderReleased(ordercontext.OrderReleased) returns (ordercontext.order.ApiOrder) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "orders"
         };
@@ -90,6 +90,47 @@ service OrderByProductQuery {
             transform_updates: true
         };
     }
+
+    rpc ProcessOrderPending(ordercontext.OrderPending) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "order_by_product_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderInProgressed(ordercontext.OrderInProgressed) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "order_by_product_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderReadied(ordercontext.OrderReadied) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "order_by_product_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderDelivered(ordercontext.OrderDelivered) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "order_by_product_order"
+            transform_updates: true
+        };
+    }
+
 //    rpc ProcessProductCreated(productcontext.product.ApiProductCreated) returns (productcontext.product.ApiProduct) {
 //        option (kalix.method).eventing.in.direct = {
 //            service: "kalix-study-product"

@@ -298,15 +298,15 @@ object TestData {
       Seq[ApiLineItem](testLineItem3, testLineItem4)
     val testOrderInfo: ApiOrderInfo = ApiOrderInfo(
       testLineItems,
-      testSpecialInstruction
+      Some(testSpecialInstruction)
     )
     val testOrderInfoPrivateEvent: ApiOrderInfo = ApiOrderInfo(
       testLineItemsPrivateEvent,
-      testSpecialInstruction
+      Some(testSpecialInstruction)
     )
     val testOrderInfoPrivateFailedEvent: ApiOrderInfo = ApiOrderInfo(
       testLineItemsPrivateFailedEvent,
-      testSpecialInstruction
+      Some(testSpecialInstruction)
     )
   }
 }

@@ -21,6 +21,7 @@ object TestData {
   val testProductId = "test-product-id"
   val testProductId2 = "test-product-id2"
   val testProductId3 = "test-product-id3"
+  val testPricePerItem = 1.0
   val testQuantity = 10
   val testLineTotal = 20
   val testQuantity2 = 13
@@ -28,23 +29,27 @@ object TestData {
   val testOrderTotal = 100.0
   val testLineItem1: ApiLineItem = ApiLineItem(
     Some(ApiSku(testProductId)),
+    testPricePerItem,
     testQuantity,
-    testLineTotal
+    testPricePerItem * testQuantity
   )
   val testLineItem2: ApiLineItem = ApiLineItem(
     Some(ApiSku(testProductId)),
+    testPricePerItem,
     testQuantity2,
-    testLineTotal2
+    testPricePerItem * testQuantity2
   )
   val testLineItem3: ApiLineItem = ApiLineItem(
     Some(ApiSku(testProductId2)),
+    testPricePerItem,
     testQuantity2,
-    testLineTotal2
+    testPricePerItem * testQuantity2
   )
   val testLineItem4: ApiLineItem = ApiLineItem(
     Some(ApiSku(testOrderId3)),
+    testPricePerItem,
     testQuantity2,
-    testLineTotal2
+    testPricePerItem * testQuantity2
   )
   val testSpecialInstruction = "test-special-instruction"
   val testLineItems: Seq[ApiLineItem] =
@@ -55,15 +60,15 @@ object TestData {
     Seq[ApiLineItem](testLineItem3, testLineItem4)
   val testOrderInfo: ApiOrderInfo = ApiOrderInfo(
     testLineItems,
-    testSpecialInstruction
+    Some(testSpecialInstruction)
   )
   val testOrderInfoPrivateEvent: ApiOrderInfo = ApiOrderInfo(
     testLineItemsPrivateEvent,
-    testSpecialInstruction
+    Some(testSpecialInstruction)
   )
   val testOrderInfoPrivateFailedEvent: ApiOrderInfo = ApiOrderInfo(
     testLineItemsPrivateFailedEvent,
-    testSpecialInstruction
+    Some(testSpecialInstruction)
   )
   val testCreatingMemberId = "test-member-id"
   val testCreatingMemberId1 = "test-member-id1"
@@ -155,7 +160,7 @@ object TestData {
   val testItems = Seq[LineItem](testItem1, testItem2)
   val testInfo = OrderInfo(
     testItems,
-    testSpecialInstruction,
+    Some(testSpecialInstruction),
     testOrderTotal
   )
   val now = java.time.Instant.now()

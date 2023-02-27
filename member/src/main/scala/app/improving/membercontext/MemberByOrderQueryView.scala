@@ -1,6 +1,5 @@
 package app.improving.membercontext
 
-import app.improving.ApiMemberId
 import app.improving.membercontext.infrastructure.util.{
   convertInfoToApiUpdateInfo,
   convertMemberRegisteredToApiMemberData,

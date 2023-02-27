@@ -7,24 +7,25 @@ package app.improving.ordercontext;
 
 enum OrderStatus {
     ORDER_STATUS_DRAFT = 0;
-    ORDER_STATUS_PENDING = 2;
-    ORDER_STATUS_INPROCESS = 3;
-    ORDER_STATUS_READY = 4;
-    ORDER_STATUS_DELIVERED = 5;
-    ORDER_STATUS_CANCELLED = 6;
-    ORDER_STATUS_RELEASED = 7;
-    ORDER_STATUS_UNKNOWN = 8;
+    ORDER_STATUS_PENDING = 1;
+    ORDER_STATUS_INPROCESS = 2;
+    ORDER_STATUS_READY = 3;
+    ORDER_STATUS_DELIVERED = 4;
+    ORDER_STATUS_CANCELLED = 5;
+    ORDER_STATUS_RELEASED = 6;
+    ORDER_STATUS_UNKNOWN = 7;
 }
 
 message LineItem {
-        Sku product = 1;
-        int32     quantity = 2;
-        double    line_total = 3;
+        Sku       product = 1;
+        double    price_per_item = 2;
+        int32     quantity = 3;
+        double    line_total = 4;
 }
 
 message OrderInfo {
         repeated LineItem line_items = 2;
-        string special_instructions = 3;
+        optional string special_instructions = 3;
         double order_total = 4;
 }
 
@@ -71,8 +72,25 @@ message GetOrderInfo {
 message OrderInfoResult {
     OrderId order_id = 1;
     OrderInfo info = 2;
+    OrderMetaInfo meta = 3;
 }
 message OrderReleased {
     OrderId order_id = 1;
     MemberId releasing_member = 2;
+}
+message OrderPending {
+    OrderId order_id = 1;
+    MemberId pending_member = 2;
+}
+message OrderInProgressed {
+    OrderId order_id = 1;
+    MemberId in_progressing_member = 2;
+}
+message OrderReadied {
+    OrderId order_id = 1;
+    MemberId readying_member = 2;
+}
+message OrderDelivered {
+    OrderId order_id = 1;
+    MemberId delivering_member = 2;
 }

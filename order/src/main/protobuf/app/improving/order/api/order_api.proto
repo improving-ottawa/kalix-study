@@ -27,13 +27,14 @@ message ApiOrder {
 
 message ApiLineItem {
     ApiSku product = 1;
-    int32     quantity = 2;
-    double    line_total = 3;
+    double    price_per_item = 2;
+    int32     quantity = 3;
+    double    line_total = 4;
 }
 
 message ApiOrderInfo {
     repeated ApiLineItem line_items = 2;
-    string special_instructions = 3;
+    optional string special_instructions = 3;
 }
 
 message ApiOrderMetaInfo  {
@@ -77,10 +78,30 @@ message ApiGetOrderInfo {
 message ApiOrderInfoResult {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
+    ApiOrderMetaInfo meta = 3;
 }
 message ApiReleaseOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
+}
+
+
+message ApiPendingOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId pending_member = 2;
+}
+message ApiInProgressOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId in_progressing_member = 2;
+}
+message ApiReadyOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId readying_member = 2;
+}
+
+message ApiDeliverOrder {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId delivering_member = 2;
 }
 
 // For direct_event_order events.
@@ -110,4 +131,20 @@ message ApiOrderCanceled {
 message ApiOrderReleased {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
+}
+message ApiOrderPending {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId pending_member = 2;
+}
+message ApiOrderInProgressed {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId in_progressing_member = 2;
+}
+message ApiOrderReadied {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId readying_member = 2;
+}
+message ApiOrderDelivered {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId delivering_member = 2;
 }
