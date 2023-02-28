@@ -66,6 +66,18 @@ message CreateOrganizations {
     repeated EstablishOrganization establish_organizations = 1;
 }
 
+message AddMembersToOrganization {
+    ApiOrganizationId org_id = 1;
+    repeated ApiMemberId members_to_add = 2;
+    ApiMemberId updating_member = 3;
+}
+
+message OrganizationStatusUpdate {
+    ApiOrganizationId org_id = 1;
+    organizationcontext.organization.ApiOrganizationStatus new_status = 2;
+    ApiMemberId updating_member = 3;
+}
+
 message OrganizationsCreated {
     repeated ApiOrganizationId organizations_created = 1;
 }
@@ -163,6 +175,18 @@ message EstablishMember {
 
 message RegisterMember {
     EstablishMember establish_member = 1;
+}
+
+message UpdateMemberInfo {
+    ApiMemberId member_id = 1;
+    membercontext.member.ApiUpdateInfo info = 2;
+    ApiMemberId upatinging_member = 3;
+}
+
+message UpdateMemberStatus {
+    ApiMemberId member_id = 1;
+    ApiMemberId acting_member = 2;
+    membercontext.member.ApiMemberStatus new_status = 3;
 }
 
 message MemberRegistered {

@@ -21,7 +21,6 @@ import app.improving.productcontext.AllProductsRequest
 import app.improving.productcontext.product.ApiProductDetails
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.storecontext.AllStoresRequest
-import app.improving.storecontext.store.ApiStore
 import app.improving.tenantcontext.GetAllTenantRequest
 import app.improving.tenantcontext.tenant.ApiReleaseTenant
 import com.google.protobuf.timestamp.Timestamp

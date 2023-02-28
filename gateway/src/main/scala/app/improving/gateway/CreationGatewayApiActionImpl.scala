@@ -20,6 +20,9 @@ import app.improving.membercontext.AllMembersView
 import app.improving.membercontext.member.{
   ApiRegisterMember,
   ApiReleaseMember,
+  ApiUpdateInfo,
+  ApiUpdateMemberInfo,
+  ApiUpdateMemberStatus,
   MemberService
 }
 import app.improving.ordercontext.AllOrdersView
@@ -30,7 +33,9 @@ import app.improving.ordercontext.order.{
   OrderService
 }
 import app.improving.organizationcontext.organization.{
+  ApiAddMembersToOrganization,
   ApiEstablishOrganization,
+  ApiOrganizationStatusUpdated,
   ApiReleaseOrganization,
   OrganizationService
 }
@@ -45,6 +50,7 @@ import app.improving.storecontext.store.{
   StoreService
 }
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
+import com.google.protobuf.empty.Empty
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -244,6 +250,42 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
             })
         )
         .map(OrganizationsCreated(_))
+    )
+  }
+
+  override def handleAddMembersToOrganization(
+      addMembersToOrganization: AddMembersToOrganization
+  ): Action.Effect[Empty] = {
+    log.info("in handleAddMembersToOrganization")
+
+    effects.asyncReply(
+      organizationService.addMembersToOrganization(
+        ApiAddMembersToOrganization(
+          addMembersToOrganization.orgId
+            .map(_.organizationId)
+            .getOrElse("orgId is NOT FOUND."),
+          addMembersToOrganization.membersToAdd,
+          addMembersToOrganization.updatingMember
+        )
+      )
+    )
+  }
+
+  override def handleUpdateOrganizationStatus(
+      organizationStatusUpdate: OrganizationStatusUpdate
+  ): Action.Effect[Empty] = {
+    log.info("in handleUpdateOrganizationStatus")
+
+    effects.asyncReply(
+      organizationService.updateOrganizationStatus(
+        ApiOrganizationStatusUpdated(
+          organizationStatusUpdate.orgId
+            .map(_.organizationId)
+            .getOrElse("orgId is NOT FOUND."),
+          organizationStatusUpdate.newStatus,
+          organizationStatusUpdate.updatingMember
+        )
+      )
     )
   }
 
@@ -626,6 +668,40 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
             releaseOrders.orders.map(id => ApiOrderId(id.orderId))
           )
         )
+    )
+  }
+
+  override def handleUpdateMemberInfo(
+      updateMemberInfo: UpdateMemberInfo
+  ): Action.Effect[Empty] = {
+    log.info("in handleUpdateMemberInfo")
+    effects.asyncReply(
+      memberService.updateMemberInfo(
+        ApiUpdateMemberInfo(
+          updateMemberInfo.memberId
+            .map(_.memberId)
+            .getOrElse("memberId is NOT FOUND."),
+          updateMemberInfo.info,
+          updateMemberInfo.upatingingMember
+        )
+      )
+    )
+  }
+
+  override def handleUpdateMemberStatus(
+      updateMemberStatus: UpdateMemberStatus
+  ): Action.Effect[Empty] = {
+    log.info("in handleUpdateMemberStatus")
+    effects.asyncReply(
+      memberService.updateMemberStatus(
+        ApiUpdateMemberStatus(
+          updateMemberStatus.memberId
+            .map(_.memberId)
+            .getOrElse("memberId is NOT FOUND."),
+          updateMemberStatus.actingMember,
+          updateMemberStatus.newStatus
+        )
+      )
     )
   }
 }

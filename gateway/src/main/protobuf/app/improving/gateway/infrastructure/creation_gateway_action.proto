@@ -3,6 +3,8 @@ syntax = "proto3";
 package app.improving.gateway;
 
 import "app/improving/gateway/domain/creation_gateway_domain.proto";
+import "app/improving/member/infrastructure/member_service.proto";
+import "google/protobuf/empty.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 
@@ -46,6 +48,19 @@ service CreationGatewayApiAction {
         };
     }
 
+    rpc HandleAddMembersToOrganization(AddMembersToOrganization) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/add-members"
+            body: "*"
+        };
+    }
+
+    rpc HandleUpdateOrganizationStatus(OrganizationStatusUpdate) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/organization/update-status"
+            body: "*"
+        };
+    }
     rpc HandleReleaseOrganizations(ReleaseOrganizations) returns (OrganizationsReleased) {
         option (google.api.http) = {
             post: "/tenant/release-orgs"
@@ -119,6 +134,20 @@ service CreationGatewayApiAction {
         option (google.api.http) = {
             post: "/member/register-member"
             body: "establish_member"
+        };
+    }
+
+    rpc HandleUpdateMemberInfo(UpdateMemberInfo) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/update-member-info"
+            body: "*"
+        };
+    }
+
+    rpc HandleUpdateMemberStatus(UpdateMemberStatus) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/update-member-status"
+            body: "*"
         };
     }
 
