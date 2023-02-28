@@ -49,8 +49,7 @@ object util {
       metaInfo.createdOn,
       metaInfo.createdBy.map(member => ApiMemberId(member.id)),
       metaInfo.lastModifiedOn,
-      metaInfo.lastModifiedBy.map(member => ApiMemberId(member.id)),
-      convertMemberStatus(metaInfo.memberStatus)
+      metaInfo.lastModifiedBy.map(member => ApiMemberId(member.id))
     )
   }
 

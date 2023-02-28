@@ -37,6 +37,7 @@ message MemberData {
     MemberId member_id = 1;
     Info info = 2;
     MetaInfo meta = 3;
+    MemberStatus member_status = 5;
 }
 
 message MemberInfoUpdated {
@@ -63,6 +64,7 @@ message MemberRegistered {
 message MemberStatusUpdated {
     MemberId member_id = 1;
     MetaInfo meta = 2;
+    MemberStatus new_status = 3;
 }
 
 message MemberReleased {
@@ -70,12 +72,31 @@ message MemberReleased {
     MemberId releasing_member = 2;
 }
 
+message MemberActivated {
+    MemberId member_id = 1;
+    MemberId activating_member = 2;
+}
+
+message MemberInactivated {
+    MemberId member_id = 1;
+    MemberId inactivating_member = 2;
+}
+
+message MemberSuspended {
+    MemberId member_id = 1;
+    MemberId suspending_member = 2;
+}
+
+message MemberTerminated {
+    MemberId member_id = 1;
+    MemberId terminating_member = 2;
+}
+
 message MetaInfo {
     google.protobuf.Timestamp created_on = 1;
     MemberId created_by = 2;
     google.protobuf.Timestamp last_modified_on = 3;
     MemberId last_modified_by = 4;
-    MemberStatus member_status = 5;
 }
 
 message MetaInfoQuery {

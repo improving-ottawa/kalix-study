@@ -4,11 +4,15 @@ import com.google.protobuf.empty.Empty
 import com.google.protobuf.timestamp.Timestamp
 import app.improving.{ApiMemberId, MemberId}
 import app.improving.membercontext.{
-  MemberReleased,
+  MemberActivated,
+  MemberInactivated,
   MemberInfoUpdated,
   MemberRegistered,
+  MemberReleased,
   MemberStatus,
   MemberStatusUpdated,
+  MemberSuspended,
+  MemberTerminated,
   MetaInfo
 }
 import app.improving.membercontext.infrastructure.util._
@@ -62,8 +66,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               Some(timestamp),
               memberIdOpt,
               Some(timestamp),
-              memberIdOpt,
-              MemberStatus.MEMBER_STATUS_DRAFT
+              memberIdOpt
             )
           )
         )
@@ -95,12 +98,10 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               Some(timestamp),
               state.memberId,
               Some(timestamp),
-              state.memberId,
-              convertMemberStatus(
-                apiUpdateMemberStatus.newStatus
-              )
+              state.memberId
             )
-          )
+          ),
+          convertMemberStatus(apiUpdateMemberStatus.newStatus)
         )
         effects.emitEvent(event).thenReply(_ => Empty.defaultInstance)
       }
@@ -120,7 +121,8 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
             member.getInfo.avatar.nonEmpty &&
             member.getInfo.firstName.nonEmpty &&
             member.getInfo.lastName.nonEmpty &&
-            !status.isApiMemberStatusDraft =>
+            !status.isApiMemberStatusDraft && !status.isApiMemberStatusSuspended &&
+            !status.isApiMemberStatusInactive =>
         true
       case MemberStatus.MEMBER_STATUS_ACTIVE
           if !status.isApiMemberStatusDraft &&
@@ -135,6 +137,9 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
           if !status.isApiMemberStatusDraft &&
             !status.isApiMemberStatusInactive &&
             !status.isApiMemberStatusSuspended =>
+        true
+      case MemberStatus.MEMBER_STATUS_TERMINATED
+          if !status.isApiMemberStatusTerminated =>
         true
       case _ =>
         false
@@ -167,8 +172,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
               Some(timestamp),
               memberIdOpt,
               Some(timestamp),
-              memberIdOpt,
-              state.status
+              memberIdOpt
             )
           )
         )
@@ -241,7 +245,8 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         val apiMemberData = ApiMemberData(
           apiGetMemberData.memberId,
           state.info.map(convertInfoToApiUpdateInfo),
-          state.meta.map(convertMetaInfoToApiMetaInfo)
+          state.meta.map(convertMetaInfoToApiMetaInfo),
+          convertMemberStatus(state.status)
         )
         effects.reply(apiMemberData)
       }
@@ -364,9 +369,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
 
         currentState.withMember(
           state.copy(
-            status = memberStatusUpdated.meta
-              .map(_.memberStatus)
-              .getOrElse(MemberStatus.MEMBER_STATUS_UNKNOWN),
+            status = memberStatusUpdated.newStatus,
             meta = memberStatusUpdated.meta
           )
         )
@@ -387,9 +390,7 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
       .emitEvent(
         MemberReleased(
           Some(MemberId(apiReleaseMember.memberId)),
-          apiReleaseMember.deletingMemberId.map(apiId =>
-            MemberId(apiId.memberId)
-          )
+          apiReleaseMember.deletingMember.map(apiId => MemberId(apiId.memberId))
         )
       )
       .deleteEntity()
@@ -417,5 +418,261 @@ class MemberAPI(context: EventSourcedEntityContext) extends AbstractMemberAPI {
         )
       )
     )
+  }
+
+  override def activateMember(
+      currentState: MemberState,
+      apiActivateMember: ApiActivateMember
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+          ) => {
+
+        log.info(
+          s"MemberAPI in activateMember - apiActivateMember - ${apiActivateMember}"
+        )
+
+        val activatedMember = MemberActivated(
+          Some(MemberId(apiActivateMember.memberId)),
+          apiActivateMember.activatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(activatedMember).thenReply(_ => Empty.defaultInstance)
+      }
+      case other =>
+        log.info(
+          s"MemberAPI in activateMember - not activated - other - ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+
+    }
+  }
+
+  override def inactivateMember(
+      currentState: MemberState,
+      apiInactivateMember: ApiInactivateMember
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_INACTIVE
+          ) => {
+
+        log.info(
+          s"MemberAPI in inactivateMember - apiInactivateMember - ${apiInactivateMember}"
+        )
+
+        val inactivatedMember = MemberInactivated(
+          Some(MemberId(apiInactivateMember.memberId)),
+          apiInactivateMember.inactivatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects
+          .emitEvent(inactivatedMember)
+          .thenReply(_ => Empty.defaultInstance)
+      }
+      case other =>
+        log.info(
+          s"MemberAPI in inactivateMember - not inactivated - other - ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+
+    }
+  }
+
+  override def suspendMember(
+      currentState: MemberState,
+      apiSuspendMember: ApiSuspendMember
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED
+          ) => {
+
+        log.info(
+          s"MemberAPI in suspendMember - apiSuspendMember - ${apiSuspendMember}"
+        )
+
+        val suspendedMember = MemberSuspended(
+          Some(MemberId(apiSuspendMember.memberId)),
+          apiSuspendMember.suspendingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects.emitEvent(suspendedMember).thenReply(_ => Empty.defaultInstance)
+      }
+      case other =>
+        log.info(
+          s"MemberAPI in suspendMember - not suspended - other - ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+
+    }
+  }
+
+  override def terminateMember(
+      currentState: MemberState,
+      apiTerminateMember: ApiTerminateMember
+  ): EventSourcedEntity.Effect[Empty] = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_TERMINATED
+          ) => {
+
+        log.info(
+          s"MemberAPI in terminateMember - apiTerminateMember - ${apiTerminateMember}"
+        )
+
+        val terminatedMember = MemberTerminated(
+          Some(MemberId(apiTerminateMember.memberId)),
+          apiTerminateMember.terminatingMember.map(member =>
+            MemberId(member.memberId)
+          )
+        )
+        effects
+          .emitEvent(terminatedMember)
+          .thenReply(_ => Empty.defaultInstance)
+      }
+      case other =>
+        log.info(
+          s"MemberAPI in terminateMember - not terminated - other - ${other}"
+        )
+
+        effects.reply(Empty.defaultInstance)
+
+    }
+  }
+
+  override def memberActivated(
+      currentState: MemberState,
+      memberActivated: MemberActivated
+  ): MemberState = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+          ) => {
+
+        log.info(
+          s"MemberAPI in memberActivated - memberActivated - $memberActivated"
+        )
+
+        currentState.withMember(
+          member.copy(
+            status = MemberStatus.MEMBER_STATUS_ACTIVE
+          )
+        )
+      }
+      case other => {
+        log.info(
+          s"MemberAPI in memberActivated - not activated - other - $other"
+        )
+        currentState
+      }
+    }
+  }
+
+  override def memberInactivated(
+      currentState: MemberState,
+      memberInactivated: MemberInactivated
+  ): MemberState = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_INACTIVE
+          ) => {
+
+        log.info(
+          s"MemberAPI in memberInactivated - memberInactivated - $memberInactivated"
+        )
+
+        currentState.withMember(
+          member.copy(
+            status = MemberStatus.MEMBER_STATUS_INACTIVE
+          )
+        )
+      }
+      case other => {
+        log.info(
+          s"MemberAPI in memberInactivated - not inactivated - other - $other"
+        )
+        currentState
+      }
+    }
+  }
+
+  override def memberSuspended(
+      currentState: MemberState,
+      memberSuspended: MemberSuspended
+  ): MemberState = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_SUSPENDED
+          ) => {
+
+        log.info(
+          s"MemberAPI in memberSuspended - memberSuspended - $memberSuspended"
+        )
+
+        currentState.withMember(
+          member.copy(
+            status = MemberStatus.MEMBER_STATUS_SUSPENDED
+          )
+        )
+      }
+      case other => {
+        log.info(
+          s"MemberAPI in memberSuspended - not suspended - other - $other"
+        )
+        currentState
+      }
+    }
+  }
+
+  override def memberTerminated(
+      currentState: MemberState,
+      memberTerminated: MemberTerminated
+  ): MemberState = {
+    currentState.member match {
+      case Some(member)
+          if isStateChangeValid(
+            member,
+            ApiMemberStatus.API_MEMBER_STATUS_TERMINATED
+          ) => {
+
+        log.info(
+          s"MemberAPI in memberTerminated - memberTerminated - $memberTerminated"
+        )
+
+        currentState.withMember(
+          member.copy(
+            status = MemberStatus.MEMBER_STATUS_TERMINATED
+          )
+        )
+      }
+      case other => {
+        log.info(
+          s"MemberAPI in memberTerminated - not terminated - other - $other"
+        )
+        currentState
+      }
+    }
   }
 }

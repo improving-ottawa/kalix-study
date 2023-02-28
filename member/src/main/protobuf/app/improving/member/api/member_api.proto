@@ -57,7 +57,27 @@ message ApiUpdateMemberInfo {
 
 message ApiReleaseMember {
     string member_id = 1 [(kalix.field).entity_key = true];
-    ApiMemberId deleting_member_id = 2;
+    ApiMemberId deleting_member = 2;
+}
+
+message ApiActivateMember {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId activating_member = 2;
+}
+
+message ApiInactivateMember {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId inactivating_member = 2;
+}
+
+message ApiSuspendMember {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId suspending_member = 2;
+}
+
+message ApiTerminateMember {
+    string member_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId terminating_member = 2;
 }
 
 message ApiUpdateMemberStatus {
@@ -86,11 +106,11 @@ message ApiMetaInfo {
     ApiMemberId created_by = 2;
     google.protobuf.Timestamp last_modified_on = 3;
     ApiMemberId last_modified_by = 4;
-    ApiMemberStatus member_status = 5;
 }
 
 message ApiMemberData  {
     string member_id = 1 [(kalix.field).entity_key = true];
     ApiUpdateInfo info = 2;
     ApiMetaInfo meta = 3;
+    ApiMemberStatus member_status = 5;
 }

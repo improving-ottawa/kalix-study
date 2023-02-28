@@ -21,7 +21,13 @@ service MemberService {
                 "app.improving.membercontext.MemberInfoUpdated",
                 "app.improving.membercontext.MemberRegistered",
                 "app.improving.membercontext.MemberStatusUpdated",
-                "app.improving.membercontext.MemberReleased"]
+                "app.improving.membercontext.MemberReleased",
+                "app.improving.membercontext.MemberActivated",
+                "app.improving.membercontext.MemberInactivated",
+                "app.improving.membercontext.MemberSuspended",
+                "app.improving.membercontext.MemberTerminated"
+
+            ]
         }
     };
 
@@ -50,6 +56,34 @@ service MemberService {
     rpc ReleaseMember(ApiReleaseMember) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/member/{member_id}/delete"
+            body: "*"
+        };
+    }
+
+    rpc ActivateMember(ApiActivateMember) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/activate"
+            body: "*"
+        };
+    }
+
+    rpc InactivateMember(ApiInactivateMember) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/inactivate"
+            body: "*"
+        };
+    }
+
+    rpc SuspendMember(ApiSuspendMember) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/suspend"
+            body: "*"
+        };
+    }
+
+    rpc TerminateMember(ApiTerminateMember) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/member/{member_id}/terminate"
             body: "*"
         };
     }
