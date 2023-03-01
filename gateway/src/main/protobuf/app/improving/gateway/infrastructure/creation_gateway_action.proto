@@ -103,6 +103,13 @@ service CreationGatewayApiAction {
         };
     }
 
+    rpc HandleUpdateStore(UpdateStore) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/store/update-store"
+            body: "*"
+        };
+    }
+
     rpc HandleReleaseStores(ReleaseStores) returns (StoresReleased) {
         option (google.api.http) = {
             post: "/event/release-stores"

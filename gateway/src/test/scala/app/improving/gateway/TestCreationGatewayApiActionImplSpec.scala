@@ -13,12 +13,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
 
-// This class was initially generated based on the .proto definition by Kalix tooling.
-//
-// As long as this file exists it will not be overwritten: you can maintain it yourself,
-// or delete it so it is regenerated as needed.
-
-class TestGatewayApiActionImplSpec
+class TestCreationGatewayApiActionImplSpec
     extends AnyWordSpec
     with Matchers
     with BeforeAndAfterAll
@@ -42,12 +37,11 @@ class TestGatewayApiActionImplSpec
       config.getInt("app.improving.akka.grpc.client-url-port")
     )
 
-  val testGateWayAction: TestGatewayApiActionClient =
-    TestGatewayApiActionClient(
-      testGateWayClientSettings
-    )
+  val testCreationGatewayApiActionClient = TestCreationGatewayApiActionClient(
+    testGateWayClientSettings
+  )
 
-  "TestGatewayApiActionImpl" must {
+  "TestCreationGatewayApiActionImpl" must {
 
     "handle command HandleStartScenario base case" in {
       val numTenants = 1
@@ -57,7 +51,7 @@ class TestGatewayApiActionImplSpec
       val numEventsPerOrg = 1
       val numTicketsPerEvent = 1
 
-      val scenarioResult = testGateWayAction
+      val scenarioResult = testCreationGatewayApiActionClient
         .handleStartScenario(
           StartScenario(
             Some(
@@ -82,11 +76,12 @@ class TestGatewayApiActionImplSpec
       scenarioResult.membersForOrgs.isEmpty shouldBe false
       scenarioResult.productsForStores.isEmpty shouldBe false
 
-      testGateWayAction
+      testCreationGatewayApiActionClient
         .handleEndScenario(
           endFromResults(scenarioResult, Seq.empty)
         )
         .futureValue
     }
+
   }
 }

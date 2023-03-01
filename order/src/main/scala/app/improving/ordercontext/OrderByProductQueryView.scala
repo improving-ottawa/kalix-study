@@ -129,4 +129,9 @@ class OrderByProductQueryView(context: ViewContext)
       )
     )
   }
+
+  override def processOrderOrderReleased(
+      state: ApiOrder,
+      orderReleased: OrderReleased
+  ): UpdateEffect[ApiOrder] = effects.deleteState()
 }

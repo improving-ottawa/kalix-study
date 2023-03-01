@@ -47,6 +47,7 @@ import app.improving.productcontext.product.{
 import app.improving.storecontext.store.{
   ApiCreateStore,
   ApiReleaseStore,
+  ApiUpdateStore,
   StoreService
 }
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
@@ -375,6 +376,22 @@ class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   }
 
+  override def handleUpdateStore(
+      updateStore: UpdateStore
+  ): Action.Effect[Empty] = {
+    log.info("in handleUpdateStore")
+
+    effects.asyncReply(
+      storeService.updateStore(
+        ApiUpdateStore(
+          updateStore.storeId.map(_.storeId).getOrElse("storeId is NOT FOUND."),
+          updateStore.info,
+          updateStore.meta
+        )
+      )
+    )
+
+  }
   override def handleCreateProduct(
       createProduct: CreateProduct
   ): Action.Effect[ProductCreated] = {

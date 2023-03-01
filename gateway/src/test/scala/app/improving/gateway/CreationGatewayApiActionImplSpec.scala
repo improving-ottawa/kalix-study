@@ -37,7 +37,11 @@ class CreationGatewayApiActionImplSpec
     with ScalaFutures
     with Fixture {
 
+  implicit private val patience: PatienceConfig =
+    PatienceConfig(Span(500, Seconds), Span(5000, Millis))
+
   "CreationGatewayApiActionImpl" must {
+
     implicit val sys: ActorSystem = ActorSystem("OrderActionImpl")
     implicit val ec: ExecutionContextExecutor = sys.dispatcher
 

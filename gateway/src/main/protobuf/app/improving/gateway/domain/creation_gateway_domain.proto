@@ -131,6 +131,12 @@ message StoresCreated {
     repeated ApiStoreId stores_created = 1;
 }
 
+message UpdateStore {
+    ApiStoreId store_id = 1;
+    storecontext.store.ApiStoreUpdateInfo info = 2;
+    storecontext.store.ApiStoreMetaInfo meta = 3;
+}
+
 message ReleaseStores{
     repeated ApiStoreId store_ids = 1;
 }

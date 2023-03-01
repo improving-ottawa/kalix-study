@@ -45,9 +45,11 @@ import scala.util.Random
 // or delete it so it is regenerated as needed.
 
 class TestCreationGatewayApiActionImpl(creationContext: ActionCreationContext)
-    extends AbstractTestGatewayApiAction {
+    extends AbstractTestCreationGatewayApiAction {
 
-  implicit val sys: ActorSystem = ActorSystem("OrderActionImpl")
+  implicit val sys: ActorSystem = ActorSystem(
+    "TestCreationGatewayApiActionImpl"
+  )
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -109,17 +111,13 @@ class TestCreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-  val gateWayClientSettings: GrpcClientSettings =
-    GrpcClientSettings.connectToServiceAt(
+  val gatewayApiAction: CreationGatewayApiAction =
+    creationContext.getGrpcClient(
+      classOf[CreationGatewayApiAction],
       config.getString(
-        "app.improving.akka.grpc.gateway-client-url"
-      ),
-      config.getInt("app.improving.akka.grpc.client-url-port")
+        "app.improving.gateway.gateway.grpc-client-name"
+      )
     )
-
-  val gatewayApiAction = CreationGatewayApiActionClient(
-    gateWayClientSettings
-  )
 
   override def handleStartScenario(
       startScenario: StartScenario
@@ -137,26 +135,6 @@ class TestCreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     }
 
     log.info(s"in handleStartScenario scenarioInfo - $scenarioInfo")
-
-//    val initialMemberId: ApiMemberId =
-//      Await.result(
-//        memberService
-//          .registerMember(genApiRegisterInitialMember())
-//          .map(memberId => {
-//            log.info(
-//              s"handleStartScenario - initialMemberId - registerMember - $memberId"
-//            )
-//            memberService.updateMemberStatus(
-//              ApiUpdateMemberStatus(
-//                memberId.memberId,
-//                Some(ApiMemberId(memberId.memberId)),
-//                ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
-//              )
-//            )
-//            memberId
-//          }),
-//        10 seconds
-//      )
 
     val initialMemberId: ApiMemberId = Await
       .result(
@@ -479,102 +457,131 @@ class TestCreationGatewayApiActionImpl(creationContext: ActionCreationContext)
         ),
       10 seconds
     )
-//
-//    val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] = Await
-//      .result(
-//        Future
-//          .sequence(
-//            genApiScheduleEvents(
-//              startScenario.scenarioInfo
-//                .map(_.numEventsPerOrg)
-//                .getOrElse(0): Int,
-//              membersForOrgs
-//            ).map(apiScheduleEvent => {
-//              eventService
-//                .scheduleEvent(apiScheduleEvent)
-//                .map(eventId => {
-//                  (
-//                    apiScheduleEvent.info
-//                      .flatMap(_.sponsoringOrg)
-//                      .getOrElse(
-//                        ApiOrganizationId.defaultInstance
-//                      ),
-//                    eventId
-//                  )
-//                })
-//            })
-//          ),
-//        10 seconds
-//      )
-//      .groupBy { orgAndEvents: (ApiOrganizationId, ApiEventId) =>
-//        orgAndEvents._1
-//      }
-//      .map {
-//        case (
-//              orgId: ApiOrganizationId,
-//              seq: Seq[(ApiOrganizationId, ApiEventId)]
-//            ) =>
-//          orgId -> seq.map(_._2).toSet
-//      }
-//
-//    log.info(s"in handleStartScenario eventsByOrg - $eventsByOrg")
-//
-//    val storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]] = Await
-//      .result(
-//        Future
-//          .sequence(
-//            genApiCreateStores(
-//              owners.flatMap(owner =>
-//                owner._2
-//                  .map(memberId => orgsByTenant(owner._1).head -> memberId)
-//                  .groupBy(_._1)
-//                  .map(tup => tup._1 -> tup._2.map(_._2))
-//              ),
-//              eventsByOrg
-//            ).map(apiCreateStore => {
-//              storeService
-//                .createStore(apiCreateStore)
-//                .map(apiStoreId => {
-//                  apiCreateStore.info
-//                    .flatMap(_.sponsoringOrg)
-//                    .getOrElse(
-//                      ApiOrganizationId.defaultInstance
-//                    ) ->
-//                    apiStoreId
-//                })
-//            })
-//          ),
-//        10 seconds
-//      )
-//      .groupBy(_._1)
-//      .map(orgWithStores =>
-//        orgWithStores._1 -> orgWithStores._2.map(_._2).toSet
-//      )
-//
-//    log.info(s"in handleStartScenario storesByOrg - $storesByOrg")
-//
-//    val productsByStore: Map[ApiStoreId, Seq[ApiSku]] =
-//      genApiCreateProduct(
-//        scenarioInfo.numTicketsPerEvent,
-//        eventsByOrg,
-//        storesByOrg,
-//        orgsByTenant,
-//        tenantsByOrgs
-//      ) match {
-//        case productsMap =>
-//          val apiCreateProducts = productsMap.values.flatten
-//          log.info(
-//            s"in handleStartScenario genApiCreateProduct - apiCreateProducts $productsMap"
-//          )
-//
-//          val result = Await
-//            .result(
-//              Future
-//                .sequence(
-//                  apiCreateProducts.map { apiCreateProduct =>
-//                    log.info(
-//                      s"in handleStartScenario genApiCreateProduct - apiCreateProduct $apiCreateProduct"
-//                    )
+
+    val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] = Await
+      .result(
+        Future
+          .sequence(
+            genApiScheduleEvents(
+              startScenario.scenarioInfo
+                .map(_.numEventsPerOrg)
+                .getOrElse(0): Int,
+              membersForOrgs
+            ).map(apiScheduleEvent => {
+              gatewayApiAction
+                .handleScheduleEvent(
+                  CreateEvent(
+                    apiScheduleEvent.info,
+                    apiScheduleEvent.schedulingMember
+                  )
+                )
+                .map(event => {
+                  (
+                    apiScheduleEvent.info
+                      .flatMap(_.sponsoringOrg)
+                      .getOrElse(
+                        ApiOrganizationId.defaultInstance
+                      ),
+                    event.eventCreated.getOrElse(ApiEventId.defaultInstance)
+                  )
+                })
+            })
+          ),
+        10 seconds
+      )
+      .groupBy { orgAndEvents: (ApiOrganizationId, ApiEventId) =>
+        orgAndEvents._1
+      }
+      .map {
+        case (
+              orgId: ApiOrganizationId,
+              seq: Seq[(ApiOrganizationId, ApiEventId)]
+            ) =>
+          orgId -> seq.map(_._2).toSet
+      }
+
+    log.info(s"in handleStartScenario eventsByOrg - $eventsByOrg")
+
+    val storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]] = Await
+      .result(
+        Future
+          .sequence(
+            genApiCreateStores(
+              owners.flatMap(owner =>
+                owner._2
+                  .map(memberId => orgsByTenant(owner._1).head -> memberId)
+                  .groupBy(_._1)
+                  .map(tup => tup._1 -> tup._2.map(_._2))
+              ),
+              eventsByOrg
+            ).map(apiCreateStore => {
+              gatewayApiAction
+                .handleCreateStore(
+                  CreateStore(
+                    apiCreateStore.info,
+                    apiCreateStore.creatingMember
+                  )
+                )
+                .map(store => {
+                  apiCreateStore.info
+                    .flatMap(_.sponsoringOrg)
+                    .getOrElse(
+                      ApiOrganizationId.defaultInstance
+                    ) ->
+                    store.storeCreated.getOrElse(ApiStoreId.defaultInstance)
+                })
+            })
+          ),
+        10 seconds
+      )
+      .groupBy(_._1)
+      .map(orgWithStores =>
+        orgWithStores._1 -> orgWithStores._2.map(_._2).toSet
+      )
+
+    log.info(s"in handleStartScenario storesByOrg - $storesByOrg")
+
+    val productsByStore: Map[ApiStoreId, Seq[ApiSku]] =
+      genApiCreateProduct(
+        scenarioInfo.numTicketsPerEvent,
+        eventsByOrg,
+        storesByOrg,
+        orgsByTenant,
+        tenantsByOrgs
+      ) match {
+        case productsMap =>
+          val apiCreateProducts = productsMap.values.flatten
+          log.info(
+            s"in handleStartScenario genApiCreateProduct - apiCreateProducts $productsMap"
+          )
+
+          val result = Await
+            .result(
+              Future
+                .sequence(
+                  apiCreateProducts.map { apiCreateProduct =>
+                    log.info(
+                      s"in handleStartScenario genApiCreateProduct - apiCreateProduct $apiCreateProduct"
+                    )
+                    gatewayApiAction
+                      .handleCreateProduct(
+                        CreateProduct(
+                          Some(
+                            EstablishProduct(
+                              apiCreateProduct.info,
+                              apiCreateProduct.meta
+                            )
+                          )
+                        )
+                      )
+                      .map { productId =>
+                        apiCreateProduct.info
+                          .flatMap(_.store)
+                          .getOrElse(
+                            ApiStoreId.defaultInstance
+                          ) -> productId.productCreated
+                          .getOrElse(ApiSku.defaultInstance)
+                      }
 //                    productService
 //                      .createProduct(apiCreateProduct)
 //                      .map { productId =>
@@ -584,76 +591,75 @@ class TestCreationGatewayApiActionImpl(creationContext: ActionCreationContext)
 //                            ApiStoreId.defaultInstance
 //                          ) -> productId
 //                      }
-//                  }
-//                ),
-//              10 seconds
-//            )
-//            .groupBy(_._1)
-//            .map { case (storeId, set) =>
-//              log.info(
-//                s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
-//              )
-//              storeId -> set.map(_._2).toSeq
-//            }
-//
-//          log.info(
-//            s"in handleStartScenario genApiCreateProduct - result $result"
-//          )
-//
-//          val eventIds = eventsByOrg.values.toSeq.flatten
-//          Await.result(
-//            for {
-//              event <- eventService.getEventById(
-//                ApiGetEventById(
-//                  eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
-//                )
-//              )
-//              temp <- Future
-//                .sequence(result.map { case (storeId, products) =>
-//                  storeService.updateStore(
-//                    ApiUpdateStore(
-//                      storeId.storeId,
-//                      Some(
-//                        ApiStoreUpdateInfo(
-//                          products = products,
-//                          event = Some(ApiEventId(event.eventId)),
-//                          venue = Some(ApiVenueId("test-venue-id")),
-//                          location = Some(ApiLocationId("test-location-id"))
-//                        )
-//                      )
-//                    )
-//                  )
-//                })
-//            } yield temp,
-//            10 seconds
-//          )
-//
-//          result
-//      }
-//
-//    log.info(s"in handleStartScenario productsByStore - $productsByStore")
-//
-//    effects.reply(
-//      ScenarioResults(
-//        tenantIds.toSeq,
-//        orgsByTenant.map(tenantWithOrgs =>
-//          tenantWithOrgs._1.tenantId -> OrganizationIds(tenantWithOrgs._2.toSeq)
-//        ),
-//        membersForOrgs.map(orgWithMembers =>
-//          orgWithMembers._1.toString -> MemberIds(orgWithMembers._2.toSeq)
-//        ),
-//        eventsByOrg.map(orgWithEvents =>
-//          orgWithEvents._1.organizationId -> EventIds(orgWithEvents._2.toSeq)
-//        ),
-//        storesByOrg.map(orgWithStores =>
-//          orgWithStores._1.organizationId -> StoreIds(orgWithStores._2.toSeq)
-//        ),
-//        productsByStore.map(storeWithProducts =>
-//          storeWithProducts._1.storeId -> Skus(storeWithProducts._2.toSeq)
-//        )
-//      )
-//    )
-    ???
+                  }
+                ),
+              10 seconds
+            )
+            .groupBy(_._1)
+            .map { case (storeId, set) =>
+              log.info(
+                s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
+              )
+              storeId -> set.map(_._2).toSeq
+            }
+
+          log.info(
+            s"in handleStartScenario genApiCreateProduct - result $result"
+          )
+
+          val eventIds = eventsByOrg.values.toSeq.flatten
+          Await.result(
+            for {
+              event <- eventService.getEventById(
+                ApiGetEventById(
+                  eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
+                )
+              )
+              temp <- Future
+                .sequence(result.map { case (storeId, products) =>
+                  gatewayApiAction.handleUpdateStore(
+                    UpdateStore(
+                      Some(storeId),
+                      Some(
+                        ApiStoreUpdateInfo(
+                          products = products,
+                          event = Some(ApiEventId(event.eventId)),
+                          venue = Some(ApiVenueId("test-venue-id")),
+                          location = Some(ApiLocationId("test-location-id"))
+                        )
+                      )
+                    )
+                  )
+                })
+            } yield temp,
+            10 seconds
+          )
+
+          result
+      }
+
+    log.info(s"in handleStartScenario productsByStore - $productsByStore")
+
+    effects.reply(
+      ScenarioResults(
+        tenantIds.toSeq,
+        orgsByTenant.map(tenantWithOrgs =>
+          tenantWithOrgs._1.tenantId -> OrganizationIds(tenantWithOrgs._2.toSeq)
+        ),
+        membersForOrgs.map(orgWithMembers =>
+          orgWithMembers._1.toString -> MemberIds(orgWithMembers._2.toSeq)
+        ),
+        eventsByOrg.map(orgWithEvents =>
+          orgWithEvents._1.organizationId -> EventIds(orgWithEvents._2.toSeq)
+        ),
+        storesByOrg.map(orgWithStores =>
+          orgWithStores._1.organizationId -> StoreIds(orgWithStores._2.toSeq)
+        ),
+        productsByStore.map(storeWithProducts =>
+          storeWithProducts._1.storeId -> Skus(storeWithProducts._2.toSeq)
+        )
+      )
+    )
   }
 
   override def handleEndScenario(
