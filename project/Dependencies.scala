@@ -24,6 +24,7 @@ object Dependencies {
     val testcontainers = "1.17.6"
     val cats = "2.9.0"
     val circe = "0.14.1"
+    val gatling = "3.9.2"
   }
 
   import Versions._
@@ -77,6 +78,14 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream-kafka" % akkaKafka % Test,
     "com.typesafe.akka" %% "akka-http" % akkaHttp % Test,
     "com.typesafe.akka" %% "akka-http2-support" % akkaHttp % Test
+  )
+
+  val loadTestDependencies: Seq[ModuleID] = Seq(
+    "io.gatling.highcharts" % "gatling-charts-highcharts" % gatling % "test,it",
+    "io.gatling" % "gatling-test-framework" % gatling % "test,it",
+    "io.circe" %% "circe-core" % circe % "test,it",
+    "io.circe" %% "circe-generic" % circe % "test,it",
+    "io.circe" %% "circe-parser" % circe % "test,it"
   )
 
   val scalaPbDependencies: Seq[ModuleID] = Seq(
