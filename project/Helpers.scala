@@ -164,4 +164,25 @@ object Kalix {
     project
       .dependsOn(dependency % "compile->compile;test->test")
   }
+
+  def loadTest(testName: String)(
+      project: Project
+  ): Project = {
+    project
+      .settings(
+        name := testName,
+        run / fork := true,
+        libraryDependencies ++= loadTestDependencies,
+        Compile / scalacOptions ++= Seq(
+          "-encoding",
+          "UTF-8",
+          "-target:jvm-1.8",
+          "-deprecation",
+          "-feature",
+          "-unchecked",
+          "-language:implicitConversions",
+          "-language:postfixOps"
+        )
+      )
+  }
 }
