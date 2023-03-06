@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory
 
 import java.util.UUID
 import scala.concurrent.Future
-import scala.language.postfixOps
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //

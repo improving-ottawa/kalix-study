@@ -25,7 +25,6 @@ object util {
   def convertApiLineItemToLineItem(apiLineItem: ApiLineItem): LineItem = {
     LineItem(
       apiLineItem.product.map(product => Sku(product.sku)),
-      apiLineItem.pricePerItem,
       apiLineItem.quantity,
       apiLineItem.lineTotal
     )
@@ -34,20 +33,8 @@ object util {
   def convertLineItemToApiLineItem(lineItem: LineItem): ApiLineItem = {
     ApiLineItem(
       lineItem.product.map(product => ApiSku(product.id)),
-      lineItem.pricePerItem,
       lineItem.quantity,
       lineItem.lineTotal
-    )
-  }
-
-  def calculateLineItemsTotal(orderInfo: OrderInfo): OrderInfo = {
-    val lineItems = orderInfo.lineItems.map(lineItem =>
-      lineItem.copy(
-        lineTotal = lineItem.pricePerItem * lineItem.quantity
-      )
-    )
-    orderInfo.copy(
-      lineItems = lineItems
     )
   }
   def calculateOrderTotal(orderInfo: OrderInfo): OrderInfo = {
@@ -72,6 +59,8 @@ object util {
         OrderStatus.ORDER_STATUS_DELIVERED
       case ApiOrderStatus.API_ORDER_STATUS_CANCELLED =>
         OrderStatus.ORDER_STATUS_CANCELLED
+      case ApiOrderStatus.API_ORDER_STATUS_RELEASED =>
+        OrderStatus.ORDER_STATUS_RELEASED
       case ApiOrderStatus.API_ORDER_STATUS_UNKNOWN =>
         OrderStatus.ORDER_STATUS_UNKNOWN
       case ApiOrderStatus.Unrecognized(unrecognizedValue) =>
