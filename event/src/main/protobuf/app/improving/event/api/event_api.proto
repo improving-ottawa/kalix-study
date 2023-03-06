@@ -132,7 +132,7 @@ message ApiAddReservationToEvent {
 
 
 message ApiEventCancelled {
-    ApiEventId event_id = 1;
+    string event_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId cancelling_member = 2;
 }
 

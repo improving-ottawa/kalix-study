@@ -1,6 +1,6 @@
 package app.improving.eventcontext.event
 
-import app.improving.{ApiEventId, ApiMemberId}
+import app.improving.{ApiMemberId, EventId}
 import app.improving.eventcontext.EventCancelled
 import app.improving.eventcontext.EventDelayed
 import app.improving.eventcontext.EventEnded
@@ -33,7 +33,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventInfoChanged(
-        eventInfoChanged.eventId.map(_.id).getOrElse("eventId is NOT FOUND."),
+        eventInfoChanged.eventId.getOrElse(EventId.defaultInstance).id,
         eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
         eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
@@ -45,12 +45,12 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventScheduled] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventScheduled - eventScheduled - ${eventScheduled}"
+      s"EventEventsServiceAction in transformEventScheduled - eventScheduled - $eventScheduled"
     )
 
     effects.reply(
       ApiEventScheduled(
-        eventScheduled.eventId.map(_.id).getOrElse("eventId is NOT FOUND."),
+        eventScheduled.eventId.getOrElse(EventId.defaultInstance).id,
         eventScheduled.info.map(convertEventInfoToApiEventInfo),
         eventScheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
@@ -62,12 +62,12 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventCancelled] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventCancelled - eventCancelled - ${eventCancelled}"
+      s"EventEventsServiceAction in transformEventCancelled - eventCancelled - $eventCancelled"
     )
 
     effects.reply(
       ApiEventCancelled(
-        eventCancelled.eventId.map(event => ApiEventId(event.id)),
+        eventCancelled.eventId.getOrElse(EventId.defaultInstance).id,
         eventCancelled.meta.flatMap(
           _.lastModifiedBy.map(member => ApiMemberId(member.id))
         )
@@ -80,12 +80,12 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventRescheduled] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventRescheduled - eventRescheduled - ${eventRescheduled}"
+      s"EventEventsServiceAction in transformEventRescheduled - eventRescheduled - $eventRescheduled"
     )
 
     effects.reply(
       ApiEventRescheduled(
-        eventRescheduled.eventId.map(_.id).getOrElse("eventId is NOT FOUND."),
+        eventRescheduled.eventId.getOrElse(EventId.defaultInstance).id,
         eventRescheduled.info.map(convertEventInfoToApiEventInfo),
         eventRescheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
@@ -97,12 +97,12 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventDelayed] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventDelayed - eventDelayed - ${eventDelayed}"
+      s"EventEventsServiceAction in transformEventDelayed - eventDelayed - $eventDelayed"
     )
 
     effects.reply(
       ApiEventDelayed(
-        eventDelayed.eventId.map(_.id).getOrElse("eventId is NOT FOUND."),
+        eventDelayed.eventId.getOrElse(EventId.defaultInstance).id,
         eventDelayed.reason,
         eventDelayed.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         eventDelayed.expectedDuration
@@ -115,12 +115,12 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventStarted] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventStarted - eventStarted - ${eventStarted}"
+      s"EventEventsServiceAction in transformEventStarted - eventStarted - $eventStarted"
     )
 
     effects.reply(
       ApiEventStarted(
-        eventStarted.eventId.map(_.id).getOrElse("eventId is NOT FOUND."),
+        eventStarted.eventId.getOrElse(EventId.defaultInstance).id,
         eventStarted.info.map(convertEventInfoToApiEventInfo),
         eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
@@ -132,12 +132,12 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
   ): Action.Effect[ApiEventEnded] = {
 
     log.info(
-      s"EventEventsServiceAction in transformEventEnded - eventEnded - ${eventEnded}"
+      s"EventEventsServiceAction in transformEventEnded - eventEnded - $eventEnded"
     )
 
     effects.reply(
       ApiEventEnded(
-        eventEnded.eventId.map(_.id).getOrElse("eventId is NOT FOUND."),
+        eventEnded.eventId.getOrElse(EventId.defaultInstance).id,
         eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
     )

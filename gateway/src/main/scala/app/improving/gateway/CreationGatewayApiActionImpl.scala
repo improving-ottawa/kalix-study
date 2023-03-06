@@ -57,8 +57,6 @@ import app.improving.organizationcontext.organization.{
 import app.improving.productcontext.product.{
   ApiCreateProduct,
   ApiGetProductInfo,
-  ApiProduct,
-  ApiProductInfo,
   ApiProductInfoResult,
   ApiReleaseProduct,
   ProductService
@@ -66,14 +64,13 @@ import app.improving.productcontext.product.{
 import app.improving.storecontext.store.{
   ApiCreateStore,
   ApiReleaseStore,
-  StoreService
 }
 import app.improving.productcontext.{
   AllProductsRequest,
   AllProductsResult,
   AllProductsView
 }
-import app.improving.storecontext.store.{ApiCreateStore, StoreService}
+import app.improving.storecontext.store.StoreService
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
 import app.improving.storecontext.{
   AllStoresRequest,

@@ -155,7 +155,7 @@ object util {
       eventRescheduled: EventRescheduled
   ): ApiEvent = {
     ApiEvent(
-      eventRescheduled.eventId.map(_.id).getOrElse("Event ID Not Found!"),
+      eventRescheduled.eventId.getOrElse(EventId.defaultInstance).id,
       eventRescheduled.info.map(info => convertEventInfoToApiEventInfo(info)),
       "test-reservation-id",
       eventRescheduled.meta.map(meta =>
