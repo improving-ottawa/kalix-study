@@ -34,7 +34,7 @@ class OrderByProductQueryView(context: ViewContext)
     } else {
 
       log.info(
-        s"OrderByProductQueryView in processOrderCreated - orderCreated ${orderCreated}"
+        s"OrderByProductQueryView in processOrderCreated - orderCreated $orderCreated"
       )
 
       effects.updateState(
@@ -54,7 +54,7 @@ class OrderByProductQueryView(context: ViewContext)
   ): UpdateEffect[ApiOrder] = {
 
     log.info(
-      s"OrderByProductQueryView in processOrderStatusUpdated - orderStatusUpdated ${orderStatusUpdated}"
+      s"OrderByProductQueryView in processOrderStatusUpdated - orderStatusUpdated $orderStatusUpdated"
     )
 
     val now = java.time.Instant.now()
@@ -83,7 +83,7 @@ class OrderByProductQueryView(context: ViewContext)
   ): UpdateEffect[ApiOrder] = {
 
     log.info(
-      s"OrderByProductQueryView in processOrderInfoUpdated - orderInfoUpdated ${orderInfoUpdated}"
+      s"OrderByProductQueryView in processOrderInfoUpdated - orderInfoUpdated $orderInfoUpdated"
     )
 
     val now = java.time.Instant.now()
@@ -109,7 +109,7 @@ class OrderByProductQueryView(context: ViewContext)
   ): UpdateEffect[ApiOrder] = {
 
     log.info(
-      s"OrderByProductQueryView in processOrderCanceled - orderCanceled ${orderCanceled}"
+      s"OrderByProductQueryView in processOrderCanceled - orderCanceled $orderCanceled"
     )
 
     val now = java.time.Instant.now()
@@ -135,7 +135,7 @@ class OrderByProductQueryView(context: ViewContext)
       orderReleased: OrderReleased
   ): UpdateEffect[ApiOrder] = {
     log.info(
-      s"OrderByProductQueryView in processOrderReleased - orderReleased ${orderReleased}"
+      s"OrderByProductQueryView in processOrderReleased - orderReleased $orderReleased"
     )
 
     val now = java.time.Instant.now()
@@ -161,7 +161,7 @@ class OrderByProductQueryView(context: ViewContext)
       orderPending: OrderPending
   ): UpdateEffect[ApiOrder] = {
     log.info(
-      s"OrderByProductQueryView in processOrderPending - orderPending ${orderPending}"
+      s"OrderByProductQueryView in processOrderPending - orderPending $orderPending"
     )
 
     val now = java.time.Instant.now()
@@ -186,7 +186,7 @@ class OrderByProductQueryView(context: ViewContext)
       orderInProgressed: OrderInProgressed
   ): UpdateEffect[ApiOrder] = {
     log.info(
-      s"OrderByProductQueryView in processOrderInProgressed - orderInProgressed ${orderInProgressed}"
+      s"OrderByProductQueryView in processOrderInProgressed - orderInProgressed $orderInProgressed"
     )
 
     val now = java.time.Instant.now()
@@ -212,7 +212,7 @@ class OrderByProductQueryView(context: ViewContext)
       orderReadied: OrderReadied
   ): UpdateEffect[ApiOrder] = {
     log.info(
-      s"OrderByProductQueryView in processOrderReadied - orderReadied ${orderReadied}"
+      s"OrderByProductQueryView in processOrderReadied - orderReadied $orderReadied"
     )
 
     val now = java.time.Instant.now()
@@ -257,4 +257,9 @@ class OrderByProductQueryView(context: ViewContext)
       )
     )
   }
+
+  override def processOrderOrderReleased(
+      state: ApiOrder,
+      orderReleased: OrderReleased
+  ): UpdateEffect[ApiOrder] = effects.deleteState()
 }

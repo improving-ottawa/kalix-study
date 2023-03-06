@@ -186,6 +186,16 @@ service OrderByProductQuery {
 //        };
 //    }
 
+    rpc ProcessOrderOrderReleased(ordercontext.OrderReleased) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "orders"
+        };
+        option (kalix.method).view.update = {
+            table: "order_by_product_order"
+            transform_updates: true
+        };
+    }
+
     rpc FindOrdersByProducts(OrderByProductRequest) returns (OrderByProductResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
