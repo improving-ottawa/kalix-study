@@ -35,7 +35,7 @@ object TestData {
   val testEventId = "test-event-id"
   val testEventId2 = "test-event-id2"
   val testEventId3 = "test-event-id3"
-  val testProductDetails: ApiProductDetails =
+  val testProductDetails: Option[ApiProductDetails] = Some(
     ApiProductDetails(
       ApiProductDetails.ApiTicket.ReservedTicket(
         ApiReservedTicket(
@@ -46,17 +46,20 @@ object TestData {
         )
       )
     )
-  val testProductDetails2: ApiProductDetails = ApiProductDetails(
-    ApiProductDetails.ApiTicket.ReservedTicket(
-      ApiReservedTicket(
-        section = testSection,
-        row = testRow,
-        set = testSeat,
-        event = Some(ApiEventId(testEventId2))
+  )
+  val testProductDetails2: Option[ApiProductDetails] = Some(
+    ApiProductDetails(
+      ApiProductDetails.ApiTicket.ReservedTicket(
+        ApiReservedTicket(
+          section = testSection,
+          row = testRow,
+          set = testSeat,
+          event = Some(ApiEventId(testEventId2))
+        )
       )
     )
   )
-  val testProductDetails3: ApiProductDetails =
+  val testProductDetails3: Option[ApiProductDetails] = Some(
     ApiProductDetails(
       ApiProductDetails.ApiTicket.ReservedTicket(
         ApiReservedTicket(
@@ -67,6 +70,7 @@ object TestData {
         )
       )
     )
+  )
   val testImages: Seq[String] = Seq[String]("test-image")
   val testPrice = 10.0
   val testCost = 3.0
@@ -78,7 +82,7 @@ object TestData {
   val apiProductInfo: ApiProductInfo = ApiProductInfo(
     testName,
     testDescription,
-    Some(testProductDetails),
+    testProductDetails,
     testImages,
     testPrice,
     testCost,
@@ -87,7 +91,7 @@ object TestData {
   val apiProductInfoPrivateEvent: ApiProductInfo = ApiProductInfo(
     testName,
     testDescription,
-    Some(testProductDetails2),
+    testProductDetails2,
     testImages,
     testPrice,
     testCost,
@@ -96,7 +100,7 @@ object TestData {
   val apiProductInfoPrivateFailedEvent: ApiProductInfo = ApiProductInfo(
     testName,
     testDescription,
-    Some(testProductDetails3),
+    testProductDetails3,
     testImages,
     testPrice,
     testCost,
@@ -117,7 +121,7 @@ object TestData {
   val apiProductInfoUpdate: ApiProductInfoUpdate = ApiProductInfoUpdate(
     Option(testNameUpdate),
     Option(testDescriptionUpdate),
-    Some(testProductDetails3),
+    testProductDetails3,
     testImagesUpdate,
     None,
     Option(testCostUpdate),
@@ -127,7 +131,7 @@ object TestData {
   val apiProductInfoAfterUpdate: ApiProductInfo = apiProductInfo.copy(
     name = testNameUpdate,
     description = testDescriptionUpdate,
-    productDetails = Some(testProductDetails),
+    productDetails = testProductDetails3,
     image = testImagesUpdate,
     cost = testCostUpdate,
     store = Some(ApiStoreId(testStoreIdUpdate))
@@ -185,7 +189,7 @@ object TestData {
   val productInfo: ProductInfo = ProductInfo(
     testName,
     testDescription,
-    Some(convertApiProductDetailsToProductDetails(testProductDetails)),
+    Some(convertApiProductDetailsToProductDetails(testProductDetails.get)),
     testImages,
     testPrice,
     testCost,

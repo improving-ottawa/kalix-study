@@ -4,6 +4,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import TestData._
 import app.improving.ApiMemberId
+
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
 // As long as this file exists it will not be overwritten: you can maintain it yourself,
@@ -19,7 +20,7 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformOrderCreated(orderCreated)
 
-      result.reply.orderId shouldBe defined
+      result.reply.orderId.isEmpty shouldBe false
       result.reply.info shouldBe Some(testOrderInfo)
       result.reply.meta.map(_.status) shouldBe Some(
         ApiOrderStatus.API_ORDER_STATUS_DRAFT
@@ -32,7 +33,7 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformOrderStatusUpdated(orderStatusUpdated)
 
-      result.reply.orderId shouldBe defined
+      result.reply.orderId.isEmpty shouldBe false
       result.reply.newStatus shouldBe ApiOrderStatus.API_ORDER_STATUS_READY
       result.reply.updatingMember shouldBe Some(
         ApiMemberId(testUpdatingMemberId)
@@ -45,7 +46,7 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
       pending
       val result = service.transformOrderInfoUpdated(orderInfoUpdated)
 
-      result.reply.orderId shouldBe defined
+      result.reply.orderId.isEmpty shouldBe false
       result.reply.info shouldBe Some(testOrderInfo)
       result.reply.meta.map(_.status) shouldBe Some(
         ApiOrderStatus.API_ORDER_STATUS_DRAFT
@@ -58,7 +59,7 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformOrderCanceled(orderCancelled)
 
-      result.reply.orderId shouldBe defined
+      result.reply.orderId.isEmpty shouldBe false
       result.reply.meta.map(
         _.status
       ) shouldBe Some(ApiOrderStatus.API_ORDER_STATUS_CANCELLED)
@@ -66,6 +67,5 @@ class OrderEventsServiceActionSpec extends AnyWordSpec with Matchers {
         ApiMemberId(testCancellingMemberId)
       )
     }
-
   }
 }

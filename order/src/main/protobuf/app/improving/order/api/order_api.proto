@@ -14,8 +14,8 @@ enum ApiOrderStatus {
     API_ORDER_STATUS_READY = 3;
     API_ORDER_STATUS_DELIVERED = 4;
     API_ORDER_STATUS_CANCELLED = 5;
-    API_ORDER_STATUS_UNKNOWN = 6;
-
+    API_ORDER_STATUS_RELEASED = 6;
+    API_ORDER_STATUS_UNKNOWN = 7;
 }
 
 message ApiOrder {
@@ -75,37 +75,39 @@ message ApiGetOrderInfo {
     ApiMemberId requesting_member = 2;
 }
 message ApiOrderInfoResult {
-    ApiOrderId order_id = 1;
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
-    ApiOrderMetaInfo meta = 3;
-    ApiMemberId cancelling_member = 4;
 }
-
 message ApiReleaseOrder {
     string order_id = 1 [(kalix.field).entity_key = true];
     ApiMemberId releasing_member = 2;
 }
+
 // For direct_event_order events.
 
 message ApiOrderCreated {
-    ApiOrderId order_id = 1;
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiOrderMetaInfo meta = 3;
 }
 message ApiOrderStatusUpdated {
-    ApiOrderId order_id = 1;
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderStatus new_status = 2;
     ApiMemberId updating_member = 3;
 }
 message ApiOrderInfoUpdated {
-    ApiOrderId order_id = 1;
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiOrderMetaInfo meta = 3;
     ApiMemberId updating_member = 4;
 }
 message ApiOrderCanceled {
-    ApiOrderId order_id = 1;
+    string order_id = 1 [(kalix.field).entity_key = true];
     ApiOrderInfo info = 2;
     ApiOrderMetaInfo meta = 3;
     ApiMemberId cancelling_member = 4;
+}
+message ApiOrderReleased {
+    string order_id = 1 [(kalix.field).entity_key = true];
+    ApiMemberId releasing_member = 2;
 }

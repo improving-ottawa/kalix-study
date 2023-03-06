@@ -1,6 +1,6 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiOrderId, ApiSku}
+import app.improving.{ApiMemberId, ApiOrderId, ApiSku}
 import app.improving.eventcontext.event.{ApiGetEventById, EventService}
 import app.improving.organizationcontext.organization.{
   ApiGetOrganizationById,
@@ -55,8 +55,8 @@ class OrderActionImpl(creationContext: ActionCreationContext)
     val productIds = orderInfo.lineItems.map(_.product)
 
     val memberId = order.creatingMember
-      .map(_.memberId)
-      .getOrElse("MemberId is not found.")
+      .getOrElse(ApiMemberId.defaultInstance)
+      .memberId
 
     val productInfoResults = Future.sequence(productIds.map(sku => {
       val eventIdFut =

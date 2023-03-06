@@ -129,5 +129,25 @@ class AllOrdersViewImpl(context: ViewContext) extends AbstractAllOrdersView {
     )
   }
 
-  override def processOrderReleased(state: ApiOrder, orderReleased: OrderReleased): UpdateEffect[ApiOrder] = effects.deleteState()
+  override def processOrderReleased(
+      state: ApiOrder,
+      orderReleased: OrderReleased
+  ): UpdateEffect[ApiOrder] = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(meta =
+        state.meta.map(
+          _.copy(
+            lastModifiedBy = orderReleased.releasingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = ApiOrderStatus.API_ORDER_STATUS_RELEASED
+          )
+        )
+      )
+    )
+  }
 }

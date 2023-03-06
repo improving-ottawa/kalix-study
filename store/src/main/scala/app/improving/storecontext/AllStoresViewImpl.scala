@@ -1,8 +1,9 @@
 package app.improving.storecontext
 
-import app.improving.StoreId
+import app.improving.{ApiMemberId, StoreId}
 import app.improving.storecontext.infrastructure.util._
 import app.improving.storecontext.store.{ApiStore, ApiStoreStatus}
+import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 import org.slf4j.LoggerFactory
@@ -156,5 +157,25 @@ class AllStoresViewImpl(context: ViewContext) extends AbstractAllStoresView {
     )
   }
 
-  override def processStoreReleased(state: ApiStore, storeReleased: StoreReleased): UpdateEffect[ApiStore] = effects.deleteState()
+  override def processStoreReleased(
+      state: ApiStore,
+      storeReleased: StoreReleased
+  ): UpdateEffect[ApiStore] = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(meta =
+        state.meta.map(
+          _.copy(
+            lastModifiedBy = storeReleased.releasingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = ApiStoreStatus.API_STORE_STATUS_RELEASED
+          )
+        )
+      )
+    )
+  }
 }

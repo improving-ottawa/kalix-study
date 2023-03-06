@@ -65,6 +65,16 @@ service MemberByOrderQuery {
         };
     }
 
+    rpc ProcessReleaseMember(MemberReleased) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_order_member"
+            transform_updates: true
+        };
+    }
+
     //    rpc ProcessRegisterMemberList(MemberListRegistered) returns (app.improving.membercontext.member.ApiMemberData) {
     //        option (kalix.method).eventing.in = {
     //            event_sourced_entity: "members"
@@ -109,6 +119,17 @@ service MemberByOrderQuery {
     }
 
     rpc ProcessOrderCanceled(ordercontext.order.ApiOrderCanceled) returns (ordercontext.order.ApiOrder) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-order"
+            event_stream_id: "event_orders"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_order_order"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessOrderReleased(ordercontext.order.ApiOrderReleased) returns (ordercontext.order.ApiOrder) {
         option (kalix.method).eventing.in.direct = {
             service: "kalix-study-order"
             event_stream_id: "event_orders"

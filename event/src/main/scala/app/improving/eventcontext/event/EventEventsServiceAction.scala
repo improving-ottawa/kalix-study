@@ -1,6 +1,6 @@
 package app.improving.eventcontext.event
 
-import app.improving.{ApiEventId, ApiMemberId}
+import app.improving.{ApiMemberId, EventId}
 import app.improving.eventcontext.EventCancelled
 import app.improving.eventcontext.EventDelayed
 import app.improving.eventcontext.EventEnded
@@ -33,12 +33,13 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventInfoChanged(
-        eventInfoChanged.eventId.map(event => ApiEventId(event.id)),
+        eventInfoChanged.eventId.getOrElse(EventId.defaultInstance).id,
         eventInfoChanged.info.map(convertEventInfoToApiEventInfo),
         eventInfoChanged.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
     )
   }
+
   override def transformEventScheduled(
       eventScheduled: EventScheduled
   ): Action.Effect[ApiEventScheduled] = {
@@ -49,25 +50,27 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventScheduled(
-        eventScheduled.eventId.map(event => ApiEventId(event.id)),
+        eventScheduled.eventId.getOrElse(EventId.defaultInstance).id,
         eventScheduled.info.map(convertEventInfoToApiEventInfo),
         eventScheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
     )
   }
+
   override def transformEventCancelled(
       eventCancelled: EventCancelled
   ): Action.Effect[ApiEventCancelled] = {
+
     log.info(
       s"EventEventsServiceAction in transformEventCancelled - eventCancelled - $eventCancelled"
     )
 
     effects.reply(
       ApiEventCancelled(
-        eventCancelled.eventId.map(event => ApiEventId(event.id)),
-        eventCancelled.meta
-          .flatMap(_.scheduledBy)
-          .map(member => ApiMemberId(member.id))
+        eventCancelled.eventId.getOrElse(EventId.defaultInstance).id,
+        eventCancelled.meta.flatMap(
+          _.lastModifiedBy.map(member => ApiMemberId(member.id))
+        )
       )
     )
   }
@@ -82,12 +85,13 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventRescheduled(
-        eventRescheduled.eventId.map(event => ApiEventId(event.id)),
+        eventRescheduled.eventId.getOrElse(EventId.defaultInstance).id,
         eventRescheduled.info.map(convertEventInfoToApiEventInfo),
         eventRescheduled.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
     )
   }
+
   override def transformEventDelayed(
       eventDelayed: EventDelayed
   ): Action.Effect[ApiEventDelayed] = {
@@ -98,13 +102,14 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventDelayed(
-        eventDelayed.eventId.map(event => ApiEventId(event.id)),
+        eventDelayed.eventId.getOrElse(EventId.defaultInstance).id,
         eventDelayed.reason,
         eventDelayed.meta.map(convertEventMetaInfoToApiEventMetaInfo),
         eventDelayed.expectedDuration
       )
     )
   }
+
   override def transformEventStarted(
       eventStarted: EventStarted
   ): Action.Effect[ApiEventStarted] = {
@@ -115,12 +120,13 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventStarted(
-        eventStarted.eventId.map(event => ApiEventId(event.id)),
+        eventStarted.eventId.getOrElse(EventId.defaultInstance).id,
         eventStarted.info.map(convertEventInfoToApiEventInfo),
         eventStarted.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
     )
   }
+
   override def transformEventEnded(
       eventEnded: EventEnded
   ): Action.Effect[ApiEventEnded] = {
@@ -131,7 +137,7 @@ class EventEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiEventEnded(
-        eventEnded.eventId.map(event => ApiEventId(event.id)),
+        eventEnded.eventId.getOrElse(EventId.defaultInstance).id,
         eventEnded.meta.map(convertEventMetaInfoToApiEventMetaInfo)
       )
     )

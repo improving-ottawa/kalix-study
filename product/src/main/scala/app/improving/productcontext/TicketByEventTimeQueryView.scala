@@ -2,12 +2,8 @@ package app.improving.productcontext
 
 import app.improving.ApiMemberId
 import app.improving.eventcontext.event._
-import app.improving.productcontext.infrastructure.util.{
-  convertProductCreatedToApiProduct,
-  convertProductInfoToApiProductInfo,
-  convertProductMetaInfoToApiProductMetaInfo
-}
-import app.improving.productcontext.product.{ApiProduct, ApiProductStatus}
+import app.improving.productcontext.infrastructure.util._
+import app.improving.productcontext.product._
 import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -23,124 +19,92 @@ class TicketByEventTimeQueryView(context: ViewContext)
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  object TicketByEventProductViewTable
-      extends AbstractTicketByEventProductViewTable {
+  object TicketByEventTimeProductViewTable
+      extends AbstractTicketByEventTimeProductViewTable {
 
-    override def emptyState: ApiProduct = ApiProduct.defaultInstance
+    override def emptyState: TicketEventCorrTableRow =
+      TicketEventCorrTableRow.defaultInstance
 
     override def processProductCreated(
-        state: ApiProduct,
+        state: TicketEventCorrTableRow,
         productCreated: ProductCreated
-    ): UpdateEffect[ApiProduct] = {
-      if (state != emptyState) {
-
-        log.info(
-          s"TicketByEventTimeQueryView in processProductCreated - state already existed"
-        )
-
-        effects.ignore()
-      } else {
-
-        log.info(
-          s"TicketByEventTimeQueryView in processProductCreated - productCreated ${productCreated}"
-        )
-
+    ): UpdateEffect[TicketEventCorrTableRow] = {
+      if (state != emptyState) effects.ignore()
+      else
         effects.updateState(
-          convertProductCreatedToApiProduct(productCreated)
+          convertProductCreatedToTicketEventCorrTableRow(productCreated)
         )
-      }
     }
 
     override def processProductInfoUpdated(
-        state: ApiProduct,
+        state: TicketEventCorrTableRow,
         productInfoUpdated: ProductInfoUpdated
-    ): UpdateEffect[ApiProduct] = {
-
-      log.info(
-        s"TicketByEventTimeQueryView in processProductInfoUpdated - productInfoUpdated ${productInfoUpdated}"
-      )
-
+    ): UpdateEffect[TicketEventCorrTableRow] =
       effects.updateState(
         state.copy(
           info =
             productInfoUpdated.info.map(convertProductInfoToApiProductInfo),
           meta = productInfoUpdated.meta.map(
             convertProductMetaInfoToApiProductMetaInfo
-          )
+          ),
+          event = productInfoUpdated.info.flatMap(extractEventIdFromProductInfo)
         )
       )
-    }
 
     override def processProductDeleted(
-        state: ApiProduct,
+        state: TicketEventCorrTableRow,
         productDeleted: ProductDeleted
-    ): UpdateEffect[ApiProduct] = {
-
-      log.info(
-        s"TicketByEventTimeQueryView in processProductDeleted - productDeleted ${productDeleted}"
-      )
-
+    ): UpdateEffect[TicketEventCorrTableRow] =
       effects.deleteState()
-    }
 
     override def processProductActivated(
-        state: ApiProduct,
+        state: TicketEventCorrTableRow,
         productActivated: ProductActivated
-    ): UpdateEffect[ApiProduct] = {
-
-      log.info(
-        s"TicketByEventTimeQueryView in processProductActivated - productActivated ${productActivated}"
-      )
-
-      val now = java.time.Instant.now()
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-      val metaOpt = state.meta.map(
-        _.copy(
-          lastModifiedBy = productActivated.activatingMember.map(member =>
-            ApiMemberId(member.id)
-          ),
-          lastModifiedOn = Some(timestamp)
-        )
-      )
+    ): UpdateEffect[TicketEventCorrTableRow] = {
       effects.updateState(
         state.copy(
-          meta = metaOpt,
-          status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE
+          status = ApiProductStatus.API_PRODUCT_STATUS_ACTIVE.toString()
         )
       )
     }
 
     override def processProductInactivated(
-        state: ApiProduct,
+        state: TicketEventCorrTableRow,
         productInactivated: ProductInactivated
-    ): UpdateEffect[ApiProduct] = {
-
-      log.info(
-        s"TicketByEventTimeQueryView in processProductInactivated - productInactivated ${productInactivated}"
-      )
-
-      val now = java.time.Instant.now()
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-      val metaOpt = state.meta.map(
-        _.copy(
-          lastModifiedBy = productInactivated.inactivatingMember.map(member =>
-            ApiMemberId(member.id)
-          ),
-          lastModifiedOn = Some(timestamp)
-        )
-      )
+    ): UpdateEffect[TicketEventCorrTableRow] = {
       effects.updateState(
         state.copy(
-          meta = metaOpt,
-          status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE
+          status = ApiProductStatus.API_PRODUCT_STATUS_INACTIVE.toString()
         )
       )
     }
 
+    override def processProductReleased(
+        state: TicketEventCorrTableRow,
+        productReleased: ProductReleased
+    ): UpdateEffect[TicketEventCorrTableRow] = {
+
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+      effects.updateState(
+        state.copy(
+          meta = state.meta.map(
+            _.copy(
+              lastModifiedBy = productReleased.releasingMember.map(member =>
+                ApiMemberId(member.id)
+              ),
+              lastModifiedOn = Some(timestamp)
+            )
+          ),
+          status = ApiProductStatus.API_PRODUCT_STATUS_RELEASED.toString()
+        )
+      )
+    }
   }
 
-  object TicketByEventEventViewTable
-      extends AbstractTicketByEventEventViewTable {
+  object TicketByEventTimeEventViewTable
+      extends AbstractTicketByEventTimeEventViewTable {
 
     override def emptyState: ApiEvent = ApiEvent.defaultInstance
 
@@ -163,11 +127,9 @@ class TicketByEventTimeQueryView(context: ViewContext)
 
         effects.updateState(
           ApiEvent(
-            eventScheduled.eventId
-              .map(_.eventId)
-              .getOrElse("EventId is NOT FOUND."),
+            eventScheduled.eventId,
             eventScheduled.info,
-            "test-reservation-id",
+            "reservation-id", // ??? Where is it from ???
             eventScheduled.meta,
             ApiEventStatus.API_EVENT_STATUS_SCHEDULED
           )
@@ -186,11 +148,9 @@ class TicketByEventTimeQueryView(context: ViewContext)
 
       effects.updateState(
         ApiEvent(
-          eventRescheduled.eventId
-            .map(_.eventId)
-            .getOrElse("EventId is NOT FOUND."),
+          eventRescheduled.eventId,
           eventRescheduled.info,
-          "test-reservation-id",
+          "reservation-id", // ??? Where is it from ???
           eventRescheduled.meta,
           ApiEventStatus.API_EVENT_STATUS_SCHEDULED
         )
@@ -302,5 +262,42 @@ class TicketByEventTimeQueryView(context: ViewContext)
       )
     }
 
+    override def processReservationAddedToEvent(
+        state: ApiEvent,
+        apiReservationAddedToEvent: ApiReservationAddedToEvent
+    ): UpdateEffect[ApiEvent] = {
+
+      log.info(
+        s"TicketByEventTimeQueryView in processReservationAddedToEvent - apiReservationAddedToEvent ${apiReservationAddedToEvent}"
+      )
+
+      effects.updateState(
+        state.copy(
+          meta = apiReservationAddedToEvent.meta,
+          reservation = apiReservationAddedToEvent.reservation
+        )
+      )
+    }
+
+    override def processEventReleased(
+        state: ApiEvent,
+        apiEventReleased: ApiEventReleased
+    ): UpdateEffect[ApiEvent] = {
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+      effects.updateState(
+        state.copy(meta =
+          state.meta.map(
+            _.copy(
+              lastModifiedBy = apiEventReleased.releasingMember,
+              lastModifiedOn = Some(timestamp),
+              status = ApiEventStatus.API_EVENT_STATUS_RELEASED
+            )
+          )
+        )
+      )
+    }
   }
+
 }

@@ -197,7 +197,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
 
       val result = getOrderInfoResult.reply
 
-      result.orderId shouldBe defined
+      result.orderId.isEmpty shouldBe false
       result.info shouldBe defined
 
       result.info shouldBe Some(testOrderInfo)

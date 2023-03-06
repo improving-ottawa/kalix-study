@@ -25,8 +25,8 @@ import app.improving.{ApiMemberId, ApiOrderIds, ApiStoreId}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.organizationcontext.{
   AllOrganizationsRequest,
-  AllOrganizationsView,
-  AllOrganizationsresult
+  AllOrganizationsResult,
+  AllOrganizationsView
 }
 import app.improving.productcontext.{
   AllProductsRequest,
@@ -143,17 +143,15 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
 
   override def handleGetAllOrganizations(
       allOrganizationsRequest: AllOrganizationsRequest
-  ): Action.Effect[AllOrganizationsresult] = {
+  ): Action.Effect[AllOrganizationsResult] = {
 
     log.info("in handleGetAllOrganizations")
 
     effects.asyncReply(
       allOrganizationsView
         .getAllOrganizations(AllOrganizationsRequest())
-        .runFold(AllOrganizationsresult.defaultInstance)((accum, org) => {
-          AllOrganizationsresult(accum.organizations :+ org)
-        })
     )
+
   }
 
   override def handleGetAllTenants(

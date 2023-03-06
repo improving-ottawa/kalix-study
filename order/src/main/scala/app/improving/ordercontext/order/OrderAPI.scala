@@ -243,7 +243,7 @@ class OrderAPI(context: EventSourcedEntityContext) extends AbstractOrderAPI {
         )
 
         val result = ApiOrderInfoResult(
-          Some(ApiOrderId(apiGetOrderInfo.orderId)),
+          apiGetOrderInfo.orderId,
           order.info.map(convertOrderInfoToApiOrderInfo)
         )
         log.info(

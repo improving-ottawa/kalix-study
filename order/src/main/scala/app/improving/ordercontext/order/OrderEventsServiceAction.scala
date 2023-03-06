@@ -1,6 +1,6 @@
 package app.improving.ordercontext.order
 
-import app.improving.{ApiMemberId, ApiOrderId}
+import app.improving.ApiMemberId
 import app.improving.ordercontext.OrderCanceled
 import app.improving.ordercontext.OrderCreated
 import app.improving.ordercontext.OrderInfoUpdated
@@ -30,12 +30,13 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiOrderCreated(
-        orderCreated.orderId.map(order => ApiOrderId(order.id)),
+        orderCreated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
         orderCreated.info.map(convertOrderInfoToApiOrderInfo),
         orderCreated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo)
       )
     )
   }
+
   override def transformOrderStatusUpdated(
       orderStatusUpdated: OrderStatusUpdated
   ): Action.Effect[ApiOrderStatusUpdated] = {
@@ -46,12 +47,13 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiOrderStatusUpdated(
-        orderStatusUpdated.orderId.map(order => ApiOrderId(order.id)),
+        orderStatusUpdated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
         convertOrderStatusToApiOrderStatus(orderStatusUpdated.newStatus),
         orderStatusUpdated.updatingMember.map(member => ApiMemberId(member.id))
       )
     )
   }
+
   override def transformOrderInfoUpdated(
       orderInfoUpdated: OrderInfoUpdated
   ): Action.Effect[ApiOrderInfoUpdated] = {
@@ -62,13 +64,14 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiOrderInfoUpdated(
-        orderInfoUpdated.orderId.map(order => ApiOrderId(order.id)),
+        orderInfoUpdated.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
         orderInfoUpdated.info.map(convertOrderInfoToApiOrderInfo),
         orderInfoUpdated.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
         orderInfoUpdated.updatingMember.map(member => ApiMemberId(member.id))
       )
     )
   }
+
   override def transformOrderCanceled(
       orderCanceled: OrderCanceled
   ): Action.Effect[ApiOrderCanceled] = {
@@ -79,7 +82,7 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
 
     effects.reply(
       ApiOrderCanceled(
-        orderCanceled.orderId.map(order => ApiOrderId(order.id)),
+        orderCanceled.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
         orderCanceled.info.map(convertOrderInfoToApiOrderInfo),
         orderCanceled.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
         orderCanceled.cancellingMember.map(member => ApiMemberId(member.id))

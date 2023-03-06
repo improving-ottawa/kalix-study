@@ -62,6 +62,16 @@ service MemberByMemberIdsQuery {
         };
     }
 
+    rpc ProcessReleaseMember(MemberReleased) returns (app.improving.membercontext.member.ApiMemberData) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "members"
+        };
+        option (kalix.method).view.update = {
+            table: "member_by_member_ids_member"
+            transform_updates: true
+        };
+    }
+
     rpc FindMembersByMemberIds(MemberByMemberIdsRequest) returns (MemberByMemberIdsResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "

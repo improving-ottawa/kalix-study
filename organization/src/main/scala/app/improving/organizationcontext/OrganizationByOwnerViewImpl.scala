@@ -4,7 +4,8 @@ import app.improving.ApiMemberId
 import app.improving.organizationcontext.infrastructure.util._
 import app.improving.organizationcontext.organization.{
   ApiContacts,
-  ApiOrganization
+  ApiOrganization,
+  ApiOrganizationStatus
 }
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
@@ -193,6 +194,18 @@ class OrganizationByOwnerViewImpl(context: ViewContext)
             .map(member => member.id)
             .contains(owner)
         )
+      )
+    )
+  }
+
+  override def processOrganizationReleased(
+      state: ApiOrganization,
+      organizationReleased: OrganizationReleased
+  ): UpdateEffect[ApiOrganization] = {
+    effects.updateState(
+      state.copy(
+        orgMeta = organizationReleased.meta.map(convertMetaInfoToApiMetaInfo),
+        status = ApiOrganizationStatus.API_ORGANIZATION_STATUS_RELEASED
       )
     )
   }

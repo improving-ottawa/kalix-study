@@ -6,13 +6,7 @@ import app.improving.membercontext.infrastructure.util.{
   convertMemberRegisteredToApiMemberData,
   convertMetaInfoToApiMetaInfo
 }
-import app.improving.membercontext.member.ApiMemberData
-import app.improving.ordercontext.infrastructure.util.{
-  convertOrderCancelledToApiOrder,
-  convertOrderCreatedToApiOrder,
-  convertOrderInfoUpdatedToApiOrder,
-  convertOrderStatusToApiOrderStatus
-}
+import app.improving.membercontext.member.{ApiMemberData, ApiMemberStatus}
 import app.improving.ordercontext.order._
 import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
@@ -89,6 +83,27 @@ class MemberByOrderQueryView(context: ViewContext)
       )
     }
 
+    override def processReleaseMember(
+        state: ApiMemberData,
+        memberReleased: MemberReleased
+    ): UpdateEffect[ApiMemberData] = {
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+      effects.updateState(
+        state.copy(
+          meta = state.meta.map(
+            _.copy(
+              lastModifiedBy = memberReleased.releasingMember.map(member =>
+                ApiMemberId(member.id)
+              ),
+              lastModifiedOn = Some(timestamp),
+              memberStatus = ApiMemberStatus.API_MEMBER_STATUS_RELEASED
+            )
+          )
+        )
+      )
+    }
   }
 
   object MemberByOrderOrderViewTable
@@ -115,9 +130,7 @@ class MemberByOrderQueryView(context: ViewContext)
 
         effects.updateState(
           ApiOrder(
-            orderCreated.orderId
-              .map(_.orderId)
-              .getOrElse("OrderId is NOT FOUND."),
+            orderCreated.orderId,
             orderCreated.info,
             orderCreated.meta,
             ApiOrderStatus.API_ORDER_STATUS_DRAFT
@@ -197,6 +210,28 @@ class MemberByOrderQueryView(context: ViewContext)
         state.copy(
           meta = updatedMetaOpt,
           status = ApiOrderStatus.API_ORDER_STATUS_CANCELLED
+        )
+      )
+    }
+
+    override def processOrderReleased(
+        state: ApiOrder,
+        apiOrderReleased: ApiOrderReleased
+    ): UpdateEffect[ApiOrder] = {
+      val now = java.time.Instant.now()
+      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+      effects.updateState(
+        state.copy(meta =
+          state.meta.map(
+            _.copy(
+              lastModifiedBy = apiOrderReleased.releasingMember.map(member =>
+                ApiMemberId(member.memberId)
+              ),
+              lastModifiedOn = Some(timestamp),
+              status = ApiOrderStatus.API_ORDER_STATUS_RELEASED
+            )
+          )
         )
       )
     }

@@ -21,7 +21,7 @@ class ProductEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       result.reply.info shouldBe Some(apiProductInfo)
       result.reply.meta shouldBe Some(apiProductMetaInfo)
-      result.reply.sku shouldBe defined
+      result.reply.sku.isEmpty shouldBe false
     }
 
     "handle command TransformProductInfoUpdated" in {
@@ -30,7 +30,7 @@ class ProductEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformProductInfoUpdated(productInfoUpdated)
 
-      result.reply.sku shouldBe defined
+      result.reply.sku.isEmpty shouldBe false
       result.reply.info shouldBe Some(apiProductInfo)
       result.reply.meta shouldBe Some(apiProductMetaInfo)
     }
@@ -40,7 +40,7 @@ class ProductEventsServiceActionSpec extends AnyWordSpec with Matchers {
         ProductEventsServiceActionTestKit(new ProductEventsServiceAction(_))
       val result = service.transformProductDeleted(productDeleted)
 
-      result.reply.sku shouldBe defined
+      result.reply.sku.isEmpty shouldBe false
       result.reply.deletingMember shouldBe Some(ApiMemberId(testMemberId))
     }
 
@@ -50,7 +50,7 @@ class ProductEventsServiceActionSpec extends AnyWordSpec with Matchers {
       pending
       val result = service.transformProductActivated(productActivated)
 
-      result.reply.sku shouldBe defined
+      result.reply.sku.isEmpty shouldBe false
       result.reply.activatingMember shouldBe Some(ApiMemberId(testMemberId))
     }
 
@@ -60,7 +60,7 @@ class ProductEventsServiceActionSpec extends AnyWordSpec with Matchers {
 
       val result = service.transformProductInactivated(productInactivated)
 
-      result.reply.sku shouldBe defined
+      result.reply.sku.isEmpty shouldBe false
       result.reply.inactivatingMember shouldBe Some(ApiMemberId(testMemberId))
     }
 

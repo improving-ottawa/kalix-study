@@ -1,11 +1,13 @@
 package app.improving.membercontext
 
+import app.improving.ApiMemberId
 import app.improving.membercontext.infrastructure.util.{
   convertInfoToApiUpdateInfo,
   convertMemberRegisteredToApiMemberData,
   convertMetaInfoToApiMetaInfo
 }
-import app.improving.membercontext.member.ApiMemberData
+import app.improving.membercontext.member.{ApiMemberData, ApiMemberStatus}
+import com.google.protobuf.timestamp.Timestamp
 import kalix.scalasdk.view.View.UpdateEffect
 import kalix.scalasdk.view.ViewContext
 import org.slf4j.LoggerFactory
@@ -83,6 +85,28 @@ class MemberByMemberIdsQueryView(context: ViewContext)
   ): UpdateEffect[ApiMemberData] = {
     throw new UnsupportedOperationException(
       "Update handler for 'ProcessRegisterMemberList' not implemented yet"
+    )
+  }
+
+  override def processReleaseMember(
+      state: ApiMemberData,
+      memberReleased: MemberReleased
+  ): UpdateEffect[ApiMemberData] = {
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+
+    effects.updateState(
+      state.copy(meta =
+        state.meta.map(
+          _.copy(
+            lastModifiedBy = memberReleased.releasingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            memberStatus = ApiMemberStatus.API_MEMBER_STATUS_RELEASED
+          )
+        )
+      )
     )
   }
 }

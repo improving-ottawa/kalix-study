@@ -1,18 +1,8 @@
 package app.improving.eventcontext.event
 
 import app.improving._
+import app.improving.eventcontext._
 import com.google.protobuf.duration.Duration
-import app.improving.eventcontext.{
-  EventCancelled,
-  EventDelayed,
-  EventEnded,
-  EventInfo,
-  EventInfoChanged,
-  EventMetaInfo,
-  EventRescheduled,
-  EventScheduled,
-  EventStarted
-}
 import com.google.protobuf.timestamp.Timestamp
 
 import java.time.Instant
@@ -22,12 +12,12 @@ object TestData {
   val start: Timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
   val end: Timestamp = Timestamp.of(now.getEpochSecond + 1000000L, now.getNano)
   val durationDelayed: Long = 1000000L
+  val expectedDuration = Some(Duration.of(20, 0))
   val testEventId: ApiEventId = ApiEventId("test-event-id")
   val testEventId2: ApiEventId = ApiEventId("test-event-id2")
   val testEventId3: ApiEventId = ApiEventId("test-event-id3")
   val testMemberId: ApiMemberId = ApiMemberId("test-member-id")
   val testReason = "test reason"
-  val expectedDuration: Option[Duration] = Some(Duration.of(20, 20))
   val apiScheduleEvent: ApiScheduleEvent = ApiScheduleEvent(
     testEventId.eventId,
     Some(

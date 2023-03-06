@@ -415,12 +415,6 @@ class EventAPISpec extends AnyWordSpec with Matchers {
 
     }
 
-    "correctly process commands of type AddLiveUpdate" in {
-      val testKit = EventAPITestKit(new EventAPI(_))
-      pending
-      // val result: EventSourcedResult[Empty] = testKit.addLiveUpdate(event.ApiAddLiveUpdate(...))
-    }
-
     "Reject a schedule event command with missing fields but not require optional fields" in {
       val testKit = EventAPITestKit(new EventAPI(_))
 

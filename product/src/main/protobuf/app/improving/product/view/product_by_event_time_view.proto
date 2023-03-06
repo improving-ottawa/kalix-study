@@ -3,10 +3,9 @@ syntax = "proto3";
 package app.improving.productcontext;
 
 import "app/improving/event/api/event_api.proto";
-import "app/improving/event/domain/event_context_domain.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/domain/product_context_domain.proto";
-import "google/protobuf/timestamp.proto";
+import "app/improving/product/view/product_view_common.proto";
 import "kalix/annotations.proto";
 
 /**
@@ -22,13 +21,6 @@ import "kalix/annotations.proto";
  *            "WHERE :given_time >= events.info.expectedStart AND :given_time < events.info.expectedEnd "
  */
 
-message TicketByEventTimeRequest {
-    google.protobuf.Timestamp given_time = 1;
-}
-
-message TicketByEventTimeResponse {
-    repeated product.ApiProduct products = 1;
-}
 
 
 service TicketByEventTimeQuery {
@@ -37,52 +29,62 @@ service TicketByEventTimeQuery {
     };
 
 
-    rpc ProcessProductCreated(productcontext.ProductCreated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductCreated(productcontext.ProductCreated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_product"
+            table: "ticket_by_event_time_product"
             transform_updates: true
         };
     }
 
-    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductInfoUpdated(productcontext.ProductInfoUpdated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_product"
+            table: "ticket_by_event_time_product"
             transform_updates: true
         };
     }
 
-    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductDeleted(productcontext.ProductDeleted) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_product"
+            table: "ticket_by_event_time_product"
             transform_updates: true
         };
     }
 
-    rpc ProcessProductActivated(productcontext.ProductActivated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductActivated(productcontext.ProductActivated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_product"
+            table: "ticket_by_event_time_product"
             transform_updates: true
         };
     }
 
-    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (productcontext.product.ApiProduct) {
+    rpc ProcessProductInactivated(productcontext.ProductInactivated) returns (TicketEventCorrTableRow) {
         option (kalix.method).eventing.in = {
             event_sourced_entity: "products"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_product"
+            table: "ticket_by_event_time_product"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessProductReleased(productcontext.ProductReleased) returns (TicketEventCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_time_product"
             transform_updates: true
         };
     }
@@ -93,7 +95,7 @@ service TicketByEventTimeQuery {
             event_stream_id: "event_events"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_event"
+            table: "ticket_by_event_time_event"
             transform_updates: true
         };
     }
@@ -104,7 +106,7 @@ service TicketByEventTimeQuery {
             event_stream_id: "event_events"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_event"
+            table: "ticket_by_event_time_event"
             transform_updates: true
         };
     }
@@ -115,7 +117,7 @@ service TicketByEventTimeQuery {
             event_stream_id: "event_events"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_event"
+            table: "ticket_by_event_time_event"
             transform_updates: true
         };
     }
@@ -126,7 +128,7 @@ service TicketByEventTimeQuery {
             event_stream_id: "event_events"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_event"
+            table: "ticket_by_event_time_event"
             transform_updates: true
         };
     }
@@ -137,7 +139,7 @@ service TicketByEventTimeQuery {
             event_stream_id: "event_events"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_event"
+            table: "ticket_by_event_time_event"
             transform_updates: true
         };
     }
@@ -148,24 +150,40 @@ service TicketByEventTimeQuery {
             event_stream_id: "event_events"
         };
         option (kalix.method).view.update = {
-            table: "ticket_by_event_event"
+            table: "ticket_by_event_time_event"
             transform_updates: true
         };
     }
 
-    /**
-     * "SELECT "
-                    "(ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status)  AS products "
-                    "FROM ticket_by_event_product "
-                    "JOIN ticket_by_event_event ON ticket_by_event_product.info.event = ticket_by_event_event.event_id "
-                    "WHERE :given_time >= ticket_by_event_event.info.expected_start AND :given_time < ticket_by_event_event.info.expected_end  "
-     */
+    rpc ProcessEventReleased(eventcontext.event.ApiEventReleased) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-event"
+            event_stream_id: "event_events"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_time_event"
+            transform_updates: true
+        };
+    }
+
+    rpc ProcessReservationAddedToEvent(eventcontext.event.ApiReservationAddedToEvent) returns (eventcontext.event.ApiEvent) {
+        option (kalix.method).eventing.in.direct = {
+            service: "kalix-study-event"
+            event_stream_id: "event_events"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_time_event"
+            transform_updates: true
+        };
+    }
+
     rpc FindProductsByEventTime(TicketByEventTimeRequest) returns (TicketByEventTimeResponse) {
         option (kalix.method).view.query = {
             query: "SELECT "
-                    "(ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status)  AS products "
-                    "FROM ticket_by_event_product "
-                    "JOIN ticket_by_event_event ON ticket_by_event_product.sku = ticket_by_event_event.event_id "
+                    "(ticket_by_event_time_product.sku, ticket_by_event_time_product.info, ticket_by_event_time_product.meta, ticket_by_event_time_product.status, ticket_by_event_time_product.event)  AS products "
+                    "FROM ticket_by_event_time_product "
+                    "JOIN ticket_by_event_time_event ON ticket_by_event_time_product.event.event_id = ticket_by_event_time_event.event_id "
+                    "WHERE :given_time >= ticket_by_event_time_event.info.expected_start AND :given_time < ticket_by_event_time_event.info.expected_end  "
         };
     }
 

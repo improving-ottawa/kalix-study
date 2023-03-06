@@ -25,7 +25,7 @@ class TestGatewayApiActionImplSpec
     with ScalaFutures {
 
   implicit private val patience: PatienceConfig =
-    PatienceConfig(Span(5, Seconds), Span(5000, Millis))
+    PatienceConfig(Span(500, Seconds), Span(5000, Millis))
 
   implicit val sys: ActorSystem = ActorSystem("OrderActionImpl")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher

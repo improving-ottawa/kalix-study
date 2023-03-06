@@ -274,7 +274,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         .toMap
 
     log.info(
-      s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size}"
+      s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size} - ${establishedOrgs.keys}"
     )
 
     Await.result(
@@ -780,7 +780,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info(
       s"handleStartScenario genApiRegisterInitialMember"
     )
-    ApiRegisterMember(
+    val result = ApiRegisterMember(
       UUID.randomUUID().toString,
       Some(
         ApiInfo(
@@ -811,6 +811,12 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
         )
       )
     )
+
+    log.info(
+      s"handleStartScenario genApiRegisterInitialMember - ApiRegisterMember - $result"
+    )
+
+    result
   }
 
   private def genApiEstablishTenants(
@@ -968,7 +974,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             )
           ),
           None,
-          Seq.empty.toSeq,
+          owners.headOption.toSeq,
           owners,
           Seq(
             ApiContacts(
@@ -1017,7 +1023,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   Some(
                     ApiParent(Some(ApiOrganizationId(parent)))
                   ),
-                  Seq.empty.toSeq,
+                  owners.headOption.toSeq,
                   owners,
                   Seq(
                     ApiContacts(

@@ -1,6 +1,6 @@
 package app.improving.membercontext.member
 
-import app.improving.ApiMemberId
+import app.improving.{ApiMemberId, ApiSku}
 import app.improving.membercontext.{
   MemberByMemberIdsQuery,
   MemberByMemberIdsRequest
@@ -16,7 +16,6 @@ import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -102,16 +101,16 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       TicketByEventTimeRequest(givenTimeOpt)
     )
 
-    products.onComplete({
-      case Success(value) =>
-        log.info(
-          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
-        )
-      case Failure(exception) =>
-        log.info(
-          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
-        )
-    })
+//    products.onComplete({
+//      case Success(value) =>
+//        log.info(
+//          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
+//        )
+//      case Failure(exception) =>
+//        log.info(
+//          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
+//        )
+//    })
 
     val productIds = products.map(_.products.map(_.sku))
 
@@ -121,32 +120,34 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
         memberIds <- Future
           .sequence(
             pids
-              .map(productId => {
+              .map { productId =>
                 log.info(
-                  s"in MemberActionServiceImpl findMembersByEventTime productId ${productId}"
+                  s"in MemberActionServiceImpl findMembersByEventTime productId $productId"
                 )
-                val result = orderByProductView
+                val result: Future[Seq[String]] = orderByProductView
                   .findOrdersByProducts(
-                    OrderByProductRequest(productId)
+                    OrderByProductRequest(
+                      productId.getOrElse(ApiSku.defaultInstance).sku
+                    )
                   )
                   .map(response =>
                     response.orders
-                      .map(_.meta.flatMap(_.memberId.map(_.memberId)))
-                      .flatten
+                      .flatMap(_.meta.flatMap(_.memberId.map(_.memberId)))
                   )
-                result.onComplete({
-                  case Success(value) =>
-                    log.info(
-                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
-                    )
-                  case Failure(exception) =>
-                    log.info(
-                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
-                    )
-                })
+
+//                result.onComplete({
+//                  case Success(value) =>
+//                    log.info(
+//                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
+//                    )
+//                  case Failure(exception) =>
+//                    log.info(
+//                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
+//                    )
+//                })
 
                 result
-              })
+              }
           )
         members <- memberByMemberIdsView.findMembersByMemberIds(
           MemberByMemberIdsRequest(memberIds.flatten)
