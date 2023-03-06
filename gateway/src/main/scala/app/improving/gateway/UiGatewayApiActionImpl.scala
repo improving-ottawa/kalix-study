@@ -130,7 +130,7 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
   private val allOrdersView = creationContext.getGrpcClient(
     classOf[AllOrdersView],
     config.getString(
-      "app.improving.gateway.store.grpc-client-name"
+      "app.improving.gateway.order.grpc-client-name"
     )
   )
 
@@ -195,7 +195,6 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleGetAllOrders(
       allOrdersRequest: AllOrdersRequest
   ): Action.Effect[AllOrdersResult] = {
-
     log.info("in handleGetAllOrders")
 
     effects.asyncReply(allOrdersView.getAllOrders(AllOrdersRequest()))

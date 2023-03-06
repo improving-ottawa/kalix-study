@@ -30,8 +30,6 @@ class TestGatewayApiActionImplSpec
   implicit val sys: ActorSystem = ActorSystem("OrderActionImpl")
   implicit val ec: ExecutionContextExecutor = sys.dispatcher
 
-  private val log = LoggerFactory.getLogger(this.getClass)
-
   lazy val config: Config = ConfigFactory.load()
 
   val testGateWayClientSettings: GrpcClientSettings =

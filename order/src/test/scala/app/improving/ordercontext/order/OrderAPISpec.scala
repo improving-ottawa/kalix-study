@@ -1,7 +1,7 @@
 package app.improving.ordercontext.order
 
 import TestData._
-import app.improving.{ApiMemberId, ApiOrderId, MemberId}
+import app.improving.{ApiMemberId, MemberId}
 import app.improving.ordercontext.infrastructure.util.{
   convertApiOrderStatusToOrderStatus,
   convertLineItemToApiLineItem
@@ -111,10 +111,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       )
 
       orderInfoUpdated.info
-        .map(_.orderTotal)
-        .getOrElse(0.0) shouldBe testLineItemsUpdate
-        .map(item => item.pricePerItem * item.quantity)
-        .sum
+        .map(_.orderTotal) shouldBe testLineItemsUpdate.map(_.lineTotal)
 
       orderInfoUpdated.info
         .map(_.specialInstructions)
@@ -232,10 +229,7 @@ class OrderAPISpec extends AnyWordSpec with Matchers {
       )
 
       orderInfoUpdated.info
-        .map(_.orderTotal)
-        .getOrElse(0.0) shouldBe testLineItemsUpdate
-        .map(item => item.pricePerItem * item.quantity)
-        .sum
+        .map(_.orderTotal) shouldBe testLineItemsUpdate.map(_.lineTotal)
 
       orderInfoUpdated.info
         .map(_.specialInstructions)

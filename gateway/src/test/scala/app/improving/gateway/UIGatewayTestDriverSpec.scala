@@ -24,7 +24,6 @@ import scala.io.Source
 import io.circe._
 import io.circe.syntax._
 
-import java.time.{LocalDateTime, ZoneOffset}
 import scala.util.Random
 
 class UIGatewayTestDriverSpec
@@ -56,7 +55,7 @@ class UIGatewayTestDriverSpec
     gatewayClientSettings
   )
 
-  val gatewayActionClient = UiGatewayApiActionClient(
+  val gatewayActionClient: UiGatewayApiActionClient = UiGatewayApiActionClient(
     gatewayClientSettings
   )
 
@@ -103,12 +102,7 @@ class UIGatewayTestDriverSpec
         requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
 
       val info = ScenarioInfo(
-        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
-        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
+        1, 2, 2, 1, 1, 1
       )
 
       val results =
@@ -230,7 +224,7 @@ class UIGatewayTestDriverSpec
                   storeId ->
                     ApiOrderInfo(
                       Seq[ApiLineItem](
-                        ApiLineItem(Some(productId), 1)
+                        ApiLineItem(Some(productId), 1, 1.0)
                       )
                     )
                 }.toMap
@@ -259,18 +253,16 @@ class UIGatewayTestDriverSpec
         .futureValue
         .flatten
 
-      val eventIds = productInfos
-        .map(info => {
-          info.productDetails.flatMap(detail => {
-            detail.apiTicket match {
-              case ApiTicket.Empty                   => None
-              case ApiTicket.ReservedTicket(value)   => value.event
-              case ApiTicket.RestrictedTicket(value) => value.event
-              case ApiTicket.OpenTicket(value)       => value.event
-            }
-          })
+      val eventIds = productInfos.flatMap(info => {
+        info.productDetails.flatMap(detail => {
+          detail.apiTicket match {
+            case ApiTicket.Empty                   => None
+            case ApiTicket.ReservedTicket(value)   => value.event
+            case ApiTicket.RestrictedTicket(value) => value.event
+            case ApiTicket.OpenTicket(value)       => value.event
+          }
         })
-        .flatten
+      })
 
       val events = Future
         .sequence(

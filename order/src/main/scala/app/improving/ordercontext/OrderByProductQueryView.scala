@@ -133,28 +133,30 @@ class OrderByProductQueryView(context: ViewContext)
   override def processOrderReleased(
       state: ApiOrder,
       orderReleased: OrderReleased
-  ): UpdateEffect[ApiOrder] = {
-    log.info(
-      s"OrderByProductQueryView in processOrderReleased - orderReleased $orderReleased"
-    )
+  ): UpdateEffect[ApiOrder] = effects.deleteState()
 
-    val now = java.time.Instant.now()
-    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-    effects.updateState(
-      state.copy(
-        status = ApiOrderStatus.API_ORDER_STATUS_RELEASED,
-        meta = state.meta.map(
-          _.copy(
-            lastModifiedBy = orderReleased.releasingMember.map(member =>
-              ApiMemberId(member.id)
-            ),
-            lastModifiedOn = Some(timestamp),
-            status = ApiOrderStatus.API_ORDER_STATUS_RELEASED
-          )
-        )
-      )
-    )
-  }
+  // {
+  //  log.info(
+  //    s"OrderByProductQueryView in processOrderReleased - orderReleased $orderReleased"
+  //  )
+//
+  //  val now = java.time.Instant.now()
+  //  val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+  //  effects.updateState(
+  //    state.copy(
+  //      status = ApiOrderStatus.API_ORDER_STATUS_RELEASED,
+  //      meta = state.meta.map(
+  //        _.copy(
+  //          lastModifiedBy = orderReleased.releasingMember.map(member =>
+  //            ApiMemberId(member.id)
+  //          ),
+  //          lastModifiedOn = Some(timestamp),
+  //          status = ApiOrderStatus.API_ORDER_STATUS_RELEASED
+  //        )
+  //      )
+  //    )
+  //  )
+  // }
 
   override def processOrderPending(
       state: ApiOrder,
@@ -257,9 +259,4 @@ class OrderByProductQueryView(context: ViewContext)
       )
     )
   }
-
-  override def processOrderOrderReleased(
-      state: ApiOrder,
-      orderReleased: OrderReleased
-  ): UpdateEffect[ApiOrder] = effects.deleteState()
 }
