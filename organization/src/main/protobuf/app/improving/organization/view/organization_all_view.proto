@@ -121,7 +121,7 @@ service AllOrganizationsView {
 
     rpc GetAllOrganizations(AllOrganizationsRequest) returns (AllOrganizationsResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM all_organizations "
+            query: "SELECT * as organizations FROM all_organizations "
         };
     }
 }

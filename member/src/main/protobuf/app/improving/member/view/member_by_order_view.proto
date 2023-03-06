@@ -6,7 +6,6 @@ package app.improving.membercontext;
 import "app/improving/member/api/member_api.proto";
 import "app/improving/member/domain/member_context_domain.proto";
 import "app/improving/order/api/order_api.proto";
-import "app/improving/order/domain/order_context_domain.proto";
 import "kalix/annotations.proto";
 
 /**
