@@ -19,7 +19,12 @@ service OrderService {
                 "app.improving.ordercontext.OrderStatusUpdated",
                 "app.improving.ordercontext.OrderInfoUpdated",
                 "app.improving.ordercontext.OrderCanceled",
-                "app.improving.ordercontext.OrderReleased"
+                "app.improving.ordercontext.OrderReleased",
+                "app.improving.ordercontext.OrderPending",
+                "app.improving.ordercontext.OrderInProgressed",
+                "app.improving.ordercontext.OrderReadied",
+                "app.improving.ordercontext.OrderDelivered"
+
             ]
         }
     };
@@ -54,7 +59,35 @@ service OrderService {
 
     rpc ReleaseOrder(ApiReleaseOrder) returns (google.protobuf.Empty) {
         option (google.api.http) = {
-            post: "/order/{order_id}/delete"
+            post: "/order/{order_id}/release"
+            body: "*"
+        };
+    }
+
+    rpc PendingOrder(ApiPendingOrder) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/pending"
+            body: "*"
+        };
+    }
+
+    rpc InProgressOrder(ApiInProgressOrder) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/in-progress"
+            body: "*"
+        };
+    }
+
+    rpc ReadyOrder(ApiReadyOrder) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/ready"
+            body: "*"
+        };
+    }
+
+    rpc DeliverOrder(ApiDeliverOrder) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/order/{order_id}/deliver"
             body: "*"
         };
     }

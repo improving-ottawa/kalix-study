@@ -37,11 +37,9 @@ object util {
       lineItem.lineTotal
     )
   }
-
   def calculateOrderTotal(orderInfo: OrderInfo): OrderInfo = {
     orderInfo.copy(
-      orderTotal =
-        orderInfo.lineItems.map(item => item.quantity * item.lineTotal).sum
+      orderTotal = orderInfo.lineItems.map(item => item.lineTotal).sum
     )
   }
 
@@ -61,6 +59,8 @@ object util {
         OrderStatus.ORDER_STATUS_DELIVERED
       case ApiOrderStatus.API_ORDER_STATUS_CANCELLED =>
         OrderStatus.ORDER_STATUS_CANCELLED
+      case ApiOrderStatus.API_ORDER_STATUS_RELEASED =>
+        OrderStatus.ORDER_STATUS_RELEASED
       case ApiOrderStatus.API_ORDER_STATUS_UNKNOWN =>
         OrderStatus.ORDER_STATUS_UNKNOWN
       case ApiOrderStatus.Unrecognized(unrecognizedValue) =>

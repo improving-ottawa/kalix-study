@@ -1,10 +1,17 @@
 package app.improving.ordercontext.order
 
 import app.improving.ApiMemberId
-import app.improving.ordercontext.OrderCanceled
-import app.improving.ordercontext.OrderCreated
-import app.improving.ordercontext.OrderInfoUpdated
-import app.improving.ordercontext.OrderStatusUpdated
+import app.improving.ordercontext.{
+  OrderCanceled,
+  OrderCreated,
+  OrderDelivered,
+  OrderInProgressed,
+  OrderInfoUpdated,
+  OrderPending,
+  OrderReadied,
+  OrderReleased,
+  OrderStatusUpdated
+}
 import app.improving.ordercontext.infrastructure.util._
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -86,6 +93,83 @@ class OrderEventsServiceAction(creationContext: ActionCreationContext)
         orderCanceled.info.map(convertOrderInfoToApiOrderInfo),
         orderCanceled.meta.map(convertOrderMetaInfoToApiOrderMetaInfo),
         orderCanceled.cancellingMember.map(member => ApiMemberId(member.id))
+      )
+    )
+  }
+
+  override def transformOrderReleased(
+      orderReleased: OrderReleased
+  ): Action.Effect[ApiOrderReleased] = {
+    log.info(
+      s"OrderEventsServiceAction in transformOrderReleased - orderReleased - ${orderReleased}"
+    )
+
+    effects.reply(
+      ApiOrderReleased(
+        orderReleased.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        orderReleased.releasingMember.map(member => ApiMemberId(member.id))
+      )
+    )
+  }
+
+  override def transformOrderPending(
+      orderPending: OrderPending
+  ): Action.Effect[ApiOrderPending] = {
+    log.info(
+      s"OrderEventsServiceAction in transformOrderPending - orderPending - ${orderPending}"
+    )
+
+    effects.reply(
+      ApiOrderPending(
+        orderPending.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        orderPending.pendingMember.map(member => ApiMemberId(member.id))
+      )
+    )
+  }
+
+  override def transformOrderInProgressed(
+      orderInProgressed: OrderInProgressed
+  ): Action.Effect[ApiOrderInProgressed] = {
+    log.info(
+      s"OrderEventsServiceAction in transformOrderInProgressed - orderInProgressed - ${orderInProgressed}"
+    )
+
+    effects.reply(
+      ApiOrderInProgressed(
+        orderInProgressed.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        orderInProgressed.inProgressingMember.map(member =>
+          ApiMemberId(member.id)
+        )
+      )
+    )
+  }
+
+  override def transformOrderReadied(
+      orderReadied: OrderReadied
+  ): Action.Effect[ApiOrderReadied] = {
+    log.info(
+      s"OrderEventsServiceAction in transformOrderReadied - orderReadied - ${orderReadied}"
+    )
+
+    effects.reply(
+      ApiOrderReadied(
+        orderReadied.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        orderReadied.readyingMember.map(member => ApiMemberId(member.id))
+      )
+    )
+  }
+
+  override def transformOrderDelivered(
+      orderDelivered: OrderDelivered
+  ): Action.Effect[ApiOrderDelivered] = {
+    log.info(
+      s"OrderEventsServiceAction in transformOrderDelivered - orderDelivered - ${orderDelivered}"
+    )
+
+    effects.reply(
+      ApiOrderDelivered(
+        orderDelivered.orderId.map(_.id).getOrElse("orderId is NOT FOUND."),
+        orderDelivered.deliveringMember.map(member => ApiMemberId(member.id))
       )
     )
   }

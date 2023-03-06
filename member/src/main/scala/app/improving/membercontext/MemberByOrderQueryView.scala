@@ -42,7 +42,7 @@ class MemberByOrderQueryView(context: ViewContext)
       } else {
 
         log.info(
-          s"MemberByOrderQueryView in processRegisterMember - memberRegistered ${memberRegistered}"
+          s"MemberByOrderQueryView in processRegisterMember - memberRegistered $memberRegistered"
         )
 
         effects.updateState(
@@ -57,7 +57,7 @@ class MemberByOrderQueryView(context: ViewContext)
     ): UpdateEffect[ApiMemberData] = {
 
       log.info(
-        s"MemberByOrderQueryView in processUpdateMemberStatus - memberStatusUpdated ${memberStatusUpdated}"
+        s"MemberByOrderQueryView in processUpdateMemberStatus - memberStatusUpdated $memberStatusUpdated"
       )
 
       val updatedMetaOpt =
@@ -73,7 +73,7 @@ class MemberByOrderQueryView(context: ViewContext)
     ): UpdateEffect[ApiMemberData] = {
 
       log.info(
-        s"MemberByOrderQueryView in processUpdateMemberStatus - memberInfoUpdated ${memberInfoUpdated}"
+        s"MemberByOrderQueryView in processUpdateMemberStatus - memberInfoUpdated $memberInfoUpdated"
       )
 
       val updatedInfoOpt =
@@ -125,7 +125,7 @@ class MemberByOrderQueryView(context: ViewContext)
       } else {
 
         log.info(
-          s"MemberByOrderQueryView in processOrderCreated - orderCreated ${orderCreated}"
+          s"MemberByOrderQueryView in processOrderCreated - orderCreated $orderCreated"
         )
 
         effects.updateState(
@@ -145,7 +145,7 @@ class MemberByOrderQueryView(context: ViewContext)
     ): UpdateEffect[ApiOrder] = {
 
       log.info(
-        s"MemberByOrderQueryView in processOrderStatusUpdated - orderStatusUpdated ${orderStatusUpdated}"
+        s"MemberByOrderQueryView in processOrderStatusUpdated - orderStatusUpdated $orderStatusUpdated"
       )
 
       val updatedStatus = orderStatusUpdated.newStatus
@@ -169,7 +169,7 @@ class MemberByOrderQueryView(context: ViewContext)
     ): UpdateEffect[ApiOrder] = {
 
       log.info(
-        s"MemberByOrderQueryView in processOrderInfoUpdated - orderInfoUpdated ${orderInfoUpdated}"
+        s"MemberByOrderQueryView in processOrderInfoUpdated - orderInfoUpdated $orderInfoUpdated"
       )
 
       val now = java.time.Instant.now()
@@ -194,7 +194,7 @@ class MemberByOrderQueryView(context: ViewContext)
     ): UpdateEffect[ApiOrder] = {
 
       log.info(
-        s"MemberByOrderQueryView in processOrderCanceled - orderCanceled ${orderCanceled}"
+        s"MemberByOrderQueryView in processOrderCanceled - orderCanceled $orderCanceled"
       )
 
       val now = java.time.Instant.now()

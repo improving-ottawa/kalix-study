@@ -27,5 +27,10 @@ service OrderEventsService {
     rpc TransformOrderStatusUpdated(OrderStatusUpdated) returns (ApiOrderStatusUpdated) {}
     rpc TransformOrderInfoUpdated(OrderInfoUpdated) returns (ApiOrderInfoUpdated) {}
     rpc TransformOrderCanceled(OrderCanceled) returns (ApiOrderCanceled) {}
+    rpc TransformOrderReleased(OrderReleased) returns (ApiOrderReleased) {}
+    rpc TransformOrderPending(OrderPending) returns (ApiOrderPending) {}
+    rpc TransformOrderInProgressed(OrderInProgressed) returns (ApiOrderInProgressed) {}
+    rpc TransformOrderReadied(OrderReadied) returns (ApiOrderReadied) {}
+    rpc TransformOrderDelivered(OrderDelivered) returns (ApiOrderDelivered) {}
 
 }

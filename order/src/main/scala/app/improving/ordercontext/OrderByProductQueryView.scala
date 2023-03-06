@@ -130,22 +130,128 @@ class OrderByProductQueryView(context: ViewContext)
     )
   }
 
-  override def processOrderReleases(
+  override def processOrderReleased(
       state: ApiOrder,
       orderReleased: OrderReleased
   ): UpdateEffect[ApiOrder] = {
+    log.info(
+      s"OrderByProductQueryView in processOrderReleased - orderReleased ${orderReleased}"
+    )
+
     val now = java.time.Instant.now()
     val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
-
     effects.updateState(
-      state.copy(meta =
-        state.meta.map(
+      state.copy(
+        status = ApiOrderStatus.API_ORDER_STATUS_RELEASED,
+        meta = state.meta.map(
           _.copy(
             lastModifiedBy = orderReleased.releasingMember.map(member =>
               ApiMemberId(member.id)
             ),
             lastModifiedOn = Some(timestamp),
             status = ApiOrderStatus.API_ORDER_STATUS_RELEASED
+          )
+        )
+      )
+    )
+  }
+
+  override def processOrderPending(
+      state: ApiOrder,
+      orderPending: OrderPending
+  ): UpdateEffect[ApiOrder] = {
+    log.info(
+      s"OrderByProductQueryView in processOrderPending - orderPending ${orderPending}"
+    )
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    effects.updateState(
+      state.copy(
+        status = ApiOrderStatus.API_ORDER_STATUS_PENDING,
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy =
+              orderPending.pendingMember.map(member => ApiMemberId(member.id)),
+            lastModifiedOn = Some(timestamp),
+            status = ApiOrderStatus.API_ORDER_STATUS_PENDING
+          )
+        )
+      )
+    )
+  }
+
+  override def processOrderInProgressed(
+      state: ApiOrder,
+      orderInProgressed: OrderInProgressed
+  ): UpdateEffect[ApiOrder] = {
+    log.info(
+      s"OrderByProductQueryView in processOrderInProgressed - orderInProgressed ${orderInProgressed}"
+    )
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    effects.updateState(
+      state.copy(
+        status = ApiOrderStatus.API_ORDER_STATUS_INPROCESS,
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy = orderInProgressed.inProgressingMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = ApiOrderStatus.API_ORDER_STATUS_INPROCESS
+          )
+        )
+      )
+    )
+  }
+
+  override def processOrderReadied(
+      state: ApiOrder,
+      orderReadied: OrderReadied
+  ): UpdateEffect[ApiOrder] = {
+    log.info(
+      s"OrderByProductQueryView in processOrderReadied - orderReadied ${orderReadied}"
+    )
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    effects.updateState(
+      state.copy(
+        status = ApiOrderStatus.API_ORDER_STATUS_READY,
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy =
+              orderReadied.readyingMember.map(member => ApiMemberId(member.id)),
+            lastModifiedOn = Some(timestamp),
+            status = ApiOrderStatus.API_ORDER_STATUS_READY
+          )
+        )
+      )
+    )
+  }
+
+  override def processOrderDelivered(
+      state: ApiOrder,
+      orderDelivered: OrderDelivered
+  ): UpdateEffect[ApiOrder] = {
+    log.info(
+      s"OrderByProductQueryView in processOrderDelivered - orderDelivered $orderDelivered"
+    )
+
+    val now = java.time.Instant.now()
+    val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
+    effects.updateState(
+      state.copy(
+        status = ApiOrderStatus.API_ORDER_STATUS_DELIVERED,
+        meta = state.meta.map(
+          _.copy(
+            lastModifiedBy = orderDelivered.deliveringMember.map(member =>
+              ApiMemberId(member.id)
+            ),
+            lastModifiedOn = Some(timestamp),
+            status = ApiOrderStatus.API_ORDER_STATUS_DELIVERED
           )
         )
       )
