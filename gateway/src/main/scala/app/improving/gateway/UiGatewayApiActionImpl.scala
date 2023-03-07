@@ -163,7 +163,7 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
       allStoresRequest: AllStoresRequest
   ): Action.Effect[AllStoresResult] = {
 
-    log.info("in handleRegisterMembers")
+    log.info("in handleGetAllStores")
 
     effects.asyncReply(allStoresView.getAllStores(AllStoresRequest()))
   }
@@ -172,7 +172,7 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
       allProductsRequest: AllProductsRequest
   ): Action.Effect[AllProductsResult] = {
 
-    log.info("in handleRegisterMembers")
+    log.info("in handleGetAllProducts")
 
     effects.asyncReply(allProductsView.getAllSkus(AllProductsRequest()))
   }

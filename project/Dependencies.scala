@@ -85,7 +85,8 @@ object Dependencies {
     "io.gatling" % "gatling-test-framework" % gatling % "test,it",
     "io.circe" %% "circe-core" % circe % "test,it",
     "io.circe" %% "circe-generic" % circe % "test,it",
-    "io.circe" %% "circe-parser" % circe % "test,it"
+    "io.circe" %% "circe-parser" % circe % "test,it",
+    "com.thesamet.scalapb" %% "compilerplugin" % "0.11.11" % "test,it"
   )
 
   val scalaPbDependencies: Seq[ModuleID] = Seq(

@@ -299,5 +299,4 @@ class TicketByEventTimeQueryView(context: ViewContext)
       )
     }
   }
-
 }

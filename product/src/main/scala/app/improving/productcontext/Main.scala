@@ -31,11 +31,11 @@ object Main {
       )
       .register(
         TicketByEventViewProvider(new TicketByEventViewImpl(_))
-          .withViewId("TicketByEventViewV3")
+          .withViewId("TicketByEventViewV1")
       )
       .register(
         TicketByEventTimeQueryViewProvider(new TicketByEventTimeQueryView(_))
-          .withViewId("TicketByEventTimeQueryViewV3")
+          .withViewId("TicketByEventTimeQueryViewV1")
       )
   }
 

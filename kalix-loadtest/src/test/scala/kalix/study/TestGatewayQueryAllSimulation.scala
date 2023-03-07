@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.DurationInt
 
-class TestGatewaySimulation extends Simulation {
+class TestGatewayQueryAllSimulation extends Simulation {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -31,26 +31,13 @@ class TestGatewaySimulation extends Simulation {
       "Gateway Start Scenario"
     ) // A scenario is a chain of requests and pauses
       .exec(
-        http("start-scenario")
-          .post("/gateway/start-scenario")
-          .body(StringBody("""
-                             |{
-                             |   "scenario_info":{
-                             |      "num_tenants":1,
-                             |      "max_orgs_depth":2,
-                             |      "max_orgs_width":2,
-                             |      "num_members_per_org":1,
-                             |      "num_events_per_org":1,
-                             |      "num_tickets_per_event":1
-                             |   }
-                             |}
-                             |""".stripMargin))
+        http("query-all-products")
+          .get("/product/get-all-products")
           .asJson
           .check(status.is(200))
           .check(bodyString.exists)
-          .check(bodyString.saveAs("ScenarioResult"))
       )
       .pause(500 millis)
 
-  setUp(scn.inject(rampUsers(1000).during(10 seconds)).protocols(httpProtocol))
+  setUp(scn.inject(rampUsers(1).during(10 seconds)).protocols(httpProtocol))
 }
