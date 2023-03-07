@@ -182,7 +182,7 @@ service TicketByEventTimeQuery {
             query: "SELECT "
                     "(ticket_by_event_time_product.sku, ticket_by_event_time_product.info, ticket_by_event_time_product.meta, ticket_by_event_time_product.status, ticket_by_event_time_product.event)  AS products "
                     "FROM ticket_by_event_time_product "
-                    "JOIN ticket_by_event_time_event ON ticket_by_event_time_product.event.event_id = ticket_by_event_time_event.event_id "
+                    "JOIN ticket_by_event_time_event ON ticket_by_event_time_product.event.event_id = ticket_by_event_time_event.event_id  LIMIT 100 "
                     "WHERE :given_time >= ticket_by_event_time_event.info.expected_start AND :given_time < ticket_by_event_time_event.info.expected_end  "
         };
     }

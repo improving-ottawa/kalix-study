@@ -10,12 +10,14 @@ import app.improving.productcontext.{
   TicketByEventTimeQuery,
   TicketByEventTimeRequest
 }
+import com.google.protobuf.timestamp.Timestamp
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
 //
@@ -93,26 +95,35 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       memberByEventTimeRequest: MembersByEventTimeRequest
   ): Action.Effect[MembersByEventTimeResponse] = {
 
-    log.info("in MemberActionServiceImpl findMembersByEventTime")
+    log.info(
+      s"in MemberActionServiceImpl findMembersByEventTime given_time - ${memberByEventTimeRequest.givenTime}"
+    )
 
-    val givenTimeOpt = memberByEventTimeRequest.givenTime
+    val givenTimeOpt =
+      Try(java.time.Instant.parse(memberByEventTimeRequest.givenTime.trim))
+        .map(instant => Timestamp.of(instant.getEpochSecond, instant.getNano))
+        .toOption
+
+    log.info(
+      s"in MemberActionServiceImpl findMembersByEventTime givenTimeOpt - $givenTimeOpt"
+    )
 
     val products = ticketByEventTimeView.findProductsByEventTime(
       TicketByEventTimeRequest(givenTimeOpt)
     )
 
-//    products.onComplete({
-//      case Success(value) =>
-//        log.info(
-//          s"in MemberActionServiceImpl findMembersByEventTime products ${value}"
-//        )
-//      case Failure(exception) =>
-//        log.info(
-//          s"in MemberActionServiceImpl findMembersByEventTime products exception ${exception}"
-//        )
-//    })
-
     val productIds = products.map(_.products.map(_.sku))
+
+    productIds.onComplete {
+      case Failure(exception) =>
+        log.info(
+          s"in MemberActionServiceImpl findMembersByEventTime productIds exception - $exception"
+        )
+      case Success(value) =>
+        log.info(
+          s"in MemberActionServiceImpl findMembersByEventTime productIds value - $value"
+        )
+    }
 
     effects.asyncReply(
       for {
@@ -134,17 +145,6 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
                     response.orders
                       .flatMap(_.meta.flatMap(_.memberId.map(_.memberId)))
                   )
-
-//                result.onComplete({
-//                  case Success(value) =>
-//                    log.info(
-//                      s"in MemberActionServiceImpl orderByProductView productId ${productId} result ${value}"
-//                    )
-//                  case Failure(exception) =>
-//                    log.info(
-//                      s"in MemberActionServiceImpl orderByProductView result exception ${exception}"
-//                    )
-//                })
 
                 result
               }

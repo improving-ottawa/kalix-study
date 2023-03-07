@@ -76,7 +76,7 @@ service MemberByMemberIdsQuery {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "(member_by_member_ids_member.member_id AS member_id, member_by_member_ids_member.info AS info, member_by_member_ids_member.meta AS meta) AS members "
-                    "FROM  member_by_member_ids_member "
+                    "FROM  member_by_member_ids_member LIMIT 100 "
                     "WHERE member_by_member_ids_member.member_id = ANY(:member_ids) "
         };
     }

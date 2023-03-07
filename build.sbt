@@ -65,7 +65,7 @@ lazy val gateway = project
 lazy val loadtest = project
   .in(file("kalix-loadtest"))
   .enablePlugins(GatlingPlugin)
-  .configure(Kalix.loadTest("loadtest"))
+  .configure(Kalix.loadTest("kalix-loadtest"))
 
 lazy val root = project
   .in(file("."))
@@ -75,8 +75,7 @@ lazy val root = project
     publishTo := Some(Resolver.defaultLocal)
   )
   .aggregate(
-    gateway,
-    loadtest
+    member
   )
 //product - nulls
 //order - nulls

@@ -145,7 +145,7 @@ service MemberByOrderQuery {
             query: "SELECT "
                     "(member_by_order_member.member_id AS member_id, member_by_order_member.info AS info, member_by_order_member.meta AS meta) AS members "
                     "FROM  member_by_order_member "
-                    "JOIN member_by_order_order ON member_by_order_order.meta.member_id.member_id = member_by_order_member.member_id "
+                    "JOIN member_by_order_order ON member_by_order_order.meta.member_id.member_id = member_by_order_member.member_id LIMIT 100 "
                     "WHERE member_by_order_order.order_id = :order_id "
 
         };

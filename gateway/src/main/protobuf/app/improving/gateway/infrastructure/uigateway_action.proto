@@ -71,7 +71,7 @@ service UiGatewayApiAction {
 
     rpc HandleGetMembersByEventTime(membercontext.member.MembersByEventTimeRequest) returns (membercontext.member.MembersByEventTimeResponse) {
         option (google.api.http) = {
-            get: "/member/members-by-event-time/{given_time}"
+            get: "/member/members-by-event-time"
         };
     }
 }

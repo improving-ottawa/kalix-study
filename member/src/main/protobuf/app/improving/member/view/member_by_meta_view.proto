@@ -79,7 +79,7 @@ service MemberByMetaInfoView {
     //WHERE :queryData.createdBy.member_id = memberId.memberId.member_id  OR :queryData.createdOn = meta.createdOn OR :queryData.lastModifiedOn = meta.lastModifiedOn OR :queryData.lastModifiedBy = meta.lastModifiedBy OR :queryData.memberStatus = meta.memberStatus
     rpc GetMembersByMetaInfo(ByMetaInfoRequest) returns (stream app.improving.membercontext.member.ApiMemberData) {
         option (kalix.method).view.query = {
-            query: "SELECT * FROM member_by_meta_info "
+            query: "SELECT * FROM member_by_meta_info LIMIT 100 "
         };
     }
 }

@@ -79,7 +79,7 @@ service AllTenantsView {
 
     rpc GetAllTenants(GetAllTenantRequest) returns (AllTenantResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * AS tenants FROM all_tenants "
+            query: "SELECT * AS tenants FROM all_tenants LIMIT 100 "
         };
     }
 }

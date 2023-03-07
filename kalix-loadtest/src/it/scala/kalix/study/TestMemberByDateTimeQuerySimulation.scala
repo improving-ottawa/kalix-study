@@ -3,7 +3,7 @@ package kalix.study
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.parser
-import io.circe.{ Decoder, Encoder, HCursor, Json }
+import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.syntax.EncoderOps
 import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
@@ -15,7 +15,6 @@ import scala.util.Random
 import scala.concurrent.duration.DurationInt
 
 import java.time._
-
 
 class TestMemberByDateTimeQuerySimulation extends Simulation {
 
@@ -37,10 +36,10 @@ class TestMemberByDateTimeQuerySimulation extends Simulation {
     )
 
   private val GenerateProducts = group("Create Products") {
-    exec(http("create-products")
-      .post("/gateway/start-scenario")
-      .body(StringBody(
-        """
+    exec(
+      http("create-products")
+        .post("/gateway/start-scenario")
+        .body(StringBody("""
           |{
           |   "scenario_info":{
           |      "num_tenants":1,
@@ -52,10 +51,11 @@ class TestMemberByDateTimeQuerySimulation extends Simulation {
           |   }
           |}
           |""".stripMargin))
-      .asJson
-      .check(status.is(200))
-      .check(bodyString.exists)
-      .check(bodyString.saveAs("ScenarioResults")))
+        .asJson
+        .check(status.is(200))
+        .check(bodyString.exists)
+        .check(bodyString.saveAs("ScenarioResults"))
+    )
   }.pause(7)
     .exec(session => {
       val scenarioResults = session("ScenarioResults").as[String]
@@ -126,51 +126,55 @@ class TestMemberByDateTimeQuerySimulation extends Simulation {
         .post("/order/purchase-ticket")
         .body(
           StringBody(session =>
-            s"""${
-              session("OrdersForStoresForMembers")
-                .as[String]
-            }""".stripMargin
+            s"""${session("OrdersForStoresForMembers")
+                .as[String]}""".stripMargin
           )
         )
         .asJson
         .check(status.is(200))
         .check(bodyString.exists)
-        .check(bodyString.saveAs("OrderIdsResult")))
+        .check(bodyString.saveAs("OrderIdsResult"))
+    )
   }
 
   val QueryMemberByEventTime = group("Query member by event time") {
     exec(
-      http("query-membet-by-event-time")
+      http("query-member-by-event-time")
         .get(_ => {
           val random = scala.util.Random
-          val now = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(random.nextInt(10))
-          s"""/member/members-by-event-time?given_time="${now.toString()}" """
+          val now =
+            ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(random.nextInt(10))
+          s"""/member/members-by-event-time?given_time=${now.toString()}"""
         })
-//        .body(
-//          StringBody(session => {
-//            val random = scala.util.Random
-//            val now = ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(random.nextInt(10))
-//            println(s"""{"given_time": "${now.toString()}" }""" + """ given_time """")
-//            s"""{ "given_time": "${now.toString()}" }"""
-//          })
-//        )
         .asJson
         .check(status.is(200))
-        .check(bodyString.exists))
+        .check(bodyString.exists)
+        .check(bodyString.saveAs("BODY"))
+    ).exec(session => {
+      val response = session("BODY").as[String]
+      println(s"Response body: \n$response")
+      session
+    })
   }
 
   val Init = exec(GenerateProducts, PurchaseTickets)
 
   private val scn =
     scenario(
-      "Query MemberByDateTime Query Scenario"
+      "Query MemberByDateTime Query Scenario Init"
     ).exec(exec(Init).repeat(1) {
-      pace(100)
-      exec(QueryMemberByEventTime)
+      pace(10)
     })
 
+  private val query =
+    scenario(
+      "Query MemberByDateTime Query Scenario Query"
+    ).exec(exec(QueryMemberByEventTime).repeat(1) {
+      pace(10)
+    })
 
   setUp(
-    scn.inject(rampUsers(1).during(10 seconds))
+    scn.inject(rampUsers(1).during(10 seconds)),
+    query.inject(nothingFor(10), rampUsers(1).during(10 seconds))
   ).protocols(httpProtocol)
 }

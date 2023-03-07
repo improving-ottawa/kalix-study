@@ -6,6 +6,7 @@ import io.gatling.http.Predef._
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.DurationInt
+import scala.util.Random
 
 class TestGatewayQueryAllSimulation extends Simulation {
 
@@ -26,17 +27,39 @@ class TestGatewayQueryAllSimulation extends Simulation {
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:16.0) Gecko/20100101 Firefox/16.0"
     )
 
+  val availableUrls = Array(
+    Map("url" -> "/product/get-all-products"),
+    Map("url" -> "/tenant/get-all-tenants"),
+    Map("url" -> "/order/get-all-orders"),
+    Map("url" -> "/organization/get-all-organizations"),
+    Map("url" -> "/store/get-all-stores"),
+    Map("url" -> "/member/get-all-members"),
+    Map("url" -> "/event/get-all-events")
+  )
+
+  def pickARandomUrl() = {
+    availableUrls(Random.nextInt(availableUrls.size))
+  }
+
+  val feeder = Iterator.continually(pickARandomUrl())
+
   val scn =
     scenario(
       "Gateway Start Scenario"
-    ) // A scenario is a chain of requests and pauses
+    ).feed(feeder)
       .exec(
-        http("query-all-products")
-          .get("/product/get-all-products")
+        http("query-all")
+          .get("#{url}")
           .asJson
           .check(status.is(200))
           .check(bodyString.exists)
+          .check(bodyString.saveAs("BODY"))
       )
+      .exec(session => {
+        val response = session("BODY").as[String]
+        println(s"Response body: \n$response")
+        session
+      })
       .pause(500 millis)
 
   setUp(scn.inject(rampUsers(1).during(10 seconds)).protocols(httpProtocol))

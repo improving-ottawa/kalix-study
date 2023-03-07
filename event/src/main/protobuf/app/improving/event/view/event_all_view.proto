@@ -88,7 +88,7 @@ service AllEventsView {
 
     rpc GetAllEvents(AllEventsRequest) returns (AllEventsResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * AS events FROM all_events"
+            query: "SELECT * AS events FROM all_events LIMIT 100 "
         };
     }
 }

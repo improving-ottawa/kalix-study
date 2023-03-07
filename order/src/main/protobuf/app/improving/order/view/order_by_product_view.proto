@@ -188,7 +188,7 @@ service OrderByProductQuery {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "(order_by_product_order.order_id AS order_id, order_by_product_order.info AS info, order_by_product_order.meta AS meta) AS orders "
-                    "FROM  order_by_product_order "
+                    "FROM  order_by_product_order LIMIT 100 "
                     "WHERE :sku = ANY(order_by_product_order.info.line_items.product.sku) "
         };
     }

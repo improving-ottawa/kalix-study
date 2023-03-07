@@ -204,7 +204,9 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
       membersByEventTimeRequest: MembersByEventTimeRequest
   ): Action.Effect[MembersByEventTimeResponse] = {
 
-    log.info("in handleGetMembersByEventTime")
+    log.info(
+      s"in handleGetMembersByEventTime given_time - ${membersByEventTimeRequest.givenTime}"
+    )
 
     effects.asyncReply(
       memberAction.findMembersByEventTime(
