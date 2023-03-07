@@ -39,21 +39,21 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
       )
     )
 
-  val memberByMemberIdsView = creationContext.getGrpcClient(
+  private val memberByMemberIdsView = creationContext.getGrpcClient(
     classOf[MemberByMemberIdsQuery],
     config.getString(
       "app.improving.member.member.grpc-client-name"
     )
   )
 
-  val orderByProductView = creationContext.getGrpcClient(
+  private val orderByProductView: OrderByProductQuery = creationContext.getGrpcClient(
     classOf[OrderByProductQuery],
     config.getString(
       "app.improving.member.order.grpc-client-name"
     )
   )
 
-  val ticketByEventTimeView = creationContext.getGrpcClient(
+  private val ticketByEventTimeView = creationContext.getGrpcClient(
     classOf[TicketByEventTimeQuery],
     config.getString(
       "app.improving.member.product.grpc-client-name"
@@ -100,7 +100,7 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
     )
 
     val givenTimeOpt =
-      Try(java.time.Instant.parse(memberByEventTimeRequest.givenTime.trim))
+      Try(java.time.Instant.parse(memberByEventTimeRequest.givenTime))
         .map(instant => Timestamp.of(instant.getEpochSecond, instant.getNano))
         .toOption
 

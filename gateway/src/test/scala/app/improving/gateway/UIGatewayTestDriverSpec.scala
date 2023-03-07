@@ -24,6 +24,7 @@ import scala.io.Source
 import io.circe._
 import io.circe.syntax._
 
+import java.time.Instant
 import scala.util.Random
 
 class UIGatewayTestDriverSpec
@@ -286,7 +287,12 @@ class UIGatewayTestDriverSpec
 
       val result = gatewayActionClient
         .handleGetMembersByEventTime(
-          MembersByEventTimeRequest(timestampOpt)
+          MembersByEventTimeRequest(
+            timestampOpt
+              .map(t => Instant.ofEpochSecond(t.seconds))
+              .getOrElse(Instant.now())
+              .toString
+          )
         )
         .futureValue
 

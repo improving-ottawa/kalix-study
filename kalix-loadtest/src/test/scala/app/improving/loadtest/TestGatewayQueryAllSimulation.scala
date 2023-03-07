@@ -1,8 +1,10 @@
-package kalix.study
+package app.improving.loadtest
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.gatling.core.Predef._
+import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
+import io.gatling.http.protocol.HttpProtocolBuilder
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.DurationInt
@@ -14,7 +16,7 @@ class TestGatewayQueryAllSimulation extends Simulation {
 
   lazy val config: Config = ConfigFactory.load()
 
-  val httpProtocol = http
+  val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(
       s"https://${config.getString("app.improving.akka.grpc.gateway-client-url")}"
     ) // Here is the root for all relative URLs
@@ -27,7 +29,7 @@ class TestGatewayQueryAllSimulation extends Simulation {
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:16.0) Gecko/20100101 Firefox/16.0"
     )
 
-  val availableUrls = Array(
+  val availableUrls: Array[Map[String, String]] = Array(
     Map("url" -> "/product/get-all-products"),
     Map("url" -> "/tenant/get-all-tenants"),
     Map("url" -> "/order/get-all-orders"),
@@ -37,13 +39,13 @@ class TestGatewayQueryAllSimulation extends Simulation {
     Map("url" -> "/event/get-all-events")
   )
 
-  def pickARandomUrl() = {
-    availableUrls(Random.nextInt(availableUrls.size))
+  def pickARandomUrl(): Map[String, String] = {
+    availableUrls(Random.nextInt(availableUrls.length))
   }
 
-  val feeder = Iterator.continually(pickARandomUrl())
+  val feeder: Iterator[Map[String, String]] = Iterator.continually(pickARandomUrl())
 
-  val scn =
+  val scn: ScenarioBuilder =
     scenario(
       "Gateway Start Scenario"
     ).feed(feeder)

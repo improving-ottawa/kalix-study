@@ -1,10 +1,15 @@
-package kalix.study
+package app.improving.loadtest
 
 final case class OrganizationIds(
     orgIds: Seq[ApiOrganizationId] = Seq.empty
 )
 
+final case class ApiOrderIds(
+    orgIds: Seq[ApiOrderId] = Seq.empty
+)
+
 final case class ApiOrganizationId(organizationId: String = "")
+final case class ApiOrderId(orderId: String = "")
 final case class ApiTenantId(tenantId: String = "")
 final case class MemberIds(
     memberIds: Seq[ApiMemberId] = Seq.empty

@@ -5,7 +5,6 @@ package app.improving.membercontext.member;
 import "app/improving/member/api/member_api.proto";
 import "common_api.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 import "kalix/annotations.proto";
 
 message ApiMemberIds {

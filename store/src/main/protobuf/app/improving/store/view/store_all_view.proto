@@ -5,7 +5,6 @@ package app.improving.storecontext;
 
 import "app/improving/store/api/store_api.proto";
 import "app/improving/store/domain/store_context_domain.proto";
-import "common_api.proto";
 import "kalix/annotations.proto";
 
 message AllStoresRequest {}

@@ -4,7 +4,6 @@ package app.improving.gateway;
 
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/creation_gateway_domain.proto";
-import "app/improving/gateway/domain/uigateway_domain.proto";
 import "app/improving/product/view/product_all_view.proto";
 import "app/improving/order/view/order_all_view.proto";
 import "app/improving/store/view/store_all_view.proto";

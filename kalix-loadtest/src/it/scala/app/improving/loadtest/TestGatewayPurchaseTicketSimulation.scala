@@ -1,4 +1,4 @@
-package kalix.study
+package app.improving.loadtest
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
@@ -7,6 +7,7 @@ import io.circe.syntax.EncoderOps
 import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef._
+import io.gatling.http.protocol.HttpProtocolBuilder
 import org.slf4j.LoggerFactory
 
 import scala.util.Random
@@ -18,7 +19,7 @@ class TestGatewayPurchaseTicketSimulation extends Simulation {
 
   lazy val config: Config = ConfigFactory.load()
 
-  val httpProtocol = http
+  val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(
       s"https://${config.getString("app.improving.akka.grpc.gateway-client-url")}"
     ) // Here is the root for all relative URLs
@@ -64,7 +65,7 @@ class TestGatewayPurchaseTicketSimulation extends Simulation {
             throw new IllegalStateException(
               s"ScenarioResults is not returned properly - $error!!!"
             )
-          case Right(result) => {
+          case Right(result) =>
             println(
               result.storesForOrgs + " result storeIds +++++++++++++++++++++++++"
             )
@@ -115,7 +116,6 @@ class TestGatewayPurchaseTicketSimulation extends Simulation {
               "OrdersForStoresForMembers",
               s"{ ordersForStoresForMembers: ${ordersForStoresForMembers.asJson} }"
             )
-          }
         }
       })
       .exec(

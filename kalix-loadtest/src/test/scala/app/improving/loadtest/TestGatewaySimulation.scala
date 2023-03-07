@@ -1,8 +1,10 @@
-package kalix.study
+package app.improving.loadtest
 
 import com.typesafe.config.{Config, ConfigFactory}
 import io.gatling.core.Predef._
+import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
+import io.gatling.http.protocol.HttpProtocolBuilder
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.DurationInt
@@ -13,7 +15,7 @@ class TestGatewaySimulation extends Simulation {
 
   lazy val config: Config = ConfigFactory.load()
 
-  val httpProtocol = http
+  val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(
       s"https://${config.getString("app.improving.akka.grpc.gateway-client-url")}"
     ) // Here is the root for all relative URLs
@@ -26,7 +28,7 @@ class TestGatewaySimulation extends Simulation {
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:16.0) Gecko/20100101 Firefox/16.0"
     )
 
-  val scn =
+  val scn: ScenarioBuilder =
     scenario(
       "Gateway Start Scenario"
     ) // A scenario is a chain of requests and pauses

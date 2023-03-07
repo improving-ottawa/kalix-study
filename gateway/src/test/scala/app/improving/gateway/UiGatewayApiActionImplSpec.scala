@@ -33,7 +33,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.{Logger, LoggerFactory}
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContextExecutor
 
 // This class was initially generated based on the .proto definition by Kalix tooling.
@@ -346,12 +346,11 @@ class UiGatewayApiActionImplSpec
     }
 
     "handle command find member by event time correctly" in {
-      val sixtheen = LocalDateTime.of(2023, 2, 16, 8, 0, 0, 0)
+      val sixtheen = LocalDateTime.of(2023, 3, 7, 16, 0, 0, 0)
       val now = sixtheen.toInstant(ZoneOffset.UTC)
-      val timestamp = Timestamp.of(now.getEpochSecond, now.getNano)
       val result = gateWayAction
         .handleGetMembersByEventTime(
-          MembersByEventTimeRequest(Some(timestamp))
+          MembersByEventTimeRequest(now.toString)
         )
         .futureValue
 

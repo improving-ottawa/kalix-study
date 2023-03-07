@@ -238,7 +238,10 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
                     )
                 }.toSeq)
           }.toSeq)
-          .map(reqs => ApiOrderIds(reqs.flatten))
+          .map { reqs =>
+            log.info(s"handlePurchase - reqs: $reqs")
+            ApiOrderIds(reqs.flatten)
+          }
       )
   }
 }
