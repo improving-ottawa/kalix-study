@@ -77,6 +77,16 @@ service TicketByEventView {
         };
     }
 
+    rpc ProcessProductReleased(productcontext.ProductReleased) returns (TicketEventCorrTableRow) {
+        option (kalix.method).eventing.in = {
+            event_sourced_entity: "products"
+        };
+        option (kalix.method).view.update = {
+            table: "ticket_by_event_product"
+            transform_updates: true
+        };
+    }
+
     /**
      * "SELECT "
                     "* AS products "

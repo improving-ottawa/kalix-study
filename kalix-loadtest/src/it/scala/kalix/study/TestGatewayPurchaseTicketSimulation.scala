@@ -10,9 +10,8 @@ import io.gatling.http.Predef._
 import org.slf4j.LoggerFactory
 
 import scala.util.Random
+import scala.concurrent.duration.DurationInt
 
-/** Created by ronny on 08.05.17.
-  */
 class TestGatewayPurchaseTicketSimulation extends Simulation {
 
   private val log = LoggerFactory.getLogger(this.getClass)

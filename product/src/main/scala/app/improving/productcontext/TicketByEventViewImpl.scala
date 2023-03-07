@@ -67,4 +67,8 @@ class TicketByEventViewImpl(context: ViewContext)
     )
   }
 
+  override def processProductReleased(
+      state: TicketEventCorrTableRow,
+      productReleased: ProductReleased
+  ): UpdateEffect[TicketEventCorrTableRow] = effects.deleteState()
 }

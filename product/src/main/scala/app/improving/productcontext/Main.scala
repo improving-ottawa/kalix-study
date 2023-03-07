@@ -29,14 +29,14 @@ object Main {
         new TicketByEventTimeQueryView(_),
         new TicketByEventViewImpl(_)
       )
-//      .register(
-//        TicketByEventViewProvider(new TicketByEventViewImpl(_))
-//          .withViewId("TicketByEventViewV1")
-//      )
-//      .register(
-//        TicketByEventTimeQueryViewProvider(new TicketByEventTimeQueryView(_))
-//          .withViewId("TicketByEventTimeQueryViewV1")
-//      )
+      .register(
+        TicketByEventViewProvider(new TicketByEventViewImpl(_))
+          .withViewId("TicketByEventViewV1")
+      )
+      .register(
+        TicketByEventTimeQueryViewProvider(new TicketByEventTimeQueryView(_))
+          .withViewId("TicketByEventTimeQueryViewV1")
+      )
   }
 
   def main(args: Array[String]): Unit = {
