@@ -28,7 +28,7 @@ object Main {
       )
       .register(
         AllOrganizationsViewProvider(new AllOrganizationsViewImpl(_))
-          .withViewId("AllOrganizationsViewV1")
+          .withViewId("AllOrganizationsViewV2")
       )
   }
 

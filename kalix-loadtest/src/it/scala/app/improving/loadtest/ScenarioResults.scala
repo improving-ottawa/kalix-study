@@ -5,7 +5,7 @@ final case class OrganizationIds(
 )
 
 final case class ApiOrderIds(
-    orgIds: Seq[ApiOrderId] = Seq.empty
+    orderIds: Seq[ApiOrderId] = Seq.empty
 )
 
 final case class ApiOrganizationId(organizationId: String = "")

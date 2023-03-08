@@ -65,7 +65,7 @@ lazy val gateway = project
 lazy val loadtest = project
   .in(file("kalix-loadtest"))
   .enablePlugins(GatlingPlugin)
-  .configure(Kalix.dependsOn(tenant, "gateway"))
+//  .configure(Kalix.dependsOn(gateway, "gateway"))
   .configure(Kalix.loadTest("kalix-loadtest"))
 
 lazy val root = project
@@ -77,6 +77,12 @@ lazy val root = project
   )
   .aggregate(
     gateway,
+    product,
+    order,
+    store,
+    member,
+    event,
+    org,
     loadtest
   )
 //product - nulls

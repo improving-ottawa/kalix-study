@@ -124,7 +124,7 @@ class TestGatewayPurchaseTicketSimulation extends Simulation {
           .body(
             StringBody(session =>
               s"""${session("OrdersForStoresForMembers")
-                .as[String]}""".stripMargin
+                  .as[String]}""".stripMargin
             )
           )
           .asJson

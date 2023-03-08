@@ -1,6 +1,11 @@
 package app.improving.gateway
 
 import akka.actor.ActorSystem
+import app.improving.eventcontext.event.{
+  ApiEvent,
+  ApiGetEventById,
+  EventService
+}
 import app.improving.eventcontext.{
   AllEventsRequest,
   AllEventsResult,
@@ -19,7 +24,10 @@ import app.improving.membercontext.member.{
 import app.improving.ordercontext.{
   AllOrdersRequest,
   AllOrdersResult,
-  AllOrdersView
+  AllOrdersView,
+  OrderByProductQuery,
+  OrderByProductRequest,
+  OrderByProductResponse
 }
 import app.improving.{ApiMemberId, ApiOrderIds, ApiStoreId}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
@@ -33,7 +41,11 @@ import app.improving.productcontext.{
   AllProductsResult,
   AllProductsView
 }
-import app.improving.productcontext.product.ProductService
+import app.improving.productcontext.product.{
+  ApiGetProductInfo,
+  ApiProductInfoResult,
+  ProductService
+}
 import app.improving.storecontext.{
   AllStoresRequest,
   AllStoresResult,
@@ -134,6 +146,19 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
+  private val orderByProductQuery = creationContext.getGrpcClient(
+    classOf[OrderByProductQuery],
+    config.getString(
+      "app.improving.gateway.order.grpc-client-name"
+    )
+  )
+
+  val eventService: EventService = creationContext.getGrpcClient(
+    classOf[EventService],
+    config.getString(
+      "app.improving.gateway.event.grpc-client-name"
+    )
+  )
   override def handleGetAllEvents(
       allEventsRequest: AllEventsRequest
   ): Action.Effect[AllEventsResult] = {
@@ -219,7 +244,7 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
       purchaseTicketRequest: PurchaseTicketsRequest
   ): Action.Effect[ApiOrderIds] = {
 
-    log.info(s"in handlePurchaseTicket $purchaseTicketRequest")
+    log.info("in handlePurchaseTicket")
     effects
       .asyncReply(
         Future
@@ -243,5 +268,51 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
             ApiOrderIds(reqs.flatten)
           }
       )
+  }
+
+  override def handleGetProductInfoById(
+      getProductInfoById: GetProductInfoById
+  ): Action.Effect[ApiProductInfoResult] = {
+
+    log.info("in handleGetProductInfoById")
+
+    effects.asyncReply(
+      productService
+        .getProductInfo(
+          ApiGetProductInfo(
+            getProductInfoById.sku
+          )
+        )
+    )
+  }
+
+  override def handleGetEventById(
+      getEventById: GetEventById
+  ): Action.Effect[ApiEvent] = {
+
+    log.info("in handleGetEventById")
+
+    effects.asyncReply(
+      eventService.getEventById(
+        ApiGetEventById(
+          getEventById.eventId
+        )
+      )
+    )
+  }
+
+  override def handleGetOrdersByProductId(
+      getOrdersByProductId: GetOrdersByProductId
+  ): Action.Effect[OrderByProductResponse] = {
+
+    log.info("in handleGetOrdersByProductId")
+
+    effects.asyncReply(
+      orderByProductQuery.findOrdersByProducts(
+        OrderByProductRequest(
+          getOrdersByProductId.sku
+        )
+      )
+    )
   }
 }
