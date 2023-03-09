@@ -5,7 +5,6 @@ package app.improving.gateway;
 import "app/improving/event/api/event_api.proto";
 import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/creation_gateway_domain.proto";
-import "app/improving/gateway/domain/uigateway_domain.proto";
 import "app/improving/order/view/order_by_product_view.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/view/product_all_view.proto";
@@ -28,18 +27,21 @@ service UiGatewayApiAction {
     rpc HandleGetProductInfoById(GetProductInfoById) returns (productcontext.product.ApiProductInfoResult) {
         option (google.api.http) = {
             get: "/product/info/{sku}"
+            body: "*"
         };
     }
 
     rpc HandleGetEventById(GetEventById) returns (eventcontext.event.ApiEvent) {
         option (google.api.http) = {
             get: "/event/{event_id}"
+            body: "*"
         };
     }
 
     rpc HandleGetOrdersByProductId(GetOrdersByProductId) returns (ordercontext.OrderByProductResponse) {
         option (google.api.http) = {
             get: "/orders/get-orders-by-product-id"
+            body: "*"
         };
     }
 

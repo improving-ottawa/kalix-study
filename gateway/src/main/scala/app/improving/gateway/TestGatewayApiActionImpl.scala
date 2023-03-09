@@ -1,5 +1,6 @@
 package app.improving.gateway
 
+import app.improving.common.infrastructure.util.timeFuture
 import app.improving.{
   ApiContact,
   ApiEmailAddress,
@@ -8,6 +9,7 @@ import app.improving.{
   ApiLocationId,
   ApiMemberId,
   ApiMobileNumber,
+  ApiOrderId,
   ApiOrganizationId,
   ApiSku,
   ApiStoreId,
@@ -16,6 +18,7 @@ import app.improving.{
 }
 import app.improving.membercontext.member.{
   ApiInfo,
+  ApiMemberIds,
   ApiMemberMap,
   ApiMemberStatus,
   ApiNotificationPreference,
@@ -29,6 +32,7 @@ import app.improving.membercontext.member.{
   MemberService
 }
 import app.improving.eventcontext.event.{
+  ApiEvent,
   ApiEventInfo,
   ApiGetEventById,
   ApiReleaseEvent,
@@ -81,6 +85,7 @@ import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
 import org.slf4j.LoggerFactory
 
+import java.time.Instant
 import scala.collection.Seq
 import scala.language.postfixOps
 import scala.concurrent.duration.DurationInt
@@ -169,23 +174,34 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
     log.info(s"in handleStartScenario scenarioInfo - $scenarioInfo")
 
+    val timeReport: scala.collection.mutable.Map[String, Long] =
+      scala.collection.mutable.Map.empty
+
     val initialMemberId: ApiMemberId =
       Await.result(
-        memberService
-          .registerMember(genApiRegisterInitialMember())
-          .map(memberId => {
-            log.info(
-              s"handleStartScenario - initialMemberId - registerMember - $memberId"
-            )
-            memberService.updateMemberStatus(
-              ApiUpdateMemberStatus(
-                memberId.memberId,
-                Some(ApiMemberId(memberId.memberId)),
-                ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+        timeFuture[ApiMemberId](
+          "registerInitialMember",
+          memberService
+            .registerMember(genApiRegisterInitialMember())
+            .map { memberId =>
+              log.info(
+                s"handleStartScenario - initialMemberId - registerMember - $memberId"
               )
-            )
-            memberId
-          }),
+              timeFuture[Empty](
+                "updateInitialMemberStatus",
+                memberService.updateMemberStatus(
+                  ApiUpdateMemberStatus(
+                    memberId.memberId,
+                    Some(ApiMemberId(memberId.memberId)),
+                    ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                  )
+                ),
+                timeReport
+              )
+              memberId
+            },
+          timeReport
+        ),
         10 seconds
       )
 
@@ -203,20 +219,28 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
               log.info(
                 s"in handleStartScenario tenantIds - establishTenant $establishTenant"
               )
-              tenantService
-                .establishTenant(establishTenant)
-                .map { tenantId =>
-                  log.info(
-                    s"in handleStartScenario tenantIds - establishTenant - tenant_id $tenantId"
-                  )
-                  tenantService.activateTenant(
-                    ApiActivateTenant(
-                      tenantId.tenantId,
-                      Some(initialMemberId)
+              timeFuture[ApiTenantId](
+                "establishTenant",
+                tenantService
+                  .establishTenant(establishTenant)
+                  .map { tenantId =>
+                    log.info(
+                      s"in handleStartScenario tenantIds - establishTenant - tenant_id $tenantId"
                     )
-                  )
-                  tenantId
-                }
+                    timeFuture[Empty](
+                      "activateTenant",
+                      tenantService.activateTenant(
+                        ApiActivateTenant(
+                          tenantId.tenantId,
+                          Some(initialMemberId)
+                        )
+                      ),
+                      timeReport
+                    )
+                    tenantId
+                  },
+                timeReport
+              )
             })
         ),
       10 seconds
@@ -228,23 +252,30 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       Await
         .result(
           Future.sequence(tenantIds.map { tenant: ApiTenantId =>
-            memberService
-              .registerMember(
-                genApiRegisterInitialMember(forTenant = Some(tenant))
+            timeFuture[ApiMemberId](
+              "registerMember",
+              memberService
+                .registerMember(
+                  genApiRegisterInitialMember(forTenant = Some(tenant))
+                ),
+              timeReport
+            ).map(memberId => {
+              log.info(
+                s"handleStartScenario - initialMemberId - registerMember - $memberId"
               )
-              .map(memberId => {
-                log.info(
-                  s"handleStartScenario - initialMemberId - registerMember - $memberId"
-                )
+              timeFuture[Empty](
+                "updateMemberStatus",
                 memberService.updateMemberStatus(
                   ApiUpdateMemberStatus(
                     memberId.memberId,
                     Some(ApiMemberId(memberId.memberId)),
                     ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
                   )
-                )
-                (tenant, memberId)
-              })
+                ),
+                timeReport
+              )
+              (tenant, memberId)
+            })
           }),
           10 seconds
         )
@@ -261,12 +292,17 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       )
         .map(msg => {
           val orgId = Await.result(
-            organizationService.establishOrganization(msg),
+            timeFuture[ApiOrganizationId](
+              "establishOrganization",
+              organizationService.establishOrganization(msg),
+              timeReport
+            ),
             10 seconds
           )
           msg.info.foreach { info =>
             info.tenant.foreach { tenant =>
-              topOrgs = topOrgs ++ Map(tenant -> orgId)
+              if (!topOrgs.contains(tenant))
+                topOrgs = topOrgs ++ Map(tenant -> orgId)
             }
           }
           orgId -> msg
@@ -284,26 +320,30 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             .flatMap(ownersForTenant =>
               ownersForTenant._2
                 .map(owner =>
-                  memberService
-                    .updateMemberInfo(
-                      ApiUpdateMemberInfo(
-                        owner.memberId,
-                        Some(
-                          ApiUpdateInfo(
-                            None,
-                            Some(""),
-                            Some(""),
-                            Some(""),
-                            Some(""),
-                            Some(
-                              ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
-                            ),
-                            Seq(topOrgs(ownersForTenant._1)).toSeq,
-                            Some(ownersForTenant._1)
+                  timeFuture[Empty](
+                    "updateMemberInfo",
+                    memberService
+                      .updateMemberInfo(
+                        ApiUpdateMemberInfo(
+                          owner.memberId,
+                          Some(
+                            ApiUpdateInfo(
+                              None,
+                              Some(""),
+                              Some(""),
+                              Some(""),
+                              Some(""),
+                              Some(
+                                ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
+                              ),
+                              Seq(topOrgs(ownersForTenant._1)).toSeq,
+                              Some(ownersForTenant._1)
+                            )
                           )
                         )
-                      )
-                    )
+                      ),
+                    timeReport
+                  )
                 )
             )
         ),
@@ -359,16 +399,24 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 )
               }.toSeq
             ).map { case (registerMemberList, orgId) =>
-              memberAction
-                .registerMemberList(registerMemberList)
+              timeFuture[ApiMemberIds](
+                "registerMemberList",
+                memberAction
+                  .registerMemberList(registerMemberList),
+                timeReport
+              )
                 .map(memberIds =>
                   memberIds.memberIds.map(memberId => {
-                    memberService.updateMemberStatus(
-                      ApiUpdateMemberStatus(
-                        memberId.memberId,
-                        Some(ApiMemberId(memberId.memberId)),
-                        ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
-                      )
+                    timeFuture[Empty](
+                      "updateMemberStatus",
+                      memberService.updateMemberStatus(
+                        ApiUpdateMemberStatus(
+                          memberId.memberId,
+                          Some(ApiMemberId(memberId.memberId)),
+                          ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                        )
+                      ),
+                      timeReport
                     )
                     (orgId, memberId)
                   })
@@ -387,26 +435,34 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       Future
         .sequence(
           establishedOrgs.keys
-            .map(orgId => {
-              organizationService
-                .addMembersToOrganization(
-                  ApiAddMembersToOrganization(
-                    orgId = orgId.organizationId,
-                    membersToAdd = membersForOrgs(orgId).toSeq,
-                    updatingMember = Some(owners(tenantsByOrgs(orgId)).head)
+            .map { orgId =>
+              timeFuture[Empty](
+                "addMembersToOrganization",
+                organizationService
+                  .addMembersToOrganization(
+                    ApiAddMembersToOrganization(
+                      orgId = orgId.organizationId,
+                      membersToAdd = membersForOrgs(orgId).toSeq,
+                      updatingMember = Some(owners(tenantsByOrgs(orgId)).head)
+                    )
+                  ),
+                timeReport
+              )
+                .andThen(_ =>
+                  timeFuture[Empty](
+                    "updateOrganizationStatus",
+                    organizationService
+                      .updateOrganizationStatus(
+                        ApiOrganizationStatusUpdated(
+                          orgId.organizationId,
+                          ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+                          Some(initialMemberId)
+                        )
+                      ),
+                    timeReport
                   )
                 )
-                .andThen(_ =>
-                  organizationService
-                    .updateOrganizationStatus(
-                      ApiOrganizationStatusUpdated(
-                        orgId.organizationId,
-                        ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
-                        Some(initialMemberId)
-                      )
-                    )
-                )
-            })
+            }
         ),
       10 seconds
     )
@@ -421,8 +477,13 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                 .getOrElse(0): Int,
               membersForOrgs
             ).map(apiScheduleEvent => {
-              eventService
-                .scheduleEvent(apiScheduleEvent)
+
+              timeFuture[ApiEventId](
+                "scheduleEvent",
+                eventService
+                  .scheduleEvent(apiScheduleEvent),
+                timeReport
+              )
                 .map(eventId => {
                   (
                     apiScheduleEvent.info
@@ -462,9 +523,13 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                   .map(tup => tup._1 -> tup._2.map(_._2))
               ),
               eventsByOrg
-            ).map(apiCreateStore => {
-              storeService
-                .createStore(apiCreateStore)
+            ).map { apiCreateStore =>
+              timeFuture[ApiStoreId](
+                "createStore",
+                storeService
+                  .createStore(apiCreateStore),
+                timeReport
+              )
                 .map(apiStoreId => {
                   apiCreateStore.info
                     .flatMap(_.sponsoringOrg)
@@ -473,7 +538,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     ) ->
                     apiStoreId
                 })
-            })
+            }
           ),
         10 seconds
       )
@@ -506,8 +571,12 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
                     log.info(
                       s"in handleStartScenario genApiCreateProduct - apiCreateProduct $apiCreateProduct"
                     )
-                    productService
-                      .createProduct(apiCreateProduct)
+                    timeFuture[ApiSku](
+                      "createProduct",
+                      productService
+                        .createProduct(apiCreateProduct),
+                      timeReport
+                    )
                       .map { productId =>
                         apiCreateProduct.info
                           .flatMap(_.store)
@@ -534,25 +603,34 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
           val eventIds = eventsByOrg.values.toSeq.flatten
           Await.result(
             for {
-              event <- eventService.getEventById(
-                ApiGetEventById(
-                  eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
+              event <-
+                timeFuture[ApiEvent](
+                  "getEVentById",
+                  eventService.getEventById(
+                    ApiGetEventById(
+                      eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
+                    )
+                  ),
+                  timeReport
                 )
-              )
               temp <- Future
                 .sequence(result.map { case (storeId, products) =>
-                  storeService.updateStore(
-                    ApiUpdateStore(
-                      storeId.storeId,
-                      Some(
-                        ApiStoreUpdateInfo(
-                          products = products,
-                          event = Some(ApiEventId(event.eventId)),
-                          venue = Some(ApiVenueId("test-venue-id")),
-                          location = Some(ApiLocationId("test-location-id"))
+                  timeFuture[Empty](
+                    "updateStore",
+                    storeService.updateStore(
+                      ApiUpdateStore(
+                        storeId.storeId,
+                        Some(
+                          ApiStoreUpdateInfo(
+                            products = products,
+                            event = Some(ApiEventId(event.eventId)),
+                            venue = Some(ApiVenueId("test-venue-id")),
+                            location = Some(ApiLocationId("test-location-id"))
+                          )
                         )
                       )
-                    )
+                    ),
+                    timeReport
                   )
                 })
             } yield temp,
@@ -563,6 +641,11 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       }
 
     log.info(s"in handleStartScenario productsByStore - $productsByStore")
+
+    log.info(
+      s"Time Report Averages @ ${Instant.now} \n ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n" +
+        s"${timeReport.groupBy(_._1).map(tup => tup._1 -> tup._2.values.sum / tup._2.values.size)}"
+    )
 
     effects.reply(
       ScenarioResults(
@@ -589,31 +672,66 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
   override def handleEndScenario(
       endScenario: EndScenario
   ): Action.Effect[Empty] = {
+    val timeReport: scala.collection.mutable.Map[String, Long] =
+      scala.collection.mutable.Map.empty
+
     endScenario.orders.map(id =>
-      orderService.releaseOrder(ApiReleaseOrder(id.orderId))
+      timeFuture[Empty](
+        "releaseOrder",
+        orderService.releaseOrder(ApiReleaseOrder(id.orderId)),
+        timeReport
+      )
     )
     endScenario.products.map(id =>
-      productService.releaseProduct(ApiReleaseProduct(id.sku))
+      timeFuture[Empty](
+        "releaseProduct",
+        productService.releaseProduct(ApiReleaseProduct(id.sku)),
+        timeReport
+      )
     )
     endScenario.stores.map(id =>
-      storeService.releaseStore(ApiReleaseStore(id.storeId))
+      timeFuture[Empty](
+        "releaseStore",
+        storeService.releaseStore(ApiReleaseStore(id.storeId)),
+        timeReport
+      )
     )
     endScenario.events.map(id =>
-      eventService.releaseEvent(ApiReleaseEvent(id.eventId))
+      timeFuture[Empty](
+        "releaseEvent",
+        eventService.releaseEvent(ApiReleaseEvent(id.eventId)),
+        timeReport
+      )
     )
     endScenario.members.map(id =>
-      memberService.releaseMember(ApiReleaseMember(id.memberId))
+      timeFuture[Empty](
+        "releaseMember",
+        memberService.releaseMember(ApiReleaseMember(id.memberId)),
+        timeReport
+      )
     )
     endScenario.orgs.map(id =>
-      organizationService.releaseOrganization(
-        ApiReleaseOrganization(id.organizationId)
+      timeFuture[Empty](
+        "releaseOrganization",
+        organizationService.releaseOrganization(
+          ApiReleaseOrganization(id.organizationId)
+        ),
+        timeReport
+      )
+    )
+    endScenario.tenants.map(id =>
+      timeFuture[Empty](
+        "releaseTenant",
+        tenantService.releaseTenant(
+          ApiReleaseTenant(id.tenantId)
+        ),
+        timeReport
       )
     )
 
-    endScenario.tenants.map(id =>
-      tenantService.releaseTenant(
-        ApiReleaseTenant(id.tenantId)
-      )
+    log.info(
+      s"Time Report Averages @ ${Instant.now} \n ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n" +
+        s"${timeReport.groupBy(_._1).map(tup => tup._1 -> tup._2.values.sum / tup._2.values.size)}"
     )
 
     effects.reply(Empty.defaultInstance)

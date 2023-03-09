@@ -2,7 +2,21 @@ package app.improving.common.infrastructure
 
 import app.improving.{Address, ApiAddress, ApiCAPostalCode, ApiUSPostalCode}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 object util {
+  def timeFuture[T](
+      methodName: String,
+      fut: Future[T],
+      timeReport: scala.collection.mutable.Map[String, Long]
+  ): Future[T] = {
+    val start: Long = System.currentTimeMillis()
+    fut.onComplete(_ =>
+      timeReport.put(methodName, System.currentTimeMillis() - start)
+    )
+    fut
+  }
 
   def convertApiAddressToAddress(
       apiAddress: ApiAddress

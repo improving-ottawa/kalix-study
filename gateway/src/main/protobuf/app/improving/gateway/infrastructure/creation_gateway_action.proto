@@ -2,18 +2,7 @@ syntax = "proto3";
 
 package app.improving.gateway;
 
-import "app/improving/event/api/event_api.proto";
-import "app/improving/event/view/event_all_view.proto";
 import "app/improving/gateway/domain/creation_gateway_domain.proto";
-import "app/improving/member/view/member_all_view.proto";
-import "app/improving/order/view/order_all_view.proto";
-import "app/improving/order/view/order_by_product_view.proto";
-import "app/improving/organization/view/organization_all_view.proto";
-import "app/improving/product/api/product_api.proto";
-import "app/improving/product/view/product_all_view.proto";
-import "app/improving/store/view/store_all_view.proto";
-import "app/improving/tenant/view/tenant_all_view.proto";
-import "common_api.proto";
 import "kalix/annotations.proto";
 import "google/api/annotations.proto";
 

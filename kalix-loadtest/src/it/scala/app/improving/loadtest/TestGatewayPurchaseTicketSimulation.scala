@@ -6,6 +6,7 @@ import io.circe.parser
 import io.circe.syntax.EncoderOps
 import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
+import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
 import org.slf4j.LoggerFactory
@@ -130,6 +131,37 @@ class TestGatewayPurchaseTicketSimulation extends Simulation {
           .asJson
           .check(status.is(200))
           .check(bodyString.exists)
+      )
+      .exec(
+        http("end-scenario")
+          .post("/gateway/end-scenario")
+          .body(
+            StringBody { session =>
+              log.info(
+                s"""${session("EndScenarioNoOrders").as[String]} ${session(
+                    "OrdersPurchased"
+                  ).as[String]}
+                    ]} ---------------- session(EndScenarioNoOrders).as[String]"""
+              )
+              s"""|${session("EndScenarioNoOrders").as[String]}
+                |
+                    "orders":${parser.decode[ApiOrderIds](
+                   session("OrdersPurchased").as[String]
+                 ) match {
+                   case Left(error) =>
+                     throw new IllegalStateException(
+                       s"ScenarioResults is not returned properly - $error!!!"
+                     )
+                   case Right(result) => result.orderIds.asJson
+                 }}
+                |    }
+                |}""".stripMargin
+            }
+          )
+          .asJson
+          .check(status.is(200))
+          .check(bodyBytes.exists)
+          .check(bodyLength.is(2))
       )
 
   setUp(

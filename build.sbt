@@ -65,7 +65,7 @@ lazy val gateway = project
 lazy val loadtest = project
   .in(file("kalix-loadtest"))
   .enablePlugins(GatlingPlugin)
-//  .configure(Kalix.dependsOn(gateway, "gateway"))
+  .configure(Kalix.dependsOn(gateway, "gateway"))
   .configure(Kalix.loadTest("kalix-loadtest"))
 
 lazy val root = project

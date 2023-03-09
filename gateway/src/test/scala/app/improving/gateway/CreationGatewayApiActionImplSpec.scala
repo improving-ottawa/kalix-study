@@ -3,7 +3,6 @@ package app.improving.gateway
 import TestData._
 import akka.actor.ActorSystem
 import akka.grpc.GrpcClientSettings
-import app.improving.membercontext.member.ApiReleaseMember
 import app.improving.{
   ApiMemberId,
   ApiOrganizationId,
@@ -11,7 +10,6 @@ import app.improving.{
   OrganizationId
 }
 import app.improving.ordercontext.order.ApiLineItem
-import app.improving.organizationcontext.organization.ApiReleaseOrganization
 import app.improving.productcontext.product.ApiProductDetails
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
 import app.improving.tenantcontext.tenant.ApiReleaseTenant
@@ -19,7 +17,6 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.slf4j.LoggerFactory
 

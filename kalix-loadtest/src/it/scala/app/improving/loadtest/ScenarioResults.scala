@@ -38,6 +38,8 @@ final case class ScenarioResults(
 final case class OrdersForStores(
     ordersForStores: Map[String, ApiOrderInfo]
 )
+
+final case class OrderCreated(orderCreated: Option[ApiOrderId])
 final case class ApiOrderInfo(
     lineItems: Seq[ApiLineItem] = Seq.empty,
     specialInstructions: String = ""
