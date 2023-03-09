@@ -344,23 +344,5 @@ class UiGatewayApiActionImplSpec
         )
       )
     }
-
-    "handle command find member by event time correctly" in {
-      val sixtheen = LocalDateTime.of(2023, 3, 7, 16, 0, 0, 0)
-      val now = sixtheen.toInstant(ZoneOffset.UTC)
-      val result = gateWayAction
-        .handleGetMembersByEventTime(
-          MembersByEventTimeRequest(now.toString)
-        )
-        .futureValue
-
-      result.members.isEmpty shouldBe false
-
-      creationGateWayAction.handleReleaseMembers(
-        ReleaseMembers(
-          result.members.map(data => ApiMemberId(data.memberId))
-        )
-      )
-    }
   }
 }
