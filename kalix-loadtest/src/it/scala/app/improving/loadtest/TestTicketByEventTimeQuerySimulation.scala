@@ -80,7 +80,6 @@ class TestTicketByEventTimeQuerySimulation extends Simulation {
           val products = result
             .productsForStores(storeId)
             .skus
-            .take(r.nextInt(result.productsForStores(storeId).skus.size))
           log.info(
             result.productsForStores(
               storeId
