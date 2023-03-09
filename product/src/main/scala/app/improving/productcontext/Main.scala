@@ -30,12 +30,16 @@ object Main {
         new TicketByEventViewImpl(_)
       )
       .register(
+        AllProductsViewProvider(new AllProductsViewImpl(_))
+          .withViewId("AllProductsViewViewV3")
+      )
+      .register(
         TicketByEventViewProvider(new TicketByEventViewImpl(_))
-          .withViewId("TicketByEventViewV2")
+          .withViewId("TicketByEventViewV3")
       )
       .register(
         TicketByEventTimeQueryViewProvider(new TicketByEventTimeQueryView(_))
-          .withViewId("TicketByEventTimeQueryViewV2")
+          .withViewId("TicketByEventTimeQueryViewV3")
       )
   }
 

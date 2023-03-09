@@ -5,18 +5,16 @@ import io.circe.generic.auto._
 import io.circe.parser
 import io.circe.syntax.EncoderOps
 import io.gatling.core.Predef._
-import io.gatling.core.scenario.Simulation
-import io.gatling.http.Predef._
-import org.slf4j.LoggerFactory
-import io.gatling.core.body.BodySupport
 import io.gatling.core.structure.ChainBuilder
+import io.gatling.http.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
+import org.slf4j.LoggerFactory
 
-import scala.util.Random
+import java.time.{ZoneOffset, ZonedDateTime}
 import scala.concurrent.duration.DurationInt
-import java.time._
+import scala.util.Random
 
-class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
+class TestTicketByEventTimeQuerySimulation extends Simulation {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -25,10 +23,10 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
   val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(
       s"https://${config.getString("app.improving.akka.grpc.gateway-client-url")}"
-    )
+    ) // Here is the root for all relative URLs
     .acceptHeader(
       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/json"
-    )
+    ) // Here are the common headers
     .acceptEncodingHeader("gzip, deflate")
     .acceptLanguageHeader("en-US,en;q=0.5")
     .userAgentHeader(
@@ -40,17 +38,17 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
       http("create-products")
         .post("/gateway/start-scenario")
         .body(StringBody("""
-          |{
-          |   "scenario_info":{
-          |      "num_tenants":1,
-          |      "max_orgs_depth":2,
-          |      "max_orgs_width":2,
-          |      "num_members_per_org":1,
-          |      "num_events_per_org":1,
-          |      "num_tickets_per_event":1
-          |   }
-          |}
-          |""".stripMargin))
+            |{
+            |   "scenario_info":{
+            |      "num_tenants":1,
+            |      "max_orgs_depth":2,
+            |      "max_orgs_width":2,
+            |      "num_members_per_org":1,
+            |      "num_events_per_org":1,
+            |      "num_tickets_per_event":1
+            |   }
+            |}
+            |""".stripMargin))
         .asJson
         .check(status.is(200))
         .check(bodyString.exists)
@@ -82,6 +80,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
           val products = result
             .productsForStores(storeId)
             .skus
+            .take(r.nextInt(result.productsForStores(storeId).skus.size))
           log.info(
             result.productsForStores(
               storeId
@@ -95,28 +94,19 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
           log.info(
             memberIds + " memberIds +++++++++++++++++++++++++"
           )
-          val ordersForStoresForMembers = memberIds
-            .foldLeft(Map.empty[String, OrdersForStores])((accum, elem) => {
-              val ordersForStores = products
-                .foldLeft(Map.empty[String, ApiOrderInfo])((accumm, elemm) => {
-                  val stores = result.storesForOrgs.values
-                  val storeId = stores
-                    .map(_.storeIds)
-                    .flatten
-                    .toArray
-                    .apply(r.nextInt(stores.size))
-                    .storeId
-                  accumm ++ Map[String, ApiOrderInfo](
-                    storeId ->
-                      ApiOrderInfo(
-                        Seq[ApiLineItem](
-                          ApiLineItem(Some(elemm), 1)
-                        )
-                      )
+          val memberId = memberIds(r.nextInt(memberIds.size))
+          val ordersForStoresForMembers = Map(
+            memberId.memberId -> OrdersForStores(
+              products.map { productId =>
+                storeId ->
+                  ApiOrderInfo(
+                    Seq[ApiLineItem](
+                      ApiLineItem(Some(productId), 1)
+                    )
                   )
-                })
-              accum ++ Map(elem.memberId -> OrdersForStores(ordersForStores))
-            })
+              }.toMap
+            )
+          )
           log.info(
             s"{ ordersForStoresForMembers: ${ordersForStoresForMembers.asJson} }" + " ordersForStoresForMembers 000000000000000000000"
           )
@@ -124,24 +114,25 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
             .set(
               "EndScenarioNoOrders",
               s"""{
-              |   "end_scenario":{
-              |      "tenants": ${result.tenants.asJson},
-              |      "orgs": ${result.orgsForTenants.values.toSeq
+                 |   "end_scenario":{
+                 |      "tenants": ${result.tenants.asJson},
+                 |      "orgs": ${result.orgsForTenants.values.toSeq
                   .flatMap(_.orgIds)
                   .asJson},
-              |      "members": ${result.membersForOrgs.values.toSeq
+                 |      "members": ${result.membersForOrgs.values.toSeq
                   .flatMap(_.memberIds)
                   .asJson},
-              |      "events": ${result.eventsForOrgs.values.toSeq
+                 |      "events": ${result.eventsForOrgs.values.toSeq
                   .flatMap(_.eventIds)
                   .asJson},
-              |      "stores": ${result.storesForOrgs.values.toSeq
+                 |      "stores": ${result.storesForOrgs.values.toSeq
                   .flatMap(_.storeIds)
                   .asJson},
-              |      "products": ${result.productsForStores.values.toSeq
+                 |      "products": ${result.productsForStores.values.toSeq
                   .flatMap(_.skus)
                   .asJson},
-              |""".stripMargin
+                 |      "orders" : [] }
+                 |}""".stripMargin
             )
             .set(
               "OrdersForStoresForMembers",
@@ -150,32 +141,15 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
       }
     })
 
-  val PurchaseTickets: ChainBuilder = group("Purchase tickets") {
-    exec(
-      http("purchase-ticket")
-        .post("/order/purchase-ticket")
-        .body(
-          StringBody(session =>
-            s"""${session("OrdersForStoresForMembers")
-                .as[String]}""".stripMargin
-          )
-        )
-        .asJson
-        .check(status.is(200))
-        .check(bodyString.exists)
-        .check(bodyString.saveAs("OrdersPurchased"))
-    )
-  }
-
-  val QueryMemberByEventTime: ChainBuilder =
-    group("Query member by event time") {
+  val QueryProductsByEventTime: ChainBuilder =
+    group("Query products by event time") {
       exec(
-        http("query-member-by-event-time")
+        http("query-products-by-event-time")
           .get(_ => {
             val random = scala.util.Random
             val now =
               ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(random.nextInt(10))
-            s"""/member/get-members-by-event-time?given_time=${now.toString}"""
+            s"""/product/get-tickets-by-event-time?given_time=${now.toString}"""
           })
           .asJson
           .check(status.is(200))
@@ -191,24 +165,10 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
         .body(
           StringBody(session => {
             log.info(
-              s"""${session("EndScenarioNoOrders").as[String]} ${session(
-                  "OrdersPurchased"
-                ).as[String]}
+              s"""${session("EndScenarioNoOrders").as[String]}
                 ]} ---------------- session(EndScenarioNoOrders).as[String]"""
             )
-            s"""|${session("EndScenarioNoOrders").as[String]}
-                |
-                "orders":${parser.decode[ApiOrderIds](
-                 session("OrdersPurchased").as[String]
-               ) match {
-                 case Left(error) =>
-                   throw new IllegalStateException(
-                     s"ScenarioResults is not returned properly - $error!!!"
-                   )
-                 case Right(result) => result.orderIds.asJson
-               }}
-                |    }
-            |}""".stripMargin
+            s"${session("EndScenarioNoOrders").as[String]}"
           })
         )
         .asJson
@@ -218,14 +178,16 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
     )
   }
 
+  val Init: ChainBuilder = exec(GenerateProducts)
+
   private val scn =
     scenario(
       "Query MemberByDateTime Query Scenario Init"
-    ).exec(GenerateProducts, PurchaseTickets)
+    ).exec(Init)
       .repeat(1) {
         pace(10)
       }
-      .exec(exec(QueryMemberByEventTime).repeat(1) {
+      .exec(exec(QueryProductsByEventTime).repeat(1) {
         pace(10)
         pause(10)
       })
@@ -233,7 +195,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
         pace(10)
       })
 
-  private val injectionProfile = rampUsers(1).during(10 seconds)
+  private val injectionProfile = rampUsers(100).during(100 seconds)
 
   setUp(scn.inject(injectionProfile)).protocols(httpProtocol)
 }

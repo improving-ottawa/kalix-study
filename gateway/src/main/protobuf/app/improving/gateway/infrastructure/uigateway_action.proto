@@ -10,6 +10,7 @@ import "app/improving/order/view/order_by_product_view.proto";
 import "app/improving/product/api/product_api.proto";
 import "app/improving/product/view/product_all_view.proto";
 import "app/improving/order/view/order_all_view.proto";
+import "app/improving/product/view/product_view_common.proto";
 import "app/improving/store/view/store_all_view.proto";
 import "app/improving/tenant/view/tenant_all_view.proto";
 import "app/improving/organization/view/organization_all_view.proto";
@@ -38,13 +39,14 @@ service UiGatewayApiAction {
 
     rpc HandleGetOrdersByProductId(GetOrdersByProductId) returns (ordercontext.OrderByProductResponse) {
         option (google.api.http) = {
-            get: "/orders/get-orders-by-product-id/{sku}"
+            get: "/orders/get-orders-by-product-id"
         };
     }
 
     rpc HandlePurchaseTickets(PurchaseTicketsRequest) returns (ApiOrderIds) {
         option (google.api.http) = {
-            get: "/order/purchase-ticket"
+            post: "/order/purchase-ticket"
+            body: "*"
         };
     }
 
@@ -92,7 +94,14 @@ service UiGatewayApiAction {
 
     rpc HandleGetMembersByEventTime(membercontext.member.MembersByEventTimeRequest) returns (membercontext.member.MembersByEventTimeResponse) {
         option (google.api.http) = {
-            get: "/member/members-by-event-time"
+            get: "/member/get-members-by-event-time"
         };
     }
+
+    rpc HandleGetTicketByEventTime(productcontext.TicketByEventTimeRequest) returns (productcontext.TicketByEventTimeResponse) {
+        option (google.api.http) = {
+            get: "/product/get-tickets-by-event-time"
+        };
+    }
+
 }

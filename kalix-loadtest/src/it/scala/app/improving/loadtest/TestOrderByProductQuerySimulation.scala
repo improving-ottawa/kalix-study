@@ -5,18 +5,18 @@ import io.circe.generic.auto._
 import io.circe.parser
 import io.circe.syntax.EncoderOps
 import io.gatling.core.Predef._
-import io.gatling.core.scenario.Simulation
-import io.gatling.http.Predef._
-import org.slf4j.LoggerFactory
 import io.gatling.core.body.BodySupport
+import io.gatling.core.scenario.Simulation
 import io.gatling.core.structure.ChainBuilder
+import io.gatling.http.Predef._
 import io.gatling.http.protocol.HttpProtocolBuilder
+import org.slf4j.LoggerFactory
 
-import scala.util.Random
-import scala.concurrent.duration.DurationInt
 import java.time._
+import scala.concurrent.duration.DurationInt
+import scala.util.Random
 
-class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
+class TestOrderByProductQuerySimulation extends Simulation with BodySupport {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -40,17 +40,17 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
       http("create-products")
         .post("/gateway/start-scenario")
         .body(StringBody("""
-          |{
-          |   "scenario_info":{
-          |      "num_tenants":1,
-          |      "max_orgs_depth":2,
-          |      "max_orgs_width":2,
-          |      "num_members_per_org":1,
-          |      "num_events_per_org":1,
-          |      "num_tickets_per_event":1
-          |   }
-          |}
-          |""".stripMargin))
+                           |{
+                           |   "scenario_info":{
+                           |      "num_tenants":1,
+                           |      "max_orgs_depth":2,
+                           |      "max_orgs_width":2,
+                           |      "num_members_per_org":1,
+                           |      "num_events_per_org":1,
+                           |      "num_tickets_per_event":1
+                           |   }
+                           |}
+                           |""".stripMargin))
         .asJson
         .check(status.is(200))
         .check(bodyString.exists)
@@ -95,58 +95,54 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
           log.info(
             memberIds + " memberIds +++++++++++++++++++++++++"
           )
-          val ordersForStoresForMembers = memberIds
-            .foldLeft(Map.empty[String, OrdersForStores])((accum, elem) => {
-              val ordersForStores = products
-                .foldLeft(Map.empty[String, ApiOrderInfo])((accumm, elemm) => {
-                  val stores = result.storesForOrgs.values
-                  val storeId = stores
-                    .map(_.storeIds)
-                    .flatten
-                    .toArray
-                    .apply(r.nextInt(stores.size))
-                    .storeId
-                  accumm ++ Map[String, ApiOrderInfo](
-                    storeId ->
-                      ApiOrderInfo(
-                        Seq[ApiLineItem](
-                          ApiLineItem(Some(elemm), 1)
-                        )
-                      )
+          val memberId = memberIds(r.nextInt(memberIds.size))
+          val ordersForStoresForMembers = Map(
+            memberId.memberId -> OrdersForStores(
+              products.map { productId =>
+                storeId ->
+                  ApiOrderInfo(
+                    Seq[ApiLineItem](
+                      ApiLineItem(Some(productId), 1)
+                    )
                   )
-                })
-              accum ++ Map(elem.memberId -> OrdersForStores(ordersForStores))
-            })
+              }.toMap
+            )
+          )
           log.info(
-            s"{ ordersForStoresForMembers: ${ordersForStoresForMembers.asJson} }" + " ordersForStoresForMembers 000000000000000000000"
+            s"{ ordersForStoresForMembers: ${ordersForStoresForMembers.asJson} }" + " ordersForStoresForMembers +++++++++++++++++++++++++"
           )
           session
             .set(
               "EndScenarioNoOrders",
               s"""{
-              |   "end_scenario":{
-              |      "tenants": ${result.tenants.asJson},
-              |      "orgs": ${result.orgsForTenants.values.toSeq
+                 |   "end_scenario":{
+                 |      "tenants": ${result.tenants.asJson},
+                 |      "orgs": ${result.orgsForTenants.values.toSeq
                   .flatMap(_.orgIds)
                   .asJson},
-              |      "members": ${result.membersForOrgs.values.toSeq
+                 |      "members": ${result.membersForOrgs.values.toSeq
                   .flatMap(_.memberIds)
                   .asJson},
-              |      "events": ${result.eventsForOrgs.values.toSeq
+                 |      "events": ${result.eventsForOrgs.values.toSeq
                   .flatMap(_.eventIds)
                   .asJson},
-              |      "stores": ${result.storesForOrgs.values.toSeq
+                 |      "stores": ${result.storesForOrgs.values.toSeq
                   .flatMap(_.storeIds)
                   .asJson},
-              |      "products": ${result.productsForStores.values.toSeq
+                 |      "products": ${result.productsForStores.values.toSeq
                   .flatMap(_.skus)
                   .asJson},
-              |""".stripMargin
+                 |""".stripMargin
             )
             .set(
               "OrdersForStoresForMembers",
-              s"""{ "ordersForStoresForMembers": ${ordersForStoresForMembers.asJson} }"""
+              s"{ ordersForStoresForMembers: ${ordersForStoresForMembers.asJson} }"
             )
+            .set(
+              "Skus",
+              s"""{ "skus": ${products.asJson} }"""
+            )
+            .set("Skus-size", products.size)
       }
     })
 
@@ -166,22 +162,36 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
         .check(bodyString.saveAs("OrdersPurchased"))
     )
   }
+  val orderQueryRequest = http("Order By Product Request")
+    .get("/orders/get-orders-by-product-id")
+    .queryParam("sku", "#{sku}")
 
-  val QueryMemberByEventTime: ChainBuilder =
-    group("Query member by event time") {
-      exec(
-        http("query-member-by-event-time")
-          .get(_ => {
-            val random = scala.util.Random
-            val now =
-              ZonedDateTime.now(ZoneOffset.UTC).plusMinutes(random.nextInt(10))
-            s"""/member/get-members-by-event-time?given_time=${now.toString}"""
-          })
-          .asJson
-          .check(status.is(200))
-          .check(bodyString.exists)
-          .check(bodyString.saveAs("BODY"))
-      )
+  val QueryOrderByProduct: ChainBuilder =
+    group("Query order by product id") {
+      repeat(
+        session => {
+          session("Skus-size").as[Int]
+        }, {
+          "productIndex"
+        }
+      ) {
+        exec(session => {
+          val products =
+            parser.decode[Skus](session("Skus").as[String]) match {
+              case Left(error) =>
+                throw new IllegalStateException(
+                  s"Products in the session can not be parsed - $error!!!"
+                )
+              case Right(value) => value
+            }
+          val productIndex = session("productIndex").as[Int]
+          val sku = products.skus.toArray.apply(productIndex).sku
+          log.info(
+            s"sku to search for order +++++++++++++++++++++++++ " + sku
+          )
+          session.set("sku", sku)
+        }).exec(orderQueryRequest)
+      }
     }
 
   val EndScenario: ChainBuilder = group("EndScenario") {
@@ -208,7 +218,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
                  case Right(result) => result.orderIds.asJson
                }}
                 |    }
-            |}""".stripMargin
+                |}""".stripMargin
           })
         )
         .asJson
@@ -218,14 +228,16 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
     )
   }
 
+  val Init: ChainBuilder = exec(GenerateProducts, PurchaseTickets)
+
   private val scn =
     scenario(
-      "Query MemberByDateTime Query Scenario Init"
-    ).exec(GenerateProducts, PurchaseTickets)
+      "Query Order By Product Id Query Scenario Init"
+    ).exec(Init)
       .repeat(1) {
         pace(10)
       }
-      .exec(exec(QueryMemberByEventTime).repeat(1) {
+      .exec(exec(QueryOrderByProduct).repeat(1) {
         pace(10)
         pause(10)
       })

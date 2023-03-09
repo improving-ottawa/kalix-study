@@ -80,7 +80,7 @@ service AllProductsView {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "* AS products "
-                    "FROM all_products LIMIT 100 "
+                    "FROM all_products LIMIT 999 "
         };
     }
 

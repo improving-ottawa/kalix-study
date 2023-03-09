@@ -76,14 +76,14 @@ lazy val root = project
     publishTo := Some(Resolver.defaultLocal)
   )
   .aggregate(
-    gateway,
-    product,
-    order,
-    store,
-    member,
-    event,
-    org,
-    loadtest
+    gateway
+//    product,
+//    order,
+//    store,
+//    member,
+//    event,
+//    tenant
+//    org
   )
 //product - nulls
 //order - nulls

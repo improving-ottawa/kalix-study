@@ -78,7 +78,7 @@ service TicketByEventView {
         option (kalix.method).view.query = {
             query: "SELECT "
                     "ticket_by_event_product.sku, ticket_by_event_product.info, ticket_by_event_product.meta, ticket_by_event_product.status "
-                    "FROM ticket_by_event_product LIMIT 100 "
+                    "FROM ticket_by_event_product LIMIT 999 "
                     "WHERE ticket_by_event_product.event.event_id = :event_id"
         };
     }

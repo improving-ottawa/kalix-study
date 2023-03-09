@@ -32,7 +32,15 @@ object Main {
       )
       .register(
         AllMembersViewProvider(new AllMembersViewImpl(_))
-          .withViewId("AllMembersViewV1")
+          .withViewId("AllMembersViewV3")
+      )
+      .register(
+        MemberByMetaInfoViewProvider(new MemberByMetaInfoViewImpl(_))
+          .withViewId("MemberByMetaInfoViewV3")
+      )
+      .register(
+        MemberByMemberIdsQueryViewProvider(new MemberByMemberIdsQueryView(_))
+          .withViewId("MemberByMemberIdsQueryViewV3")
       )
   }
 

@@ -100,7 +100,7 @@ service AllStoresView {
 
     rpc GetAllStores(AllStoresRequest) returns (AllStoresResult) {
         option (kalix.method).view.query = {
-            query: "SELECT * AS stores FROM all_stores LIMIT 100 "
+            query: "SELECT * AS stores FROM all_stores LIMIT 999 "
         };
     }
 }

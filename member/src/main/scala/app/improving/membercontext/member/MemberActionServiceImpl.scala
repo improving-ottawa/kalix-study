@@ -46,12 +46,13 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
     )
   )
 
-  private val orderByProductView: OrderByProductQuery = creationContext.getGrpcClient(
-    classOf[OrderByProductQuery],
-    config.getString(
-      "app.improving.member.order.grpc-client-name"
+  private val orderByProductView: OrderByProductQuery =
+    creationContext.getGrpcClient(
+      classOf[OrderByProductQuery],
+      config.getString(
+        "app.improving.member.order.grpc-client-name"
+      )
     )
-  )
 
   private val ticketByEventTimeView = creationContext.getGrpcClient(
     classOf[TicketByEventTimeQuery],
@@ -136,7 +137,7 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
                   s"in MemberActionServiceImpl findMembersByEventTime productId $productId"
                 )
                 val result: Future[Seq[String]] = orderByProductView
-                  .findOrdersByProducts(
+                  .findOrdersByProduct(
                     OrderByProductRequest(
                       productId.getOrElse(ApiSku.defaultInstance).sku
                     )
@@ -145,6 +146,17 @@ class MemberActionServiceImpl(creationContext: ActionCreationContext)
                     response.orders
                       .flatMap(_.meta.flatMap(_.memberId.map(_.memberId)))
                   )
+
+                result.onComplete {
+                  case Failure(exception) =>
+                    log.info(
+                      s"in MemberActionServiceImpl orderByProductView result exception - $exception"
+                    )
+                  case Success(value) =>
+                    log.info(
+                      s"in MemberActionServiceImpl orderByProductView result value - $value"
+                    )
+                }
 
                 result
               }

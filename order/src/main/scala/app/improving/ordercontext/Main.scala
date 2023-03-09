@@ -1,6 +1,10 @@
 package app.improving.ordercontext
 
-import app.improving.ordercontext.order.{OrderAPI, OrderActionImpl, OrderEventsServiceAction}
+import app.improving.ordercontext.order.{
+  OrderAPI,
+  OrderActionImpl,
+  OrderEventsServiceAction
+}
 import kalix.scalasdk.Kalix
 import org.slf4j.LoggerFactory
 
@@ -26,10 +30,14 @@ object Main {
         new OrderByProductQueryView(_),
         new OrderEventsServiceAction(_)
       )
-//      .register(
-//        OrderByProductQueryViewProvider(new OrderByProductQueryView(_))
-//          .withViewId("OrderByProductQueryViewV3")
-//      )
+      .register(
+        AllOrdersViewProvider(new AllOrdersViewImpl(_))
+          .withViewId("AllOrdersViewV3")
+      )
+      .register(
+        OrderByProductQueryViewProvider(new OrderByProductQueryView(_))
+          .withViewId("OrderByProductQueryViewV3")
+      )
   }
 
   def main(args: Array[String]): Unit = {

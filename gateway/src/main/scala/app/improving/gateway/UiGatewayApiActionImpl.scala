@@ -39,7 +39,10 @@ import app.improving.organizationcontext.{
 import app.improving.productcontext.{
   AllProductsRequest,
   AllProductsResult,
-  AllProductsView
+  AllProductsView,
+  TicketByEventTimeQuery,
+  TicketByEventTimeRequest,
+  TicketByEventTimeResponse
 }
 import app.improving.productcontext.product.{
   ApiGetProductInfo,
@@ -157,6 +160,13 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     classOf[EventService],
     config.getString(
       "app.improving.gateway.event.grpc-client-name"
+    )
+  )
+
+  val ticketByEventTimeView = creationContext.getGrpcClient(
+    classOf[TicketByEventTimeQuery],
+    config.getString(
+      "app.improving.gateway.product.grpc-client-name"
     )
   )
   override def handleGetAllEvents(
@@ -308,11 +318,21 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetOrdersByProductId")
 
     effects.asyncReply(
-      orderByProductQuery.findOrdersByProducts(
+      orderByProductQuery.findOrdersByProduct(
         OrderByProductRequest(
           getOrdersByProductId.sku
         )
       )
+    )
+  }
+
+  override def handleGetTicketByEventTime(
+      ticketByEventTimeRequest: TicketByEventTimeRequest
+  ): Action.Effect[TicketByEventTimeResponse] = {
+    log.info("in handleGetTicketByEventTime")
+
+    effects.asyncReply(
+      ticketByEventTimeView.findProductsByEventTime(ticketByEventTimeRequest)
     )
   }
 }

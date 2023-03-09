@@ -28,7 +28,15 @@ object Main {
       )
       .register(
         AllOrganizationsViewProvider(new AllOrganizationsViewImpl(_))
-          .withViewId("AllOrganizationsViewV2")
+          .withViewId("AllOrganizationsViewV3")
+      )
+      .register(
+        OrganizationByMemberViewProvider(new OrganizationByMemberViewImpl(_))
+          .withViewId("OrganizationByMemberViewV3")
+      )
+      .register(
+        OrganizationByOwnerViewProvider(new OrganizationByOwnerViewImpl(_))
+          .withViewId("OrganizationByOwnerViewV3")
       )
   }
 
