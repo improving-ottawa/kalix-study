@@ -4,7 +4,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.parser
 import io.circe.syntax.EncoderOps
-import io.gatling.core.Predef.{pace, _}
+import io.gatling.core.Predef.{pace, pause, _}
 import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef._
 import org.slf4j.LoggerFactory
@@ -17,6 +17,8 @@ import shapeless.syntax.inject.InjectSyntax
 import scala.util.Random
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import java.time._
+import scala.collection.immutable.Map
+import scala.math.floor
 
 class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
 
@@ -37,6 +39,9 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:16.0) Gecko/20100101 Firefox/16.0"
     )
 
+  private var ordersForStores: Map[String, OrdersForStores] = Map()
+  private var endScenarioNoOrdersRequest: String = ""
+
   private val GenerateProducts = group("Create Products") {
     exec(
       http("create-products")
@@ -45,10 +50,10 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
           |{
           |   "scenario_info":{
           |      "num_tenants":1,
-          |      "max_orgs_depth":2,
+          |      "max_orgs_depth":4,
           |      "max_orgs_width":2,
-          |      "num_members_per_org":1,
-          |      "num_events_per_org":1,
+          |      "num_members_per_org":10,
+          |      "num_events_per_org":3,
           |      "num_tickets_per_event":1
           |   }
           |}
@@ -121,33 +126,27 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
           log.info(
             s"{ ordersForStoresForMembers: ${ordersForStoresForMembers.asJson} }" + " ordersForStoresForMembers 000000000000000000000"
           )
-          session
-            .set(
-              "EndScenarioNoOrders",
-              s"""{
+          ordersForStores = ordersForStoresForMembers
+          endScenarioNoOrdersRequest = s"""{
               |   "end_scenario":{
               |      "tenants": ${result.tenants.asJson},
               |      "orgs": ${result.orgsForTenants.values.toSeq
-                  .flatMap(_.orgIds)
-                  .asJson},
+                                           .flatMap(_.orgIds)
+                                           .asJson},
               |      "members": ${result.membersForOrgs.values.toSeq
-                  .flatMap(_.memberIds)
-                  .asJson},
+                                           .flatMap(_.memberIds)
+                                           .asJson},
               |      "events": ${result.eventsForOrgs.values.toSeq
-                  .flatMap(_.eventIds)
-                  .asJson},
+                                           .flatMap(_.eventIds)
+                                           .asJson},
               |      "stores": ${result.storesForOrgs.values.toSeq
-                  .flatMap(_.storeIds)
-                  .asJson},
+                                           .flatMap(_.storeIds)
+                                           .asJson},
               |      "products": ${result.productsForStores.values.toSeq
-                  .flatMap(_.skus)
-                  .asJson},
+                                           .flatMap(_.skus)
+                                           .asJson},
               |""".stripMargin
-            )
-            .set(
-              "OrdersForStoresForMembers",
-              s"""{ "ordersForStoresForMembers": ${ordersForStoresForMembers.asJson} }"""
-            )
+          session
       }
     })
 
@@ -156,10 +155,14 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
       http("purchase-ticket")
         .post("/order/purchase-ticket")
         .body(
-          StringBody(session =>
-            s"""${session("OrdersForStoresForMembers")
-                .as[String]}""".stripMargin
-          )
+          StringBody { _ =>
+            val r = scala.util.Random
+            s"""{ ordersForStoresForMembers: ${ordersForStores(
+                ordersForStores.keys.toSeq(
+                  r.nextInt(ordersForStores.keys.size)
+                )
+              ).asJson} }""".stripMargin
+          }
         )
         .asJson
         .check(status.is(200))
@@ -168,7 +171,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
     )
   }
 
-  var orders: Seq[ApiOrderId] = Seq()
+  private var orders: Seq[ApiOrderId] = Seq()
 
   val QueryMemberByEventTime: ChainBuilder =
     group("Query member by event time") {
@@ -219,9 +222,9 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
       http("end-scenario")
         .post("/gateway/end-scenario")
         .body(
-          StringBody { session =>
+          StringBody { _ =>
             log.info(orders.asJson.toString)
-            s"""|${session("EndScenarioNoOrders").as[String]}
+            s"""|$endScenarioNoOrdersRequest
             |   "orders": ${orders.asJson}
             |   }
             |}""".stripMargin
@@ -241,25 +244,25 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
     "Query MemberByDateTime Query Scenario Init"
   ).repeat(repeat) {
     exec(PurchaseTickets)
-      .exec(exec(QueryMemberByEventTime).repeat(1) {
-        pause(myPause)
-      })
+      .exec(exec(QueryMemberByEventTime))
+      .pause(myPause)
   }
 
-  private val scn = exec(getScn(8, 5 seconds))
-    .exec(getScn(2, 4 seconds))
-    .exec(getScn(3, 3 seconds))
-    .exec(getScn(5, 2 seconds))
-    .exec(getScn(10, 1 seconds))
-    .exec(exec(EndScenario))
+  private val scn = exec(getScn(100, 5 seconds))
+    .exec(getScn(50, 4 seconds))
+    .exec(getScn(70, 3 seconds))
+    .exec(getScn(120, 2 seconds))
+    .exec(getScn(150, 1 seconds))
 
   private val initialInjectionProfile = rampUsers(1).during(10 seconds)
 
-  private val injectionProfile = incrementUsersPerSec(1)
-    .times(5)
-    .eachLevelLasting(1 seconds)
-    .separatedByRampsLasting(11 seconds)
-    .startingFrom(1)
+  private val injectionProfile =
+    (constantUsersPerSec(1) during (5 seconds)) :: (2 to 10).toList.flatMap(i =>
+      List(
+        nothingFor(150 seconds),
+        rampUsers(i) during (floor(i / 2).toInt seconds)
+      )
+    )
 
   setUp(
     scenario(
