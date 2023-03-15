@@ -6,6 +6,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object util {
+  private val useGrpc: Boolean = false
+
+  def useGrpcResultOrGenerate[T](grpcResult: () => T, generate: () => T): T =
+    if (useGrpc) grpcResult() else generate()
+
   def timeFuture[T](
       methodName: String,
       fut: Future[T],

@@ -49,7 +49,8 @@ object Dependencies {
     "org.scala-lang.modules" %% "scala-xml" % scalaxml,
     // "io.scalaland" %% "chimney" % chimney,
     "com.github.pureconfig" %% "pureconfig" % pureconfig,
-    "org.scalacheck" %% "scalacheck" % scalacheck
+    "org.scalacheck" %% "scalacheck" % scalacheck,
+    "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
     // "dev.optics" %% "monocle-core" % monocle,
     // "dev.optics" %% "monocle-macro" % monocle,
     // noinspection SbtDependencyVersionInspection

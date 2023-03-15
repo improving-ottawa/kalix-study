@@ -1,6 +1,9 @@
 package app.improving.gateway
 
-import app.improving.common.infrastructure.util.timeFuture
+import app.improving.common.infrastructure.util.{
+  timeFuture,
+  useGrpcResultOrGenerate
+}
 import app.improving.{
   ApiContact,
   ApiEmailAddress,
@@ -177,33 +180,36 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
     val timeReport: scala.collection.mutable.Map[String, Long] =
       scala.collection.mutable.Map.empty
 
-    val initialMemberId: ApiMemberId =
-      Await.result(
-        timeFuture[ApiMemberId](
-          "registerInitialMember",
-          memberService
-            .registerMember(genApiRegisterInitialMember())
-            .map { memberId =>
-              log.info(
-                s"handleStartScenario - initialMemberId - registerMember - $memberId"
-              )
-              timeFuture[Empty](
-                "updateInitialMemberStatus",
-                memberService.updateMemberStatus(
-                  ApiUpdateMemberStatus(
-                    memberId.memberId,
-                    Some(ApiMemberId(memberId.memberId)),
-                    ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
-                  )
-                ),
-                timeReport
-              )
-              memberId
-            },
-          timeReport
+    val initialMemberId: ApiMemberId = useGrpcResultOrGenerate[ApiMemberId](
+      () =>
+        Await.result(
+          timeFuture[ApiMemberId](
+            "registerInitialMember",
+            memberService
+              .registerMember(genApiRegisterInitialMember())
+              .map { memberId =>
+                log.info(
+                  s"handleStartScenario - initialMemberId - registerMember - $memberId"
+                )
+                timeFuture[Empty](
+                  "updateInitialMemberStatus",
+                  memberService.updateMemberStatus(
+                    ApiUpdateMemberStatus(
+                      memberId.memberId,
+                      Some(ApiMemberId(memberId.memberId)),
+                      ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                    )
+                  ),
+                  timeReport
+                )
+                memberId
+              },
+            timeReport
+          ),
+          10 seconds
         ),
-        10 seconds
-      )
+      () => ApiMemberId(genApiRegisterInitialMember().memberId)
+    )
 
     log.info(s"in handleStartScenario initialMemberId - $initialMemberId")
 
@@ -211,143 +217,212 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       s"in handleStartScenario numOfTenants - ${startScenario.scenarioInfo.map(_.numTenants).getOrElse(0)}"
     )
 
-    val tenantIds: Seq[ApiTenantId] = Await.result(
-      Future
-        .sequence(
-          genApiEstablishTenants(scenarioInfo.numTenants)
-            .map(establishTenant => {
-              log.info(
-                s"in handleStartScenario tenantIds - establishTenant $establishTenant"
-              )
-              timeFuture[ApiTenantId](
-                "establishTenant",
-                tenantService
-                  .establishTenant(establishTenant)
-                  .map { tenantId =>
-                    log.info(
-                      s"in handleStartScenario tenantIds - establishTenant - tenant_id $tenantId"
-                    )
-                    timeFuture[Empty](
-                      "activateTenant",
-                      tenantService.activateTenant(
-                        ApiActivateTenant(
-                          tenantId.tenantId,
-                          Some(initialMemberId)
+    val tenantIds: Seq[ApiTenantId] = useGrpcResultOrGenerate[Seq[ApiTenantId]](
+      () =>
+        Await.result(
+          Future
+            .sequence(
+              genApiEstablishTenants(scenarioInfo.numTenants)
+                .map(establishTenant => {
+                  log.info(
+                    s"in handleStartScenario tenantIds - establishTenant $establishTenant"
+                  )
+                  timeFuture[ApiTenantId](
+                    "establishTenant",
+                    tenantService
+                      .establishTenant(establishTenant)
+                      .map { tenantId =>
+                        log.info(
+                          s"in handleStartScenario tenantIds - establishTenant - tenant_id $tenantId"
                         )
-                      ),
-                      timeReport
-                    )
-                    tenantId
-                  },
-                timeReport
-              )
-            })
+                        timeFuture[Empty](
+                          "activateTenant",
+                          tenantService.activateTenant(
+                            ApiActivateTenant(
+                              tenantId.tenantId,
+                              Some(initialMemberId)
+                            )
+                          ),
+                          timeReport
+                        )
+                        tenantId
+                      },
+                    timeReport
+                  )
+                })
+            ),
+          10 seconds
         ),
-      10 seconds
+      () =>
+        genApiEstablishTenants(scenarioInfo.numTenants)
+          .map(establish => ApiTenantId(establish.tenantId))
     )
 
     log.info(s"in handleStartScenario tenantIds - $tenantIds")
 
     val owners: Map[ApiTenantId, Set[ApiMemberId]] =
-      Await
-        .result(
-          Future.sequence(tenantIds.map { tenant: ApiTenantId =>
-            timeFuture[ApiMemberId](
-              "registerMember",
-              memberService
-                .registerMember(
-                  genApiRegisterInitialMember(forTenant = Some(tenant))
-                ),
-              timeReport
-            ).map(memberId => {
-              log.info(
-                s"handleStartScenario - initialMemberId - registerMember - $memberId"
-              )
-              timeFuture[Empty](
-                "updateMemberStatus",
-                memberService.updateMemberStatus(
-                  ApiUpdateMemberStatus(
-                    memberId.memberId,
-                    Some(ApiMemberId(memberId.memberId)),
-                    ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+      useGrpcResultOrGenerate[Map[ApiTenantId, Set[ApiMemberId]]](
+        () =>
+          Await
+            .result(
+              Future.sequence(tenantIds.map { tenant: ApiTenantId =>
+                timeFuture[ApiMemberId](
+                  "registerMember",
+                  memberService
+                    .registerMember(
+                      genApiRegisterInitialMember(forTenant = Some(tenant))
+                    ),
+                  timeReport
+                ).map(memberId => {
+                  log.info(
+                    s"handleStartScenario - initialMemberId - registerMember - $memberId"
                   )
-                ),
-                timeReport
-              )
-              (tenant, memberId)
-            })
-          }),
-          10 seconds
-        )
-        .groupBy(_._1)
-        .map(tuple => tuple._1 -> tuple._2.map(_._2).toSet)
+                  timeFuture[Empty](
+                    "updateMemberStatus",
+                    memberService.updateMemberStatus(
+                      ApiUpdateMemberStatus(
+                        memberId.memberId,
+                        Some(ApiMemberId(memberId.memberId)),
+                        ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                      )
+                    ),
+                    timeReport
+                  )
+                  (tenant, memberId)
+                })
+              }),
+              10 seconds
+            )
+            .groupBy(_._1)
+            .map(tuple => tuple._1 -> tuple._2.map(_._2).toSet),
+        () =>
+          tenantIds
+            .map(tenant =>
+              tenant ->
+                Set(
+                  ApiMemberId(
+                    genApiRegisterInitialMember(forTenant =
+                      Some(tenant)
+                    ).memberId
+                  )
+                )
+            )
+            .toMap
+      )
 
     var topOrgs: Map[ApiTenantId, ApiOrganizationId] = Map.empty
 
     val establishedOrgs: Map[ApiOrganizationId, ApiEstablishOrganization] =
-      genApiEstablishOrgs(
-        scenarioInfo.maxOrgsDepth,
-        scenarioInfo.maxOrgsWidth,
-        owners
-      )
-        .map(msg => {
-          val orgId = Await.result(
-            timeFuture[ApiOrganizationId](
-              "establishOrganization",
-              organizationService.establishOrganization(msg),
-              timeReport
-            ),
-            10 seconds
+      useGrpcResultOrGenerate[Map[ApiOrganizationId, ApiEstablishOrganization]](
+        () =>
+          genApiEstablishOrgs(
+            scenarioInfo.maxOrgsDepth,
+            scenarioInfo.maxOrgsWidth,
+            owners
           )
-          msg.info.foreach { info =>
-            info.tenant.foreach { tenant =>
-              if (!topOrgs.contains(tenant))
-                topOrgs = topOrgs ++ Map(tenant -> orgId)
+            .map(msg => {
+              val orgId = Await.result(
+                timeFuture[ApiOrganizationId](
+                  "establishOrganization",
+                  organizationService.establishOrganization(msg),
+                  timeReport
+                ),
+                10 seconds
+              )
+              msg.info.foreach { info =>
+                info.tenant.foreach { tenant =>
+                  if (!topOrgs.contains(tenant))
+                    topOrgs = topOrgs ++ Map(tenant -> orgId)
+                }
+              }
+              orgId -> msg
+            })
+            .toMap,
+        () =>
+          genApiEstablishOrgs(
+            scenarioInfo.maxOrgsDepth,
+            scenarioInfo.maxOrgsWidth,
+            owners
+          ).map { establish =>
+            establish.info.foreach { info =>
+              info.tenant.foreach { tenant =>
+                if (!topOrgs.contains(tenant))
+                  topOrgs =
+                    topOrgs ++ Map(tenant -> ApiOrganizationId(establish.orgId))
+              }
             }
-          }
-          orgId -> msg
-        })
-        .toMap
+            ApiOrganizationId(establish.orgId) -> establish
+          }.toMap
+      )
 
     log.info(
       s"in handleStartScenario establishedOrgs total orgs - ${establishedOrgs.size} - ${establishedOrgs.keys}"
     )
 
-    Await.result(
-      Future
-        .sequence(
-          owners
-            .flatMap(ownersForTenant =>
-              ownersForTenant._2
-                .map(owner =>
-                  timeFuture[Empty](
-                    "updateMemberInfo",
-                    memberService
-                      .updateMemberInfo(
-                        ApiUpdateMemberInfo(
-                          owner.memberId,
-                          Some(
-                            ApiUpdateInfo(
-                              None,
-                              Some(""),
-                              Some(""),
-                              Some(""),
-                              Some(""),
+    useGrpcResultOrGenerate[Iterable[Empty]](
+      () =>
+        Await.result(
+          Future
+            .sequence(
+              owners
+                .flatMap(ownersForTenant =>
+                  ownersForTenant._2
+                    .map(owner =>
+                      timeFuture[Empty](
+                        "updateMemberInfo",
+                        memberService
+                          .updateMemberInfo(
+                            ApiUpdateMemberInfo(
+                              owner.memberId,
                               Some(
-                                ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
-                              ),
-                              Seq(topOrgs(ownersForTenant._1)).toSeq,
-                              Some(ownersForTenant._1)
+                                ApiUpdateInfo(
+                                  None,
+                                  Some(""),
+                                  Some(""),
+                                  Some(""),
+                                  Some(""),
+                                  Some(
+                                    ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
+                                  ),
+                                  Seq(topOrgs(ownersForTenant._1)).toSeq,
+                                  Some(ownersForTenant._1)
+                                )
+                              )
                             )
-                          )
-                        )
+                          ),
+                        timeReport
+                      )
+                    )
+                )
+            ),
+          10 seconds
+        ),
+      () => {
+        owners
+          .flatMap(ownersForTenant =>
+            ownersForTenant._2
+              .map(owner =>
+                ApiUpdateMemberInfo(
+                  owner.memberId,
+                  Some(
+                    ApiUpdateInfo(
+                      None,
+                      Some(""),
+                      Some(""),
+                      Some(""),
+                      Some(""),
+                      Some(
+                        ApiNotificationPreference.API_NOTIFICATION_PREFERENCE_EMAIL
                       ),
-                    timeReport
+                      Seq(topOrgs(ownersForTenant._1)).toSeq,
+                      Some(ownersForTenant._1)
+                    )
                   )
                 )
-            )
-        ),
-      10 seconds
+              )
+          )
+          .map(_ => Empty.defaultInstance)
+      }
     )
 
     log.info(
@@ -379,172 +454,256 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
       .flatten
       .toMap
 
-    val membersForOrgs: Map[ApiOrganizationId, Set[ApiMemberId]] = Await
-      .result(
-        Future
-          .sequence(
-            genApiRegisterMemberLists(
-              scenarioInfo.numMembersPerOrg,
-              orgsByTenant.flatMap { case (tenantId, orgIds) =>
-                orgIds.map(orgId =>
-                  (
-                    orgId,
-                    initialMemberId,
-                    tenantId,
-                    establishedOrgs
-                      .find(_._1 == orgId)
-                      .flatMap(_._2.info.map(_.name))
-                      .getOrElse(r.nextString(10))
-                  )
-                )
-              }.toSeq
-            ).map { case (registerMemberList, orgId) =>
-              timeFuture[ApiMemberIds](
-                "registerMemberList",
-                memberAction
-                  .registerMemberList(registerMemberList),
-                timeReport
-              )
-                .map(memberIds =>
-                  memberIds.memberIds.map(memberId => {
-                    timeFuture[Empty](
-                      "updateMemberStatus",
-                      memberService.updateMemberStatus(
-                        ApiUpdateMemberStatus(
-                          memberId.memberId,
-                          Some(ApiMemberId(memberId.memberId)),
-                          ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+    val membersForOrgs: Map[ApiOrganizationId, Set[ApiMemberId]] =
+      useGrpcResultOrGenerate[Map[ApiOrganizationId, Set[ApiMemberId]]](
+        () =>
+          Await
+            .result(
+              Future
+                .sequence(
+                  genApiRegisterMemberLists(
+                    scenarioInfo.numMembersPerOrg,
+                    orgsByTenant.flatMap { case (tenantId, orgIds) =>
+                      orgIds.map(orgId =>
+                        (
+                          orgId,
+                          initialMemberId,
+                          tenantId,
+                          establishedOrgs
+                            .find(_._1 == orgId)
+                            .flatMap(_._2.info.map(_.name))
+                            .getOrElse(r.nextString(10))
                         )
-                      ),
+                      )
+                    }.toSeq
+                  ).map { case (registerMemberList, orgId) =>
+                    timeFuture[ApiMemberIds](
+                      "registerMemberList",
+                      memberAction
+                        .registerMemberList(registerMemberList),
                       timeReport
                     )
-                    (orgId, memberId)
-                  })
+                      .map(memberIds =>
+                        memberIds.memberIds.map(memberId => {
+                          timeFuture[Empty](
+                            "updateMemberStatus",
+                            memberService.updateMemberStatus(
+                              ApiUpdateMemberStatus(
+                                memberId.memberId,
+                                Some(ApiMemberId(memberId.memberId)),
+                                ApiMemberStatus.API_MEMBER_STATUS_ACTIVE
+                              )
+                            ),
+                            timeReport
+                          )
+                          (orgId, memberId)
+                        })
+                      )
+                  }
                 )
-            }
-          )
-          .map(_.flatten),
-        10 seconds
+                .map(_.flatten),
+              10 seconds
+            )
+            .groupBy(_._1)
+            .map(tup => tup._1 -> tup._2.map(_._2).toSet),
+        () =>
+          genApiRegisterMemberLists(
+            scenarioInfo.numMembersPerOrg,
+            orgsByTenant.flatMap { case (tenantId, orgIds) =>
+              orgIds.map(orgId =>
+                (
+                  orgId,
+                  initialMemberId,
+                  tenantId,
+                  establishedOrgs
+                    .find(_._1 == orgId)
+                    .flatMap(_._2.info.map(_.name))
+                    .getOrElse(r.nextString(10))
+                )
+              )
+            }.toSeq
+          ).map { case (registerMemberList, orgId) =>
+            orgId -> registerMemberList.memberList.toList
+              .flatMap(_.map.map(tup => ApiMemberId(tup._1)))
+              .toSet
+
+          }.toMap
       )
-      .groupBy(_._1)
-      .map(tup => tup._1 -> tup._2.map(_._2).toSet)
 
     log.info(s"in handleStartScenario membersForOrgs - $membersForOrgs")
 
-    Await.result(
-      Future
-        .sequence(
-          establishedOrgs.keys
-            .map { orgId =>
-              timeFuture[Empty](
-                "addMembersToOrganization",
-                organizationService
-                  .addMembersToOrganization(
-                    ApiAddMembersToOrganization(
-                      orgId = orgId.organizationId,
-                      membersToAdd = membersForOrgs(orgId).toSeq,
-                      updatingMember = Some(owners(tenantsByOrgs(orgId)).head)
-                    )
-                  ),
-                timeReport
-              )
-                .andThen(_ =>
+    useGrpcResultOrGenerate[Iterable[Empty]](
+      () =>
+        Await.result(
+          Future
+            .sequence(
+              establishedOrgs.keys
+                .map { orgId =>
                   timeFuture[Empty](
-                    "updateOrganizationStatus",
+                    "addMembersToOrganization",
                     organizationService
-                      .updateOrganizationStatus(
-                        ApiOrganizationStatusUpdated(
-                          orgId.organizationId,
-                          ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
-                          Some(initialMemberId)
+                      .addMembersToOrganization(
+                        ApiAddMembersToOrganization(
+                          orgId = orgId.organizationId,
+                          membersToAdd = membersForOrgs(orgId).toSeq,
+                          updatingMember =
+                            Some(owners(tenantsByOrgs(orgId)).head)
                         )
                       ),
                     timeReport
                   )
-                )
-            }
+                    .andThen(_ =>
+                      timeFuture[Empty](
+                        "updateOrganizationStatus",
+                        organizationService
+                          .updateOrganizationStatus(
+                            ApiOrganizationStatusUpdated(
+                              orgId.organizationId,
+                              ApiOrganizationStatus.API_ORGANIZATION_STATUS_ACTIVE,
+                              Some(initialMemberId)
+                            )
+                          ),
+                        timeReport
+                      )
+                    )
+                }
+            ),
+          10 seconds
         ),
-      10 seconds
+      () => establishedOrgs.keys.map(_ => Empty.defaultInstance)
     )
 
-    val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] = Await
-      .result(
-        Future
-          .sequence(
-            genApiScheduleEvents(
-              startScenario.scenarioInfo
-                .map(_.numEventsPerOrg)
-                .getOrElse(0): Int,
-              membersForOrgs
-            ).map(apiScheduleEvent => {
-
-              timeFuture[ApiEventId](
-                "scheduleEvent",
-                eventService
-                  .scheduleEvent(apiScheduleEvent),
-                timeReport
-              )
-                .map(eventId => {
-                  (
-                    apiScheduleEvent.info
-                      .flatMap(_.sponsoringOrg)
-                      .getOrElse(
-                        ApiOrganizationId.defaultInstance
-                      ),
-                    eventId
-                  )
-                })
-            })
-          ),
-        10 seconds
+    val eventsByOrg: Map[ApiOrganizationId, Set[ApiEventId]] =
+      useGrpcResultOrGenerate[Map[ApiOrganizationId, Set[ApiEventId]]](
+        () =>
+          Await
+            .result(
+              Future
+                .sequence(
+                  genApiScheduleEvents(
+                    startScenario.scenarioInfo
+                      .map(_.numEventsPerOrg)
+                      .getOrElse(0): Int,
+                    membersForOrgs
+                  ).map(apiScheduleEvent => {
+                    timeFuture[ApiEventId](
+                      "scheduleEvent",
+                      eventService
+                        .scheduleEvent(apiScheduleEvent),
+                      timeReport
+                    )
+                      .map(eventId => {
+                        (
+                          apiScheduleEvent.info
+                            .flatMap(_.sponsoringOrg)
+                            .getOrElse(
+                              ApiOrganizationId.defaultInstance
+                            ),
+                          eventId
+                        )
+                      })
+                  })
+                ),
+              10 seconds
+            )
+            .groupBy { orgAndEvents: (ApiOrganizationId, ApiEventId) =>
+              orgAndEvents._1
+            }
+            .map {
+              case (
+                    orgId: ApiOrganizationId,
+                    seq: Seq[(ApiOrganizationId, ApiEventId)]
+                  ) =>
+                orgId -> seq.map(_._2).toSet
+            },
+        () =>
+          genApiScheduleEvents(
+            startScenario.scenarioInfo
+              .map(_.numEventsPerOrg)
+              .getOrElse(0): Int,
+            membersForOrgs
+          ).map(schedule =>
+            (
+              schedule.info
+                .flatMap(_.sponsoringOrg)
+                .getOrElse(
+                  ApiOrganizationId.defaultInstance
+                ),
+              ApiEventId(UUID.randomUUID().toString)
+            )
+          ).groupBy { orgAndEvents: (ApiOrganizationId, ApiEventId) =>
+            orgAndEvents._1
+          }.map {
+            case (
+                  orgId: ApiOrganizationId,
+                  seq: Seq[(ApiOrganizationId, ApiEventId)]
+                ) =>
+              orgId -> seq.map(_._2).toSet
+          }
       )
-      .groupBy { orgAndEvents: (ApiOrganizationId, ApiEventId) =>
-        orgAndEvents._1
-      }
-      .map {
-        case (
-              orgId: ApiOrganizationId,
-              seq: Seq[(ApiOrganizationId, ApiEventId)]
-            ) =>
-          orgId -> seq.map(_._2).toSet
-      }
 
     log.info(s"in handleStartScenario eventsByOrg - $eventsByOrg")
 
-    val storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]] = Await
-      .result(
-        Future
-          .sequence(
-            genApiCreateStores(
-              owners.flatMap(owner =>
-                owner._2
-                  .map(memberId => orgsByTenant(owner._1).head -> memberId)
-                  .groupBy(_._1)
-                  .map(tup => tup._1 -> tup._2.map(_._2))
-              ),
-              eventsByOrg
-            ).map { apiCreateStore =>
-              timeFuture[ApiStoreId](
-                "createStore",
-                storeService
-                  .createStore(apiCreateStore),
-                timeReport
-              )
-                .map(apiStoreId => {
-                  apiCreateStore.info
-                    .flatMap(_.sponsoringOrg)
-                    .getOrElse(
-                      ApiOrganizationId.defaultInstance
-                    ) ->
-                    apiStoreId
-                })
-            }
-          ),
-        10 seconds
-      )
-      .groupBy(_._1)
-      .map(orgWithStores =>
-        orgWithStores._1 -> orgWithStores._2.map(_._2).toSet
+    val storesByOrg: Map[ApiOrganizationId, Set[ApiStoreId]] =
+      useGrpcResultOrGenerate[Map[ApiOrganizationId, Set[ApiStoreId]]](
+        () =>
+          Await
+            .result(
+              Future
+                .sequence(
+                  genApiCreateStores(
+                    owners.flatMap(owner =>
+                      owner._2
+                        .map(memberId =>
+                          orgsByTenant(owner._1).head -> memberId
+                        )
+                        .groupBy(_._1)
+                        .map(tup => tup._1 -> tup._2.map(_._2))
+                    ),
+                    eventsByOrg
+                  ).map { apiCreateStore =>
+                    timeFuture[ApiStoreId](
+                      "createStore",
+                      storeService
+                        .createStore(apiCreateStore),
+                      timeReport
+                    )
+                      .map(apiStoreId => {
+                        apiCreateStore.info
+                          .flatMap(_.sponsoringOrg)
+                          .getOrElse(
+                            ApiOrganizationId.defaultInstance
+                          ) ->
+                          apiStoreId
+                      })
+                  }
+                ),
+              10 seconds
+            )
+            .groupBy(_._1)
+            .map(orgWithStores =>
+              orgWithStores._1 -> orgWithStores._2.map(_._2).toSet
+            ),
+        () =>
+          genApiCreateStores(
+            owners.flatMap(owner =>
+              owner._2
+                .map(memberId => orgsByTenant(owner._1).head -> memberId)
+                .groupBy(_._1)
+                .map(tup => tup._1 -> tup._2.map(_._2))
+            ),
+            eventsByOrg
+          ).map(create => {
+            create.info
+              .flatMap(_.sponsoringOrg)
+              .getOrElse(
+                ApiOrganizationId.defaultInstance
+              ) ->
+              ApiStoreId(UUID.randomUUID().toString)
+          }).groupBy(_._1)
+            .map(orgWithStores =>
+              orgWithStores._1 -> orgWithStores._2.map(_._2).toSet
+            )
       )
 
     log.info(s"in handleStartScenario storesByOrg - $storesByOrg")
@@ -563,80 +722,121 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
             s"in handleStartScenario genApiCreateProduct - apiCreateProducts $productsMap"
           )
 
-          val result = Await
-            .result(
-              Future
-                .sequence(
-                  apiCreateProducts.map { apiCreateProduct =>
-                    log.info(
-                      s"in handleStartScenario genApiCreateProduct - apiCreateProduct $apiCreateProduct"
-                    )
-                    timeFuture[ApiSku](
-                      "createProduct",
-                      productService
-                        .createProduct(apiCreateProduct),
-                      timeReport
-                    )
-                      .map { productId =>
-                        apiCreateProduct.info
-                          .flatMap(_.store)
-                          .getOrElse(
-                            ApiStoreId.defaultInstance
-                          ) -> productId
+          val result = useGrpcResultOrGenerate[Map[ApiStoreId, Seq[ApiSku]]](
+            () =>
+              Await
+                .result(
+                  Future
+                    .sequence(
+                      apiCreateProducts.map { apiCreateProduct =>
+                        log.info(
+                          s"in handleStartScenario genApiCreateProduct - apiCreateProduct $apiCreateProduct"
+                        )
+                        timeFuture[ApiSku](
+                          "createProduct",
+                          productService
+                            .createProduct(apiCreateProduct),
+                          timeReport
+                        )
+                          .map { productId =>
+                            apiCreateProduct.info
+                              .flatMap(_.store)
+                              .getOrElse(
+                                ApiStoreId.defaultInstance
+                              ) -> productId
+                          }
                       }
-                  }
-                ),
-              10 seconds
-            )
-            .groupBy(_._1)
-            .map { case (storeId, set) =>
-              log.info(
-                s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
-              )
-              storeId -> set.map(_._2).toSeq
-            }
+                    ),
+                  10 seconds
+                )
+                .groupBy(_._1)
+                .map { case (storeId, set) =>
+                  log.info(
+                    s"in handleStartScenario - apiCreateProduct storeId $storeId set $set"
+                  )
+                  storeId -> set.map(_._2).toSeq
+                },
+            () =>
+              apiCreateProducts
+                .map { create =>
+                  create.info
+                    .flatMap(_.store)
+                    .getOrElse(
+                      ApiStoreId.defaultInstance
+                    ) -> ApiSku(UUID.randomUUID().toString)
+                }
+                .groupBy(_._1)
+                .map { case (storeId, set) =>
+                  storeId -> set.map(_._2).toSeq
+                }
+          )
 
           log.info(
             s"in handleStartScenario genApiCreateProduct - result $result"
           )
 
           val eventIds = eventsByOrg.values.toSeq.flatten
-          Await.result(
-            for {
-              event <-
-                timeFuture[ApiEvent](
-                  "getEVentById",
-                  eventService.getEventById(
-                    ApiGetEventById(
-                      eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
-                    )
-                  ),
-                  timeReport
-                )
-              temp <- Future
-                .sequence(result.map { case (storeId, products) =>
-                  timeFuture[Empty](
-                    "updateStore",
-                    storeService.updateStore(
-                      ApiUpdateStore(
-                        storeId.storeId,
-                        Some(
-                          ApiStoreUpdateInfo(
-                            products = products,
-                            event = Some(ApiEventId(event.eventId)),
-                            venue = Some(ApiVenueId("test-venue-id")),
-                            location = Some(ApiLocationId("test-location-id"))
-                          )
-                        )
-                      )
-                    ),
-                    timeReport
-                  )
-                })
-            } yield temp,
-            10 seconds
-          )
 
+          useGrpcResultOrGenerate[Iterable[Empty]](
+            () =>
+              Await.result(
+                for {
+                  event <-
+                    timeFuture[ApiEvent](
+                      "getEVentById",
+                      eventService.getEventById(
+                        ApiGetEventById(
+                          eventIds.toArray
+                            .apply(r.nextInt(eventIds.size))
+                            .eventId
+                        )
+                      ),
+                      timeReport
+                    )
+                  temp <- Future
+                    .sequence(result.map { case (storeId, products) =>
+                      timeFuture[Empty](
+                        "updateStore",
+                        storeService.updateStore(
+                          ApiUpdateStore(
+                            storeId.storeId,
+                            Some(
+                              ApiStoreUpdateInfo(
+                                products = products.toSeq,
+                                event = Some(ApiEventId(event.eventId)),
+                                venue = Some(ApiVenueId("test-venue-id")),
+                                location =
+                                  Some(ApiLocationId("test-location-id"))
+                              )
+                            )
+                          )
+                        ),
+                        timeReport
+                      )
+                    })
+                } yield temp,
+                10 seconds
+              ),
+            () => {
+              val event = ApiGetEventById(
+                eventIds.toArray.apply(r.nextInt(eventIds.size)).eventId
+              )
+              result.map { case (storeId, products) =>
+                ApiUpdateStore(
+                  storeId.storeId,
+                  Some(
+                    ApiStoreUpdateInfo(
+                      products = products.toSeq,
+                      event = Some(ApiEventId(event.eventId)),
+                      venue = Some(ApiVenueId("test-venue-id")),
+                      location = Some(ApiLocationId("test-location-id"))
+                    )
+                  )
+                )
+                Empty.defaultInstance
+              }
+            }
+          )
           result
       }
 
@@ -892,7 +1092,7 @@ class TestGatewayApiActionImpl(creationContext: ActionCreationContext)
 
   private def genApiRegisterInitialMember(
       forTenant: Option[ApiTenantId] = None
-  ) = {
+  ): ApiRegisterMember = {
     val r = new scala.util.Random()
 
     log.info(

@@ -4,7 +4,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.parser
 import io.circe.syntax.EncoderOps
-import io.gatling.core.Predef.{pace, pause, _}
+import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef._
 import org.slf4j.LoggerFactory
@@ -12,12 +12,10 @@ import io.gatling.core.body.BodySupport
 import io.gatling.core.session.Expression
 import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.protocol.HttpProtocolBuilder
-import shapeless.syntax.inject.InjectSyntax
 
 import scala.util.Random
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import java.time._
-import scala.collection.immutable.Map
 import scala.math.floor
 
 class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
@@ -28,7 +26,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
 
   val httpProtocol: HttpProtocolBuilder = http
     .baseUrl(
-      s"https://${config.getString("app.improving.akka.grpc.gateway-client-url")}"
+      s"http://localhost:9000"
     )
     .acceptHeader(
       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/json"
@@ -244,7 +242,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
     "Query MemberByDateTime Query Scenario Init"
   ).repeat(repeat) {
     exec(PurchaseTickets)
-      .exec(exec(QueryMemberByEventTime))
+      //.exec(exec(QueryMemberByEventTime))
       .pause(myPause)
   }
 
@@ -257,7 +255,7 @@ class TestMemberByDateTimeQuerySimulation extends Simulation with BodySupport {
   private val initialInjectionProfile = rampUsers(1).during(10 seconds)
 
   private val injectionProfile =
-    (constantUsersPerSec(1) during (5 seconds)) :: (2 to 10).toList.flatMap(i =>
+    (constantUsersPerSec(1) during (5 seconds)) :: (2 to 12).toList.flatMap(i =>
       List(
         nothingFor(150 seconds),
         rampUsers(i) during (floor(i / 2).toInt seconds)

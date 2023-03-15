@@ -88,7 +88,7 @@ object Packaging {
           dockerExecCommand.value ++ Seq(
             "buildx",
             "build",
-            "--platform=linux/amd64",
+            "--platform=linux/amd64/v8",
             "--load"
           ) ++ dockerBuildOptions.value :+ "."
         } else dockerBuildCommand.value
@@ -133,7 +133,7 @@ object Kalix {
       .settings(
         name := componentName,
         run / fork := true,
-        run / javaOptions += s"-Dkalix.user-function-port=$port",
+        run / javaOptions += s"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Dkalix.user-function-port=$port ",
         libraryDependencies ++= utilityDependencies ++ loggingDependencies ++ scalaPbDependencies ++ scalaPbValidationDependencies,
         Compile / managedSourceDirectories ++= Seq(
           target.value / "scala-2.13" / "akka-grpc",

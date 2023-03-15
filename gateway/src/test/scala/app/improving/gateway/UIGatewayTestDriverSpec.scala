@@ -12,7 +12,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import app.improving.gateway.util.util._
+import app.improving.gateway.util.util.{endFromResults, _}
 import app.improving.membercontext.member.MembersByEventTimeRequest
 import app.improving.productcontext.AllProductsRequest
 import app.improving.productcontext.product.ApiProductDetails.ApiTicket
@@ -122,12 +122,12 @@ class UIGatewayTestDriverSpec
         requestParamsOrParsingFailure.getOrElse(JsonObject.empty.asJson)
 
       val info = ScenarioInfo(
-        json.hcursor.downField("num_tenants").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_depth").as[Int].getOrElse(0),
-        json.hcursor.downField("max_orgs_width").as[Int].getOrElse(0),
-        json.hcursor.downField("num_members_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_events_per_org").as[Int].getOrElse(0),
-        json.hcursor.downField("num_tickets_per_event").as[Int].getOrElse(0)
+        numTenants = 1,
+        maxOrgsDepth = 2,
+        maxOrgsWidth = 2,
+        numMembersPerOrg = 1,
+        numEventsPerOrg = 1,
+        numTicketsPerEvent = 1
       )
 
       val scenarioResult =

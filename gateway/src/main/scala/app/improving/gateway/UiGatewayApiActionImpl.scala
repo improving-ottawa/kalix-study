@@ -1,6 +1,7 @@
 package app.improving.gateway
 
 import akka.actor.ActorSystem
+import app.improving.common.infrastructure.util.useGrpcResultOrGenerate
 import app.improving.eventcontext.event.{
   ApiEvent,
   ApiGetEventById,
@@ -27,9 +28,10 @@ import app.improving.ordercontext.{
   AllOrdersView,
   OrderByProductQuery,
   OrderByProductRequest,
-  OrderByProductResponse
+  OrderByProductResponse,
+  OrderResponse
 }
-import app.improving.{ApiMemberId, ApiOrderIds, ApiStoreId}
+import app.improving.{ApiMemberId, ApiOrderId, ApiOrderIds, ApiSku, ApiStoreId}
 import app.improving.ordercontext.order.{ApiCreateOrder, OrderAction}
 import app.improving.organizationcontext.{
   AllOrganizationsRequest,
@@ -42,7 +44,8 @@ import app.improving.productcontext.{
   AllProductsView,
   TicketByEventTimeQuery,
   TicketByEventTimeRequest,
-  TicketByEventTimeResponse
+  TicketByEventTimeResponse,
+  TicketEventCorrTableRow
 }
 import app.improving.productcontext.product.{
   ApiGetProductInfo,
@@ -163,7 +166,7 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     )
   )
 
-  val ticketByEventTimeView = creationContext.getGrpcClient(
+  private val ticketByEventTimeView = creationContext.getGrpcClient(
     classOf[TicketByEventTimeQuery],
     config.getString(
       "app.improving.gateway.product.grpc-client-name"
@@ -261,17 +264,26 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
           .sequence(purchaseTicketRequest.ordersForStoresForMembers.map {
             case (memberId, ordersForStores) =>
               Future
-                .sequence(ordersForStores.ordersForStores.map {
-                  case (storeId, orderInfo) =>
-                    orderAction.purchaseTicket(
-                      ApiCreateOrder(
-                        UUID.randomUUID().toString,
-                        Some(orderInfo),
-                        Some(ApiMemberId(memberId)),
-                        Some(ApiStoreId(storeId))
+                .sequence(
+                  ordersForStores.ordersForStores.map {
+                    case (storeId, orderInfo) =>
+                      useGrpcResultOrGenerate[Future[ApiOrderId]](
+                        () =>
+                          orderAction.purchaseTicket(
+                            ApiCreateOrder(
+                              UUID.randomUUID().toString,
+                              Some(orderInfo),
+                              Some(ApiMemberId(memberId)),
+                              Some(ApiStoreId(storeId))
+                            )
+                          ),
+                        () =>
+                          Future.successful(
+                            ApiOrderId(UUID.randomUUID().toString)
+                          )
                       )
-                    )
-                }.toSeq)
+                  }.toSeq
+                )
           }.toSeq)
           .map { reqs =>
             log.info(s"handlePurchase - reqs: $reqs")
@@ -287,12 +299,17 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetProductInfoById")
 
     effects.asyncReply(
-      productService
-        .getProductInfo(
-          ApiGetProductInfo(
-            getProductInfoById.sku
-          )
-        )
+      useGrpcResultOrGenerate[Future[ApiProductInfoResult]](
+        () =>
+          productService
+            .getProductInfo(
+              ApiGetProductInfo(
+                getProductInfoById.sku
+              )
+            ),
+        () =>
+          Future.successful(ApiProductInfoResult(getProductInfoById.sku, None))
+      )
     )
   }
 
@@ -303,10 +320,14 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetEventById")
 
     effects.asyncReply(
-      eventService.getEventById(
-        ApiGetEventById(
-          getEventById.eventId
-        )
+      useGrpcResultOrGenerate[Future[ApiEvent]](
+        () =>
+          eventService.getEventById(
+            ApiGetEventById(
+              getEventById.eventId
+            )
+          ),
+        () => Future.successful(ApiEvent(getEventById.eventId, None))
       )
     )
   }
@@ -318,10 +339,19 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetOrdersByProductId")
 
     effects.asyncReply(
-      orderByProductQuery.findOrdersByProduct(
-        OrderByProductRequest(
-          getOrdersByProductId.sku
-        )
+      useGrpcResultOrGenerate[Future[OrderByProductResponse]](
+        () =>
+          orderByProductQuery.findOrdersByProduct(
+            OrderByProductRequest(
+              getOrdersByProductId.sku
+            )
+          ),
+        () =>
+          Future.successful(
+            OrderByProductResponse(
+              Seq(OrderResponse(UUID.randomUUID().toString))
+            )
+          )
       )
     )
   }
@@ -332,7 +362,22 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     log.info("in handleGetTicketByEventTime")
 
     effects.asyncReply(
-      ticketByEventTimeView.findProductsByEventTime(ticketByEventTimeRequest)
+      useGrpcResultOrGenerate[Future[TicketByEventTimeResponse]](
+        () =>
+          ticketByEventTimeView.findProductsByEventTime(
+            ticketByEventTimeRequest
+          ),
+        () =>
+          Future.successful(
+            TicketByEventTimeResponse(
+              Seq(
+                TicketEventCorrTableRow(
+                  Some(ApiSku(UUID.randomUUID().toString))
+                )
+              )
+            )
+          )
+      )
     )
   }
 }
