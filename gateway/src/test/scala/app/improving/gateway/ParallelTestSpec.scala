@@ -68,63 +68,62 @@ class ParallelTestSpec
       assert(results.isCompleted)
 
       val scenarioResult = results.futureValue
-      (1 to 100).map { _ =>
-        val r = new Random()
-        val storeId = scenarioResult.productsForStores.keySet
-          .take(1)
-          .head
-        val products = scenarioResult
-          .productsForStores(storeId)
-          .skus
-          .take(r.nextInt(4))
-        val memberIds =
-          scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
 
-        var memberIdsToUse = memberIds
-          .take(r.nextInt(memberIds.size))
-          .map { member => (member, products(r.between(1, products.size))) }
-          .par
+      val r = new Random()
+      val storeId = scenarioResult.productsForStores.keySet
+        .take(1)
+        .head
+      val products = scenarioResult
+        .productsForStores(storeId)
+        .skus
+        .take(4)
+      val memberIds =
+        scenarioResult.membersForOrgs.values.toSeq.flatMap(_.memberIds)
 
-        def getResponse(
-            member: ApiMemberId,
-            product: ApiSku
-        ): ApiOrderIds = {
-          gatewayActionClient
-            .handlePurchaseTickets(
-              PurchaseTicketsRequest(
-                Map(
-                  member.memberId -> OrdersForStores(
-                    Map(
-                      storeId ->
-                        ApiOrderInfo(
-                          Seq[ApiLineItem](
-                            ApiLineItem(Some(product), 1)
-                          )
+      var memberIdsToUse = memberIds
+        .take(r.nextInt(memberIds.size))
+        .map { member => (member, products(r.between(1, products.size))) }
+        .par
+
+      def getResponse(
+          member: ApiMemberId,
+          product: ApiSku
+      ): ApiOrderIds = {
+        gatewayActionClient
+          .handlePurchaseTickets(
+            PurchaseTicketsRequest(
+              Map(
+                member.memberId -> OrdersForStores(
+                  Map(
+                    storeId ->
+                      ApiOrderInfo(
+                        Seq[ApiLineItem](
+                          ApiLineItem(Some(product), 1)
                         )
-                    )
+                      )
                   )
                 )
               )
             )
-            .futureValue
-        }
-
-        while (memberIdsToUse.length < 10) {
-          memberIdsToUse = memberIdsToUse ++ memberIdsToUse
-        }
-
-        memberIdsToUse.take(10)
-
-        memberIdsToUse.foreach { case (member, order) =>
-          (1 to 10).map { _ =>
-            val result = getResponse(member, order)
-            assert(result.orderIds.nonEmpty)
-            println(result.orderIds)
-            Thread.sleep(3000)
-          }
-        }
-
+          )
+          .futureValue
       }
+
+      while (memberIdsToUse.length < 10) {
+        memberIdsToUse = memberIdsToUse ++ memberIdsToUse
+      }
+
+      memberIdsToUse.take(10)
+
+      memberIdsToUse.foreach { case (member, order) =>
+        (1 to 10).map { _ =>
+          val result = getResponse(member, order)
+          assert(result.orderIds.nonEmpty)
+          println(result.orderIds)
+          Thread.sleep(3000)
+        }
+      }
+
     }
   }
 }

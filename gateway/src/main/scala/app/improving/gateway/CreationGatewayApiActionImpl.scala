@@ -35,12 +35,8 @@ import app.improving.membercontext.member.{
   MemberService
 }
 import app.improving.ordercontext.{
-  AllOrdersRequest,
-  AllOrdersResult,
   AllOrdersView,
-  OrderByProductQuery,
-  OrderByProductRequest,
-  OrderByProductResponse
+  OrderByProductQuery
 }
 import app.improving.ordercontext.order.{
   ApiCreateOrder,
@@ -56,29 +52,15 @@ import app.improving.organizationcontext.organization.{
 }
 import app.improving.productcontext.product.{
   ApiCreateProduct,
-  ApiGetProductInfo,
-  ApiProductInfoResult,
   ApiReleaseProduct,
   ProductService
 }
 import app.improving.storecontext.store.{ApiCreateStore, ApiReleaseStore}
-import app.improving.productcontext.{
-  AllProductsRequest,
-  AllProductsResult,
-  AllProductsView
-}
+import app.improving.productcontext.AllProductsView
 import app.improving.storecontext.store.StoreService
 import app.improving.tenantcontext.tenant.{ApiEstablishTenant, TenantService}
-import app.improving.storecontext.{
-  AllStoresRequest,
-  AllStoresResult,
-  AllStoresView
-}
-import app.improving.tenantcontext.{
-  AllTenantResult,
-  AllTenantsView,
-  GetAllTenantRequest
-}
+import app.improving.storecontext.AllStoresView
+import app.improving.tenantcontext.AllTenantsView
 import com.typesafe.config.{Config, ConfigFactory}
 import kalix.scalasdk.action.Action
 import kalix.scalasdk.action.ActionCreationContext
@@ -94,8 +76,6 @@ import scala.concurrent.Future
 
 class CreationGatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractCreationGatewayApiAction {
-
-  private implicit val system: ActorSystem = ActorSystem("GatewayApiActionImpl")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 

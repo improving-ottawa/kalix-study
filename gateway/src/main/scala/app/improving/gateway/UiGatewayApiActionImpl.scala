@@ -78,8 +78,6 @@ import scala.concurrent.Future
 class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
     extends AbstractUiGatewayApiAction {
 
-  private implicit val system: ActorSystem = ActorSystem("GatewayApiActionImpl")
-
   private val log = LoggerFactory.getLogger(this.getClass)
 
   lazy val config: Config = ConfigFactory.load()
@@ -226,7 +224,7 @@ class UiGatewayApiActionImpl(creationContext: ActionCreationContext)
         .getAllMembers(AllMembersRequest())
         .runFold(AllMembersResult.defaultInstance)((accum, elem) => {
           AllMembersResult(accum.members :+ elem)
-        })
+        })(creationContext.materializer())
     )
   }
 
